@@ -1,0 +1,8 @@
+{
+  "id": "com.example.hello",
+  "name": "Hello",
+  "version": "0.1.0",
+  "entry": "App.tsx",
+  "permissions": ["storage", "ui"],
+  "theme": { "followsHost": true }
+}
