@@ -30,6 +30,14 @@ var BLURB = {
   "com.deepseek.aiagentnews": "AI Agent 头条与摘要",
 };
 
+/* 卡片方案 monogram：host 端已算好 acronym（manifest 优先，否则按中文名拼音声母）。 */
+function clampCardStyle(v) {
+  return v === "hero" || v === "etch" ? v : "stamp";
+}
+function monoOf(a) {
+  return (a && a.acronym) || "AP";
+}
+
 var state = {
   tabs: [{ id: "all", title: "全部", kind: "all" }],
   active: "all",
@@ -46,6 +54,13 @@ var state = {
   })(),
   theme: "light",
   palette: "default",
+  cardStyle: (function () {
+    try {
+      return clampCardStyle(localStorage.getItem("mma-card-style"));
+    } catch (_) {
+      return "stamp";
+    }
+  })(),
   visible: false,
   pendingDelete: null,
 };
@@ -305,11 +320,41 @@ function installFootCss() {
     "#mma-host .mma-search svg{position:absolute;left:10px;top:9px;opacity:.45;pointer-events:none;}",
     "#mma-host .mma-grid{padding:8px 16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}",
     "#mma-host[data-dock='side'] .mma-grid{grid-template-columns:minmax(0,1fr);}",
-    "#mma-host .mma-card{text-align:left;padding:14px;border-radius:var(--radius,12px);border:1px solid var(--dsw-alias-border,#e5e7eb);background:var(--dsw-alias-surface,#fff);color:var(--dsw-alias-fg,#111);cursor:pointer;display:flex;gap:12px;align-items:flex-start;transition:border-color .12s ease,box-shadow .12s ease,transform .12s ease,background-color .22s ease;}",
-    "#mma-host .mma-card:hover{border-color:var(--dsw-alias-primary,#3b82f6);box-shadow:0 8px 22px var(--dsw-alias-shadow,rgba(0,0,0,.08));transform:translateY(-1px);background:var(--dsw-alias-accent,var(--dsw-alias-surface,#fff));}",
-    "#mma-host .mma-avatar{width:36px;height:36px;border-radius:10px;flex:0 0 36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;}",
-    "#mma-host .mma-card h3{margin:0 0 4px;font-size:14px;font-weight:650;display:flex;align-items:center;gap:8px;}",
-    "#mma-host .mma-card p{margin:0;font-size:12px;color:var(--muted-foreground,inherit);opacity:.85;line-height:1.45;}",
+    "#mma-host .mma-card,#mma-host .mma-row{text-align:left;border-radius:13px;border:1px solid var(--dsw-alias-border,#e5e7eb);background:var(--dsw-alias-surface,#fff);color:var(--dsw-alias-fg,#111);cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease,background-color .22s ease;}",
+    "#mma-host .mma-card{display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:16px 15px 13px;position:relative;overflow:hidden;}",
+    "#mma-host .mma-row{display:flex;align-items:center;gap:12px;padding:10px 12px;position:relative;overflow:hidden;width:100%;}",
+    "#mma-host .mma-card h3,#mma-host .mma-row .mma-t{font-size:14px;font-weight:650;margin:0;letter-spacing:.1px;position:relative;z-index:1;}",
+    "#mma-host .mma-card p,#mma-host .mma-row small{font-size:12px;color:var(--muted-foreground,inherit);opacity:.85;line-height:1.45;}",
+    "#mma-host .mma-card p{margin:0;position:relative;z-index:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}",
+    "#mma-host .mma-row .mma-twrap{flex:1;min-width:0;position:relative;z-index:1;}",
+    "#mma-host .mma-row small{display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
+    "#mma-host .mma-row .mma-right{margin-left:auto;display:flex;align-items:center;gap:7px;flex:0 0 auto;position:relative;z-index:1;}",
+    "#mma-host .mma-chev{color:var(--muted-foreground,inherit);opacity:.5;width:14px;height:14px;}",
+    "#mma-host .mma-meta{display:flex;align-items:center;gap:10px;margin-top:9px;position:relative;z-index:1;}",
+    "#mma-host .mma-ver{font-size:10.5px;color:var(--muted-foreground,inherit);opacity:.8;letter-spacing:.2px;white-space:nowrap;}",
+    "#mma-host .mma-open{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--dsw-alias-primary,#3b82f6);white-space:nowrap;}",
+    "#mma-host .mma-open i{width:6px;height:6px;border-radius:99px;background:var(--dsw-alias-primary,#3b82f6);}",
+    // ① Hero 海报：渐变文字 monogram + 右上光晕（grid 竖排卡 / side 微缩行同元素）
+    "#mma-host[data-cardstyle='hero'] .mma-card::before,#mma-host[data-cardstyle='hero'] .mma-row::before{content:'';position:absolute;top:-28px;right:-20px;width:140px;height:120px;background:radial-gradient(62% 62% at 62% 40%,hsl(var(--h,215) 80% 60% / .20),transparent 72%);transition:opacity .16s ease;pointer-events:none;}",
+    "#mma-host[data-cardstyle='hero'] .mma-card:hover::before,#mma-host[data-cardstyle='hero'] .mma-row:hover::before{opacity:1.3;}",
+    "#mma-host[data-cardstyle='hero'] .mma-card:hover,#mma-host[data-cardstyle='hero'] .mma-row:hover{border-color:hsl(var(--h,215) 70% 60% / .45);box-shadow:0 8px 22px var(--dsw-alias-shadow,rgba(0,0,0,.08));transform:translateY(-1px);}",
+    "#mma-host[data-cardstyle='hero'] .mma-mono{font-size:52px;font-weight:800;letter-spacing:2px;line-height:1.05;position:relative;z-index:1;margin-bottom:11px;color:hsl(var(--h,215) 60% 40%);}",
+    "@supports (-webkit-background-clip:text){#mma-host[data-cardstyle='hero'] .mma-mono{background:linear-gradient(135deg,hsl(var(--h,215) 72% 42%),hsl(var(--h,215) 72% 62%));-webkit-background-clip:text;background-clip:text;color:transparent;}}",
+    "@supports (-webkit-background-clip:text){#mma-host[data-theme='dark'][data-cardstyle='hero'] .mma-mono{background:linear-gradient(135deg,hsl(var(--h,215) 85% 70%),hsl(var(--h,215) 85% 84%));-webkit-background-clip:text;background-clip:text;color:transparent;}}",
+    "#mma-host[data-cardstyle='hero'] .mma-row .mma-mono{font-size:27px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin:0;flex:0 0 34px;}",
+    // ② 蚀刻空心：大号描边字，hover 填充实心
+    "#mma-host[data-cardstyle='etch'] .mma-etch{font-size:46px;font-weight:800;letter-spacing:2px;line-height:1.02;color:transparent;-webkit-text-stroke:1.5px hsl(var(--h,215) 65% 45%);margin-bottom:10px;transition:color .2s ease;position:relative;z-index:1;}",
+    "#mma-host[data-theme='dark'][data-cardstyle='etch'] .mma-etch{-webkit-text-stroke:1.5px hsl(var(--h,215) 85% 72%);}",
+    "#mma-host[data-cardstyle='etch'] .mma-card:hover,#mma-host[data-cardstyle='etch'] .mma-row:hover{border-color:hsl(var(--h,215) 65% 50% / .5);box-shadow:0 8px 22px var(--dsw-alias-shadow,rgba(0,0,0,.08));transform:translateY(-1px);}",
+    "#mma-host[data-cardstyle='etch'] .mma-card:hover .mma-etch,#mma-host[data-cardstyle='etch'] .mma-row:hover .mma-etch{color:hsl(var(--h,215) 65% 45%);}",
+    "#mma-host[data-theme='dark'][data-cardstyle='etch'] .mma-card:hover .mma-etch,#mma-host[data-theme='dark'][data-cardstyle='etch'] .mma-row:hover .mma-etch{color:hsl(var(--h,215) 85% 72%);}",
+    "#mma-host[data-cardstyle='etch'] .mma-row .mma-etch{flex:0 0 30px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:25px;letter-spacing:1px;margin:0;-webkit-text-stroke-width:1.2px;}",
+    // ③ 印章印刷：右上线框邮戳，hover 黑白反转
+    "#mma-host[data-cardstyle='stamp'] .mma-stamp{position:absolute;top:13px;right:13px;width:44px;height:44px;border:1.5px solid var(--dsw-alias-fg,#111);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;letter-spacing:1px;color:var(--dsw-alias-fg,#111);background:transparent;transition:background-color .18s ease,color .18s ease,transform .18s ease;}",
+    "#mma-host[data-cardstyle='stamp'] .mma-card:hover .mma-stamp,#mma-host[data-cardstyle='stamp'] .mma-row:hover .mma-stamp{background:var(--dsw-alias-fg,#111);color:var(--dsw-alias-surface,#fff);transform:scale(1.05);}",
+    "#mma-host[data-cardstyle='stamp'] .mma-card:hover,#mma-host[data-cardstyle='stamp'] .mma-row:hover{border-color:var(--dsw-alias-fg,#111);box-shadow:0 8px 22px var(--dsw-alias-shadow,rgba(0,0,0,.08));transform:translateY(-1px);}",
+    "#mma-host[data-cardstyle='stamp'] .mma-card h3,#mma-host[data-cardstyle='stamp'] .mma-card p{padding-right:52px;}",
+    "#mma-host[data-cardstyle='stamp'] .mma-row .mma-stamp{position:static;width:36px;height:36px;font-size:12px;border-radius:8px;flex:0 0 36px;}",
     "#mma-host .mma-open-dot{width:7px;height:7px;border-radius:99px;background:var(--dsw-alias-primary,#3b82f6);display:inline-block;}",
     "#mma-host .mma-empty{padding:24px;opacity:.75;line-height:1.6;}",
     "#mma-host .mma-error{padding:24px;color:#b91c1c;}",
@@ -633,6 +678,12 @@ function ensureSkeleton() {
     '<select id="mma-cfg-palette">' +
     paletteOptionsHtml() +
     "</select></div>" +
+    '<div class="mma-field"><label for="mma-cfg-cardstyle">卡片方案（列表样式）</label>' +
+    '<select id="mma-cfg-cardstyle">' +
+    '<option value="stamp">印章 · 线框邮戳</option>' +
+    '<option value="hero">海报 · 渐变字 + 光晕</option>' +
+    '<option value="etch">蚀刻 · 空心描边字</option>' +
+    "</select></div>" +
     '<div class="mma-field"><label for="mma-cfg-provider">模型 provider</label>' +
     '<input id="mma-cfg-provider" type="text" /></div>' +
     '<div class="mma-field"><label for="mma-cfg-model">模型 model</label>' +
@@ -650,6 +701,7 @@ function ensureSkeleton() {
     '<button type="button" class="go" id="mma-dialog-ok">删除</button>' +
     "</div></div></div></div>";
   host.setAttribute("data-ready", "1");
+  host.setAttribute("data-cardstyle", state.cardStyle);
   bindHost(host);
   startSidebarSync();
   return host;
@@ -831,29 +883,7 @@ function paintList() {
   } else {
     body =
       '<div class="mma-grid">' +
-      apps
-        .map(function (a) {
-          var open = state.tabs.some(function (t) {
-            return t.id === "app:" + a.id;
-          });
-          var letter = String(a.name || a.id).slice(0, 1).toUpperCase();
-          return (
-            '<button type="button" class="mma-card" data-open="' +
-            escapeHtml(a.id) +
-            '">' +
-            '<span class="mma-avatar" style="background:hsl(' +
-            hue(a.id) +
-            ',55%,46%)">' +
-            escapeHtml(letter) +
-            "</span><span><h3>" +
-            escapeHtml(a.name || a.id) +
-            (open ? '<i class="mma-open-dot" title="已打开"></i>' : "") +
-            "</h3><p>" +
-            escapeHtml(appBlurb(a)) +
-            "</p></span></button>"
-          );
-        })
-        .join("") +
+      apps.map(appItemMarkup).join("") +
       "</div>";
   }
   el.querySelector("#mma-list-body").innerHTML = body;
@@ -862,6 +892,56 @@ function paintList() {
     retry.onclick = function () {
       fetchApps();
     };
+}
+
+function appOpen(a) {
+  return state.tabs.some(function (t) {
+    return t.id === "app:" + a.id;
+  });
+}
+function metaMarkup(a) {
+  var parts = [];
+  if (a.commits > 0) parts.push('<span class="mma-ver">' + a.commits + " commits</span>");
+  if (appOpen(a)) parts.push('<span class="mma-open"><i></i>已打开</span>');
+  return parts.length ? '<span class="mma-meta">' + parts.join("") + "</span>" : "";
+}
+function markMarkup(a) {
+  var mono = escapeHtml(monoOf(a));
+  if (state.cardStyle === "etch") return '<span class="mma-etch">' + mono + "</span>";
+  if (state.cardStyle === "stamp") return '<span class="mma-stamp">' + mono + "</span>";
+  return '<span class="mma-mono">' + mono + "</span>";
+}
+function appItemMarkup(a) {
+  var attrs = ' data-open="' + escapeHtml(a.id) + '" style="--h:' + hue(a.id) + '"';
+  if (state.dock === "side") {
+    var right = appOpen(a)
+      ? '<span class="mma-right"><span class="mma-open"><i></i>已打开</span></span>'
+      : '<span class="mma-right">' +
+        (a.commits > 0 ? '<span class="mma-ver">' + a.commits + " commits</span>" : "") +
+        '<svg class="mma-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></span>';
+    return (
+      '<button type="button" class="mma-row"' + attrs + ">" +
+      markMarkup(a) +
+      '<span class="mma-twrap"><span class="mma-t">' +
+      escapeHtml(a.name || a.id) +
+      "</span><small>" +
+      escapeHtml(appBlurb(a)) +
+      "</small></span>" +
+      right +
+      "</button>"
+    );
+  }
+  return (
+    '<button type="button" class="mma-card"' + attrs + ">" +
+    markMarkup(a) +
+    "<h3>" +
+    escapeHtml(a.name || a.id) +
+    "</h3><p>" +
+    escapeHtml(appBlurb(a)) +
+    "</p>" +
+    metaMarkup(a) +
+    "</button>"
+  );
 }
 
 function appFrameSrc(appId) {
@@ -948,6 +1028,8 @@ function setDock(next) {
   } catch (_) {}
   syncHostToSidebar(true);
   paintChrome();
+  // fill 用卡片模板、side 用行模板，DOM 结构不同，切换 dock 必须重渲染列表
+  paintList();
   postEnvToFrames();
 }
 
@@ -1120,6 +1202,7 @@ function loadHostConfigIntoForm() {
       host.querySelector("#mma-cfg-lang").value = j.chatLanguage === "en" ? "en" : "zh";
       host.querySelector("#mma-cfg-theme").value = j.theme === "dark" ? "dark" : "light";
       host.querySelector("#mma-cfg-palette").value = clampPalette(j.palette);
+      host.querySelector("#mma-cfg-cardstyle").value = state.cardStyle;
       host.querySelector("#mma-cfg-provider").value = (j.llm && j.llm.provider) || "deepseek-official";
       host.querySelector("#mma-cfg-model").value = (j.llm && j.llm.model) || "deepseek-v4-flash";
     })
@@ -1135,6 +1218,7 @@ function saveHostConfig() {
   var host = ensureSkeleton();
   var msg = host.querySelector("#mma-cfg-msg");
   var port = Number(host.querySelector("#mma-cfg-port").value);
+  var cardStyle = host.querySelector("#mma-cfg-cardstyle").value;
   var body = {
     hostPort: port,
     chatLanguage: host.querySelector("#mma-cfg-lang").value,
@@ -1170,6 +1254,7 @@ function saveHostConfig() {
         msg.textContent = "已保存 · Host :" + j.hostPort;
       }
       setAppearance({ theme: body.theme, palette: body.palette });
+      setCardStyle(cardStyle);
       render();
     })
     .catch(function (e) {
@@ -1178,6 +1263,15 @@ function saveHostConfig() {
         msg.textContent = String(e && e.message ? e.message : e);
       }
     });
+}
+
+function setCardStyle(v) {
+  state.cardStyle = clampCardStyle(v);
+  try {
+    localStorage.setItem("mma-card-style", state.cardStyle);
+  } catch (_) {}
+  var host = document.getElementById("mma-host");
+  if (host) host.setAttribute("data-cardstyle", state.cardStyle);
 }
 
 function openDashboard() {

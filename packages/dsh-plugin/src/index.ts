@@ -12,6 +12,25 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+
+/** commits 计数：app 无 version 概念，以 git 历史提交次数为准。带 TTL 缓存避免每次拉列表都跑 git。 */
+const commitCountCache = new Map<string, { at: number; count: number }>();
+const COMMIT_TTL_MS = 60_000;
+async function gitCommitCount(dir: string): Promise<number> {
+  const hit = commitCountCache.get(dir);
+  if (hit && Date.now() - hit.at < COMMIT_TTL_MS) return hit.count;
+  let count = 0;
+  try {
+    const { stdout } = await execFileAsync("git", ["-C", dir, "rev-list", "--count", "HEAD"], {
+      timeout: 4000,
+    });
+    count = parseInt(String(stdout).trim(), 10) || 0;
+  } catch {
+    count = 0;
+  }
+  commitCountCache.set(dir, { at: Date.now(), count });
+  return count;
+}
 import { createRuntime } from "@monkey-mini-app/runtime-core";
 import { createNodeHostPort } from "@monkey-mini-app/adapter-node";
 import { createHistory } from "@monkey-mini-app/app-history";
@@ -35,6 +54,20 @@ import {
   type HostConfig,
 } from "./host-config.js";
 import { clampPalette, runnerThemeCss } from "./themes.js";
+import { pinyin } from "pinyin-pro";
+
+/** 中文名 → 双字母缩写：前两个汉字拼音声母（大写）。英文名回退取前两个字母字符。 */
+export function acronymOf(name: unknown, manifestAcronym: string): string {
+  if (manifestAcronym) return manifestAcronym;
+  const s = String(name ?? "");
+  if (!s) return "";
+  const arr = pinyin(s, { pattern: "first", toneType: "none", type: "array" });
+  return arr
+    .join("")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export const name = "monkey-mini-app";
 
@@ -1147,7 +1180,30 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
   // HTTP for dashboard — dsh webServer.register({ kind, path, handler })
   const handleApps = async () => {
     try {
-      return await handlers.mini_app_list({});
+      const out = (await handlers.mini_app_list({})) as { apps?: any[]; runtimeRoot?: string };
+      const apps = Array.isArray(out?.apps) ? out.apps : [];
+      // 自包含：不引用外部 appDirOf/readJsonSafe（esbuild 对前向引用重命名不可靠）
+      const dirOf = (appId: string) => path.join(runtimeRoot, "apps", appId);
+      const readMan = (p: string) => {
+        try {
+          return JSON.parse(fs.readFileSync(p, "utf8"));
+        } catch {
+          return {};
+        }
+      };
+      const withMeta = await Promise.all(
+        apps.map(async (a: any) => {
+          const dir = dirOf(a.id);
+          const man = readMan(path.join(dir, "manifest.json")) as { acronym?: unknown };
+          const manifestAcronym =
+            typeof man.acronym === "string" && /^[a-zA-Z0-9]{2}$/.test(man.acronym)
+              ? man.acronym.toUpperCase()
+              : "";
+          const commits = await gitCommitCount(dir);
+          return { ...a, acronym: acronymOf(a.name, manifestAcronym), commits };
+        })
+      );
+      return { apps: withMeta };
     } catch (e) {
       return { apps: [], error: String(e) };
     }
