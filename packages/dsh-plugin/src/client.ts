@@ -288,7 +288,7 @@ function installFootCss() {
     "#mma-host .mma-tabs{display:flex;align-items:center;gap:2px;flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:thin;}",
     "#mma-host .mma-tab{display:inline-flex;align-items:center;flex:0 0 auto;max-width:140px;height:32px;padding:0 10px;border:0;border-bottom:2px solid transparent;background:transparent;cursor:pointer;font-size:13px;font-weight:500;color:inherit;opacity:.7;white-space:nowrap;border-radius:8px 8px 0 0;}",
     "#mma-host .mma-tab[data-active='1']{font-weight:600;opacity:1;border-bottom-color:var(--dsw-alias-primary,#3b82f6);color:var(--dsw-alias-primary,#3b82f6);}",
-    "#mma-host .mma-tab>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
+    "#mma-host .mma-tab>span{display:inline-flex;align-items:center;gap:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
     "#mma-host .mma-tab-x{margin-left:6px;border:0;background:transparent;cursor:pointer;opacity:.55;color:inherit;padding:0 2px;line-height:1;font-size:14px;flex:0 0 auto;}",
     "#mma-host [hidden]{display:none !important;}",
     "#mma-host .mma-iconbtn{width:32px;height:32px;border:0;border-radius:8px;background:transparent;cursor:pointer;color:inherit;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;}",
@@ -819,7 +819,11 @@ function paintChrome() {
             '" aria-label="关闭 ' +
             escapeHtml(tb.title) +
             '">×</button>';
-      var label = tb.id === "all" ? "全部" : tb.title;
+      var label =
+        tb.id === "all"
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/></svg>' +
+            escapeHtml("全部")
+          : escapeHtml(tb.title);
       return (
         '<button type="button" class="mma-tab" data-tab="' +
         escapeHtml(tb.id) +
@@ -828,7 +832,7 @@ function paintChrome() {
         '" title="' +
         escapeHtml(tb.id === "all" ? "全部小程序" : tb.title) +
         '"><span>' +
-        escapeHtml(label) +
+        label +
         "</span>" +
         close +
         "</button>"
