@@ -162,6 +162,7 @@ export default function Ui() {
 | 筛选、表格类 CRUD | `templates/todo/` |
 | RSS + `ctx.http` + `./lib` + 结构化 LLM | `templates/news/` |
 | 本机指标 + bash 解析 | `templates/sysmon/` |
+| 编辑/diff/日志/用例表格（复杂组件示例） | `templates/fixbench/` |
 | 报错 | [references/troubleshoot.md](references/troubleshoot.md) |
 
 普通 storage CRUD **先用上面骨架**，不要为了记笔记去读整份 Todo。模板是风格样板：中文产品文案、`call` 自己管 loading/error、后端可用 TypeScript。

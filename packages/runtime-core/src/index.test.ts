@@ -70,7 +70,7 @@ describe("runtime-core", () => {
         name: "No",
         version: "0.0.1",
         entry: "App.tsx",
-        permissions: [],
+        permissions: ["ui"], // 显式声明权限但无 storage → storage.get 应拒绝（空数组 = 全部允许）
       }),
       "App.tsx": "export default function App(){return null}",
     });

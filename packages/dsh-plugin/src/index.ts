@@ -16,7 +16,7 @@ const execFileAsync = promisify(execFile);
 /** commits 计数：app 无 version 概念，以 git 历史提交次数为准。带 TTL 缓存避免每次拉列表都跑 git。 */
 const commitCountCache = new Map<string, { at: number; count: number }>();
 const COMMIT_TTL_MS = 60_000;
-async function gitCommitCount(dir: string): Promise<number> {
+export async function gitCommitCount(dir: string): Promise<number> {
   const hit = commitCountCache.get(dir);
   if (hit && Date.now() - hit.at < COMMIT_TTL_MS) return hit.count;
   let count = 0;
@@ -33,7 +33,7 @@ async function gitCommitCount(dir: string): Promise<number> {
 }
 
 /** git log：id / 时间戳 / message（新→旧）。无 git 仓库返回空数组。 */
-async function gitLog(dir: string, limit: number): Promise<{ id: string; time: string; message: string }[]> {
+export async function gitLog(dir: string, limit: number): Promise<{ id: string; time: string; message: string }[]> {
   try {
     const { stdout } = await execFileAsync(
       "git",
@@ -61,7 +61,7 @@ async function gitLog(dir: string, limit: number): Promise<{ id: string; time: s
 }
 
 /** 单 commit 的文件改动统计（add/del 行数；二进制或不可解析为 -1）。 */
-async function gitFileStats(dir: string, id: string): Promise<{ path: string; add: number; del: number }[]> {
+export async function gitFileStats(dir: string, id: string): Promise<{ path: string; add: number; del: number }[]> {
   try {
     const { stdout } = await execFileAsync(
       "git",
@@ -82,7 +82,7 @@ async function gitFileStats(dir: string, id: string): Promise<{ path: string; ad
 }
 
 /** 单文件 diff 预览：最多 maxLines 行，超出省略。 */
-async function gitFilePreview(dir: string, id: string, path: string, maxLines = 18): Promise<string> {
+export async function gitFilePreview(dir: string, id: string, path: string, maxLines = 18): Promise<string> {
   try {
     const { stdout } = await execFileAsync(
       "git",
@@ -119,12 +119,85 @@ import {
   DEFAULT_HOST_CONFIG,
   type HostConfig,
 } from "./host-config.js";
-import { clampPalette, runnerThemeCss } from "./themes.js";
+import { clampMode, clampPalette, runnerThemeCss } from "./themes.js";
 import { pinyin } from "pinyin-pro";
 
+/* —— per-app 主题（存到 app 自己的 theme.json，null = 跟随全局） —— */
+export function appThemeFile(dir: string): string {
+  return path.join(dir, "theme.json");
+}
+export function readAppTheme(dir: string): { theme: string; palette: string } | null {
+  try {
+    const j = JSON.parse(fs.readFileSync(appThemeFile(dir), "utf8")) as { theme?: unknown; palette?: unknown };
+    if (!j.theme) return null;
+    return { theme: clampMode(j.theme), palette: clampPalette(j.palette) };
+  } catch {
+    return null;
+  }
+}
+export function writeAppTheme(
+  dir: string,
+  val: { theme: string; palette: string } | null
+): { theme: string; palette: string } | null {
+  if (!val) {
+    try {
+      fs.unlinkSync(appThemeFile(dir));
+    } catch {
+      /* noop */
+    }
+    return null;
+  }
+  const next = { theme: clampMode(val.theme), palette: clampPalette(val.palette) };
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(appThemeFile(dir), JSON.stringify(next, null, 2));
+  return next;
+}
+
+/* handleApps 的元数据组装：manifest acronym（校验 2 位）+ git commits 数 + per-app theme */
+export async function enrichAppMeta(
+  app: { id: string; name?: string },
+  dir: string
+): Promise<Record<string, unknown>> {
+  const man = (() => {
+    try {
+      return JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8")) as { acronym?: unknown };
+    } catch {
+      return {};
+    }
+  })();
+  const manifestAcronym =
+    typeof man.acronym === "string" && /^[a-zA-Z0-9]{2}$/.test(man.acronym)
+      ? man.acronym.toUpperCase()
+      : "";
+  const commits = await gitCommitCount(dir);
+  return { ...app, acronym: acronymOf(app.name, manifestAcronym), commits, theme: readAppTheme(dir) };
+}
+
+/* storage 浏览：枚举 tables（按更新时间倒序，只 .json） */
+export function listStorageTables(dir: string): { name: string; size: number; updatedAt: string }[] {
+  try {
+    const names = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".json")) : [];
+    return names
+      .map((n) => {
+        const fp = path.join(dir, n);
+        const st = fs.statSync(fp);
+        return { name: n.replace(/\.json$/, ""), size: st.size, updatedAt: st.mtime.toISOString() };
+      })
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  } catch {
+    return [];
+  }
+}
+
+/* storage table 文件路径：basename 防目录穿越，追加 .json 后缀 */
+export function storageTablePath(dir: string, table: string): string {
+  return path.join(dir, path.basename(String(table ?? "")) + ".json");
+}
+
 /** 中文名 → 双字母缩写：前两个汉字拼音声母（大写）。英文名回退取前两个字母字符。 */
-export function acronymOf(name: unknown, manifestAcronym: string): string {
-  if (manifestAcronym) return manifestAcronym;
+export function acronymOf(name: unknown, manifestAcronym: string): string {  if (manifestAcronym && /^[a-zA-Z0-9]{2}$/.test(manifestAcronym)) {
+    return manifestAcronym.toUpperCase();
+  }
   const s = String(name ?? "");
   if (!s) return "";
   const arr = pinyin(s, { pattern: "first", toneType: "none", type: "array" });
@@ -1248,25 +1321,12 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
     try {
       const out = (await handlers.mini_app_list({})) as { apps?: any[]; runtimeRoot?: string };
       const apps = Array.isArray(out?.apps) ? out.apps : [];
-      // 自包含：不引用外部 appDirOf/readJsonSafe（esbuild 对前向引用重命名不可靠）
+      // 自包含：不引用外部 appDirOf（esbuild 对前向引用重命名不可靠）
       const dirOf = (appId: string) => path.join(runtimeRoot, "apps", appId);
-      const readMan = (p: string) => {
-        try {
-          return JSON.parse(fs.readFileSync(p, "utf8"));
-        } catch {
-          return {};
-        }
-      };
       const withMeta = await Promise.all(
         apps.map(async (a: any) => {
           const dir = dirOf(a.id);
-          const man = readMan(path.join(dir, "manifest.json")) as { acronym?: unknown };
-          const manifestAcronym =
-            typeof man.acronym === "string" && /^[a-zA-Z0-9]{2}$/.test(man.acronym)
-              ? man.acronym.toUpperCase()
-              : "";
-          const commits = await gitCommitCount(dir);
-          return { ...a, acronym: acronymOf(a.name, manifestAcronym), commits };
+          return enrichAppMeta(a, dir);
         })
       );
       return { apps: withMeta };
@@ -1541,24 +1601,35 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
         const table = stoMatch[2];
         const dir = path.join(appDirOf(appId), "storage");
         if (table) {
-          const fp = path.join(dir, path.basename(table) + ".json");
+          const fp = storageTablePath(dir, table);
           send(200, JSON.stringify({ ok: true, table, value: readJsonSafe(fp, null) }));
         } else {
-          try {
-            const names = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".json")) : [];
-            const tables = names
-              .map((n) => {
-                const fp = path.join(dir, n);
-                const st = fs.statSync(fp);
-                return { name: n.replace(/\.json$/, ""), size: st.size, updatedAt: st.mtime.toISOString() };
-              })
-              .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-            send(200, JSON.stringify({ ok: true, tables }));
-          } catch {
-            send(200, JSON.stringify({ ok: true, tables: [] }));
-          }
+          send(200, JSON.stringify({ ok: true, tables: listStorageTables(dir) }));
         }
         return;
+      }
+      const themeMatch = url.pathname.match(/^\/api\/apps\/([^/]+)\/theme$/);
+      if (themeMatch) {
+        const appId = decodeURIComponent(themeMatch[1]);
+        const dir = appDirOf(appId);
+        if (req.method === "GET") {
+          send(200, JSON.stringify({ ok: true, appId, theme: readAppTheme(dir) }));
+          return;
+        }
+        if (req.method === "POST") {
+          const chunks: Buffer[] = [];
+          for await (const c of req) chunks.push(c as Buffer);
+          const body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}") as {
+            theme?: string;
+            palette?: string;
+            reset?: boolean;
+          };
+          const saved = body.reset
+            ? writeAppTheme(dir, null)
+            : writeAppTheme(dir, { theme: body.theme || "light", palette: body.palette || "default" });
+          send(200, JSON.stringify({ ok: true, appId, theme: saved }));
+          return;
+        }
       }
       const srcMatch = url.pathname.match(/^\/api\/app\/([^/]+)\/source$/);
       if (srcMatch) {

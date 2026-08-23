@@ -71,5 +71,8 @@ export default defineConfig([
     target: "es2020",
     platform: "browser",
     splitting: false,
+    minify: true,
+    // iframe 无 node_modules：CodeMirror/lezer/TanStack 必须打进 bundle
+    noExternal: [/@codemirror/, /@lezer/, /@tanstack/],
   },
 ]);

@@ -1,0 +1,381 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  body{font:13px system-ui;margin:0;padding:24px;background:#e7e8eb;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  html[data-mode="dark"] body{background:#0d0d0f}
+  .cell{border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--fg);padding:14px;box-shadow:0 1px 2px var(--shadow)}
+  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .head code{font-size:10px;opacity:.6}
+</style></head>
+<body><div class="cell" style="--bg:#f7f7f8;--surface:#ffffff;--fg:#111111;--primary:#2563eb;--accent:#eff6ff;--border:#e5e7eb;--muted:#f3f4f6;--shadow:rgba(15, 23, 42, 0.08);--primary-foreground:#ffffff;--muted-fg:#6b7280">
+    <div class="head"><b>默认</b><code>default · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#0b0b0c;--surface:#171717;--fg:#f4f4f5;--primary:#3b82f6;--accent:#172554;--border:#2a2a2c;--muted:#27272a;--shadow:rgba(0, 0, 0, 0.45);--primary-foreground:#ffffff;--muted-fg:#a1a1aa">
+    <div class="head"><b>默认</b><code>default · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#d5d6db;--surface:#f2f3f8;--fg:#343b59;--primary:#2e7de9;--accent:#dfe6f6;--border:#c9ccd9;--muted:#e9eaf2;--shadow:rgba(30, 40, 90, 0.12);--primary-foreground:#ffffff;--muted-fg:#7c82a4">
+    <div class="head"><b>东京夜</b><code>tokyo · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#1a1b26;--surface:#16161e;--fg:#a9b1d6;--primary:#7aa2f7;--accent:#33467c;--border:#2b2e3d;--muted:#1f2230;--shadow:rgba(0, 0, 0, 0.5);--primary-foreground:#1a1b26;--muted-fg:#787c99">
+    <div class="head"><b>东京夜</b><code>tokyo · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#fdf6e3;--surface:#fefaf0;--fg:#5c6a72;--primary:#93b259;--accent:#e0e6c8;--border:#e3ddc9;--muted:#f2ecdb;--shadow:rgba(70, 90, 60, 0.12);--primary-foreground:#fdf6e3;--muted-fg:#859289">
+    <div class="head"><b>苔原</b><code>forest · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#2d353b;--surface:#333c43;--fg:#d3c6aa;--primary:#a7c080;--accent:#475258;--border:#414c52;--muted:#3d484d;--shadow:rgba(0, 0, 0, 0.4);--primary-foreground:#2d353b;--muted-fg:#859289">
+    <div class="head"><b>苔原</b><code>forest · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#faf5f3;--surface:#ffffff;--fg:#4c4147;--primary:#e08a9c;--accent:#e8f0da;--border:#eadcd8;--muted:#f3eae6;--shadow:rgba(180, 90, 110, 0.12);--primary-foreground:#ffffff;--muted-fg:#98857f">
+    <div class="head"><b>草莓抹茶</b><code>matcha · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#28242b;--surface:#302b33;--fg:#e9d8d2;--primary:#ee9aa6;--accent:#3f4a38;--border:#443a44;--muted:#38313a;--shadow:rgba(0, 0, 0, 0.45);--primary-foreground:#28242b;--muted-fg:#b3a09f">
+    <div class="head"><b>草莓抹茶</b><code>matcha · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#faf6ef;--surface:#ffffff;--fg:#3d3326;--primary:#a37b16;--accent:#f7edcb;--border:#e8dfcd;--muted:#f2ecdf;--shadow:rgba(140, 110, 40, 0.12);--primary-foreground:#ffffff;--muted-fg:#9a8a6f">
+    <div class="head"><b>药丸黄</b><code>yellow · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#1c1917;--surface:#242019;--fg:#f5f0e6;--primary:#facc15;--accent:#3f3518;--border:#3a332a;--muted:#2a2520;--shadow:rgba(0, 0, 0, 0.5);--primary-foreground:#1c1917;--muted-fg:#b3a68f">
+    <div class="head"><b>药丸黄</b><code>yellow · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#f2f6f0;--surface:#ffffff;--fg:#24302a;--primary:#15803d;--accent:#dcf2e2;--border:#d8e4d6;--muted:#e9efe6;--shadow:rgba(30, 80, 50, 0.1);--primary-foreground:#ffffff;--muted-fg:#7d907e">
+    <div class="head"><b>三刀流</b><code>zoro · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#101512;--surface:#18211b;--fg:#d8e0d4;--primary:#4ade80;--accent:#14532d;--border:#2c3a30;--muted:#1d2720;--shadow:rgba(0, 0, 0, 0.5);--primary-foreground:#101512;--muted-fg:#93a393">
+    <div class="head"><b>三刀流</b><code>zoro · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#faf3ea;--surface:#ffffff;--fg:#4a3a2c;--primary:#c2660f;--accent:#fbe6c8;--border:#eadcc8;--muted:#f3e9db;--shadow:rgba(150, 90, 30, 0.12);--primary-foreground:#ffffff;--muted-fg:#a0886a">
+    <div class="head"><b>火影黎明</b><code>hokage · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#241a17;--surface:#2e211c;--fg:#f0e3d8;--primary:#f59e0b;--accent:#4a3024;--border:#45372e;--muted:#33251f;--shadow:rgba(0, 0, 0, 0.5);--primary-foreground:#241a17;--muted-fg:#b59f8c">
+    <div class="head"><b>火影黎明</b><code>hokage · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#ececee;--surface:#ffffff;--fg:#09090b;--primary:#27272a;--accent:#d4d4d8;--border:#c8c8ce;--muted:#e0e0e5;--shadow:rgba(24, 24, 27, 0.12);--primary-foreground:#fafafa;--muted-fg:#52525b">
+    <div class="head"><b>石墨</b><code>slate · light</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div><div class="cell" style="--bg:#050506;--surface:#141416;--fg:#fafafa;--primary:#e4e4e7;--accent:#27272a;--border:#3f3f46;--muted:#1f1f23;--shadow:rgba(0, 0, 0, 0.6);--primary-foreground:#09090b;--muted-fg:#a1a1aa">
+    <div class="head"><b>石墨</b><code>slate · dark</code></div>
+    <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">bg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--bg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">surface</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--surface);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">fg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">primary</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--primary);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">accent</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--accent);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">border</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--border);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">muted</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg);">
+      <span style="width:56px;opacity:.7">mutedFg</span><span style="flex:1"></span>
+      <i style="width:14px;height:14px;border-radius:4px;background:var(--muted-fg);border:1px solid color-mix(in srgb, var(--fg) 25%, transparent)"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+      <button style="height:26px;border:0;border-radius:6px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;font-weight:600">主按钮</button>
+      <div style="height:8px;border-radius:99px;background:var(--muted);overflow:hidden"><div style="width:60%;height:100%;background:var(--primary)"></div></div>
+    </div>
+  </div>
+<script>
+  var t = new URLSearchParams(location.search).get("mode");
+  if (t === "dark") document.documentElement.setAttribute("data-mode", "dark");
+</script>
+</body></html>

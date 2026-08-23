@@ -54,6 +54,13 @@ var state = {
   })(),
   theme: "light",
   palette: "default",
+  themeScope: (function () {
+    try {
+      return localStorage.getItem("mma-theme-scope") === "app" ? "app" : "global";
+    } catch (_) {
+      return "global";
+    }
+  })(),
   cardStyle: (function () {
     try {
       return clampCardStyle(localStorage.getItem("mma-card-style"));
@@ -204,9 +211,39 @@ function persistAppearance() {
   }).catch(function () {});
 }
 
-function setAppearance(next) {
+function setAppearance(next, scope) {
   if (next.theme === "light" || next.theme === "dark") state.theme = next.theme;
   if (next.palette) state.palette = clampPalette(next.palette);
+  if (scope === "app") {
+    // per-app：保存到该 app 的 theme.json，只更新该 app 的 iframe，全局不动
+    var app = activeApp();
+    if (app) {
+      var env = envForApp(app.id);
+      var body = {
+        theme: next.theme || env.theme,
+        palette: clampPalette(next.palette || env.palette),
+      };
+      fetch(APPS_HOST + "/api/apps/" + encodeURIComponent(app.id) + "/theme", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      })
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (j) {
+          if (j && j.theme) {
+            var a = state.apps.find(function (x) {
+              return x.id === app.id;
+            });
+            if (a) a.theme = j.theme;
+            postEnvToFrameByApp(app.id);
+          }
+        })
+        .catch(function () {});
+      return;
+    }
+  }
   applyTheme();
   postEnvToFrames();
   persistAppearance();
@@ -225,17 +262,60 @@ function syncThemeFromDsh() {
   postEnvToFrames();
 }
 
+function postEnvToFrame(id) {
+  var rec = frameMap[id];
+  if (!rec || !rec.iframe || !rec.iframe.contentWindow) return;
+  var appId = rec.wrap ? rec.wrap.getAttribute("data-app") : null;
+  var env = appId ? envForApp(appId) : { theme: state.theme, palette: state.palette };
+  try {
+    rec.iframe.contentWindow.postMessage(
+      { type: "mma-set-env", theme: env.theme, palette: env.palette, dock: state.dock },
+      "*"
+    );
+  } catch (_) {}
+}
 function postEnvToFrames() {
+  Object.keys(frameMap).forEach(postEnvToFrame);
+}
+function postEnvToFrameByApp(appId) {
   Object.keys(frameMap).forEach(function (id) {
     var rec = frameMap[id];
-    if (!rec || !rec.iframe || !rec.iframe.contentWindow) return;
-    try {
-      rec.iframe.contentWindow.postMessage(
-        { type: "mma-set-env", theme: state.theme, palette: state.palette, dock: state.dock },
-        "*"
-      );
-    } catch (_) {}
+    if (rec && rec.wrap && rec.wrap.getAttribute("data-app") === appId) postEnvToFrame(id);
   });
+}
+function envForApp(appId) {
+  var t = appThemeOf(appId);
+  return {
+    theme: t && t.theme ? t.theme : state.theme,
+    palette: t && t.palette ? clampPalette(t.palette) : state.palette,
+  };
+}
+function appThemeOf(appId) {
+  var a = state.apps.find(function (x) {
+    return x.id === appId;
+  });
+  return (a && a.theme) || null;
+}
+function clearAppTheme() {
+  var app = activeApp();
+  if (!app) return;
+  fetch(APPS_HOST + "/api/apps/" + encodeURIComponent(app.id) + "/theme", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ reset: true }),
+  })
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function () {
+      var a = state.apps.find(function (x) {
+        return x.id === app.id;
+      });
+      if (a) a.theme = null;
+      postEnvToFrameByApp(app.id);
+      paintThemePop();
+    })
+    .catch(function () {});
 }
 
 function hideThemePop() {
@@ -265,6 +345,21 @@ function paintThemePop() {
   var swatches = pop.querySelectorAll("[data-palette]");
   for (var j = 0; j < swatches.length; j++) {
     swatches[j].setAttribute("data-on", swatches[j].getAttribute("data-palette") === state.palette ? "1" : "0");
+  }
+  var scopeBtns = pop.querySelectorAll("[data-scope]");
+  for (var k = 0; k < scopeBtns.length; k++) {
+    scopeBtns[k].setAttribute("data-on", scopeBtns[k].getAttribute("data-scope") === state.themeScope ? "1" : "0");
+  }
+  var appBtn = pop.querySelector("#mma-scope-app");
+  if (appBtn) {
+    var app = activeApp();
+    appBtn.disabled = !app;
+    appBtn.title = app ? "保存到「" + app.name + "」" : "打开小程序后可用";
+    appBtn.textContent = app ? app.name : "当前应用";
+  }
+  var clearBtn = pop.querySelector("#mma-clear-app-theme");
+  if (clearBtn) {
+    clearBtn.hidden = !(state.themeScope === "app" && app && appThemeOf(app.id));
   }
 }
 
@@ -314,6 +409,8 @@ function installFootCss() {
     "#mma-host .mma-pop-seg{display:flex;gap:4px;margin:0 0 8px;padding:3px;border-radius:9px;background:var(--dsw-alias-muted,#f3f4f6);}",
     "#mma-host .mma-pop-seg button{flex:1;height:28px;border:0;border-radius:7px;background:transparent;cursor:pointer;font-size:12px;color:inherit;}",
     "#mma-host .mma-pop-seg button[data-on='1']{background:var(--dsw-alias-surface,#fff);font-weight:600;box-shadow:0 1px 2px var(--dsw-alias-shadow,rgba(0,0,0,.06));color:var(--dsw-alias-primary,#2563eb);}",
+    "#mma-host .mma-scope-seg{margin-top:8px;border-top:1px solid var(--dsw-alias-border,#e5e7eb);padding-top:8px;}",
+    "#mma-host .mma-scope-seg button:disabled{opacity:.45;cursor:not-allowed;}",
     "#mma-host .mma-swatch{display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 8px;border:0;border-radius:8px;background:transparent;cursor:pointer;color:inherit;font-size:13px;text-align:left;}",
     "#mma-host .mma-swatch:hover{background:var(--dsw-alias-accent,var(--dsw-alias-muted,#f3f4f6));}",
     "#mma-host .mma-swatch[data-on='1']{background:var(--dsw-alias-accent,var(--dsw-alias-muted,#f3f4f6));font-weight:600;}",
@@ -695,7 +792,11 @@ function ensureSkeleton() {
     '<button type="button" data-mode="dark">深色</button></div>' +
     '<div class="mma-pop-list">' +
     paletteMenuHtml() +
-    "</div></div></div>" +
+    '</div><div class="mma-pop-seg mma-scope-seg">' +
+    '<button type="button" data-scope="global">全局</button>' +
+    '<button type="button" data-scope="app" id="mma-scope-app" title="保存到当前小程序">当前应用</button></div>' +
+    '<button type="button" class="mma-textbtn" id="mma-clear-app-theme" hidden>跟随全局（清除本应用主题）</button>' +
+    "</div></div>" +
     '<button type="button" class="mma-iconbtn" id="mma-history-btn" title="提交历史" aria-label="提交历史" hidden>' +
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>' +
     '<button type="button" class="mma-iconbtn" id="mma-storage-btn" title="存储" aria-label="存储" hidden>' +
@@ -789,14 +890,27 @@ function bindHost(host) {
     e.stopPropagation();
     var t = e.target;
     if (!t || !t.closest) return;
+    var scopeBtn = t.closest("[data-scope]");
+    if (scopeBtn) {
+      state.themeScope = scopeBtn.getAttribute("data-scope") === "app" ? "app" : "global";
+      try {
+        localStorage.setItem("mma-theme-scope", state.themeScope);
+      } catch (_) {}
+      paintThemePop();
+      return;
+    }
+    if (t.closest("#mma-clear-app-theme")) {
+      clearAppTheme();
+      return;
+    }
     var modeBtn = t.closest("[data-mode]");
     if (modeBtn) {
-      setAppearance({ theme: modeBtn.getAttribute("data-mode") });
+      setAppearance({ theme: modeBtn.getAttribute("data-mode") }, state.themeScope);
       return;
     }
     var palBtn = t.closest("[data-palette]");
     if (palBtn) {
-      setAppearance({ palette: palBtn.getAttribute("data-palette") });
+      setAppearance({ palette: palBtn.getAttribute("data-palette") }, state.themeScope);
       hideThemePop();
     }
   });
@@ -1030,14 +1144,15 @@ function appItemMarkup(a) {
 }
 
 function appFrameSrc(appId) {
+  var env = envForApp(appId);
   return (
     APPS_HOST +
     "/app/" +
     encodeURIComponent(appId) +
     "?theme=" +
-    encodeURIComponent(state.theme) +
+    encodeURIComponent(env.theme) +
     "&palette=" +
-    encodeURIComponent(clampPalette(state.palette)) +
+    encodeURIComponent(env.palette) +
     "&dock=" +
     encodeURIComponent(state.dock)
   );

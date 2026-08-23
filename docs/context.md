@@ -229,6 +229,13 @@ curl -s http://127.0.0.1:17880/api/call -H 'content-type: application/json' \
 - `templates/sysmon` — bash + metrics，不要假数据
 - `templates/news` — `ctx.http(RSS)` + `./lib/parseFeed` + `ctx.llm({ schema })`
 
+## 配色（2026-08 更新）
+
+- palette：default / **tokyo**（东京夜）/ **forest**（苔原 Everforest）/ **matcha**（草莓抹茶）/ **yellow**（药丸黄）/ **zoro**（三刀流）/ **hokage**（火影黎明）/ slate（石墨）。删除了 ocean/violet，极简黑 noir 并入 slate（黑白同族）。
+- **迁移**：`clampPalette` 旧 id → ocean/mist → tokyo、violet/ink → matcha、paper/noir → slate；旧 localStorage/host.json 自动映射。
+- 参考色源：Tokyo Night（#1a1b26/#7aa2f7）、Everforest（#2d353b/#a7c080）、Strawberry Matcha（粉 #ee9aa6）、Yellow Pill（#facc15）、Zoro 三刀流（#4ade80）、Hokage Dawn（#f59e0b）。
+- 预览页：`docs/themes-preview.html`（含 Progress 条色板），截图 `docs/themes-preview-{light,dark}.png`。
+
 ## Host 列表：三套卡片方案 + monogram + commits
 
 - 卡片方案（`settings` → 卡片方案）：`hero`（渐变字+光晕）/ `etch`（空心描边字）/ `stamp`（线框邮戳，默认）。前端 `state.cardStyle` + `localStorage["mma-card-style"]`，纯前端偏好，不入 host-config。
@@ -238,6 +245,30 @@ curl -s http://127.0.0.1:17880/api/call -H 'content-type: application/json' \
 - **坑**：esbuild 会把 apply 内后声明的 `appDirOf` 重命名为 `appDirOf2`，但前置定义的 `handleApps` 里引用不会同步重写 → `appDirOf is not defined`。闭包内不要前向引用会被重命名的 const，`handleApps` 自包含定义。
 - **坑**：dock 切换（fill/side）模板结构不同（卡 vs 行），`setDock` 必须调 `paintList()` 重渲染，否则样式不切。
 - **坑**：改完 `pnpm -r build` 会用旧 src 覆盖 dsh-plugin/lib，务必只跑 `pnpm --filter @monkey-mini-app/dsh-monkey-mini-app build`。
+
+## ui-kit 组件库（2026-08 扩展）
+
+- **文件拆分**：`src/ui-kit.ts`（基础）+ `src/ui-kit/code.ts`（CodeMirror 6：Editor/CodeBlock/JsonBlock/DiffView/copyText/parseUnified）+ `src/ui-kit/extras.ts`（LogViewer/Markdown/KeyValueEditor/TagInput/FileInput/Stepper/SummaryBar）+ `src/ui-kit/data-grid.ts`（DataGrid）。createUiKit 内部 `createXxx(React, ui)` 合并导出。
+- **CodeMirror**：ui-kit tsup 需 `noExternal: [/@codemirror/, /@lezer/, /@tanstack/]`（iframe 无 node_modules）；`minify: true`（1.25MB → 706KB）。
+- **MergeView**：`a/b` 是 **EditorStateConfig 对象**（`{ doc, extensions }`）——传字符串内容为空，传 `EditorState.create()` 实例会**静默丢掉 extensions**（语法高亮/只读/主题全失效，只剩内容）；外部更新用 `mv.a.dispatch` / `mv.b.dispatch`（无 updateA/B 方法）。`highlightChanges: false` 关闭词级下划线（wording check）；Monaco 风格行背景/gutter 用 `.cm-merge-a/.cm-merge-b .cm-changedLine(Gutter)` 覆盖。
+- **CM6 语法高亮是 StyleModule class 模式**（`.ͼx` 类 + 注入 CSS），不是 inline style——断言用 `getComputedStyle(span).color !== 默认前景` 验证，不能查 `.tok-*`。
+- **TanStack**：用框架无关的 `@tanstack/table-core` 的 `createTable`，不要 `@tanstack/react-table`（它会带自己的 React 副本 → iframe 里 React 双实例 `useState on null`）。
+  - **state 是外部受控**：`getState()` 读 `options.state`，必须在**渲染期间** `table.setOptions(完整配置)` 同步（官方 useReactTable 模式）；放 useEffect 里会渲染读旧值（排序/选中不生效）。
+  - **setOptions 每次要带全配置**：core 的 `mergeOptions` 只并默认项，row models（getCoreRowModel 等）/handlers 必须每次显式传入。
+  - `flexRender` 是 react-table 层，core 没有（本地 2 行实现）；`getState()` 需要完整 state，必须补 `columnPinning: {left:[],right:[]}`。
+  - **checkbox 不要加 `onClick: stopPropagation`**：React 合成事件里会掐掉随后的 onChange（选中/排序失效）；行点击判 `e.target.tagName === 'INPUT'` 跳过即可。
+- **React 18 双实例**：同容器重复 `createRoot` 会重建组件并丢状态（onChange 时序错乱），demo/宿主里要缓存 root。
+- **实测**：`docs/ui-kit-demo/`（http server + headless chrome dump-dom 断言，40 断言 × light/dark 全过，含点击选中/排序交互模拟）；截图 `docs/ui-kit-demo-all-{light,dark}.png`。
+- **Stepper**：圆点必须 `boxSizing: border-box`（active 2px border 不撑大行高，否则横线错位不在同一水平）；连接线激活语义 = **目标步已完成**（左线看 i、右线看 i+1 是否 `< active`），active 步的入线保持未激活；外层容器横向 gap 必须 0（否则相邻步两段线断开）；React 对 border 简写 + var()/color-mix() 解析不可靠 → 用 borderWidth/borderStyle/borderColor 拆分。
+
+## 测试体系（2026-08 扩充，101 UT 全绿）
+
+- `vitest.workspace.ts` 配 workspace alias（@monkey-mini-app/* → 各包 src/index.ts），vitest 才能 import dsh-plugin 的 index.ts。
+- **DOM 组件测试用 jsdom**：happy-dom 20 会丢弃 `color-mix()` 样式值（序列化为空）导致断言失真；jsdom 完整保留。文件头 `// @vitest-environment jsdom`。
+- 新增测试：`host-logic.test.ts`（acronymOf 5 + git helpers 5 + enrichAppMeta 3）、`parse-unified.test.ts`（6）、`browse-api.test.ts`（listStorageTables/storageTablePath 防穿越 5）、`ui-kit.test.ts`（DataGrid 排序/选中交互 + Stepper + 基础组件 12）、`ui-kit-cm.test.ts`（Editor/CodeBlock/JsonBlock/DiffView/copyText 8）。
+- **TanStack 排序断言注意**：默认按 Unicode 码点（注 U+6CE8 < 登 U+767B），中文排序方向与拼音直觉相反；jsdom 把 hex 颜色规范化成 `rgb(220, 38, 38)`。
+- 修正过时测试：runtime-core「无权限拒绝」用 `permissions: []` 期望拒绝，但实现语义是「空数组=全部允许」→ 改为 `["ui"]`（显式声明但无 storage）。
+- git helpers 依赖系统 git CLI（`execFileAsync git ...`），测试用临时目录 `git init` 造仓库；`gitCommitCount` 有 60s TTL 缓存，同目录连测会命中缓存（测试用多目录验证隔离）。
 
 ## 和本机协作
 

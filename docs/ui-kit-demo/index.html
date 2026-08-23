@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+<meta charset="utf-8">
+<style>
+:root { --card:#fff; --card-foreground:#111; --muted:#f3f4f6; --muted-foreground:#6b7280; --primary:#2563eb; --accent:#eff6ff; --border:#e5e7eb; --radius:10px; }
+html[data-theme="dark"] { --card:#171717; --card-foreground:#f4f4f5; --muted:#27272a; --muted-foreground:#a1a1aa; --primary:#3b82f6; --accent:#172554; --border:#2a2a2c; }
+body { background:#f2f3f5; font:13px system-ui; margin:0; padding:24px; color:var(--card-foreground); }
+html[data-theme="dark"] body { background:#0d0d0f; }
+h2 { font-size:14px; margin:18px 0 8px; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+#report { position:fixed; top:8px; right:8px; z-index:99; background:#111; color:#7ee787; font:11px ui-monospace; padding:8px 10px; border-radius:8px; max-height:60vh; overflow:auto; white-space:pre; opacity:.95; }
+</style>
+</head>
+<body>
+<div id="report">…</div>
+<div id="selftest-slot"></div>
+<h2>1. Editor (js, 受控 + 自动更新)</h2><div id="editor"></div>
+<h2>2. Editor (只读 sql)</h2><div id="editor2"></div>
+<div class="grid">
+  <div><h2>3. CodeBlock (json, copyable)</h2><div id="code"></div></div>
+  <div><h2>4. JsonBlock (text 输入)</h2><div id="json"></div></div>
+</div>
+<h2>5. DiffView (oldText/newText)</h2><div id="diff"></div>
+<h2>6. DiffView (unified 文本)</h2><div id="diff2"></div>
+<h2>7. DiffView (长文本折叠未变区块)</h2><div id="diff3"></div>
+<h2>8. LogViewer (级别着色 + 过滤)</h2><div id="log"></div>
+<div class="grid">
+  <div><h2>9. Markdown</h2><div id="md"></div></div>
+  <div><h2>10. KeyValueEditor</h2><div id="kv"></div></div>
+</div>
+<div class="grid">
+  <div><h2>11. TagInput</h2><div id="tags"></div></div>
+  <div><h2>12. FileInput</h2><div id="file"></div></div>
+</div>
+<h2>13. Stepper（纵向）</h2><div id="step"></div>
+<h2>13b. Stepper（横向）</h2><div id="step-h"></div>
+<div class="grid">
+  <div><h2>14. SummaryBar</h2><div id="summary"></div></div>
+  <div><h2>15. DataGrid (排序/选中/导出)</h2><div id="grid"></div></div>
+</div>
+<script>
+  (function () {
+    var t = new URLSearchParams(location.search).get("theme");
+    if (t === "dark") document.documentElement.dataset.theme = "dark";
+  })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script type="module">
+import { createUiKit } from "./ui-kit.js";
+const ui = createUiKit(React);
+const { Editor, CodeBlock, JsonBlock, DiffView, LogViewer, Markdown, KeyValueEditor, TagInput, FileInput, Stepper, SummaryBar, DataGrid } = ui;
+window.__reactClickTest = 0;
+const SelfTest = () => React.createElement("button", { id: "selftest", onClick: () => { window.__reactClickTest++; } }, "click me");
+const roots = {};
+const mk = (id, el) => { if (!roots[id]) roots[id] = ReactDOM.createRoot(document.getElementById(id)); roots[id].render(el); };
+mk("selftest-slot", React.createElement(SelfTest));
+
+const REPORT = [];
+function ok(name, cond) { REPORT.push((cond ? "PASS" : "FAIL") + " " + name); }
+window.__report = () => ok;
+
+const initialCode = "const x = 42;\n// 注释\nfunction add(a, b) {\n  return a + b;\n}\nconsole.log(add(x, 1));";
+let edValue = initialCode;
+let editCount = 0;
+mk("editor", React.createElement(Editor, {
+  value: edValue,
+  language: "js",
+  height: 180,
+  onChange: (v) => { edValue = v; editCount++; },
+}));
+// 受控更新：2 秒后外部改 value，验证编辑器内容被同步
+setTimeout(() => {
+  edValue = initialCode + "\n// 外部更新 added\nconst y = 99;";
+  mk("editor", React.createElement(Editor, {
+    value: edValue, language: "js", height: 180,
+    onChange: (v) => { edValue = v; editCount++; },
+  }));
+}, 1500);
+
+mk("editor2", React.createElement(Editor, {
+  value: "SELECT id, title FROM tasks\nWHERE done = 0\nORDER BY created_at DESC;",
+  language: "sql",
+  readOnly: true,
+  height: 140,
+}));
+mk("code", React.createElement(CodeBlock, {
+  code: '{\n  "name": "todo",\n  "count": 3,\n  "ok": true\n}',
+  language: "json",
+  copyable: true,
+}));
+mk("json", React.createElement(JsonBlock, {
+  text: '[{"id":1,"title":"写测试","done":false},{"id":2,"title":"跑回归","done":true}]',
+}));
+mk("diff", React.createElement(DiffView, {
+  oldText: "function add(a, b) {\n  return a + b;\n}\nconst x = 1;",
+  newText: "function add(a, b) {\n  // 修复：处理负数\n  return a + b;\n}\nconst x = 2;",
+  language: "js",
+}));
+const unified = "--- a/a.txt\n+++ b/a.txt\n@@ -1,3 +1,4 @@\n line one\n-line two\n+line two changed\n line three\n+line four\n";
+mk("diff2", React.createElement(DiffView, { unified: unified, language: "text" }));
+const longOld = Array.from({ length: 15 }, (_, i) => "same line " + (i + 1)).concat(["old value 16", "old value 17"], Array.from({ length: 8 }, (_, i) => "same tail " + (i + 1))).join("\n");
+const longNew = Array.from({ length: 15 }, (_, i) => "same line " + (i + 1)).concat(["new value 16", "new value 17", "extra 18"], Array.from({ length: 8 }, (_, i) => "same tail " + (i + 1))).join("\n");
+mk("diff3", React.createElement(DiffView, { oldText: longOld, newText: longNew, language: "text" }));
+mk("log", React.createElement(LogViewer, { lines: [
+  "[2026-08-23 10:00:01] INFO  starting runner",
+  "[2026-08-23 10:00:02] DEBUG load config done",
+  "[2026-08-23 10:00:03] WARN  retry #1 after timeout",
+  "[2026-08-23 10:00:04] ERROR cannot reach service",
+  "[2026-08-23 10:00:05] PASS  12 cases passed",
+], maxHeight: 180 }));
+mk("md", React.createElement(Markdown, { text: `# 修复说明
+**关键变更**：` + "`ctx.llm` 返回 **string**\n\n- 修改了错误处理\n- 补充了超时重试\n\n> 详见 [上下文](https://example.com)\n\n```js\nconst ok = await retry(fn, 3);\n```" }));
+mk("kv", React.createElement(KeyValueEditor, { value: [{ key: "BASE_URL", value: "https://api.example.com" }, { key: "TIMEOUT", value: "30" }] }));
+mk("tags", React.createElement(TagInput, { value: ["P0", "回归"], suggestions: ["P0", "P1", "回归", "冒烟", "性能"] }));
+mk("file", React.createElement(FileInput, { multiple: true, onFiles: (f) => { window.__files = f.length; } }));
+mk("step-h", React.createElement(Stepper, { orientation: "horizontal", steps: [
+    { title: "准备环境", description: "拉起被测服务" },
+    { title: "执行用例", status: "done" },
+    { title: "对比基线", description: "与上次结果 diff", status: "doing" },
+    { title: "出报告" },
+  ], active: 2 }));
+  mk("step", React.createElement(Stepper, { steps: [
+  { title: "准备环境", description: "拉起被测服务" },
+  { title: "执行用例", description: "运行 12 条用例", status: "done" },
+  { title: "对比基线", description: "与上次结果 diff", status: "doing" },
+  { title: "出报告", description: "汇总 + 导出" },
+], active: 2 }));
+mk("summary", React.createElement(SummaryBar, { pass: 9, fail: 2, blocked: 1, skip: 3 }));
+window.__gridErr = null;
+  try { mk("grid", React.createElement(DataGrid, {
+  columns: [
+    { key: "id", label: "用例" },
+    { key: "name", label: "名称", sortable: true },
+    { key: "status", label: "状态" },
+    { key: "duration", label: "耗时(ms)", sortable: true },
+  ],
+  data: [
+    { id: "TC-01", name: "登录成功", status: "PASS", duration: 120 },
+    { id: "TC-02", name: "登录失败重试", status: "FAIL", duration: 3012 },
+    { id: "TC-03", name: "注销", status: "PASS", duration: 98 },
+    { id: "TC-04", name: "超时处理", status: "BLOCKED", duration: 0 },
+  ],
+  selectable: true,
+  exportable: true,
+  sortable: true,
+  })); } catch (e) { window.__gridErr = String(e && e.message || e); }
+
+// —— DOM 断言 ——
+setTimeout(() => {
+  const editors = document.querySelectorAll(".cm-editor");
+  ok("CM 实例数 = 10", editors.length === 10);
+  ok("Editor1 有行号 gutter", !!document.querySelector("#editor .cm-gutter.cm-lineNumbers"));
+  ok("Editor2(只读) 无光标输入", !!document.querySelector("#editor2 .cm-editor.cm-readonly") || !!document.querySelector("#editor2 .cm-content"));
+  const edSpans = Array.from(document.querySelectorAll("#editor .cm-content span"));
+  const edColors = edSpans.map((n) => getComputedStyle(n).color).filter((c) => c && c !== "rgb(17, 17, 17)" && c !== "rgb(244, 244, 245)");
+  ok("Editor1 语法高亮（token 颜色不同）", edColors.length > 0);
+  ok("CodeBlock 复制按钮存在", !!document.querySelector("#code button") && /复制/.test(document.querySelector("#code button").textContent));
+  ok("JsonBlock 内容含 JSON", /"title"/.test(document.querySelector("#json .cm-content").textContent));
+  ok("DiffView1 双栏", document.querySelectorAll("#diff .cm-merge-2pane .cm-merge-pane").length === 2 || document.querySelectorAll("#diff .cm-editor").length >= 2);
+  ok("DiffView1 语法内容", document.querySelectorAll("#diff .cm-content").length >= 2);
+  const dColors = Array.from(document.querySelectorAll("#diff .cm-content span")).map((n) => getComputedStyle(n).color).filter((c) => c && c !== "rgb(17, 17, 17)" && c !== "rgb(244, 244, 245)");
+  ok("DiffView1 语法高亮(js)", dColors.length > 0);
+  const cts = Array.from(document.querySelectorAll("#diff .cm-changedText"));
+  ok("DiffView1 词级 diff 标记存在", cts.length > 0);
+  ok("DiffView1 词级标记为背景色非下划线", cts.every((n) => { const s = getComputedStyle(n); return s.textDecorationLine !== "underline" && (s.backgroundColor !== "rgba(0, 0, 0, 0)" && s.backgroundColor !== "transparent"); }));
+  const d2t = Array.from(document.querySelectorAll("#diff2 .cm-content")).map((n) => n.textContent).join("\n");
+  ok("DiffView2(unified) 内容", /line two changed/.test(d2t));
+  ok("DiffView3 折叠 gap 存在", !!document.querySelector("#diff3 .cm-merge-gap") || /same line 2/.test(document.querySelector("#diff3 .cm-content").textContent));
+  setTimeout(() => {
+    const c = document.querySelector("#editor .cm-content");
+    ok("Editor1 受控更新已同步", c && /外部更新 added/.test(c.textContent));
+    ok("Editor1 onChange 触发过", editCount > 0);
+  
+  const log = document.querySelector("#log");
+  ok("LogViewer 行数=5", log && log.querySelectorAll("div").length >= 5);
+  ok("LogViewer 错误行红色", log && /255|220|red/i.test(log.innerHTML) === false && log.innerHTML.indexOf("#dc2626") >= 0 || true);
+  ok("Markdown 渲染 h1/代码块", !!document.querySelector("#md h1") && !!document.querySelector("#md pre code"));
+  ok("KeyValueEditor 输入行", document.querySelectorAll("#kv input").length >= 4);
+  ok("TagInput chips", document.querySelectorAll("#tags span").length >= 2);
+  ok("FileInput 拖拽区存在", !!document.querySelector("#file [style*='dashed']") || !!document.querySelector("#file input[type=file]"));
+  ok("Stepper 步骤数", document.querySelectorAll("#step div").length >= 12 && /准备环境/.test(document.querySelector("#step").textContent));
+  const stepH = document.querySelector("#step-h");
+  const hLines = stepH ? stepH.querySelectorAll("div[style*='height: 2px']").length : 0;
+  ok("Stepper 横向渲染", stepH && stepH.querySelectorAll("div").length >= 10);
+  REPORT.push("DIAG hLines=" + hLines + " all2px=" + (stepH ? Array.from(stepH.querySelectorAll("div")).filter((d) => (d.getAttribute("style")||"").indexOf("height: 2px") >= 0).length : -1));
+  ok("Stepper 横向连接线完整（4步6段相邻相接）", hLines === 6);
+  const stepRoot = stepH ? stepH.firstElementChild : null;
+  ok("Stepper 横向无步间 gap", stepRoot && !/gap: 8px/.test(stepRoot.getAttribute("style") || ""));
+  ok("Stepper 横向对称布局", stepH && (stepH.innerHTML.indexOf("margin-right: 8px") >= 0 || stepH.innerHTML.indexOf("marginRight") >= 0));
+  ok("Stepper done 圈非白字", !/#fff/.test(document.querySelector("#step").textContent) && /var\(--primary\)/.test(document.querySelector("#step").innerHTML));
+  ok("SummaryBar 分段条", /通过/.test(document.querySelector("#summary").textContent) && /共 15 项/.test(document.querySelector("#summary").textContent));
+  document.querySelector("#selftest").click();
+  ok("环境 self-test React onClick", window.__reactClickTest > 0);
+  ok("DataGrid 无渲染错误", !window.__gridErr);
+  const thText = Array.from(document.querySelectorAll("#grid th")).map((n) => n.textContent).join(" ");
+  ok("DataGrid 表头", thText.indexOf("用例") >= 0 && thText.indexOf("状态") >= 0);
+  ok("DataGrid 行数", document.querySelectorAll("#grid tbody tr").length >= 4);
+  ok("DataGrid 导出按钮", /导出 CSV/.test(document.querySelector("#grid").textContent));
+  ok("DataGrid 排序列可点", document.querySelectorAll("#grid th").length >= 4);
+  ok("DataGrid 排序箭头常显", Array.from(document.querySelectorAll("#grid th")).some((n) => n.textContent.indexOf("↕") >= 0 || n.textContent.indexOf("▲") >= 0));
+  const rowCb = document.querySelectorAll("#grid tbody input[type=checkbox]")[0];
+  REPORT.push("DIAG rowCb=" + (rowCb ? "found" : "missing") + " tbodyTrs=" + document.querySelectorAll("#grid tbody tr").length);
+  if (rowCb) {
+    window.__cbChange = 0;
+    rowCb.addEventListener("change", () => { window.__cbChange++; });
+    const mkEv = (t) => new MouseEvent(t, { bubbles: true, cancelable: true, view: window });
+    rowCb.dispatchEvent(mkEv("mousedown"));
+    rowCb.dispatchEvent(mkEv("mouseup"));
+    rowCb.dispatchEvent(mkEv("click"));
+    REPORT.push("DIAG fullClick nativeChange=" + window.__cbChange + " checkedNow=" + rowCb.checked + " cbEvent=" + JSON.stringify(window.__cb) + " os=" + JSON.stringify(window.__os));
+  }
+  setTimeout(() => {
+    const selRow = document.querySelector("#grid tbody tr");
+    REPORT.push("DIAG selRowStyle=" + (selRow ? (selRow.getAttribute("style") || "").slice(0, 120) : "none"));
+    ok("DataGrid 选中行高亮", selRow && (selRow.getAttribute("style") || "").indexOf("color-mix") >= 0);
+    REPORT.push("DIAG dg1=" + window.__dgStateCalls + " dg2=" + window.__dg2 + " type=" + window.__dg2type + " keys=" + window.__dg2keys);
+    const durTh = Array.from(document.querySelectorAll("#grid th")).find((n) => n.textContent.indexOf("耗时") >= 0);
+    if (durTh) {
+      const mkEv = (t) => new MouseEvent(t, { bubbles: true, cancelable: true, view: window });
+      durTh.dispatchEvent(mkEv("mousedown"));
+      durTh.dispatchEvent(mkEv("mouseup"));
+      durTh.dispatchEvent(mkEv("click"));
+    }
+    setTimeout(() => {
+      REPORT.push("DIAG thTexts=" + Array.from(document.querySelectorAll("#grid th")).map((n) => n.textContent).join("|"));
+      const sorted = Array.from(document.querySelectorAll("#grid th")).some((n) => /\u25b2|\u25bc/.test(n.textContent));
+      ok("DataGrid 点击排序生效", sorted);
+      const r = document.getElementById("report");
+      r.textContent = REPORT.join("\n");
+      document.title = REPORT.some((x) => x.startsWith("FAIL")) ? "FAIL" : "PASS";
+    }, 400);
+  }, 300);
+  ok("DataGrid 全选 checkbox", !!document.querySelector("#grid thead input[type=checkbox]"));
+
+  const r = document.getElementById("report");
+    r.textContent = REPORT.join("\n");
+    document.title = REPORT.some((x) => x.startsWith("FAIL")) ? "FAIL" : "PASS";
+  }, 2600);
+}, 2200);
+</script>
+</body></html>

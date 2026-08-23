@@ -1,4 +1,12 @@
-export type PaletteId = "default" | "ocean" | "violet" | "slate";
+export type PaletteId =
+  | "default"
+  | "tokyo"
+  | "forest"
+  | "matcha"
+  | "yellow"
+  | "zoro"
+  | "hokage"
+  | "slate";
 export type ModeId = "light" | "dark";
 
 /** Full token bag for Host chrome + iframe apps (shadcn-compatible). */
@@ -27,11 +35,24 @@ export type TokenSet = {
 
 export const PALETTES: { id: PaletteId; label: string; swatch: string }[] = [
   { id: "default", label: "默认", swatch: "#2563eb" },
-  { id: "ocean", label: "海蓝", swatch: "#1d4ed8" },
-  { id: "violet", label: "青紫", swatch: "#7c3aed" },
+  { id: "tokyo", label: "东京夜", swatch: "#7aa2f7" },
+  { id: "forest", label: "苔原", swatch: "#a7c080" },
+  { id: "matcha", label: "草莓抹茶", swatch: "#ee9aa6" },
+  { id: "yellow", label: "药丸黄", swatch: "#facc15" },
+  { id: "zoro", label: "三刀流", swatch: "#4ade80" },
+  { id: "hokage", label: "火影黎明", swatch: "#f59e0b" },
   { id: "slate", label: "石墨", swatch: "#3f3f46" },
 ];
 
+/**
+ * 配色参考（2026-08 由 VSCode 主题移植）：
+ * - tokyo   Tokyo Night（dark #1a1b26 / light #d5d6db）
+ * - forest  Everforest（dark #2d353b / light #fdf6e3）
+ * - matcha  Strawberry Matcha（草莓粉 × 抹茶绿）
+ * - yellow  Yellow Pill（药丸黄）
+ * - zoro    Anime 三刀流（深苔绿 × 金属金）
+ * - hokage  Naruto Hokage Dawn（暖橙黎明）
+ */
 const TOKENS: Record<PaletteId, Record<ModeId, TokenSet>> = {
   default: {
     light: {
@@ -77,92 +98,268 @@ const TOKENS: Record<PaletteId, Record<ModeId, TokenSet>> = {
       shadow: "rgba(0, 0, 0, 0.45)",
     },
   },
-  ocean: {
+  tokyo: {
     light: {
-      bg: "#e8f1fb",
-      fg: "#0f1c2e",
-      surface: "#f7fbff",
-      surfaceFg: "#0f1c2e",
-      border: "#b7cce6",
-      muted: "#d5e5f6",
-      mutedFg: "#3f5878",
-      primary: "#1d4ed8",
+      bg: "#d5d6db",
+      fg: "#343b59",
+      surface: "#f2f3f8",
+      surfaceFg: "#343b59",
+      border: "#c9ccd9",
+      muted: "#e9eaf2",
+      mutedFg: "#7c82a4",
+      primary: "#2e7de9",
       primaryFg: "#ffffff",
-      secondary: "#d5e5f6",
-      secondaryFg: "#0f1c2e",
-      accent: "#c5dbf5",
-      accentFg: "#1e3a8a",
-      destructive: "#dc2626",
+      secondary: "#e3e5ef",
+      secondaryFg: "#343b59",
+      accent: "#dfe6f6",
+      accentFg: "#274a94",
+      destructive: "#db4b4b",
       destructiveFg: "#ffffff",
-      ring: "#1d4ed8",
-      input: "#b7cce6",
-      radius: "12px",
-      shadow: "rgba(29, 78, 216, 0.14)",
+      ring: "#2e7de9",
+      input: "#e8eaf2",
+      radius: "10px",
+      shadow: "rgba(30, 40, 90, 0.12)",
     },
     dark: {
-      bg: "#07101c",
-      fg: "#e7f0fb",
-      surface: "#101b2c",
-      surfaceFg: "#e7f0fb",
-      border: "#243b5c",
-      muted: "#162336",
-      mutedFg: "#8eabc9",
-      primary: "#60a5fa",
-      primaryFg: "#07101c",
-      secondary: "#162336",
-      secondaryFg: "#e7f0fb",
-      accent: "#1e3a5f",
-      accentFg: "#bfdbfe",
-      destructive: "#f87171",
-      destructiveFg: "#07101c",
-      ring: "#60a5fa",
-      input: "#243b5c",
-      radius: "12px",
-      shadow: "rgba(2, 8, 23, 0.55)",
+      bg: "#1a1b26",
+      fg: "#a9b1d6",
+      surface: "#16161e",
+      surfaceFg: "#a9b1d6",
+      border: "#2b2e3d",
+      muted: "#1f2230",
+      mutedFg: "#787c99",
+      primary: "#7aa2f7",
+      primaryFg: "#1a1b26",
+      secondary: "#202330",
+      secondaryFg: "#a9b1d6",
+      accent: "#33467c",
+      accentFg: "#c0caf5",
+      destructive: "#f7768e",
+      destructiveFg: "#1a1b26",
+      ring: "#7aa2f7",
+      input: "#14141b",
+      radius: "10px",
+      shadow: "rgba(0, 0, 0, 0.5)",
     },
   },
-  violet: {
+  forest: {
     light: {
-      bg: "#f1ecfb",
-      fg: "#1a1230",
-      surface: "#fbf8ff",
-      surfaceFg: "#1a1230",
-      border: "#cfc0ea",
-      muted: "#e6dcf7",
-      mutedFg: "#56457a",
-      primary: "#7c3aed",
-      primaryFg: "#ffffff",
-      secondary: "#e6dcf7",
-      secondaryFg: "#1a1230",
-      accent: "#ddd0f5",
-      accentFg: "#4c1d95",
-      destructive: "#dc2626",
-      destructiveFg: "#ffffff",
-      ring: "#7c3aed",
-      input: "#cfc0ea",
-      radius: "14px",
-      shadow: "rgba(124, 58, 237, 0.14)",
+      bg: "#fdf6e3",
+      fg: "#5c6a72",
+      surface: "#fefaf0",
+      surfaceFg: "#5c6a72",
+      border: "#e3ddc9",
+      muted: "#f2ecdb",
+      mutedFg: "#859289",
+      primary: "#93b259",
+      primaryFg: "#fdf6e3",
+      secondary: "#eae4d2",
+      secondaryFg: "#5c6a72",
+      accent: "#e0e6c8",
+      accentFg: "#4d6a3d",
+      destructive: "#e67e80",
+      destructiveFg: "#fdf6e3",
+      ring: "#93b259",
+      input: "#f7f1e0",
+      radius: "12px",
+      shadow: "rgba(70, 90, 60, 0.12)",
     },
     dark: {
-      bg: "#0e0a18",
-      fg: "#f0e9ff",
-      surface: "#181226",
-      surfaceFg: "#f0e9ff",
-      border: "#35284f",
-      muted: "#221832",
-      mutedFg: "#b4a2d6",
-      primary: "#a78bfa",
-      primaryFg: "#0e0a18",
-      secondary: "#221832",
-      secondaryFg: "#f0e9ff",
-      accent: "#2c1f48",
-      accentFg: "#ddd6fe",
-      destructive: "#f87171",
-      destructiveFg: "#0e0a18",
-      ring: "#a78bfa",
-      input: "#35284f",
+      bg: "#2d353b",
+      fg: "#d3c6aa",
+      surface: "#333c43",
+      surfaceFg: "#d3c6aa",
+      border: "#414c52",
+      muted: "#3d484d",
+      mutedFg: "#859289",
+      primary: "#a7c080",
+      primaryFg: "#2d353b",
+      secondary: "#3d484d",
+      secondaryFg: "#d3c6aa",
+      accent: "#475258",
+      accentFg: "#d3c6aa",
+      destructive: "#e67e80",
+      destructiveFg: "#2d353b",
+      ring: "#a7c080",
+      input: "#272e33",
+      radius: "12px",
+      shadow: "rgba(0, 0, 0, 0.4)",
+    },
+  },
+  matcha: {
+    light: {
+      bg: "#faf5f3",
+      fg: "#4c4147",
+      surface: "#ffffff",
+      surfaceFg: "#4c4147",
+      border: "#eadcd8",
+      muted: "#f3eae6",
+      mutedFg: "#98857f",
+      primary: "#e08a9c",
+      primaryFg: "#ffffff",
+      secondary: "#f0e4df",
+      secondaryFg: "#4c4147",
+      accent: "#e8f0da",
+      accentFg: "#5a7a3f",
+      destructive: "#d95f7f",
+      destructiveFg: "#ffffff",
+      ring: "#e08a9c",
+      input: "#f8f1ee",
       radius: "14px",
-      shadow: "rgba(8, 4, 18, 0.55)",
+      shadow: "rgba(180, 90, 110, 0.12)",
+    },
+    dark: {
+      bg: "#28242b",
+      fg: "#e9d8d2",
+      surface: "#302b33",
+      surfaceFg: "#e9d8d2",
+      border: "#443a44",
+      muted: "#38313a",
+      mutedFg: "#b3a09f",
+      primary: "#ee9aa6",
+      primaryFg: "#28242b",
+      secondary: "#38313a",
+      secondaryFg: "#e9d8d2",
+      accent: "#3f4a38",
+      accentFg: "#c8e3b2",
+      destructive: "#e06c8a",
+      destructiveFg: "#28242b",
+      ring: "#ee9aa6",
+      input: "#231f26",
+      radius: "14px",
+      shadow: "rgba(0, 0, 0, 0.45)",
+    },
+  },
+  yellow: {
+    light: {
+      bg: "#faf6ef",
+      fg: "#3d3326",
+      surface: "#ffffff",
+      surfaceFg: "#3d3326",
+      border: "#e8dfcd",
+      muted: "#f2ecdf",
+      mutedFg: "#9a8a6f",
+      primary: "#a37b16",
+      primaryFg: "#ffffff",
+      secondary: "#ede5d3",
+      secondaryFg: "#3d3326",
+      accent: "#f7edcb",
+      accentFg: "#6b4e0a",
+      destructive: "#dc2626",
+      destructiveFg: "#ffffff",
+      ring: "#a37b16",
+      input: "#f7f1e4",
+      radius: "12px",
+      shadow: "rgba(140, 110, 40, 0.12)",
+    },
+    dark: {
+      bg: "#1c1917",
+      fg: "#f5f0e6",
+      surface: "#242019",
+      surfaceFg: "#f5f0e6",
+      border: "#3a332a",
+      muted: "#2a2520",
+      mutedFg: "#b3a68f",
+      primary: "#facc15",
+      primaryFg: "#1c1917",
+      secondary: "#2a2520",
+      secondaryFg: "#f5f0e6",
+      accent: "#3f3518",
+      accentFg: "#fde68a",
+      destructive: "#f87171",
+      destructiveFg: "#1c1917",
+      ring: "#facc15",
+      input: "#211d18",
+      radius: "12px",
+      shadow: "rgba(0, 0, 0, 0.5)",
+    },
+  },
+  zoro: {
+    light: {
+      bg: "#f2f6f0",
+      fg: "#24302a",
+      surface: "#ffffff",
+      surfaceFg: "#24302a",
+      border: "#d8e4d6",
+      muted: "#e9efe6",
+      mutedFg: "#7d907e",
+      primary: "#15803d",
+      primaryFg: "#ffffff",
+      secondary: "#e3ecdf",
+      secondaryFg: "#24302a",
+      accent: "#dcf2e2",
+      accentFg: "#166534",
+      destructive: "#dc2626",
+      destructiveFg: "#ffffff",
+      ring: "#15803d",
+      input: "#f4f8f2",
+      radius: "12px",
+      shadow: "rgba(30, 80, 50, 0.1)",
+    },
+    dark: {
+      bg: "#101512",
+      fg: "#d8e0d4",
+      surface: "#18211b",
+      surfaceFg: "#d8e0d4",
+      border: "#2c3a30",
+      muted: "#1d2720",
+      mutedFg: "#93a393",
+      primary: "#4ade80",
+      primaryFg: "#101512",
+      secondary: "#1d2720",
+      secondaryFg: "#d8e0d4",
+      accent: "#14532d",
+      accentFg: "#bbf7d0",
+      destructive: "#f87171",
+      destructiveFg: "#101512",
+      ring: "#4ade80",
+      input: "#141b16",
+      radius: "12px",
+      shadow: "rgba(0, 0, 0, 0.5)",
+    },
+  },
+  hokage: {
+    light: {
+      bg: "#faf3ea",
+      fg: "#4a3a2c",
+      surface: "#ffffff",
+      surfaceFg: "#4a3a2c",
+      border: "#eadcc8",
+      muted: "#f3e9db",
+      mutedFg: "#a0886a",
+      primary: "#c2660f",
+      primaryFg: "#ffffff",
+      secondary: "#efe2d0",
+      secondaryFg: "#4a3a2c",
+      accent: "#fbe6c8",
+      accentFg: "#7c4a10",
+      destructive: "#dc2626",
+      destructiveFg: "#ffffff",
+      ring: "#c2660f",
+      input: "#f8f0e4",
+      radius: "12px",
+      shadow: "rgba(150, 90, 30, 0.12)",
+    },
+    dark: {
+      bg: "#241a17",
+      fg: "#f0e3d8",
+      surface: "#2e211c",
+      surfaceFg: "#f0e3d8",
+      border: "#45372e",
+      muted: "#33251f",
+      mutedFg: "#b59f8c",
+      primary: "#f59e0b",
+      primaryFg: "#241a17",
+      secondary: "#33251f",
+      secondaryFg: "#f0e3d8",
+      accent: "#4a3024",
+      accentFg: "#fcd9b6",
+      destructive: "#ef4444",
+      destructiveFg: "#241a17",
+      ring: "#f59e0b",
+      input: "#201612",
+      radius: "12px",
+      shadow: "rgba(0, 0, 0, 0.5)",
     },
   },
   slate: {
@@ -211,12 +408,23 @@ const TOKENS: Record<PaletteId, Record<ModeId, TokenSet>> = {
   },
 };
 
-/** Accept current ids and migrate the first-pass palette names. */
+/** Accept current ids and migrate removed palettes (ocean/violet → new families). */
 export function clampPalette(value: unknown): PaletteId {
-  if (value === "ocean" || value === "violet" || value === "slate" || value === "default") return value;
-  if (value === "mist") return "ocean";
-  if (value === "paper") return "slate";
-  if (value === "ink") return "violet";
+  if (
+    value === "tokyo" ||
+    value === "forest" ||
+    value === "matcha" ||
+    value === "yellow" ||
+    value === "zoro" ||
+    value === "hokage" ||
+    value === "slate" ||
+    value === "default"
+  ) {
+    return value;
+  }
+  if (value === "ocean" || value === "mist") return "tokyo"; // 海蓝 → 东京夜（蓝调）
+  if (value === "violet" || value === "ink") return "matcha"; // 青紫 → 草莓抹茶
+  if (value === "paper" || value === "noir") return "slate"; // 极简黑 → 石墨（黑白同族）
   return "default";
 }
 
@@ -263,13 +471,13 @@ function cssVars(t: TokenSet): string {
   ].join(";");
 }
 
-/** CSS for the iframe runner: default + 3 palettes, each light/dark. */
+/** CSS for the iframe runner: default + 5 palettes, each light/dark. */
 export function runnerThemeCss(): string {
   const blocks = [
     `:root,html[data-theme="light"]:not([data-palette]),html[data-theme="light"][data-palette="default"]{${cssVars(TOKENS.default.light)}}`,
     `html[data-theme="dark"]:not([data-palette]),html[data-theme="dark"][data-palette="default"]{${cssVars(TOKENS.default.dark)}}`,
   ];
-  (["ocean", "violet", "slate"] as PaletteId[]).forEach((id) => {
+  (["tokyo", "forest", "matcha", "yellow", "zoro", "hokage", "slate"] as PaletteId[]).forEach((id) => {
     blocks.push(`html[data-theme="light"][data-palette="${id}"]{${cssVars(TOKENS[id].light)}}`);
     blocks.push(`html[data-theme="dark"][data-palette="${id}"]{${cssVars(TOKENS[id].dark)}}`);
   });

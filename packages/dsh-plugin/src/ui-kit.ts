@@ -3,9 +3,15 @@
  * @monkeyagent/ui — shadcn-compatible component bag for monkey-mini-app Host.
  * Pure React + CSS variables (no Tailwind build, no Radix runtime).
  * API surface mirrors common shadcn names so AI skills can generate familiar code.
+ * Code/Diff 组件（Editor/CodeBlock/JsonBlock/DiffView/copyText）在 ./ui-kit/code.ts。
  */
+import { createCodeComponents, copyText, parseUnified } from "./ui-kit/code.js";
+import { createExtras } from "./ui-kit/extras.js";
+import { createDataGrid } from "./ui-kit/data-grid.js";
+
 export function createUiKit(React: any) {
   const { useState, useEffect, useId, useRef, useCallback, createElement: h, Fragment } = React;
+  const codeComps = createCodeComponents(React);
 
   function cn(...parts) {
     return parts.filter(Boolean).join(" ");
@@ -251,11 +257,11 @@ export function createUiKit(React: any) {
   }
   function TableHeader({ children }) { return h("thead", null, children); }
   function TableBody({ children }) { return h("tbody", null, children); }
-  function TableRow({ children, style }) {
-    return h("tr", { style: merge({ borderBottom: "1px solid var(--border)" }, style) }, children);
+  function TableRow({ children, style, ...rest }) {
+    return h("tr", merge(rest, { style: merge({ borderBottom: "1px solid var(--border)" }, style) }), children);
   }
-  function TableHead({ children, style }) {
-    return h("th", { style: merge({ textAlign: "left", padding: "10px 8px", color: "var(--muted-foreground)", fontWeight: 500 }, style) }, children);
+  function TableHead({ children, style, ...rest }) {
+    return h("th", merge(rest, { style: merge({ textAlign: "left", padding: "10px 8px", color: "var(--muted-foreground)", fontWeight: 500 }, style) }), children);
   }
   function TableCell({ children, style }) {
     return h("td", { style: merge({ padding: "10px 8px" }, style) }, children);
@@ -743,5 +749,13 @@ export function createUiKit(React: any) {
     toast, Toaster,
     // layout aliases
     Stack, Inline, Box, Surface, Text, Heading: Text,
+    // code & diff (CodeMirror 6)
+    ...codeComps,
+    copyText,
+    parseUnified,
+    // QA/Dev workflow
+    ...createExtras(React, { Button, Input }),
+    // data grid (TanStack headless)
+    ...createDataGrid(React, { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Button }),
   };
 }
