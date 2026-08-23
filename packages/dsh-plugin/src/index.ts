@@ -24,6 +24,17 @@ import {
 } from "@monkey-mini-app/agent-core";
 import { createUiCore } from "@monkey-mini-app/ui-core";
 import { getSkillMarkdown, getSkillDir } from "@monkey-mini-app/agent-skills";
+import { compileAppSource, jsonClone } from "./compile-app-source.js";
+import { httpRequest } from "./ctx-http.js";
+import {
+  publicAppConfig,
+  readHostConfig,
+  writeHostConfig,
+  clampPort,
+  DEFAULT_HOST_CONFIG,
+  type HostConfig,
+} from "./host-config.js";
+import { clampPalette, runnerThemeCss } from "./themes.js";
 
 export const name = "monkey-mini-app";
 
@@ -95,20 +106,68 @@ function makeFileStorage(appDir: string, fileName: string) {
   };
 }
 
+function resolveAppModule(fromFile: string, spec: string, appDir: string): string {
+  const root = path.resolve(appDir);
+  const base = spec.startsWith(".")
+    ? path.resolve(path.dirname(fromFile), spec)
+    : path.resolve(root, spec);
+  const resolved = path.resolve(base);
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+    throw new Error(`backend import escapes app dir: ${spec}`);
+  }
+  const candidates = [
+    resolved,
+    resolved + ".ts",
+    resolved + ".js",
+    resolved + ".tsx",
+    path.join(resolved, "index.ts"),
+    path.join(resolved, "index.js"),
+    path.join(resolved, "index.tsx"),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c) && fs.statSync(c).isFile()) return c;
+  }
+  throw new Error(`cannot resolve '${spec}' from ${path.relative(appDir, fromFile)}`);
+}
+
+
+
+const loadedAppModules = new Map<string, any>();
+
+function loadAppFile(file: string, appDir: string): any {
+  const key = file;
+  if (loadedAppModules.has(key)) return loadedAppModules.get(key);
+  const mod: { exports: any } = { exports: {} };
+  loadedAppModules.set(key, mod.exports);
+  const raw = fs.readFileSync(file, "utf8");
+  const src = compileAppSource(raw);
+  const req = (spec: string) => {
+    if (spec === "@monkeyagent/dashboard") {
+      return { defineDashboard, default: defineDashboard };
+    }
+    if (spec.startsWith(".") || spec.startsWith("lib/") || spec.startsWith("components/")) {
+      const next = resolveAppModule(file, spec, appDir);
+      return loadAppFile(next, appDir);
+    }
+    throw new Error(
+      `backend cannot import '${spec}'. Only @monkeyagent/dashboard and relative ./lib ./components`
+    );
+  };
+  const fn = new Function("module", "exports", "require", src + "\nreturn module.exports;");
+  const exported = fn(mod, mod.exports, req);
+  const value = exported || mod.exports;
+  loadedAppModules.set(key, value);
+  return value;
+}
+
 function loadMainApi(appDir: string): any {
+  loadedAppModules.clear();
   const fp = path.join(appDir, "main.api.ts");
   const fpJs = path.join(appDir, "main.api.js");
   const srcPath = fs.existsSync(fp) ? fp : fpJs;
   if (!fs.existsSync(srcPath)) throw new Error("missing main.api.ts");
-  let src = fs.readFileSync(srcPath, "utf8");
-  src = src.replace(/import\s+\{[^}]*\}\s+from\s+['"]@monkeyagent\/dashboard['"];?/g, "");
-  src = src.replace(/export\s+default\s+/, "module.exports.default = ");
-  const mod: { exports: any } = { exports: {} };
-  const fn = new Function("module", "exports", "defineDashboard", "require", src + "\nreturn module.exports;");
-  const exported = fn(mod, mod.exports, defineDashboard, () => {
-    throw new Error("main.api.ts cannot require extra modules on this host yet");
-  });
-  return (exported && (exported.default || exported)) || mod.exports.default;
+  const exported = loadAppFile(srcPath, appDir);
+  return (exported && (exported.default || exported)) || exported;
 }
 
 const dashboardCache = new Map<string, { mtime: number; def: any; ctx: any }>();
@@ -120,9 +179,65 @@ let hostBridge: {
   mcp: (name: string, args?: Record<string, unknown>) => Promise<string>;
   llm: (prompt: string, opts?: Record<string, unknown>) => Promise<string>;
   agent: (goal: string, opts?: Record<string, unknown>) => Promise<string>;
+  listTools: () => Array<Record<string, unknown>>;
   config: () => Record<string, unknown>;
   credentials: () => Record<string, string>;
 } | null = null;
+
+
+function snapshotDshTools(tools: any): Array<Record<string, unknown>> {
+  if (!tools) return [];
+  const rows: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+  const push = (raw: any, fallbackName?: string) => {
+    if (!raw) return;
+    const name = String(raw.name || raw.id || fallbackName || "").trim();
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    const schema =
+      raw.inputSchema ||
+      raw.parameters ||
+      raw.schema ||
+      raw.input ||
+      undefined;
+    rows.push({
+      name,
+      description: String(raw.description || raw.desc || ""),
+      schema: schema ?? null,
+    });
+  };
+  const tryList = (v: unknown) => {
+    if (!v) return;
+    if (Array.isArray(v)) {
+      for (const x of v) push(x);
+      return;
+    }
+    if (typeof v === "object") {
+      for (const [k, x] of Object.entries(v as Record<string, unknown>)) push(x, k);
+    }
+  };
+  try {
+    if (typeof tools.list === "function") tryList(tools.list());
+  } catch { /* ignore */ }
+  try {
+    if (typeof tools.schemas === "function") tryList(tools.schemas());
+  } catch { /* ignore */ }
+  tryList(tools.definitions);
+  tryList(tools.registry);
+  if (typeof tools.keys === "function") {
+    try {
+      for (const k of tools.keys()) {
+        try {
+          push(typeof tools.get === "function" ? tools.get(k) : { name: k }, String(k));
+        } catch {
+          push({ name: k });
+        }
+      }
+    } catch { /* ignore */ }
+  }
+  rows.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  return rows;
+}
 
 function stringifyToolResult(value: unknown): string {
   if (typeof value === "string") return value;
@@ -131,6 +246,113 @@ function stringifyToolResult(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+/** Live runtime root + bound port so ctx.config / llm routing never dump dsh settings. */
+let runtimeRootForConfig = "";
+let boundHostPort = 17880;
+
+function currentHostConfig(): HostConfig {
+  return readHostConfig(runtimeRootForConfig || resolveRuntimeRoot({}));
+}
+
+function listenOn(server: http.Server, port: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const onErr = (e: Error) => reject(e);
+    server.once("error", onErr);
+    const start = () => {
+      server.listen(port, "127.0.0.1", () => {
+        server.off("error", onErr);
+        resolve();
+      });
+    };
+    if (server.listening) {
+      server.close((err) => {
+        if (err) {
+          server.off("error", onErr);
+          reject(err);
+          return;
+        }
+        start();
+      });
+    } else {
+      start();
+    }
+  });
+}
+
+function resolveLlmRoute(opts?: Record<string, unknown>) {
+  const file = currentHostConfig();
+  const provider =
+    (typeof opts?.provider === "string" && opts.provider) || file.llm.provider;
+  const model =
+    (typeof opts?.model === "string" && opts.model) || file.llm.model;
+  return { provider, model };
+}
+
+function withJsonInstruction(prompt: string, opts?: Record<string, unknown>) {
+  if (!opts || opts.schema == null) {
+    return { prompt, system: typeof opts?.system === "string" ? opts.system : undefined };
+  }
+  const schemaText = JSON.stringify(opts.schema);
+  const system = [
+    typeof opts.system === "string" ? opts.system : "",
+    "Return ONLY a JSON object matching this JSON Schema. No markdown fences, no preamble.",
+    schemaText,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  return { prompt, system };
+}
+
+/** When opts.schema is set, peel markdown / preamble so JSON.parse in apps can succeed. */
+function coerceSchemaJson(text: string, opts?: Record<string, unknown>): string {
+  if (!opts || opts.schema == null) return text;
+  const t = String(text || "").trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const body = fence ? fence[1].trim() : t;
+  if (body.startsWith("{") || body.startsWith("[")) return body;
+  const startObj = body.indexOf("{");
+  const endObj = body.lastIndexOf("}");
+  if (startObj >= 0 && endObj > startObj) return body.slice(startObj, endObj + 1);
+  const startArr = body.indexOf("[");
+  const endArr = body.lastIndexOf("]");
+  if (startArr >= 0 && endArr > startArr) return body.slice(startArr, endArr + 1);
+  return body;
+}
+
+async function collectLlmStream(
+  llmSvc: { stream: (req: unknown) => AsyncIterable<unknown> },
+  prompt: string,
+  route: { provider: string; model: string },
+  opts?: Record<string, unknown>
+) {
+  const { prompt: text, system } = withJsonInstruction(prompt, opts);
+  const req = {
+    provider: route.provider,
+    model: route.model,
+    messages: [{ role: "user", content: [{ type: "text", text }] }],
+    system,
+    maxTokens: (opts && opts.maxTokens) || 1024,
+  };
+  const acc: string[] = [];
+  const iter = llmSvc.stream(req);
+  for await (const chunk of iter as AsyncIterable<any>) {
+    if (!chunk) continue;
+    if (chunk.type === "text-delta" && chunk.text) acc.push(chunk.text);
+    else if (
+      chunk.type === "block-end" &&
+      chunk.block &&
+      chunk.block.type === "text" &&
+      chunk.block.text
+    )
+      acc.push(chunk.block.text);
+    else if (typeof chunk.text === "string") acc.push(chunk.text);
+    else if (typeof chunk === "string") acc.push(chunk);
+  }
+  const out = acc.join("");
+  if (!out) throw new Error("llm stream empty");
+  return coerceSchemaJson(out, opts);
 }
 
 async function llmViaOpenAICompat(prompt: string, opts?: Record<string, unknown>) {
@@ -150,10 +372,12 @@ async function llmViaOpenAICompat(prompt: string, opts?: Record<string, unknown>
     process.env.DEEPSEEK_MODEL ||
     process.env.OPENAI_MODEL ||
     "deepseek-chat";
-  const body: Record<string, unknown> = {
-    model,
-    messages: [{ role: "user", content: prompt }],
-  };
+  const messages: Array<{ role: string; content: string }> = [];
+  if (typeof opts?.system === "string" && opts.system) {
+    messages.push({ role: "system", content: opts.system });
+  }
+  messages.push({ role: "user", content: prompt });
+  const body: Record<string, unknown> = { model, messages };
   if (opts && opts.schema != null) {
     body.response_format = { type: "json_object" };
   }
@@ -266,19 +490,36 @@ function createHostBridge(cordisCtx: LooseCtx) {
     const found = findTool(name);
     if (!found?.tools) throw new Error("tool: ctx.tools not available");
     const { tools, tool: t, name: resolved } = found;
-    const payload = args && typeof args === "object" ? args : {};
-    // Never wrap as { input: "..." }
+    const payload = jsonClone(args && typeof args === "object" ? args : {}, {});
+    const signal = AbortSignal.timeout(120_000);
+    const stubExec = {
+      signal,
+      deferContext() {},
+      concludeTurn() {},
+    };
+    // Prefer the tool body. dsh ToolRuntime.execute() takes ToolExecutionInput
+    // ({ name, arguments, callId, signal }), NOT (name, args). Calling the
+    // scheduler with a string name makes arguments=undefined and throws
+    // "tool execution arguments must be losslessly JSON-serializable".
+    // Direct body also bypasses code-mode collapse (native names denied without parent).
+    if (t && typeof t.execute === "function") {
+      return stringifyToolResult(await t.execute(payload, stubExec));
+    }
     if (typeof tools.execute === "function") {
-      return stringifyToolResult(await tools.execute(resolved || name, payload));
+      return stringifyToolResult(
+        await tools.execute({
+          name: resolved || name,
+          arguments: payload,
+          callId: `mma-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          signal,
+        })
+      );
     }
     if (typeof tools.invoke === "function") {
       return stringifyToolResult(await tools.invoke(resolved || name, payload));
     }
     if (typeof tools.call === "function") {
       return stringifyToolResult(await tools.call(resolved || name, payload));
-    }
-    if (t && typeof t.execute === "function") {
-      return stringifyToolResult(await t.execute(payload, { signal: AbortSignal.timeout(120_000) }));
     }
     if (t && typeof t.run === "function") {
       return stringifyToolResult(await t.run(payload));
@@ -304,23 +545,55 @@ function createHostBridge(cordisCtx: LooseCtx) {
 
   const llm = async (prompt: string, opts?: Record<string, unknown>) => {
     const llmSvc = get("llm") || get("model") || get("chat");
+    const route = resolveLlmRoute(opts);
+    const framed = withJsonInstruction(prompt, opts);
+    if (llmSvc && typeof llmSvc.stream === "function") {
+      try {
+        return await collectLlmStream(llmSvc, prompt, route, opts);
+      } catch (e: any) {
+        console.warn("[mini-api] ctx.llm.stream failed", e && e.message ? e.message : e);
+      }
+    }
     if (llmSvc) {
       if (typeof llmSvc.complete === "function") {
-        return stringifyToolResult(await llmSvc.complete(prompt, opts));
+        return coerceSchemaJson(
+          stringifyToolResult(
+            await llmSvc.complete(framed.prompt, { ...opts, ...route, system: framed.system })
+          ),
+          opts
+        );
       }
       if (typeof llmSvc.chat === "function") {
-        return stringifyToolResult(
-          await llmSvc.chat([{ role: "user", content: prompt }], opts)
+        return coerceSchemaJson(
+          stringifyToolResult(
+            await llmSvc.chat([{ role: "user", content: framed.prompt }], {
+              ...opts,
+              ...route,
+              system: framed.system,
+            })
+          ),
+          opts
         );
       }
       if (typeof llmSvc.generate === "function") {
-        return stringifyToolResult(await llmSvc.generate(prompt, opts));
+        return coerceSchemaJson(
+          stringifyToolResult(
+            await llmSvc.generate(framed.prompt, { ...opts, ...route, system: framed.system })
+          ),
+          opts
+        );
       }
       if (typeof llmSvc === "function") {
-        return stringifyToolResult(await llmSvc(prompt, opts));
+        return coerceSchemaJson(
+          stringifyToolResult(await llmSvc(framed.prompt, { ...opts, ...route })),
+          opts
+        );
       }
     }
-    return llmViaOpenAICompat(prompt, opts);
+    return coerceSchemaJson(
+      await llmViaOpenAICompat(framed.prompt, { ...opts, ...route, system: framed.system }),
+      opts
+    );
   };
 
   const agent = async (goal: string, opts?: Record<string, unknown>) => {
@@ -344,19 +617,7 @@ function createHostBridge(cordisCtx: LooseCtx) {
     return last;
   };
 
-  const config = () => {
-    const settings = get("settings") || get("config");
-    const snap =
-      (settings && typeof settings.getAll === "function" && settings.getAll()) ||
-      (settings && typeof settings.snapshot === "function" && settings.snapshot()) ||
-      settings ||
-      {};
-    return {
-      theme: "light",
-      chatLanguage: "zh",
-      ...(typeof snap === "object" && snap ? snap : {}),
-    };
-  };
+  const config = () => publicAppConfig(currentHostConfig(), boundHostPort);
 
   const credentials = () => {
     const cred = get("credentials");
@@ -366,21 +627,43 @@ function createHostBridge(cordisCtx: LooseCtx) {
     return {};
   };
 
-  return { bash, tool, mcp, llm, agent, config, credentials };
+  const listTools = () => snapshotDshTools(get("tools") || (cordisCtx as any).tools);
+  return { bash, tool, mcp, llm, agent, listTools, config, credentials };
+}
+
+function dashboardMtime(appDir: string): number {
+  let max = 0;
+  const bump = (fp: string) => {
+    try {
+      const t = fs.statSync(fp).mtimeMs;
+      if (t > max) max = t;
+    } catch {
+      /* missing */
+    }
+  };
+  bump(path.join(appDir, "main.api.ts"));
+  bump(path.join(appDir, "main.api.js"));
+  try {
+    const libDir = path.join(appDir, "lib");
+    for (const name of fs.readdirSync(libDir)) {
+      if (/\.(ts|js)$/.test(name)) bump(path.join(libDir, name));
+    }
+  } catch {
+    /* no lib/ */
+  }
+  return max;
 }
 
 function getDashboard(appDir: string) {
-  const fp = path.join(appDir, "main.api.ts");
-  const mtime = fs.existsSync(fp) ? fs.statSync(fp).mtimeMs : 0;
+  const mtime = dashboardMtime(appDir);
   const hit = dashboardCache.get(appDir);
   if (hit && hit.mtime === mtime) return hit;
   const def = loadMainApi(appDir);
   const storage = makeFileStorage(appDir, "main.storage.json");
   const bridge = hostBridge;
-  const ctx = {
+  const ctx: Record<string, unknown> = {
     storage,
     state: def.state || {},
-    config: bridge ? bridge.config() : { theme: "light", chatLanguage: "zh" },
     credentials: bridge ? bridge.credentials() : {},
     log: (...a: unknown[]) => console.log("[mini-api]", ...a),
     push: (_method: string, _params?: unknown) => {
@@ -394,6 +677,7 @@ function getDashboard(appDir: string) {
       if (!bridge) throw new Error("tool: host bridge not ready");
       return bridge.tool(name, args);
     },
+    listTools: () => (bridge ? bridge.listTools() : []),
     llm: async (prompt: string, opts?: Record<string, unknown>) => {
       if (!bridge) throw new Error("llm: host bridge not ready");
       return bridge.llm(prompt, opts);
@@ -406,6 +690,7 @@ function getDashboard(appDir: string) {
       if (!bridge) throw new Error("bash: host bridge not ready");
       return bridge.bash(command);
     },
+    http: httpRequest,
     system: {
       async metrics() {
         const cpus = os.cpus();
@@ -434,9 +719,24 @@ function getDashboard(appDir: string) {
       },
     },
   };
+  Object.defineProperty(ctx, "config", {
+    enumerable: true,
+    get: () =>
+      bridge
+        ? bridge.config()
+        : publicAppConfig(currentHostConfig(), boundHostPort),
+  });
   const rec = { mtime, def, ctx };
   dashboardCache.set(appDir, rec);
   return rec;
+}
+
+function asToolObject(value: unknown): Record<string, unknown> {
+  const v = jsonClone(value, value);
+  if (v == null) return { ok: true };
+  if (Array.isArray(v)) return { items: v };
+  if (typeof v !== "object") return { value: v };
+  return v as Record<string, unknown>;
 }
 
 async function callMainApi(appDir: string, method: string, args: unknown) {
@@ -455,32 +755,54 @@ function appRunnerHtml(appId: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>${appId}</title>
 <style>
-  :root {
-    --background:#f7f7f8; --foreground:#111;
-    --card:#fff; --card-foreground:#111;
-    --primary:#2563eb; --primary-foreground:#fff;
-    --secondary:#f3f4f6; --secondary-foreground:#111;
-    --muted:#f3f4f6; --muted-foreground:#6b7280;
-    --accent:#f3f4f6; --accent-foreground:#111;
-    --destructive:#dc2626; --destructive-foreground:#fff;
-    --border:#e5e7eb; --input:#e5e7eb; --ring:#2563eb;
-    --radius:10px;
-    --color-background:var(--background); --color-surface:var(--card); --color-foreground:var(--foreground);
-    --color-primary:var(--primary); --color-primary-foreground:var(--primary-foreground);
-    --color-muted:var(--muted); --color-muted-foreground:var(--muted-foreground); --color-border:var(--border);
-    --radius-md:var(--radius); --space-4:16px;
-    --font-sans:ui-sans-serif,system-ui,-apple-system,sans-serif;
-  }
+  ${runnerThemeCss()}
   html,body,#root{margin:0;height:100%;background:var(--background);color:var(--foreground);font-family:var(--font-sans);}
   .err{padding:24px;color:#b91c1c;white-space:pre-wrap;}
-  @keyframes mma-pulse{0%,100%{opacity:1}50%{opacity:.45}}
-  @keyframes mma-spin{to{transform:rotate(360deg)}}
+  #root.boot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+  #root.boot .art{position:relative;width:88px;height:72px;color:var(--foreground);}
+  #root.boot .art svg{display:block;width:88px;height:64px;}
+  #root.boot .dots{display:flex;gap:5px;justify-content:center;margin-top:2px;}
+  #root.boot .dots i{width:6px;height:6px;border-radius:50%;background:var(--primary);opacity:.35;animation:mma-dot 1s ease-in-out infinite;}
+  #root.boot .dots i:nth-child(2){animation-delay:.15s;}
+  #root.boot .dots i:nth-child(3){animation-delay:.3s;}
+  @keyframes mma-dot{0%,80%,100%{transform:translateY(0);opacity:.3}40%{transform:translateY(-5px);opacity:1}}
 </style>
 </head>
 <body>
-<div id="root">loading…</div>
+<div id="root" class="boot" role="status" aria-label="加载中">
+  <div class="art" aria-hidden="true">
+    <svg viewBox="0 0 88 64" fill="none">
+      <rect x="10" y="8" width="68" height="48" rx="10" stroke="currentColor" stroke-width="1.6" opacity=".35"/>
+      <rect x="10" y="8" width="68" height="12" rx="10" fill="currentColor" opacity=".08"/>
+      <circle cx="20" cy="14" r="2.2" fill="currentColor" opacity=".35"/>
+      <rect x="26" y="12.2" width="18" height="3.6" rx="1.8" fill="currentColor" opacity=".22"/>
+      <rect x="20" y="28" width="28" height="4" rx="2" fill="currentColor" opacity=".16"/>
+      <rect x="20" y="36" width="40" height="4" rx="2" fill="currentColor" opacity=".1"/>
+      <rect x="20" y="44" width="22" height="4" rx="2" fill="currentColor" opacity=".08"/>
+      <path d="M62 40c6 0 10 5 10 10" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
+      <circle cx="72" cy="50" r="3.2" fill="var(--primary)" opacity=".9"/>
+    </svg>
+    <div class="dots"><i></i><i></i><i></i></div>
+  </div>
+</div>
 <script type="module">
 const APP_ID = ${safe};
+(() => {
+  const q = new URLSearchParams(location.search);
+  const th = q.get("theme") || "light";
+  const pal = q.get("palette") || "default";
+  const dock = q.get("dock") || "fill";
+  document.documentElement.setAttribute("data-theme", th);
+  document.documentElement.setAttribute("data-palette", pal);
+  document.documentElement.setAttribute("data-dock", dock);
+  window.addEventListener("message", (ev) => {
+    const d = ev.data;
+    if (!d || d.type !== "mma-set-env") return;
+    if (d.theme) document.documentElement.setAttribute("data-theme", d.theme);
+    if (d.palette) document.documentElement.setAttribute("data-palette", d.palette);
+    if (d.dock) document.documentElement.setAttribute("data-dock", d.dock);
+  });
+})();
 const React = await import("https://esm.sh/react@18.3.1");
 const { createRoot } = await import("https://esm.sh/react-dom@18.3.1/client");
 const sucrase = await import("https://esm.sh/sucrase@3.35.0");
@@ -595,10 +917,19 @@ try {
   const uiMod = load(uiRel);
   const App = uiMod.default || uiMod.App || uiMod;
   if (typeof App !== "function") throw new Error("ui.tsx must default-export a component");
-  createRoot(document.getElementById("root")).render(React.createElement(App));
+  const rootEl = document.getElementById("root");
+  if (!rootEl) throw new Error("missing #root");
+  rootEl.className = "";
+  rootEl.removeAttribute("role");
+  rootEl.removeAttribute("aria-label");
+  rootEl.replaceChildren();
+  createRoot(rootEl).render(React.createElement(App));
 } catch (e) {
-  document.getElementById("root").className = "err";
-  document.getElementById("root").textContent = String((e && e.stack) || e);
+  const rootEl = document.getElementById("root");
+  if (rootEl) {
+    rootEl.className = "err";
+    rootEl.textContent = String((e && e.stack) || e);
+  }
 }
 </script>
 </body>
@@ -628,11 +959,13 @@ type LooseCtx = {
  */
 export async function apply(ctx: LooseCtx, config: Config = {}) {
   const runtimeRoot = resolveRuntimeRoot(config);
-  const themeId = config.themeId ?? "light";
+  runtimeRootForConfig = runtimeRoot;
+  const saved = readHostConfig(runtimeRoot);
+  const themeId = config.themeId ?? saved.theme;
 
   // Wire RunContext to live dsh seams (shell / tools / model when present)
   hostBridge = createHostBridge(ctx);
-  console.log("[monkey-mini-app] host bridge ready (bash/tool/mcp/llm/agent)");
+  console.log("[monkey-mini-app] host bridge ready (bash/http/tool/mcp/llm/agent)");
 
   const host = createNodeHostPort({ runtimeRoot });
   const history = createHistory(createGitHistoryAdapter());
@@ -642,6 +975,33 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
     runtimeRoot,
     resolveAppDir: (id) => defaultResolveAppDir(runtimeRoot, id),
   });
+  const pendingOpen: { current: { appId: string; title?: string; at: number } | null } = {
+    current: null,
+  };
+  const origOpen = handlers.mini_app_open.bind(handlers);
+  handlers.mini_app_open = async (input) => {
+    const out = await origOpen(input);
+    pendingOpen.current = {
+      appId: input.appId,
+      title: input.title,
+      at: Date.now(),
+    };
+    return out && typeof out === "object" && !Array.isArray(out) ? out : { ok: true, tab: out };
+  };
+  handlers.mini_app_call = async (input) => {
+    const appId = String(input.appId || "");
+    const method = String(input.method || "");
+    try {
+      const value = await callMainApi(
+        defaultResolveAppDir(runtimeRoot, appId),
+        method,
+        input.args || {}
+      );
+      return { ok: true, value };
+    } catch (e) {
+      return { ok: false, error: String((e as Error)?.message || e) };
+    }
+  };
   const ui = createUiCore(runtime);
   await ui.refresh();
 
@@ -710,7 +1070,7 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
               ],
             },
             async execute(args: Record<string, unknown>) {
-              return invokeAgentTool(handlers, toolName, args ?? {});
+              return asToolObject(await invokeAgentTool(handlers, toolName, args ?? {}));
             },
           })
         : {
@@ -727,7 +1087,7 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
               ],
             },
             async execute(args: Record<string, unknown>) {
-              return invokeAgentTool(handlers, toolName, args ?? {});
+              return asToolObject(await invokeAgentTool(handlers, toolName, args ?? {}));
             },
           };
       try {
@@ -739,6 +1099,33 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
           e
         );
       }
+    }
+    try {
+      const extra = {
+            name: "mini_app_list_ctx_tools",
+            description:
+              "List live dsh tools for ctx.tool(name, args) inside main.api.ts. Call ONLY when the app will use ctx.tool. Skip for storage/bash/llm-only apps.",
+            parameters: {},
+            output: {
+              schema: { type: "object", additionalProperties: true },
+              render: (_args: unknown, value: unknown) => [
+                { type: "text", text: typeof value === "string" ? value : JSON.stringify(value, null, 2) },
+              ],
+            },
+            async execute() {
+              const toolsSvc = (ctx as any).tools;
+              const listed = snapshotDshTools(toolsSvc);
+              return {
+                count: listed.length,
+                note: "These names are for ctx.tool(name, args) inside main.api.ts. Prefer storage/bash/llm when possible.",
+                tools: listed,
+              };
+            },
+          };
+      const ret = ctx.tools.register(extra);
+      if (typeof ret === "function") disposers.push(ret);
+    } catch (e) {
+      console.warn("[monkey-mini-app] register mini_app_list_ctx_tools failed", e);
     }
   } else {
     console.warn(
@@ -835,7 +1222,14 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
   }
 
   // Embedded Apps Host — plugin-owned, no extra process / run-demo.sh
-  const hostPort = Number(config.hostPort ?? process.env.MONKEY_MINI_APP_HOST_PORT ?? 17880);
+  let hostPort = saved.hostPort;
+  if (config.hostPort != null) {
+    try {
+      hostPort = clampPort(config.hostPort);
+    } catch {
+      /* keep saved */
+    }
+  }
   const appsHost = http.createServer(async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
@@ -871,11 +1265,117 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
         return;
       }
       if (url.pathname === "/health") {
-        send(200, JSON.stringify({ ok: true, runtimeRoot }));
+        send(200, JSON.stringify({ ok: true, runtimeRoot, hostPort: boundHostPort }));
+        return;
+      }
+      if (url.pathname === "/api/host-config" && req.method === "GET") {
+        send(
+          200,
+          JSON.stringify({ ok: true, ...publicAppConfig(currentHostConfig(), boundHostPort) })
+        );
+        return;
+      }
+      if (url.pathname === "/api/host-config" && req.method === "POST") {
+        const chunks: Buffer[] = [];
+        for await (const c of req) chunks.push(c as Buffer);
+        const body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}") as {
+          hostPort?: number;
+          theme?: string;
+          palette?: string;
+          chatLanguage?: string;
+          llm?: { provider?: string; model?: string };
+        };
+        const cur = currentHostConfig();
+        const next: HostConfig = {
+          hostPort: body.hostPort != null ? clampPort(body.hostPort) : cur.hostPort,
+          theme: body.theme === "dark" ? "dark" : body.theme === "light" ? "light" : cur.theme,
+          palette: body.palette != null ? clampPalette(body.palette) : cur.palette,
+          chatLanguage: body.chatLanguage === "en" ? "en" : body.chatLanguage === "zh" ? "zh" : cur.chatLanguage,
+          llm: {
+            provider: String(body.llm?.provider || cur.llm.provider),
+            model: String(body.llm?.model || cur.llm.model),
+          },
+        };
+        const portChanged = next.hostPort !== boundHostPort;
+        if (portChanged) {
+          const probe = http.createServer();
+          try {
+            await listenOn(probe, next.hostPort);
+            await new Promise<void>((resolve, reject) =>
+              probe.close((err) => (err ? reject(err) : resolve()))
+            );
+          } catch (e) {
+            send(
+              409,
+              JSON.stringify({
+                ok: false,
+                error: "port in use or bind failed: " + String((e as Error).message || e),
+                hostPort: boundHostPort,
+                ...publicAppConfig(cur, boundHostPort),
+              })
+            );
+            return;
+          }
+        }
+        const savedCfg = writeHostConfig(runtimeRoot, next);
+        send(
+          200,
+          JSON.stringify({
+            ok: true,
+            ...publicAppConfig(savedCfg, portChanged ? next.hostPort : boundHostPort),
+          })
+        );
+        if (portChanged) {
+          const target = next.hostPort;
+          setImmediate(() => {
+            listenOn(appsHost, target)
+              .then(() => {
+                boundHostPort = target;
+                console.log("[monkey-mini-app] apps host rebound http://127.0.0.1:" + target);
+              })
+              .catch((e) => {
+                console.warn("[monkey-mini-app] rebound failed", e);
+              });
+          });
+        }
+        return;
+      }
+      if (url.pathname === "/api/llm-config" && req.method === "GET") {
+        const c = currentHostConfig();
+        send(200, JSON.stringify({ ok: true, ...c.llm, defaults: DEFAULT_HOST_CONFIG.llm }));
+        return;
+      }
+      if (url.pathname === "/api/llm-config" && req.method === "POST") {
+        const chunks: Buffer[] = [];
+        for await (const c of req) chunks.push(c as Buffer);
+        const body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+        const cur = currentHostConfig();
+        const savedCfg = writeHostConfig(runtimeRoot, {
+          ...cur,
+          llm: {
+            provider: String(body.provider || cur.llm.provider),
+            model: String(body.model || cur.llm.model),
+          },
+        });
+        send(200, JSON.stringify({ ok: true, ...savedCfg.llm }));
+        return;
+      }
+      if (url.pathname === "/api/ctx-tools" || url.pathname === "/api/monkey-mini-app/ctx-tools") {
+        const listed = hostBridge?.listTools?.() ?? [];
+        send(200, JSON.stringify({ ok: true, count: listed.length, tools: listed }));
         return;
       }
       if (url.pathname === "/api/apps" || url.pathname === "/api/monkey-mini-app/apps") {
         send(200, JSON.stringify(await handleApps()));
+        return;
+      }
+      if (url.pathname === "/api/pending-open" && req.method === "GET") {
+        send(200, JSON.stringify(pendingOpen.current || {}));
+        return;
+      }
+      if (url.pathname === "/api/pending-open/ack" && req.method === "POST") {
+        pendingOpen.current = null;
+        send(200, JSON.stringify({ ok: true }));
         return;
       }
       const srcMatch = url.pathname.match(/^\/api\/app\/([^/]+)\/source$/);
@@ -990,17 +1490,12 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
       send(500, JSON.stringify({ error: String(e) }));
     }
   });
-  await new Promise<void>((resolve, reject) => {
-    appsHost.once("error", reject);
-    appsHost.listen(hostPort, "127.0.0.1", () => {
-      appsHost.off("error", reject);
-      resolve();
-    });
-  }).catch((e) => {
+  await listenOn(appsHost, hostPort).catch((e) => {
     console.warn("[monkey-mini-app] embedded host listen failed", e);
   });
   const addr = appsHost.address();
   const bound = typeof addr === "object" && addr ? addr.port : hostPort;
+  boundHostPort = bound;
   disposers.push(() => {
     appsHost.close();
   });

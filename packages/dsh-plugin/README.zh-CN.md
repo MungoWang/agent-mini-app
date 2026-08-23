@@ -1,4 +1,4 @@
-# @monkey-mini-app/dsh-plugin
+# @monkey-mini-app/dsh-monkey-mini-app
 
 [English](README.md) | 中文
 
@@ -15,7 +15,7 @@
 ## 安装
 
 ```sh
-dsh plugin --profile web add @monkey-mini-app/dsh-plugin
+dsh plugin --profile web add @monkey-mini-app/dsh-monkey-mini-app
 # 本地目录：
 dsh plugin --profile web add /path/to/monkey-mini-app/packages/dsh-plugin
 ```
@@ -35,7 +35,7 @@ dsh --profile web --dump-config | grep -A3 'id: monkey-mini-app'
 卸载：
 
 ```sh
-dsh plugin --profile web remove @monkey-mini-app/dsh-plugin
+dsh plugin --profile web remove @monkey-mini-app/dsh-monkey-mini-app
 ```
 
 ## 模型获得的能力

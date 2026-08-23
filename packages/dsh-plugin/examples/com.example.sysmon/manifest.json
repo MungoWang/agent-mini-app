@@ -1,8 +1,0 @@
-{
-  "id": "com.example.sysmon",
-  "name": "SysMon",
-  "version": "0.1.0",
-  "entry": "ui.tsx",
-  "permissions": ["ui"],
-  "theme": { "followsHost": true }
-}

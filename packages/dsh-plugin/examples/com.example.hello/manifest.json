@@ -1,8 +1,0 @@
-{
-  "id": "com.example.hello",
-  "name": "Hello",
-  "version": "0.2.0",
-  "entry": "ui.tsx",
-  "permissions": ["ui"],
-  "theme": { "followsHost": true }
-}

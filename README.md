@@ -18,7 +18,9 @@ dsh web --no-open --port 3080  # dsh + plugin → http://127.0.0.1:3080
 | Package | Role |
 |---------|------|
 | `runtime-core` | App registry, bridge, storage, theme |
-| `agent-core` / `agent-skills` | Tool handlers + SKILL.md (AI generation contract) |
+| `agent-core` | Tool handlers
+| `dsh-plugin/skills` | SKILL.md + templates（AI 生成契约，唯一源）
+| `agent-skills` | 仅 resolve skill 路径，无第二份正文 |
 | `dsh-plugin` | DeepSeek Harness bundle (link into web profile) |
 | `ui-core` | Multi-tab state |
 | `app-history-git` | Single-branch commit tree via isomorphic-git |

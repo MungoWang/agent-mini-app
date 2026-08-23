@@ -187,6 +187,7 @@ export async function createRuntime(
         id: m.id,
         name: m.name,
         version: m.version,
+        description: m.description || "",
         enabled: true,
       }));
     },

@@ -5,8 +5,10 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./skill": "./skills/monkey-mini-app/SKILL.md"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
@@ -18,5 +20,6 @@
     "tsup": "^8.3.6",
     "@types/node": "^22.13.4",
     "vitest": "^3.0.5"
-  }
+  },
+  "description": "Resolves the canonical monkey-mini-app skill under dsh-plugin/skills (no duplicated skill tree)."
 }

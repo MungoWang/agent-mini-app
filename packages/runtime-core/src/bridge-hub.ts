@@ -67,7 +67,9 @@ async function dispatch(
     throw Object.assign(new Error("app not found"), { code: "NOT_FOUND" });
   }
   const required = permissionForApi(api);
-  if (required && !manifest.permissions.includes(required)) {
+  const declared = Array.isArray(manifest.permissions) ? manifest.permissions : [];
+  // Empty / omitted permissions = allow all (local apps; field is optional).
+  if (required && declared.length > 0 && !declared.includes(required)) {
     throw Object.assign(new Error(`permission required: ${required}`), {
       code: "PERMISSION_DENIED",
     });

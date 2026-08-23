@@ -54,6 +54,7 @@ describe("agent-core", () => {
     expect(names).toContain("mini_app_open");
     expect(names).toContain("mini_app_register");
     expect(names).toContain("mini_app_history_list");
+    expect(names).toContain("mini_app_call");
   });
 
   it("open/list/focus/close tabs via handlers", async () => {
@@ -63,12 +64,12 @@ describe("agent-core", () => {
       resolveAppDir: (id) => `/r/apps/${id}`,
       runtimeRoot: "/r",
     });
-    const tab = await h.mini_app_open({ appId: "com.ex.a" });
-    expect(tab.tabId).toBe("tab_1");
-    expect(await h.mini_app_list_tabs()).toHaveLength(1);
-    await h.mini_app_focus({ tabId: tab.tabId });
-    await h.mini_app_close_tab({ tabId: tab.tabId });
-    expect(await h.mini_app_list_tabs()).toHaveLength(0);
+    const opened = (await h.mini_app_open({ appId: "com.ex.a" })) as { tab: { tabId: string } };
+    expect(opened.tab.tabId).toBe("tab_1");
+    expect((await h.mini_app_list_tabs() as { tabs: unknown[] }).tabs).toHaveLength(1);
+    await h.mini_app_focus({ tabId: opened.tab.tabId });
+    await h.mini_app_close_tab({ tabId: opened.tab.tabId });
+    expect((await h.mini_app_list_tabs() as { tabs: unknown[] }).tabs).toHaveLength(0);
   });
 
   it("validate rejects bad appId", async () => {

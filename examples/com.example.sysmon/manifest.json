@@ -1,0 +1,9 @@
+{
+  "id": "com.example.sysmon",
+  "name": "SysMon",
+  "description": "CPU、内存、磁盘和进程",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "permissions": ["ui"],
+  "theme": { "followsHost": true }
+}

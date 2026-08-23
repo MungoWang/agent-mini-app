@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install @monkey-mini-app/dsh-plugin into the local dsh *web* profile via path link.
+# Install @monkey-mini-app/dsh-monkey-mini-app into the local dsh *web* profile via path link.
 # Mirrors the working flow used in development:
 #   1) ensure dsh is installed
 #   2) build plugin bundle (optional if lib/ already present)
@@ -32,21 +32,24 @@ if [ ! -d "$PLUGIN/node_modules/isomorphic-git" ]; then
   (cd "$PLUGIN" && npm install isomorphic-git --omit=dev)
 fi
 
-# Optional rebuild when sources changed and esbuild/tsup available
-if [ ! -f "$PLUGIN/lib/index.js" ]; then
-  echo "[install] lib/ missing — trying to build..."
-  if command -v pnpm >/dev/null 2>&1 && [ -f "$ROOT/pnpm-workspace.yaml" ]; then
-    (cd "$ROOT" && pnpm install --ignore-scripts) || true
-  fi
-  if [ -x "$PLUGIN/node_modules/.bin/tsup" ] || command -v tsup >/dev/null 2>&1; then
-    (cd "$PLUGIN" && npx --yes tsup) || true
-  fi
-  if [ ! -f "$PLUGIN/lib/index.js" ]; then
-    echo "[install] ERROR: packages/dsh-plugin/lib/index.js is missing and build failed." >&2
-    echo "         Open an issue or rebuild the monorepo with pnpm + tsup." >&2
+# lib/{index,client,ui-kit}.js are tsup output from src/. Always rebuild so the
+# linked web profile picks up host + client + ui-kit changes.
+echo "[install] building lib/ from src (tsup)..."
+if [ -x "$PLUGIN/node_modules/.bin/tsup" ]; then
+  (cd "$PLUGIN" && rm -rf lib && ./node_modules/.bin/tsup)
+elif [ -x "$ROOT/node_modules/.bin/tsup" ]; then
+  (cd "$PLUGIN" && rm -rf lib && "$ROOT/node_modules/.bin/tsup")
+elif command -v tsup >/dev/null 2>&1; then
+  (cd "$PLUGIN" && rm -rf lib && tsup)
+else
+  (cd "$PLUGIN" && rm -rf lib && npx --yes tsup)
+fi
+for f in index.js client.js ui-kit.js; do
+  if [ ! -f "$PLUGIN/lib/$f" ]; then
+    echo "[install] ERROR: packages/dsh-plugin/lib/$f is missing and build failed." >&2
     exit 1
   fi
-fi
+done
 
 # Ensure profile skeleton (dsh creates this on first boot; we may create early)
 mkdir -p "$PROFILE_DIR"
@@ -83,6 +86,8 @@ fi
 echo "[install] linking plugin from $PLUGIN"
 (
   cd "$PROFILE_DIR"
+  # drop the old specifier that dsh's plugin list shortens to just "plugin"
+  pnpm remove -w @monkey-mini-app/dsh-plugin dsh-plugin >/dev/null 2>&1 || true
   # -w required: profile package is a workspace root
   pnpm add -w "$PLUGIN"
 )
@@ -95,7 +100,9 @@ const j = JSON.parse(fs.readFileSync(p, "utf8"));
 j.dsh = j.dsh || {};
 j.dsh.profile = j.dsh.profile || {};
 j.dsh.profile.bundles = j.dsh.profile.bundles || [];
-const name = "@monkey-mini-app/dsh-plugin";
+const name = "@monkey-mini-app/dsh-monkey-mini-app";
+const stale = ["@monkey-mini-app/dsh-plugin", "dsh-plugin"];
+j.dsh.profile.bundles = j.dsh.profile.bundles.filter((b) => !stale.includes(b));
 if (!j.dsh.profile.bundles.includes(name)) j.dsh.profile.bundles.push(name);
 fs.writeFileSync(p, JSON.stringify(j, null, 2) + "\n");
 console.log("[install] bundles =", j.dsh.profile.bundles.join(", "));

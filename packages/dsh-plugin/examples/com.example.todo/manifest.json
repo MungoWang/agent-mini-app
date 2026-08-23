@@ -1,8 +1,0 @@
-{
-  "id": "com.example.todo",
-  "name": "Todo",
-  "version": "0.1.0",
-  "entry": "ui.tsx",
-  "permissions": ["storage", "ui"],
-  "theme": { "followsHost": true }
-}

@@ -1,221 +1,171 @@
 ---
 name: monkey-mini-app
-description: Create local mini-apps with ui.tsx + main.api.ts using defineDashboard and useDashboardApi (monkeyagent protocol).
+description: Create or edit local mini-apps (ui.tsx + main.api.ts, Dashboard protocol). Register via mini_app_register; do not Write into ~/.monkey-mini-app.
 ---
 
 # monkey-mini-app
 
-Protocol:
+生成或修改本地小程序。本 skill 在 `~/.dsh/skills/monkey-mini-app/`（`references/`、`templates/` 同级）。
 
-- UI = `ui.tsx` (default export React component)
-- Backend = `main.api.ts` default `defineDashboard({ name, description, api })`
-- UI talks to backend **only** via `useDashboardApi().call(method, args)`
-- **UI never imports `main.api.ts`.** Host `POST /api/call` runs the Node API.
-- API handlers receive `ctx` (RunContext). Do not use raw HTTP in UI.
+**不要翻 host 源码。不要读现网 `~/.monkey-mini-app/runtime/apps/*/。**
 
-Do not invent `window.mini.host.invoke`.
+## 落地（唯一正确路径）
 
-## Layout
+**禁止**用文件工具 Write `~/.monkey-mini-app/runtime/**`（Workspace Write 沙箱会拒绝）。
+
+**只**调用：
 
 ```
-apps/<appId>/                 # reverse-DNS id, equals directory name
-  manifest.json
-  ui.tsx                      # required UI entry
-  main.api.ts                 # required defineDashboard
-  components/**/*.{ts,tsx}    # optional UI modules (UI may import)
-  lib/**/*.{ts,tsx}           # optional helpers (UI and backend may import)
-  storage/*.storage.json      # runtime JSON; do not hand-edit as source
+mini_app_register({
+  appId: "com.example.foo",
+  files: {
+    "manifest.json": "...",
+    "ui.tsx": "...",
+    "main.api.ts": "...",
+    "lib/parse.ts": "..."   // 可选
+  }
+})
 ```
 
-- **UI** may split into `components/` + `lib/` with relative imports.
-- **Backend** may import `./lib/*` (and `./components/*` if needed). No npm packages except `@monkeyagent/dashboard`.
-- `appId` is reverse-DNS and **equals** the directory name.
+然后：
 
-## manifest.json
+1. `mini_app_call({ appId, method, args })` 冒烟（**不要 curl，不要 bash 打 :17880**）
+2. `mini_app_history_commit({ appId, message })`（可选）
+3. `mini_app_open({ appId })` —— 会弹出侧栏「小程序」并打开该 app
+
+`mini_app_list` 只需确认插件活着，不必再 `ls` runtime。
+
+## 协议
+
+- UI **禁止** `import` `main.api.ts`
+- UI：`const { call } = useDashboardApi()`，自己管 loading
+- 后端：`export default defineDashboard({ name, description, api })`
+- `call("foo")` 必须是 `api.foo`
+- 后端 import 只许 `@monkeyagent/dashboard` 和 `./lib` `./components`
+- 抓网：`ctx.http(url)` / `ctx.http(url, { method, headers, query, body, timeout })`；解析写 `./lib`；模型：`ctx.llm`（返回 **string**）
+- 本机命令才用 `ctx.bash`（`{ stdout, stderr, exitCode }`）；`ctx.llm` / `ctx.tool` / `ctx.agent` → **string**
+- MCP / tool 参数是普通对象，禁止 `{ input: "..." }`
+- 文案给用户看；卡片标题用业务语言（「今日摘要」），不要写 `ctx.bash` / `storage/*.json`
+- 要 **JSON 对象** 时用 `ctx.llm(prompt, { schema })` 再 `JSON.parse`，见 [references/llm-json.md](references/llm-json.md)；完整例子是 `templates/news/`
+
+## CRUD 骨架（普通记事直接改这段）
+
+`manifest.json`:
 
 ```json
 {
-  "id": "com.example.todo",
-  "name": "Todo",
+  "id": "com.example.foo",
+  "name": "名称",
+  "description": "一句话",
   "version": "0.1.0",
   "entry": "ui.tsx",
-  "permissions": ["storage", "ui"],
   "theme": { "followsHost": true }
 }
 ```
 
-## Backend runtime (main.api.ts)
-
-Host compiles each file with a small TS/import transform, then `new Function` + a **scoped require**.
-
-**Allowed**
-
-- `import { defineDashboard } from "@monkeyagent/dashboard"`
-- `import { foo } from "./lib/foo"` / `../lib/foo`
-- TypeScript types / interfaces (keep them simple; they are stripped)
-- `export default defineDashboard(...)`
-- `export function` / `export const` from `lib/` files
-
-**Forbidden (throws)**
-
-- `import` from npm (`node-fetch`, `rss-parser`, `openai`, ...)
-- Node builtins (`fs`, `http`, ...)
-- Imports that escape the app directory
-
-**Minimal backend (bash + llm + lib)**
+`main.api.ts`:
 
 ```ts
 import { defineDashboard } from "@monkeyagent/dashboard";
-import { parseFeed } from "./lib/parseFeed";
+
+async function loadItems(ctx) {
+  const items = await ctx.storage.get("items");
+  return Array.isArray(items) ? items : [];
+}
 
 export default defineDashboard({
-  name: "News",
-  description: "AI agent news + LLM summary",
+  name: "名称",
+  description: "一句话",
   api: {
-    async refresh(ctx, args) {
-      const r = await ctx.bash("curl -fsSL https://hnrss.org/frontpage");
-      if (r.exitCode !== 0) throw new Error(r.stderr || "curl failed");
-      const items = parseFeed(r.stdout).slice(0, 12);
-      const summary = await ctx.llm(
-        "Summarize these AI-agent headlines in 5 bullets:\n" + items.map((x) => "- " + x.title).join("\n"),
-        { model: "deepseek-chat" }
-      );
-      await ctx.storage.set("latest", { items, summary, at: Date.now() });
-      return { items, summary };
+    async list(ctx) {
+      return loadItems(ctx);
     },
-    async latest(ctx) {
-      return (await ctx.storage.get("latest")) || { items: [], summary: "" };
+    async add(ctx, args) {
+      const title = String(args?.title ?? "").trim();
+      if (!title) throw new Error("请填写标题");
+      const items = await loadItems(ctx);
+      const item = { id: "i_" + Date.now(), title, createdAt: Date.now() };
+      items.unshift(item);
+      await ctx.storage.set("items", items);
+      return item;
+    },
+    async remove(ctx, args) {
+      const items = (await loadItems(ctx)).filter((x) => x.id !== args?.id);
+      await ctx.storage.set("items", items);
+      return { ok: true };
     },
   },
 });
 ```
 
-```ts
-// lib/parseFeed.ts
-export function parseFeed(xml) {
-  const items = [];
-  const re = /<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>/gi;
-  let m;
-  while ((m = re.exec(xml))) {
-    items.push({ title: m[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim(), url: m[2].trim() });
-  }
-  return items;
-}
-```
-
-Reload: cache key is `main.api.ts` mtime. Saving the entry file reloads imported `lib/` as well (cache cleared on each load).
-
-## Host HTTP (smoke without the browser)
-
-Base: `http://127.0.0.1:17880`
-
-| Method | Path | Body | Result |
-|--------|------|------|--------|
-| GET | `/api/apps` | | `{ apps: [{ id, name, version }] }` |
-| POST | `/api/call` | `{ appId, method, args }` | `{ ok: true, value }` or `{ ok: false, error }` |
-| GET | `/app/:id` | | runner HTML |
-| GET | `/ui-kit.js` | | component bag |
-| DELETE | `/api/app/:id` | | `{ ok, appId }` |
-
-```bash
-curl -s http://127.0.0.1:17880/api/apps
-curl -s http://127.0.0.1:17880/api/call \
-  -H 'content-type: application/json' \
-  -d '{"appId":"com.example.todo","method":"list","args":{"filter":"all"}}'
-```
-
-## RunContext `ctx`
-
-### Always on
-
-| API | Returns | Notes |
-|-----|---------|-------|
-| `ctx.storage.get/set/delete/clear` | get → value or `null` | `storage/main.storage.json` |
-| `ctx.storage.table(name)` | same API | `{name}.storage.json`, name `[A-Za-z0-9_-]` |
-| `ctx.state` | object | in-memory, same ref as defineDashboard.state |
-| `ctx.config` | `{ theme, chatLanguage, ... }` | host snapshot |
-| `ctx.credentials` | `Record<string,string>` | declared secrets |
-| `ctx.log(...args)` | void | console |
-| `ctx.push(method, params)` | void | reserved; often no-op |
-| `ctx.system.metrics()` | os snapshot | Node `os` |
-
-### Host capabilities — implemented
-
-| API | Signature | Returns | Fallback | Failure |
-|-----|-----------|---------|----------|---------|
-| `ctx.bash(command)` | string | `{ stdout, stderr, exitCode }` | 1) local `bash -c` 120s/8MB 2) dsh `shell.run` | `bash unavailable` |
-| `ctx.tool(name, args)` | args = **plain object**, never `{input:"..."}` | **string** | dsh tools execute/invoke/call | `tool: ctx.tools not available` / `not invokable` |
-| `ctx.mcp(name, args?)` | no `mcp_` prefix | string | `tool(name)` then `tool("mcp__"+name)` | first error |
-| `ctx.llm(prompt, opts?)` | `opts: { model?, schema? }` | **string** | 1) dsh llm/model/chat 2) OpenAI-compat HTTP | `llm unavailable: no dsh model service bound and no DEEPSEEK_API_KEY/OPENAI_API_KEY` |
-| `ctx.agent(goal, opts?)` | `opts: { maxIterations?, schema? }` | **string** | dsh agents.run/spawn else loop llm | same as llm |
-
-LLM HTTP fallback: `DEEPSEEK_API_KEY` or `OPENAI_API_KEY`; base `DEEPSEEK_BASE_URL` / `OPENAI_BASE_URL` or `https://api.deepseek.com`; model `opts.model` or env or `deepseek-chat`. `opts.schema` ⇒ `response_format: json_object`. Return is message **content string**.
-
-Use `ctx.bash("curl ...")` for RSS. Do not import `node-fetch`.
-
-## ui.tsx
+`ui.tsx`:
 
 ```tsx
 import { useEffect, useState } from "react";
-import { Button, Stack, Text, useDashboardApi } from "@monkeyagent/ui";
+import { Button, Empty, Input, Stack, Text, useDashboardApi } from "@monkeyagent/ui";
 
 export default function Ui() {
   const { call } = useDashboardApi();
-  const [data, setData] = useState(null);
-  useEffect(() => { void call("latest", {}).then(setData); }, []);
+  const [items, setItems] = useState([]);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState(null);
+
+  async function refresh() {
+    try {
+      setItems((await call("list", {})) || []);
+      setError(null);
+    } catch (e) {
+      setError(String(e?.message || e));
+    }
+  }
+  useEffect(() => { void refresh(); }, []);
+
   return (
-    <Stack>
-      <Text>{(data && data.summary) || "empty"}</Text>
-      <Button onClick={() => void call("refresh", {}).then(setData)}>Refresh</Button>
+    <Stack gap={16} style={{ padding: 24, maxWidth: 640, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+      <Text variant="h2">名称</Text>
+      {error ? <Text style={{ color: "var(--destructive)" }}>{error}</Text> : null}
+      <Input value={draft} placeholder="写一条" onChange={(e) => setDraft(e.target.value)} />
+      <Button
+        onClick={async () => {
+          try {
+            await call("add", { title: draft });
+            setDraft("");
+            await refresh();
+          } catch (e) {
+            setError(String(e?.message || e));
+          }
+        }}
+      >
+        添加
+      </Button>
+      {!items.length ? <Empty title="还没有内容" /> : items.map((it) => (
+        <Text key={it.id}>{it.title}</Text>
+      ))}
     </Stack>
   );
 }
 ```
 
-`useDashboardApi()` → `{ call(method, args?) }`. No auto-fetch.
+## 按需再读（不要一次全打开）
 
-**Forbidden in UI:** llm / agent / mcp / bash / fetch / secrets.
+| 何时 | 打开 |
+|------|------|
+| `ctx.http` / `bash` / `llm` / `agent` / `tool` / `mcp` | [references/ctx.md](references/ctx.md)（逻辑api call使用 `ctx.http`，不要 bash curl） |
+| **真的要用** `ctx.tool` | 先 `mini_app_list_ctx_tools`，再 [references/tools.md](references/tools.md) |
+| 相对 import、`./lib` 解析 | [references/loader.md](references/loader.md) |
+| 组件名单 / tokens | [references/ui.md](references/ui.md) |
+| 人类调试 Host `:17880` / curl | [references/test.md](references/test.md)（≠ `ctx.http`） |
+| 连通检查 / 最小 UI | `templates/hello/` |
+| 筛选、表格类 CRUD | `templates/todo/` |
+| RSS + `ctx.http` + `./lib` + 结构化 LLM | `templates/news/` |
+| 本机指标 + bash 解析 | `templates/sysmon/` |
+| 报错 | [references/troubleshoot.md](references/troubleshoot.md) |
 
-UI imports: `react`, `@monkeyagent/ui`, `./components/*`, `./lib/*`.
-
-Tokens: `--background` `--foreground` `--card` `--primary` `--primary-foreground` `--muted` `--muted-foreground` `--border` `--destructive` `--radius`.
-
-Do not read `ui-kit.js` unless changing the kit.
-
-## Runner / CDN
-
-Iframe loads `react` / `react-dom` / `sucrase` from **esm.sh**. Offline or blocked CDN ⇒ UI will not mount.
-
-## Workflow
-
-1. `mini_app_list` → runtimeRoot
-2. Write manifest + ui.tsx + main.api.ts (+ lib/components)
-3. `mini_app_register`
-4. `mini_app_history_commit`
-5. Smoke `curl` `/api/call` then `mini_app_open`
-
-## Samples
-
-- `templates/todo/` — storage CRUD
-- `templates/sysmon/` — bash + metrics
-- `templates/hello/` — ping
-- `llm` + `bash` pattern: Minimal backend above
+普通 storage CRUD **先用上面骨架**，不要为了记笔记去读整份 Todo。模板是风格样板：中文产品文案、`call` 自己管 loading/error、后端可用 TypeScript。
 
 ## Checklist
 
-- [ ] ui.tsx default export; main.api.ts defineDashboard name+description+api
-- [ ] UI call keys ⊆ api keys
-- [ ] no fetch/invoke/secrets in UI
-- [ ] backend imports only @monkeyagent/dashboard + relative ./lib ./components
-- [ ] bash → {stdout,stderr,exitCode}; llm/tool → string
-- [ ] MCP args plain object
-- [ ] durable data in ctx.storage
-- [ ] curl /api/call works
-- [ ] registered + committed
-
-## Anti-patterns
-
-- Backend in App.tsx / window.mini
-- import rss-parser / openai in main.api.ts — use ctx.bash + ctx.llm + ./lib
-- MCP wrapped as { input: "..." }
-- Secrets in UI
+- [ ] `mini_app_register` 落地，没有 Write runtime
+- [ ] `mini_app_call` 冒烟通过（不是 curl）
+- [ ] `mini_app_open`
+- [ ] call 键 ⊆ api 键；UI 无 fetch / secrets / llm

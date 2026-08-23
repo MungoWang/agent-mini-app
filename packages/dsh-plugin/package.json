@@ -1,5 +1,5 @@
 {
-  "name": "@monkey-mini-app/dsh-plugin",
+  "name": "@monkey-mini-app/dsh-monkey-mini-app",
   "version": "0.1.0",
   "description": "DeepSeek Harness bundle: monkey-mini-app runtime tools, skills, and multi-tab host wiring",
   "type": "module",
@@ -23,11 +23,12 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh-CN.md",
-    "tsup.config.ts"
+    "tsup.config.ts",
+    "skills"
   ],
   "scripts": {
-    "build": "tsup",
-    "prepare": "tsup",
+    "build": "rm -rf lib && tsup",
+    "prepare": "rm -rf lib && tsup",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -50,7 +51,8 @@
     "monkey-mini-app"
   ],
   "dependencies": {
-    "isomorphic-git": "^1.27.1"
+    "isomorphic-git": "^1.27.1",
+    "sucrase": "^3.35.1"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

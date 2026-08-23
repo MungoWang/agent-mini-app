@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# One-shot local setup: Node tools + monorepo install + dsh plugin link + print next steps
+# Idempotent local setup. Safe to re-run after a bad overwrite.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+PLUGIN="$ROOT/packages/dsh-plugin"
+LIB="$PLUGIN/lib"
 
 echo "==> Node $(node -v 2>/dev/null || echo MISSING)"
 if ! command -v node >/dev/null 2>&1; then
@@ -20,29 +22,41 @@ if ! command -v dsh >/dev/null 2>&1; then
   npm install -g @deepseek-ai/dsh
 fi
 
-echo "==> pnpm install (monorepo, ignore lifecycle for speed)"
+echo "==> pnpm install (ignore lifecycle; tsup is a build step)"
 pnpm install --ignore-scripts || true
 
-echo "==> ensure dsh-plugin has isomorphic-git"
-(cd packages/dsh-plugin && npm install isomorphic-git --omit=dev)
+echo "==> isomorphic-git in dsh-plugin (runtime, kept external by tsup)"
+(cd "$PLUGIN" && npm install isomorphic-git --omit=dev --ignore-scripts)
 
-if [ ! -f packages/dsh-plugin/lib/index.js ]; then
-  echo "WARNING: packages/dsh-plugin/lib/index.js missing — plugin will not load until built."
+echo "==> build lib/ from src (tsup)"
+if [ -x "$PLUGIN/node_modules/.bin/tsup" ]; then
+  (cd "$PLUGIN" && rm -rf lib && ./node_modules/.bin/tsup)
+elif [ -x "$ROOT/node_modules/.bin/tsup" ]; then
+  (cd "$PLUGIN" && rm -rf lib && "$ROOT/node_modules/.bin/tsup")
+elif command -v tsup >/dev/null 2>&1; then
+  (cd "$PLUGIN" && rm -rf lib && tsup)
+else
+  echo "ERROR: tsup not found. Run pnpm install in the repo first." >&2
+  exit 1
 fi
+
+echo "==> syntax check"
+node --check "$LIB/index.js"
+node --check "$LIB/client.js"
+node --check "$LIB/ui-kit.js"
+
+echo "==> import smoke (load plugin module, do not apply)"
+node --input-type=module -e "import('file://$LIB/index.js').then(m => {
+  if (!m.name && !m.default) throw new Error('plugin export missing');
+  console.log('plugin export ok', m.name || (m.default && m.default.name) || 'default');
+}).catch(e => { console.error(e); process.exit(1); })"
 
 echo "==> link plugin into dsh web profile"
 bash "$ROOT/scripts/install-dsh-plugin.sh"
 
 echo
 echo "======== next ========"
-echo "1) Visual Host demo (no dsh required):"
-echo "     bash scripts/run-demo.sh"
-echo "     open http://127.0.0.1:8080"
-echo
-echo "2) dsh web + plugin:"
-echo "     dsh web --no-open --port 3080"
-echo "     open http://127.0.0.1:3080"
-echo "     chat: create a mini app using skill monkey-mini-app"
-echo
-echo "3) Examples live in: examples/com.example.hello , examples/com.example.counter"
+echo "  dsh web --no-open --port 3080"
+echo "  open http://127.0.0.1:3080"
+echo "Re-run this script anytime after a bad overwrite."
 echo "======================"

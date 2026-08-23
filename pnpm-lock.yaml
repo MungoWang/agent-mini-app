@@ -182,6 +182,9 @@ importers:
       isomorphic-git:
         specifier: ^1.27.1
         version: 1.41.8
+      sucrase:
+        specifier: ^3.35.1
+        version: 3.35.1
     devDependencies:
       '@types/node':
         specifier: ^22.13.4

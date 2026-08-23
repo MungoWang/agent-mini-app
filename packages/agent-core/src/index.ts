@@ -22,9 +22,14 @@ export type AgentHandlers = {
     appId: string;
     files: Record<string, string>;
   }) => Promise<unknown>;
-  mini_app_open: (input: { appId: string; title?: string }) => Promise<AppTab>;
+  mini_app_open: (input: { appId: string; title?: string }) => Promise<unknown>;
   mini_app_close_tab: (input: { tabId: string }) => Promise<unknown>;
-  mini_app_list_tabs: () => Promise<AppTab[]>;
+  mini_app_list_tabs: () => Promise<unknown>;
+  mini_app_call: (input: {
+    appId: string;
+    method: string;
+    args?: Record<string, unknown>;
+  }) => Promise<unknown>;
   mini_app_focus: (input: { tabId: string }) => Promise<unknown>;
   mini_app_history_commit: (input: {
     appId: string;
@@ -75,7 +80,7 @@ export function listAgentTools(): AgentToolDef[] {
     {
       name: "mini_app_register",
       description:
-        "Register app from in-memory file map (manifest + sources). Prefer writing files via host fs tools then register.",
+        "Create or overwrite a mini-app. Pass { appId, files } where files keys are relative paths (manifest.json, ui.tsx, main.api.ts, lib/...). Do NOT Write into ~/.monkey-mini-app/runtime — the sandbox will deny it. This tool writes the files.",
       inputSchema: {
         type: "object",
         properties: {
@@ -87,7 +92,8 @@ export function listAgentTools(): AgentToolDef[] {
     },
     {
       name: "mini_app_open",
-      description: "Open app in a new host tab (multi-tab; does not close others)",
+      description:
+        "Open the mini-app in the dsh 小程序 side panel. The web Host will pop open and focus this app.",
       inputSchema: {
         type: "object",
         properties: {
@@ -118,6 +124,20 @@ export function listAgentTools(): AgentToolDef[] {
         type: "object",
         properties: { tabId: { type: "string" } },
         required: ["tabId"],
+      },
+    },
+    {
+      name: "mini_app_call",
+      description:
+        "Call a mini-app api method for smoke tests. Use this instead of curl / bash against :17880. args is a plain object.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          appId: { type: "string" },
+          method: { type: "string" },
+          args: { type: "object" },
+        },
+        required: ["appId", "method"],
       },
     },
     {
@@ -205,7 +225,7 @@ export function createAgentHandlers(ctx: AgentCoreContext): AgentHandlers {
         errors.push("appId must be reverse-DNS (e.g. com.example.todo)");
       }
       const app = await runtime.getApp(appId);
-      if (!app) errors.push("app not registered; write files then mini_app_register");
+      if (!app) errors.push("app not registered; call mini_app_register({ appId, files })");
       return { ok: errors.length === 0, errors, path: resolveAppDir(appId) };
     },
 
@@ -221,7 +241,8 @@ export function createAgentHandlers(ctx: AgentCoreContext): AgentHandlers {
     },
 
     async mini_app_open({ appId, title }) {
-      return runtime.openTab(appId, { title });
+      const tab = await runtime.openTab(appId, { title });
+      return { ok: true, tab };
     },
 
     async mini_app_close_tab({ tabId }) {
@@ -230,7 +251,12 @@ export function createAgentHandlers(ctx: AgentCoreContext): AgentHandlers {
     },
 
     async mini_app_list_tabs() {
-      return runtime.listTabs();
+      const tabs = await runtime.listTabs();
+      return { tabs };
+    },
+
+    async mini_app_call() {
+      throw new Error("mini_app_call is provided by the dsh plugin host");
     },
 
     async mini_app_focus({ tabId }) {
@@ -243,7 +269,9 @@ export function createAgentHandlers(ctx: AgentCoreContext): AgentHandlers {
     },
 
     async mini_app_history_list({ appId, limit }) {
-      return runtime.historyList(appId, { limit });
+      const tree = await runtime.historyList(appId, { limit });
+      if (tree && typeof tree === "object" && !Array.isArray(tree)) return tree;
+      return { commits: tree };
     },
 
     async mini_app_history_reset({ appId, commitId }) {

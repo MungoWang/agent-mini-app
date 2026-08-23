@@ -46,7 +46,7 @@ dsh web --no-open --port 3080
 
 ```text
 pnpm add -w /绝对路径/packages/dsh-plugin
-# package.json → dsh.profile.bundles 含 "@monkey-mini-app/dsh-plugin"
+# package.json → dsh.profile.bundles 含 "@monkey-mini-app/dsh-monkey-mini-app"
 ```
 
 ## Demo / 示例
@@ -56,8 +56,18 @@ pnpm add -w /绝对路径/packages/dsh-plugin
 | `demo/server.mjs` | Host 视觉 Demo 服务 |
 | `examples/com.example.hello` | 最小 UI 示例 |
 | `examples/com.example.counter` | storage 示例 |
-| `packages/agent-skills/skills/monkey-mini-app/SKILL.md` | Agent 创建规范（唯一源） |
+| `packages/dsh-plugin/skills/monkey-mini-app/SKILL.md` | Agent 创建规范（权威源：dsh-plugin/skills） |
 | `packages/dsh-plugin` | dsh bundle（`lib/` 已预构建） |
+
+## dsh 界面入口
+
+重启 `dsh web` 并硬刷新浏览器后：
+
+- 「新会话」按钮**右侧**出现 **Apps**
+- 侧栏底部（设置附近）也会有 **Apps**
+- 点击打开 Mini App Dashboard
+
+官方没有「新会话右侧」slot，同行按钮由 client 半部锚定「新会话」DOM 插入。
 
 ## 环境变量
 
@@ -69,7 +79,7 @@ pnpm add -w /绝对路径/packages/dsh-plugin
 
 ## 排错
 
-1. **`tools.register failed`** — 需 dsh-tools 支持的 `defineTool` + `output.schema`；本仓库 `lib/index.js` 已按当前 dsh 修好。  
+1. **`tools.register failed`** — 需 dsh-tools 支持的 `defineTool` + `output.schema`；本仓库 `src/index.ts`（tsup → `lib/index.js`）已按当前 dsh 修好。  
 2. **找不到 isomorphic-git** — `cd packages/dsh-plugin && npm i isomorphic-git`  
 3. **pnpm workspace root 警告** — 安装脚本已用 `pnpm add -w`。  
 4. **插件未进 composition** — 看 `~/.dsh/profiles/web/package.json` 的 `dsh.profile.bundles`。

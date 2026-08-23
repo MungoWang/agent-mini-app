@@ -1,5 +1,6 @@
 node_modules/
 dist/
+packages/dsh-plugin/lib/
 *.tsbuildinfo
 .DS_Store
 coverage/
