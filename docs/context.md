@@ -229,6 +229,16 @@ curl -s http://127.0.0.1:17880/api/call -H 'content-type: application/json' \
 - `templates/sysmon` — bash + metrics，不要假数据
 - `templates/news` — `ctx.http(RSS)` + `./lib/parseFeed` + `ctx.llm({ schema })`
 
+## Host 列表：三套卡片方案 + monogram + commits
+
+- 卡片方案（`settings` → 卡片方案）：`hero`（渐变字+光晕）/ `etch`（空心描边字）/ `stamp`（线框邮戳，默认）。前端 `state.cardStyle` + `localStorage["mma-card-style"]`，纯前端偏好，不入 host-config。
+- monogram：host 端 `acronymOf()` 用 `pinyin-pro` 实时算（中文名前两字声母，英文名取前两字母）；manifest 可选 `acronym` 字段覆盖（见 SKILL.md）。
+- commits：`gitCommitCount()`（git rev-list --count HEAD，60s TTL 缓存）——app 无 version 概念，列表 meta 显示「N commits」。
+- actions bar 浏览面板：`/api/apps/:id/history[:commit]`（git log + diff-tree numstat + `git show` preview ≤18 行）、`/api/apps/:id/storage[:table]`（动态枚举 storage/*.json）。
+- **坑**：esbuild 会把 apply 内后声明的 `appDirOf` 重命名为 `appDirOf2`，但前置定义的 `handleApps` 里引用不会同步重写 → `appDirOf is not defined`。闭包内不要前向引用会被重命名的 const，`handleApps` 自包含定义。
+- **坑**：dock 切换（fill/side）模板结构不同（卡 vs 行），`setDock` 必须调 `paintList()` 重渲染，否则样式不切。
+- **坑**：改完 `pnpm -r build` 会用旧 src 覆盖 dsh-plugin/lib，务必只跑 `pnpm --filter @monkey-mini-app/dsh-monkey-mini-app build`。
+
 ## 和本机协作
 
 网页 Grok **不能**写你的 Mac。Grok CLI：

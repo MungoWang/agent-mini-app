@@ -72,6 +72,21 @@ var _closing = false;
 var _layoutLockUntil = 0;
 var _bound = false;
 
+/* 浏览面板：commits / storage（每面板独立加载，detail 为当前展开项） */
+var browseState = {
+  open: false,
+  kind: "history",
+  appId: null,
+  appName: "",
+  loading: false,
+  error: null,
+  list: [],
+  detail: null, // commit 详情
+  table: null, // storage table 名
+  tableValue: null,
+  openFile: null, // 当前展开 preview 的文件路径
+};
+
 function css(el, obj) {
   Object.keys(obj).forEach(function (k) {
     el.style[k] = obj[k];
@@ -388,6 +403,31 @@ function installFootCss() {
     "#mma-host .mma-settings-actions button.ghost{background:transparent;color:inherit;border-color:var(--dsw-alias-border,#e5e7eb);}",
     "#mma-host .mma-settings-msg{font-size:12px;opacity:.7;}",
     "#mma-host .mma-settings-msg.err{color:#b91c1c;opacity:1;}",
+    // —— 浏览面板（commits / storage 共用） ——
+    "#mma-host .mma-browse{background:var(--dsw-alias-bg,#f7f7f8);}",
+    "#mma-host .mma-browse-head{display:flex;align-items:center;gap:8px;margin:0 0 12px;}",
+    "#mma-host .mma-browse-head h3{margin:0;font-size:15px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
+    "#mma-host .mma-browse-head .sub{font-size:11.5px;color:var(--muted-foreground,inherit);opacity:.7;white-space:nowrap;}",
+    "#mma-host .mma-btns{display:flex;gap:6px;}",
+    "#mma-host .mma-btns button{height:26px;padding:0 10px;border-radius:7px;border:1px solid var(--dsw-alias-border,#e5e7eb);background:var(--dsw-alias-surface,#fff);cursor:pointer;font-size:12px;color:inherit;}",
+    "#mma-host .mma-btns button:hover{border-color:var(--dsw-alias-primary,#3b82f6);color:var(--dsw-alias-primary,#3b82f6);}",
+    "#mma-host .mma-blist{display:flex;flex-direction:column;gap:6px;}",
+    "#mma-host .mma-bitem{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--dsw-alias-border,#e5e7eb);background:var(--dsw-alias-surface,#fff);cursor:pointer;font:inherit;color:inherit;transition:border-color .14s ease,box-shadow .14s ease,transform .14s ease;}",
+    "#mma-host .mma-bitem:hover{border-color:var(--dsw-alias-primary,#3b82f6);box-shadow:0 4px 12px var(--dsw-alias-shadow,rgba(0,0,0,.08));transform:translateY(-1px);}",
+    "#mma-host .mma-bitem b{display:block;font-size:13px;font-weight:650;word-break:break-all;}",
+    "#mma-host .mma-bitem .meta{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:11px;color:var(--muted-foreground,inherit);opacity:.75;flex-wrap:wrap;}",
+    "#mma-host .mma-bitem .meta code{font-size:10.5px;background:var(--dsw-alias-muted,#f3f4f6);padding:1px 5px;border-radius:5px;}",
+    "#mma-host .mma-plus{color:#16a34a;font-weight:600;}",
+    "#mma-host .mma-minus{color:#dc2626;font-weight:600;}",
+    "#mma-host .mma-files{margin-top:8px;border-top:1px dashed var(--dsw-alias-border,#e5e7eb);padding-top:6px;}",
+    "#mma-host .mma-fitem{display:flex;align-items:center;gap:8px;width:100%;padding:6px 4px;border:0;background:none;cursor:pointer;font:inherit;color:inherit;font-size:12px;text-align:left;border-radius:6px;}",
+    "#mma-host .mma-fitem:hover{background:var(--dsw-alias-muted,#f3f4f6);}",
+    "#mma-host .mma-fitem .p{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,Menlo,Consolas,monospace;}",
+    "#mma-host .mma-preview{margin:4px 0 2px;padding:8px 10px;border-radius:8px;background:var(--dsw-alias-muted,#f3f4f6);font:11px/1.55 ui-monospace,Menlo,Consolas,monospace;overflow-x:auto;white-space:pre;max-height:220px;overflow-y:auto;}",
+    "#mma-host .mma-bempty{padding:18px;text-align:center;opacity:.6;font-size:12px;}",
+    "#mma-host .mma-berr{padding:14px;color:#b91c1c;font-size:12px;}",
+    "#mma-host .mma-browse .mma-bitem[data-sec='0']{cursor:default;}",
+    "#mma-host .mma-browse .mma-bitem[data-sec='0']:hover{transform:none;box-shadow:none;}",
 
     ".mma-foot-btn{display:flex;align-items:center;gap:8px;width:calc(100% + 4px);height:42px;margin:4px -2px;padding:0 10px 0 8px;box-sizing:border-box;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;line-height:inherit;cursor:pointer;}",
     ".mma-foot-btn:hover,.mma-foot-btn[aria-pressed='true']{background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06));}",
@@ -656,6 +696,10 @@ function ensureSkeleton() {
     '<div class="mma-pop-list">' +
     paletteMenuHtml() +
     "</div></div></div>" +
+    '<button type="button" class="mma-iconbtn" id="mma-history-btn" title="提交历史" aria-label="提交历史" hidden>' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>' +
+    '<button type="button" class="mma-iconbtn" id="mma-storage-btn" title="存储" aria-label="存储" hidden>' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></button>' +
     '<button type="button" class="mma-iconbtn" id="mma-settings-btn" title="设置" aria-label="设置">' +
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c0 .7.4 1.3 1.1 1.5H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>' +
     '<button type="button" class="mma-iconbtn" id="mma-dock-host" title="钉到聊天右侧" aria-label="钉到聊天右侧">' +
@@ -699,7 +743,9 @@ function ensureSkeleton() {
     '<div class="mma-dialog-actions">' +
     '<button type="button" id="mma-dialog-cancel">取消</button>' +
     '<button type="button" class="go" id="mma-dialog-ok">删除</button>' +
-    "</div></div></div></div>";
+    "</div></div></div>" +
+    '<div class="mma-settings mma-browse" id="mma-browse">' +
+    '<div id="mma-browse-body"></div></div></div>';
   host.setAttribute("data-ready", "1");
   host.setAttribute("data-cardstyle", state.cardStyle);
   bindHost(host);
@@ -769,6 +815,36 @@ function bindHost(host) {
   host.querySelector("#mma-close-host").onclick = function () {
     closeDashboard();
   };
+  host.querySelector("#mma-history-btn").onclick = function () {
+    toggleBrowse("history");
+  };
+  host.querySelector("#mma-storage-btn").onclick = function () {
+    toggleBrowse("storage");
+  };
+  var browseEl = host.querySelector("#mma-browse");
+  if (browseEl) {
+    browseEl.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var act = t.closest("[data-act]");
+      if (!act) return;
+      var v = act.getAttribute("data-act");
+      if (v === "close") toggleBrowse();
+      else if (v === "back") {
+        browseState.detail = null;
+        browseState.table = null;
+        browseState.tableValue = null;
+        browseState.openFile = null;
+        renderBrowse();
+      } else if (v === "commit") loadCommitDetail(act.getAttribute("data-id"));
+      else if (v === "table") loadTable(act.getAttribute("data-id"));
+      else if (v === "file") {
+        var p = act.getAttribute("data-id");
+        browseState.openFile = browseState.openFile === p ? null : p;
+        renderBrowse();
+      }
+    });
+  }
   host.querySelector("#mma-reload").onclick = function () {
     reloadActive();
   };
@@ -850,6 +926,11 @@ function paintChrome() {
   });
   host.querySelector("#mma-reload").hidden = !appTab;
   host.querySelector("#mma-delete").hidden = !appTab;
+  var anyApp = state.tabs.some(function (t) {
+    return t.kind === "app";
+  });
+  host.querySelector("#mma-history-btn").hidden = !anyApp;
+  host.querySelector("#mma-storage-btn").hidden = !anyApp;
 }
 
 function paintList() {
@@ -1276,6 +1357,256 @@ function setCardStyle(v) {
   } catch (_) {}
   var host = document.getElementById("mma-host");
   if (host) host.setAttribute("data-cardstyle", state.cardStyle);
+}
+
+/* —— 浏览面板：提交历史 / storage —— */
+function activeApp() {
+  var tab =
+    state.tabs.find(function (t) {
+      return t.kind === "app" && t.id === state.active;
+    }) ||
+    state.tabs.find(function (t) {
+      return t.kind === "app";
+    });
+  if (!tab) return null;
+  var appId = String(tab.id).replace(/^app:/, "");
+  var app = state.apps.find(function (a) {
+    return a.id === appId;
+  });
+  return app || { id: appId, name: tab.title || appId };
+}
+
+function toggleBrowse(kind) {
+  var host = ensureSkeleton();
+  var panel = host.querySelector("#mma-browse");
+  if (browseState.open) {
+    browseState.open = false;
+    if (panel) panel.setAttribute("data-open", "0");
+    return;
+  }
+  var app = activeApp();
+  if (!app) return;
+  browseState.open = true;
+  browseState.kind = kind === "storage" ? "storage" : "history";
+  browseState.appId = app.id;
+  browseState.appName = app.name || app.id;
+  browseState.list = [];
+  browseState.detail = null;
+  browseState.table = null;
+  browseState.tableValue = null;
+  browseState.openFile = null;
+  browseState.loading = true;
+  browseState.error = null;
+  openDashboard();
+  if (panel) panel.setAttribute("data-open", "1");
+  renderBrowse();
+  loadBrowse();
+}
+
+function fmtTime(iso) {
+  if (!iso) return "";
+  var d = new Date(iso);
+  var pad = function (n) {
+    return n < 10 ? "0" + n : String(n);
+  };
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth() + 1) +
+    "-" +
+    pad(d.getDate()) +
+    " " +
+    pad(d.getHours()) +
+    ":" +
+    pad(d.getMinutes())
+  );
+}
+
+function loadBrowse() {
+  browseState.loading = true;
+  browseState.error = null;
+  renderBrowse();
+  var url =
+    browseState.kind === "history"
+      ? APPS_HOST + "/api/apps/" + encodeURIComponent(browseState.appId) + "/history?limit=50"
+      : APPS_HOST + "/api/apps/" + encodeURIComponent(browseState.appId) + "/storage";
+  fetch(url)
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (j) {
+      if (!j || !j.ok) throw new Error((j && j.error) || "加载失败");
+      browseState.list = browseState.kind === "history" ? j.commits || [] : j.tables || [];
+      browseState.loading = false;
+      renderBrowse();
+    })
+    .catch(function (e) {
+      browseState.loading = false;
+      browseState.error = String(e && e.message ? e.message : e);
+      renderBrowse();
+    });
+}
+
+function loadCommitDetail(id) {
+  browseState.detail = { id: id, loading: true };
+  browseState.openFile = null;
+  renderBrowse();
+  fetch(APPS_HOST + "/api/apps/" + encodeURIComponent(browseState.appId) + "/history/" + encodeURIComponent(id))
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (j) {
+      if (!j || !j.ok) throw new Error((j && j.error) || "加载失败");
+      browseState.detail = j.commit || { id: id, files: [] };
+      renderBrowse();
+    })
+    .catch(function (e) {
+      browseState.detail = { id: id, error: String(e && e.message ? e.message : e), files: [] };
+      renderBrowse();
+    });
+}
+
+function loadTable(name) {
+  browseState.table = name;
+  browseState.tableValue = null;
+  browseState.loading = true;
+  renderBrowse();
+  fetch(APPS_HOST + "/api/apps/" + encodeURIComponent(browseState.appId) + "/storage/" + encodeURIComponent(name))
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (j) {
+      if (!j || !j.ok) throw new Error((j && j.error) || "加载失败");
+      browseState.tableValue = j.value;
+      browseState.loading = false;
+      renderBrowse();
+    })
+    .catch(function (e) {
+      browseState.loading = false;
+      browseState.tableValue = { __error__: String(e && e.message ? e.message : e) };
+      renderBrowse();
+    });
+}
+
+function commitItem(c) {
+  var files = (c.files || []).length;
+  var add = 0;
+  var del = 0;
+  (c.files || []).forEach(function (f) {
+    if (f.add > 0) add += f.add;
+    if (f.del > 0) del += f.del;
+  });
+  return (
+    '<button type="button" class="mma-bitem" data-act="commit" data-id="' +
+    escapeHtml(c.id) +
+    '"><b>' +
+    escapeHtml(c.message) +
+    '</b><span class="meta"><code>' +
+    escapeHtml(c.id.slice(0, 7)) +
+    "</code><span>" +
+    escapeHtml(fmtTime(c.time)) +
+    "</span><span>" +
+    files +
+    " 个文件</span>" +
+    (add ? '<span class="mma-plus">+' + add + "</span>" : "") +
+    (del ? '<span class="mma-minus">-' + del + "</span>" : "") +
+    "</span></button>"
+  );
+}
+
+function commitDetailHtml() {
+  var d = browseState.detail;
+  if (!d) return "";
+  if (d.loading) return '<div class="mma-bempty">加载中…</div>';
+  if (d.error) return '<div class="mma-berr">' + escapeHtml(d.error) + "</div>";
+  var head =
+    '<div class="mma-browse-head"><div class="mma-btns"><button type="button" data-act="back">← 返回</button></div><h3>' +
+    escapeHtml(d.message) +
+    '</h3></div><div class="meta" style="margin:0 0 10px;font-size:11px;color:var(--muted-foreground,inherit);opacity:.75"><code>' +
+    escapeHtml(String(d.id || "").slice(0, 7)) +
+    "</code><span>" +
+    escapeHtml(fmtTime(d.time)) +
+    "</span></div>";
+  var files = (d.files || [])
+    .map(function (f) {
+      var open = browseState.openFile === f.path;
+      return (
+        '<div><button type="button" class="mma-fitem" data-act="file" data-id="' +
+        escapeHtml(f.path) +
+        '"><span class="mma-plus">' +
+        (f.add > 0 ? "+" + f.add : "·") +
+        '</span><span class="mma-minus">' +
+        (f.del > 0 ? "-" + f.del : "·") +
+        '</span><span class="p">' +
+        escapeHtml(f.path) +
+        '</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.5;flex:0 0 12px"><path d="M9.5 6l6 6-6 6"/></svg></button>' +
+        (open && f.preview ? '<pre class="mma-preview">' + escapeHtml(f.preview) + "</pre>" : "") +
+        "</div>"
+      );
+    })
+    .join("");
+  return head + '<div class="mma-files">' + (files || '<div class="mma-bempty">无文件改动</div>') + "</div>";
+}
+
+function storageItem(t) {
+  return (
+    '<button type="button" class="mma-bitem" data-act="table" data-id="' +
+    escapeHtml(t.name) +
+    '"><b>' +
+    escapeHtml(t.name) +
+    '</b><span class="meta"><span>' +
+    (t.size || 0) +
+    " B</span><span>" +
+    escapeHtml(fmtTime(t.updatedAt)) +
+    "</span></span></button>"
+  );
+}
+
+function tableDetailHtml() {
+  var head =
+    '<div class="mma-browse-head"><div class="mma-btns"><button type="button" data-act="back">← 返回</button></div><h3>' +
+    escapeHtml(browseState.table) +
+    "</h3></div>";
+  var body = browseState.loading
+    ? '<div class="mma-bempty">加载中…</div>'
+    : '<pre class="mma-preview" style="max-height:none;white-space:pre-wrap;word-break:break-all">' +
+      escapeHtml(JSON.stringify(browseState.tableValue, null, 2)) +
+      "</pre>";
+  return head + body;
+}
+
+function renderBrowse() {
+  var host = ensureSkeleton();
+  var panel = host.querySelector("#mma-browse-body");
+  if (!panel) return;
+  if (!browseState.open) {
+    panel.innerHTML = "";
+    return;
+  }
+  if (browseState.kind === "history" && browseState.detail) {
+    panel.innerHTML = commitDetailHtml();
+    return;
+  }
+  if (browseState.kind === "storage" && browseState.table !== null) {
+    panel.innerHTML = tableDetailHtml();
+    return;
+  }
+  var head =
+    '<div class="mma-browse-head"><h3>' +
+    (browseState.kind === "history" ? "提交历史" : "存储") +
+    '<span class="sub">' +
+    escapeHtml(browseState.appName) +
+    '</span></h3><div class="mma-btns"><button type="button" data-act="close">关闭</button></div></div>';
+  var body;
+  if (browseState.loading && !browseState.list.length) body = '<div class="mma-bempty">加载中…</div>';
+  else if (browseState.error) body = '<div class="mma-berr">' + escapeHtml(browseState.error) + "</div>";
+  else if (!browseState.list.length)
+    body =
+      '<div class="mma-bempty">' +
+      (browseState.kind === "history" ? "暂无提交记录" : "暂无 storage 文件") +
+      "</div>";
+  else body = '<div class="mma-blist">' + browseState.list.map(browseState.kind === "history" ? commitItem : storageItem).join("") + "</div>";
+  panel.innerHTML = head + body;
 }
 
 function openDashboard() {

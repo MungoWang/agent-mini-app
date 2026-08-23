@@ -59,9 +59,12 @@ mini_app_register({
   "description": "一句话",
   "version": "0.1.0",
   "entry": "ui.tsx",
-  "theme": { "followsHost": true }
+  "theme": { "followsHost": true },
+  "acronym": "MC"
 }
 ```
+
+`acronym`（可选）：双字母缩写，用于 Host 列表的卡片 monogram。不写时按中文名拼音声母自动生成（「备忘录」→ BW），英文名取前两个字母。只有想自定义缩写时才需要填（如品牌名）。
 
 `main.api.ts`:
 

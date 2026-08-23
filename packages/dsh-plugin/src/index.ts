@@ -31,6 +31,72 @@ async function gitCommitCount(dir: string): Promise<number> {
   commitCountCache.set(dir, { at: Date.now(), count });
   return count;
 }
+
+/** git log：id / 时间戳 / message（新→旧）。无 git 仓库返回空数组。 */
+async function gitLog(dir: string, limit: number): Promise<{ id: string; time: string; message: string }[]> {
+  try {
+    const { stdout } = await execFileAsync(
+      "git",
+      ["-C", dir, "log", "--format=%H%x09%ct%x09%s", "-n", String(limit)],
+      { timeout: 4000 }
+    );
+    return String(stdout)
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        const idx = line.indexOf("\t");
+        const idx2 = line.indexOf("\t", idx + 1);
+        const id = line.slice(0, idx);
+        const ct = line.slice(idx + 1, idx2);
+        return {
+          id,
+          time: new Date(Number(ct) * 1000).toISOString(),
+          message: line.slice(idx2 + 1),
+        };
+      });
+  } catch {
+    return [];
+  }
+}
+
+/** 单 commit 的文件改动统计（add/del 行数；二进制或不可解析为 -1）。 */
+async function gitFileStats(dir: string, id: string): Promise<{ path: string; add: number; del: number }[]> {
+  try {
+    const { stdout } = await execFileAsync(
+      "git",
+      ["-C", dir, "diff-tree", "--numstat", "--no-commit-id", "-r", "--root", id],
+      { timeout: 4000 }
+    );
+    return String(stdout)
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        const [a, d, ...p] = line.split("\t");
+        return { path: p.join("\t"), add: a === "-" ? -1 : Number(a) || 0, del: d === "-" ? -1 : Number(d) || 0 };
+      });
+  } catch {
+    return [];
+  }
+}
+
+/** 单文件 diff 预览：最多 maxLines 行，超出省略。 */
+async function gitFilePreview(dir: string, id: string, path: string, maxLines = 18): Promise<string> {
+  try {
+    const { stdout } = await execFileAsync(
+      "git",
+      ["-C", dir, "show", id, "--format=", "--", path],
+      { timeout: 4000 }
+    );
+    const lines = String(stdout).split("\n");
+    if (lines.length <= maxLines) return lines.join("\n");
+    return lines.slice(0, maxLines).join("\n") + `\n… (+${lines.length - maxLines} 行省略)`;
+  } catch {
+    return "";
+  }
+}
+
 import { createRuntime } from "@monkey-mini-app/runtime-core";
 import { createNodeHostPort } from "@monkey-mini-app/adapter-node";
 import { createHistory } from "@monkey-mini-app/app-history";
@@ -1432,6 +1498,66 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
       if (url.pathname === "/api/pending-open/ack" && req.method === "POST") {
         pendingOpen.current = null;
         send(200, JSON.stringify({ ok: true }));
+        return;
+      }
+      // —— app 提交历史 / storage 浏览 ——
+      const histMatch = url.pathname.match(/^\/api\/apps\/([^/]+)\/history(?:\/([a-f0-9]{7,}))?$/);
+      if (histMatch) {
+        const appId = decodeURIComponent(histMatch[1]);
+        const commitId = histMatch[2];
+        const dir = appDirOf(appId);
+        if (commitId) {
+          const stats = await gitFileStats(dir, commitId);
+          const log = await gitLog(dir, 200);
+          const meta = log.find((c) => c.id === commitId);
+          const files = await Promise.all(
+            stats.map(async (s) => ({ ...s, preview: await gitFilePreview(dir, commitId, s.path) }))
+          );
+          send(
+            200,
+            JSON.stringify({
+              ok: true,
+              commit: {
+                id: commitId,
+                time: meta?.time || "",
+                message: meta?.message || "",
+                files,
+              },
+            })
+          );
+        } else {
+          const limit = Math.min(Number(new URL(req.url || "/", "http://127.0.0.1").searchParams.get("limit")) || 50, 200);
+          const list = await gitLog(dir, limit);
+          const withStats = await Promise.all(
+            list.map(async (c) => ({ ...c, files: await gitFileStats(dir, c.id) }))
+          );
+          send(200, JSON.stringify({ ok: true, commits: withStats }));
+        }
+        return;
+      }
+      const stoMatch = url.pathname.match(/^\/api\/apps\/([^/]+)\/storage(?:\/([^/]+))?$/);
+      if (stoMatch) {
+        const appId = decodeURIComponent(stoMatch[1]);
+        const table = stoMatch[2];
+        const dir = path.join(appDirOf(appId), "storage");
+        if (table) {
+          const fp = path.join(dir, path.basename(table) + ".json");
+          send(200, JSON.stringify({ ok: true, table, value: readJsonSafe(fp, null) }));
+        } else {
+          try {
+            const names = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".json")) : [];
+            const tables = names
+              .map((n) => {
+                const fp = path.join(dir, n);
+                const st = fs.statSync(fp);
+                return { name: n.replace(/\.json$/, ""), size: st.size, updatedAt: st.mtime.toISOString() };
+              })
+              .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+            send(200, JSON.stringify({ ok: true, tables }));
+          } catch {
+            send(200, JSON.stringify({ ok: true, tables: [] }));
+          }
+        }
         return;
       }
       const srcMatch = url.pathname.match(/^\/api\/app\/([^/]+)\/source$/);
