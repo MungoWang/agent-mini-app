@@ -156,7 +156,7 @@ export default function Ui() {
 | `ctx.http` / `bash` / `llm` / `agent` / `tool` / `mcp` | [references/ctx.md](references/ctx.md)（逻辑api call使用 `ctx.http`，不要 bash curl） |
 | **真的要用** `ctx.tool` | 先 `mini_app_list_ctx_tools`，再 [references/tools.md](references/tools.md) |
 | 相对 import、`./lib` 解析 | [references/loader.md](references/loader.md) |
-| 组件名单 / tokens | [references/ui.md](references/ui.md) |
+| 组件名单 / tokens（含 DateInput/TimeInput/DateTimeInput/DateRangeInput/TimeRangeInput/DateTimeRangeInput 日期时间输入族） | [references/ui.md](references/ui.md) |
 | 人类调试 Host `:17880` / curl | [references/test.md](references/test.md)（≠ `ctx.http`） |
 | 连通检查 / 最小 UI | `templates/hello/` |
 | 筛选、表格类 CRUD | `templates/todo/` |

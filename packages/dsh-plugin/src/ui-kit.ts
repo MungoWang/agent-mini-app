@@ -9,6 +9,15 @@ import { createCodeComponents, copyText, parseUnified } from "./ui-kit/code.js";
 import { createExtras } from "./ui-kit/extras.js";
 import { createDataGrid } from "./ui-kit/data-grid.js";
 
+// 原生 date/time 控件图标适配主题（color-scheme），任何宿主（demo/host iframe）加载即注入
+if (typeof document !== "undefined" && !document.getElementById("mma-color-scheme")) {
+  const st = document.createElement("style");
+  st.id = "mma-color-scheme";
+  st.textContent =
+    'html[data-theme="dark"] input[type="date"],html[data-theme="dark"] input[type="time"],html[data-theme="dark"] input[type="datetime-local"],html[data-theme="dark"] input[type="month"],html[data-theme="dark"] input[type="week"]{color-scheme:dark}' +
+    'html[data-theme="light"] input[type="date"],html[data-theme="light"] input[type="time"],html[data-theme="light"] input[type="datetime-local"],html[data-theme="light"] input[type="month"],html[data-theme="light"] input[type="week"]{color-scheme:light}';
+  document.head.appendChild(st);
+}
 export function createUiKit(React: any) {
   const { useState, useEffect, useId, useRef, useCallback, createElement: h, Fragment } = React;
   const codeComps = createCodeComponents(React);
@@ -263,8 +272,8 @@ export function createUiKit(React: any) {
   function TableHead({ children, style, ...rest }) {
     return h("th", merge(rest, { style: merge({ textAlign: "left", padding: "10px 8px", color: "var(--muted-foreground)", fontWeight: 500 }, style) }), children);
   }
-  function TableCell({ children, style }) {
-    return h("td", { style: merge({ padding: "10px 8px" }, style) }, children);
+  function TableCell({ children, style, ...rest }) {
+    return h("td", { ...rest, style: merge({ padding: "10px 8px" }, style) }, children);
   }
 
   // —— Tabs ——
@@ -338,7 +347,7 @@ export function createUiKit(React: any) {
       style: {
         background: "var(--card)", color: "var(--card-foreground)", borderRadius: "calc(var(--radius) + 4px)",
         border: "1px solid var(--border)", minWidth: 320, maxWidth: "90vw", maxHeight: "85vh",
-        overflow: "auto", padding: 20, boxShadow: "0 12px 40px rgba(0,0,0,.18)",
+        overflow: "visible", padding: 20, boxShadow: "0 12px 40px rgba(0,0,0,.18)",
       },
     }, children));
   }
@@ -754,7 +763,7 @@ export function createUiKit(React: any) {
     copyText,
     parseUnified,
     // QA/Dev workflow
-    ...createExtras(React, { Button, Input }),
+    ...createExtras(React, { Button, Input, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Select, SelectItem }),
     // data grid (TanStack headless)
     ...createDataGrid(React, { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Button }),
   };

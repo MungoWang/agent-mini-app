@@ -325,6 +325,12 @@ export function createCodeComponents(React: any) {
             EditorView.editable.of(false),
             wrap ? EditorView.lineWrapping : [],
             EditorView.contentAttributes.of({ "aria-label": "code" }),
+            maxHeight
+              ? EditorView.theme({
+                  "&": { maxHeight: maxHeight + "px" },
+                  ".cm-scroller": { overflow: "auto" },
+                })
+              : [],
           ],
         }),
       });

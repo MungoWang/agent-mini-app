@@ -33,6 +33,9 @@ const LOG_COLORS = {
   info: null,
 };
 
+import { createKanban } from "./kanban.js";
+import { createCalendar } from "./calendar.js";
+
 export function createExtras(React, ui) {
   const { useEffect, useRef, useState, createElement: el, Fragment } = React;
   const { Button, Input } = ui;
@@ -415,5 +418,262 @@ export function createExtras(React, ui) {
     );
   }
 
-  return { LogViewer, Markdown, KeyValueEditor, TagInput, FileInput, Stepper, SummaryBar };
+  /* —— 日期时间输入组件族（popover 日历 + range 拖选） —— */
+  const { useState: useSt, useRef: useRf, useEffect: useEf } = React;
+  function pad2(n) { return String(n).padStart(2, "0"); }
+  function dStr(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function parseD(s) { if (!s) return null; const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s)); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function todayS() { return dStr(new Date()); }
+  function subM(month) { return month.m === 0 ? { y: month.y - 1, m: 11 } : { y: month.y, m: month.m - 1 }; }
+  function addM(month) { return month.m === 11 ? { y: month.y + 1, m: 0 } : { y: month.y, m: month.m + 1 }; }
+  function monthOf(s) { const d = parseD(s) || new Date(); return { y: d.getFullYear(), m: d.getMonth() }; }
+  function weekCells(y, m) {
+    const first = new Date(y, m, 1);
+    const start = new Date(y, m, 1 - first.getDay());
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      cells.push({ d, str: dStr(d), inMonth: d.getMonth() === m });
+    }
+    return cells;
+  }
+  // 日历面板：单选（mode=single）或拖选范围（mode=range）
+  function CalPanel({ month, setMonth, sel, range, mode, min, max, onPick, onRange, onDone }) {
+    const dragRf = useRf(null);
+    useEf(() => {
+      if (mode !== "range") return;
+      const mv = (e) => {
+        if (!dragRf.current) return;
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const cell = el && el.closest ? el.closest("[data-date]") : null;
+        if (cell) onRange && onRange({ start: dragRf.current, end: cell.getAttribute("data-date") });
+      };
+      const up = () => { dragRf.current = null; };
+      document.addEventListener("pointermove", mv);
+      document.addEventListener("pointerup", up);
+      return () => {
+        document.removeEventListener("pointermove", mv);
+        document.removeEventListener("pointerup", up);
+      };
+    }, [mode]);
+    const cells = weekCells(month.y, month.m);
+    return el("div", { style: { width: 284 } },
+      el("div", { style: { display: "flex", alignItems: "center", marginBottom: 6 } },
+        el(Button, { size: "sm", variant: "ghost", onClick: () => setMonth(subM(month)) }, "‹"),
+        el("b", { style: { flex: 1, textAlign: "center", fontSize: 12, fontWeight: 650 } }, month.y + " 年 " + (month.m + 1) + " 月"),
+        el(Button, { size: "sm", variant: "ghost", onClick: () => setMonth(addM(month)) }, "›")
+      ),
+      el("div", { style: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 } },
+        ["日", "一", "二", "三", "四", "五", "六"].map((w) => el("div", { key: w, style: { height: 20, lineHeight: "20px", textAlign: "center", fontSize: 10, color: "var(--muted-foreground)" } }, w)),
+        cells.map(({ d, str, inMonth }) => {
+          const disabled = (min && str < min) || (max && str > max);
+          const inR = mode === "range" && range && str >= range.start && str <= range.end;
+          const isEdge = inR && (str === range.start || str === range.end);
+          const isSel = mode === "single" && str === sel;
+          const isToday = str === todayS();
+          return el("div", {
+            key: str,
+            "data-date": str,
+            onPointerDown: (e) => {
+              e.preventDefault();
+              if (disabled) return;
+              if (mode === "range") { dragRf.current = str; onRange && onRange({ start: str, end: str }); }
+              else onPick && onPick(str);
+            },
+            onPointerOver: () => {
+              if (dragRf.current && mode === "range" && !disabled) onRange && onRange({ start: dragRf.current, end: str });
+            },
+            onPointerUp: () => { dragRf.current = null; },
+            style: {
+              height: 30, lineHeight: "30px", textAlign: "center", fontSize: 12.5, borderRadius: 6, cursor: disabled ? "not-allowed" : "pointer", userSelect: "none",
+              opacity: inMonth ? 1 : 0.35,
+              background: isEdge ? "var(--primary)" : isSel ? "var(--primary)" : inR ? "color-mix(in srgb, var(--primary) 16%, transparent)" : undefined,
+              color: isEdge || isSel ? "#fff" : undefined,
+              boxShadow: isToday && !isSel && !isEdge ? "inset 0 0 0 1px var(--primary)" : undefined,
+            },
+          }, d.getDate());
+        })
+      ),
+      mode === "range"
+        ? el("div", { style: { marginTop: 8, display: "flex", justifyContent: "flex-end" } },
+            el(Button, { size: "sm", onClick: () => { onRange && onRange(range); onDone && onDone(); } }, "确定")
+          )
+        : null
+    );
+  }
+  function toMin(t) { if (!t) return 0; const m = /^(\d{1,2}):(\d{2})/.exec(String(t)); return m ? (+m[1] * 60 + +m[2]) % 1440 : 0; }
+  function toHM(min) { return pad2(Math.floor(min / 60) % 24) + ":" + pad2(min % 60); }
+  // 时间面板：每 30 分钟一格
+  function TimePanel({ value, onPick }) {
+    const mins = [];
+    for (let m = 0; m < 1440; m += 30) mins.push(m);
+    return el("div", { style: { width: 208 } },
+      el("div", { style: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 } },
+        mins.map((m) => {
+          const t = toHM(m);
+          const isSel = value && t === value;
+          return el("div", { key: t, "data-time": t, onClick: () => onPick && onPick(t), style: { height: 30, lineHeight: "30px", textAlign: "center", fontSize: 12.5, borderRadius: 5, cursor: "pointer", background: isSel ? "var(--primary)" : undefined, color: isSel ? "#fff" : "var(--card-foreground)" } }, t);
+        })
+      )
+    );
+  }
+  // popover 面板：fixed 定位 + 高 z-index（Dialog 内容盒 overflow:visible 不裁剪）；
+  // 不迁移 DOM（React 事件委托 root 容器，移出会丢事件）
+  function PopPanel({ open, anchorEl, width, children }) {
+    if (!open || !anchorEl || typeof document === "undefined") return null;
+    const rect = anchorEl.getBoundingClientRect();
+    let top = rect.bottom + 4;
+    const left = Math.max(6, Math.min(rect.left, window.innerWidth - width - 6));
+    const ph = 320;
+    if (top + ph > window.innerHeight - 8) top = Math.max(8, rect.top - ph - 4); // 下方不足 → 向上翻
+    return el("div", { "data-pop-panel": "", style: { position: "fixed", top, left, width, zIndex: 9999 } },
+      el("div", { style: { background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: 8, boxShadow: "0 10px 28px var(--shadow)", maxHeight: 460, overflowY: "auto", scrollbarWidth: "thin", boxSizing: "border-box" } }, children)
+    );
+  }
+  function usePopover() {
+    const [open, setOpen] = useSt(false);
+    const rf = useRf(null);
+    useEf(() => {
+      if (!open) return;
+      const h = (e) => {
+        const inPanel = e.target && e.target.closest && e.target.closest("[data-pop-panel]");
+        if (rf.current && !rf.current.contains(e.target) && !inPanel) setOpen(false);
+      };
+      document.addEventListener("mousedown", h);
+      return () => document.removeEventListener("mousedown", h);
+    }, [open]);
+    return { open, setOpen, rf };
+  }
+  // 单选日期（popover 日历）
+  function DateInput({ value, defaultValue, onChange, min, max, style, ...rest }) {
+    const controlled = value !== undefined;
+    const [internal, setInternal] = useSt(defaultValue || "");
+    const v = controlled ? (value || "") : internal;
+    const set = (nv) => { if (!controlled) setInternal(nv); if (onChange) onChange(nv); };
+    const { open, setOpen, rf } = usePopover();
+    const [month, setMonth] = useSt(monthOf(v || defaultValue));
+    return el("div", { ref: rf, style: merge({ position: "relative" }, style) },
+      el(Input, Object.assign({ type: "text", value: v, placeholder: "YYYY-MM-DD", style: { width: "100%", boxSizing: "border-box" }, onFocus: () => { setOpen(true); setMonth(monthOf(v || defaultValue)); }, onChange: (e) => set(e.target.value) }, rest)),
+      open ? el(PopPanel, { open, anchorEl: rf.current, width: 300 }, el(CalPanel, { month, setMonth, sel: v, mode: "single", min, max, onPick: (d) => { set(d); setOpen(false); } })) : null
+    );
+  }
+  // 时间（text + popover 时间面板，30 分钟粒度 + 手输）
+  function TimeInput({ value, defaultValue, onChange, style, ...rest }) {
+    const controlled = value !== undefined;
+    const [internal, setInternal] = useSt(defaultValue || "");
+    const v = controlled ? (value || "") : internal;
+    const set = (nv) => { if (!controlled) setInternal(nv); if (onChange) onChange(nv); };
+    const { open, setOpen, rf } = usePopover();
+    return el("div", { ref: rf, style: merge({ position: "relative" }, style) },
+      el(Input, Object.assign({ type: "text", value: v, placeholder: "HH:mm", style: { width: "100%", boxSizing: "border-box" }, onChange: (e) => set(e.target.value), onFocus: () => setOpen(true) }, rest)),
+      open ? el(PopPanel, { open, anchorEl: rf.current, width: 224 }, el(TimePanel, { value: v, onPick: (t) => { set(t); setOpen(false); } })) : null
+    );
+  }
+  // 日期 + 时间（popover 选日期 + 原生时间）
+  function DateTimeInput({ value, defaultValue, onChange, style, ...rest }) {
+    const controlled = value !== undefined;
+    const [internal, setInternal] = useSt(defaultValue || "");
+    const v = controlled ? (value || "") : internal;
+    const set = (nv) => { if (!controlled) setInternal(nv); if (onChange) onChange(nv); };
+    const { open, setOpen, rf } = usePopover();
+    const [month, setMonth] = useSt(monthOf(v));
+    const dt = parseD(v);
+    const datePart = dt ? dStr(dt) : (v ? String(v).slice(0, 10) : "");
+    const timePart = v && String(v).length > 10 ? String(v).slice(11, 16) : "";
+    return el("div", { ref: rf, style: merge({ position: "relative" }, style) },
+      el("div", { style: { display: "flex", gap: 4 } },
+        el(Input, { style: { flex: 1, minWidth: 0, width: "100%" }, type: "text", value: datePart, placeholder: "YYYY-MM-DD", onFocus: () => { setOpen(true); setMonth(monthOf(datePart)); }, onChange: (e) => set(e.target.value ? e.target.value + (timePart ? "T" + timePart : "") : "") }),
+        el(TimeInput, { value: timePart, style: { flex: 1, minWidth: 0 }, onChange: (t) => set(datePart ? datePart + "T" + t : (t ? "T" + t : "")) })
+      ),
+      open ? el(PopPanel, { open, anchorEl: rf.current, width: 300 }, el(CalPanel, { month, setMonth, sel: datePart, mode: "single", onPick: (d) => { set(d + (timePart ? "T" + timePart : "")); setOpen(false); } })) : null
+    );
+  }
+  function RangeWrap({ children, separator }) {
+    return el("div", { style: { display: "flex", gap: 6, alignItems: "center", width: "100%" } },
+      children[0],
+      el("span", { style: { color: "var(--muted-foreground)", fontSize: 11, flex: "0 0 auto" } }, separator || "–"),
+      children[1]
+    );
+  }
+  // 日期范围（单框显示 "start – end"，点击弹日历拖选）
+  function DateRangeInput({ value, defaultValue, onChange, style, ...rest }) {
+    const controlled = value !== undefined;
+    const [internal, setInternal] = useSt(defaultValue || {});
+    const v = controlled ? (value || {}) : internal;
+    const set = (nv) => { if (!controlled) setInternal(nv); if (onChange) onChange(nv); };
+    const { open, setOpen, rf } = usePopover();
+    const [month, setMonth] = useSt(monthOf(v.start || v.end || ""));
+    const text = v.start && v.end ? v.start + " – " + v.end : (v.start || v.end || "");
+    return el("div", { ref: rf, style: merge({ position: "relative" }, style) },
+      el(Input, { type: "text", value: text, placeholder: "选择日期范围", readOnly: true, style: { width: "100%", boxSizing: "border-box" }, onFocus: () => { setOpen(true); setMonth(monthOf(v.start || v.end || "")); } }),
+      open ? el(PopPanel, { open, anchorEl: rf.current, width: 300 }, el(CalPanel, { month, setMonth, range: v, mode: "range", onRange: (r) => set(r), onDone: () => setOpen(false) })) : null
+    );
+  }
+  // 时间范围（双滑块：拖动起止 handle，显示 start – end）
+  function TimeRangeInput({ value, defaultValue, onChange, style, ...rest }) {
+    const controlled = value !== undefined;
+    const [internal, setInternal] = useSt(defaultValue || { start: "09:00", end: "10:30" });
+    const v = controlled ? (value || {}) : internal;
+    const set = (nv) => { if (!controlled) setInternal(nv); if (onChange) onChange(nv); };
+    const dragRf = useRf(null); // "start" | "end"
+    const trackRf = useRf(null);
+    useEf(() => {
+      const mv = (e) => {
+        const which = dragRf.current;
+        if (!which || !trackRf.current) return;
+        const rect = trackRf.current.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+        const min = Math.round((ratio * 1440) / 15) * 15;
+        const sMin = toMin(v.start);
+        const eMin = toMin(v.end);
+        if (which === "start") set({ start: toHM(Math.min(min, eMin - 15)), end: v.end });
+        else set({ start: v.start, end: toHM(Math.max(min, sMin + 15)) });
+      };
+      const up = () => { dragRf.current = null; };
+      document.addEventListener("pointermove", mv);
+      document.addEventListener("pointerup", up);
+      return () => {
+        document.removeEventListener("pointermove", mv);
+        document.removeEventListener("pointerup", up);
+      };
+    }, [v.start, v.end]);
+    const pct = (t) => (toMin(t) / 1440) * 100;
+    const pS = pct(v.start);
+    const pE = pct(v.end);
+    const handle = (which, p) =>
+      el("div", {
+        key: which,
+        onPointerDown: (e) => { e.preventDefault(); e.stopPropagation(); dragRf.current = which; },
+        style: {
+          position: "absolute", left: p + "%", top: "50%", width: 16, height: 16, marginLeft: -8, marginTop: -8,
+          borderRadius: 99, background: "var(--card)", border: "2px solid var(--primary)", cursor: "ew-resize",
+          boxShadow: "0 1px 3px var(--shadow)", zIndex: 2,
+        },
+      });
+    return el("div", { style: merge({ display: "flex", flexDirection: "column", gap: 7 }, style) },
+      el("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, fontWeight: 650 } },
+        el("span", null, v.start),
+        el("span", { style: { color: "var(--muted-foreground)", fontWeight: 500 } }, "–"),
+        el("span", null, v.end)
+      ),
+      el("div", { ref: trackRf, style: { position: "relative", height: 10, borderRadius: 5, background: "var(--muted)", cursor: "pointer" } },
+        el("div", { style: { position: "absolute", left: pS + "%", width: Math.max(pE - pS, 0.5) + "%", top: 0, height: 10, background: "var(--primary)", borderRadius: 5, opacity: 0.85 } }),
+        handle("start", pS),
+        handle("end", pE)
+      ),
+      el("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--muted-foreground)" } }, "00:00", "12:00", "24:00")
+    );
+  }
+  function DateTimeRangeInput({ value, defaultValue, onChange, style, ...rest }) {
+    const v = value || defaultValue || {};
+    const dv = defaultValue || null;
+    return el(RangeWrap, { separator: rest.separator },
+      el(DateTimeInput, Object.assign({ style: { flex: 1, minWidth: 0 }, value: v.start, defaultValue: dv ? dv.start : undefined, onChange: (s) => onChange && onChange({ start: s, end: v.end }) }, rest.startProps)),
+      el(DateTimeInput, Object.assign({ style: { flex: 1, minWidth: 0 }, value: v.end, defaultValue: dv ? dv.end : undefined, onChange: (e) => onChange && onChange({ start: v.start, end: e }) }, rest.endProps))
+    );
+  }
+
+  const kanban = createKanban(React, ui);
+  const cal = createCalendar(React, ui, { DateInput, TimeInput, DateRangeInput, TimeRangeInput, DateTimeRangeInput });
+  return Object.assign({ LogViewer, Markdown, KeyValueEditor, TagInput, FileInput, Stepper, SummaryBar, DateInput, TimeInput, DateTimeInput, DateRangeInput, TimeRangeInput, DateTimeRangeInput }, kanban, cal);
 }

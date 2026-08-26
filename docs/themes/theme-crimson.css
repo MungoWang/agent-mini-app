@@ -1,0 +1,43 @@
+/* name: 暗红 Dark Red */
+:root[data-mode="light"] {
+  --bg: #f7f2f1;
+  --fg: #33282a;
+  --surface: #ffffff;
+  --surface-fg: #33282a;
+  --border: #e8ddda;
+  --muted: #f1e9e7;
+  --muted-fg: #a08d8a;
+  --primary: #c0392b;
+  --primary-fg: #ffffff;
+  --secondary: #f0e4e1;
+  --secondary-fg: #33282a;
+  --accent: #f8e5e2;
+  --accent-fg: #7a1f14;
+  --destructive: #b91c1c;
+  --destructive-fg: #ffffff;
+  --ring: #c0392b;
+  --input: #faf5f4;
+  --radius: 10px;
+  --shadow: rgba(140, 40, 30, 0.1);
+}
+:root[data-mode="dark"] {
+  --bg: #161010;
+  --fg: #e8dcd8;
+  --surface: #1e1616;
+  --surface-fg: #e8dcd8;
+  --border: #382827;
+  --muted: #261b1b;
+  --muted-fg: #a88f8a;
+  --primary: #ff5c4d;
+  --primary-fg: #161010;
+  --secondary: #2a1d1c;
+  --secondary-fg: #e8dcd8;
+  --accent: #3a1f1c;
+  --accent-fg: #ffb4a8;
+  --destructive: #ef4444;
+  --destructive-fg: #161010;
+  --ring: #ff5c4d;
+  --input: #120c0c;
+  --radius: 10px;
+  --shadow: rgba(0, 0, 0, 0.5);
+}

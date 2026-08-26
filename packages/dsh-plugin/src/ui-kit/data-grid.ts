@@ -8,6 +8,7 @@ import {
   createTable,
   getCoreRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
 } from "@tanstack/table-core";
 
@@ -52,8 +53,10 @@ export function createDataGrid(React, ui) {
     const [page, setPage] = useState(0);
     const [hoverCol, setHoverCol] = useState(null);
     const [hoverRow, setHoverRow] = useState(null);
+    const [columnFilters, setColumnFilters] = useState([]);
+    const [searchCol, setSearchCol] = useState(null);
     const ps = pageSize > 0 ? pageSize : Math.max(data.length, 1);
-    const stateShape = { sorting, rowSelection, pagination: { pageIndex: page, pageSize: ps }, columnPinning: { left: [], right: [] } };
+    const stateShape = { sorting, rowSelection, columnFilters, pagination: { pageIndex: page, pageSize: ps }, columnPinning: { left: [], right: [] } };
 
     const tableRef = useRef(null);
     const [table] = useState(() => {
@@ -63,6 +66,7 @@ export function createDataGrid(React, ui) {
         state: stateShape,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         enableRowSelection: !!selectable,
         getRowId: (row, index) => (row && row.id != null ? String(row.id) : String(index)),
@@ -79,9 +83,12 @@ export function createDataGrid(React, ui) {
       state: stateShape,
       getCoreRowModel: getCoreRowModel(),
       getSortedRowModel: getSortedRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
       getPaginationRowModel: getPaginationRowModel(),
       onSortingChange: (updater) => setSorting(typeof updater === "function" ? updater(sorting) : updater),
       onRowSelectionChange: (updater) => setRowSelection(typeof updater === "function" ? updater(rowSelection) : updater),
+      onColumnFiltersChange: (updater) =>
+        setColumnFilters(typeof updater === "function" ? updater(columnFilters) : updater),
       onPaginationChange: (updater) => {
         const next = typeof updater === "function" ? updater({ pageIndex: page, pageSize: ps }) : updater;
         setPage(next && next.pageIndex != null ? next.pageIndex : 0);
@@ -123,7 +130,7 @@ export function createDataGrid(React, ui) {
           )
         : null,
       el("div", { style: { overflow: "auto", maxHeight, border: "1px solid var(--border)", borderRadius: "var(--radius)" } },
-        el(Table, { style: { minWidth: 420 } },
+        el(Table, { style: { minWidth: 420, width: "100%", tableLayout: rows.length ? "auto" : "fixed" } },
           el(TableHeader, null,
             headerGroups.map((hg) =>
               el(TableRow, { key: hg.id },
@@ -142,6 +149,32 @@ export function createDataGrid(React, ui) {
                   const sorted = c.column.getIsSorted();
                   const canSort = sortable !== false && c.column.columnDef.enableSorting !== false;
                   const indicator = sorted ? (sorted === "asc" ? "▲" : "▼") : canSort ? "↕" : null;
+                  const searchable = canSort && c.column.columnDef.enableSorting !== false;
+                  const isSearching = searchCol === c.id;
+                  const filterVal = (columnFilters.find((f) => f.id === c.id) || {}).value || "";
+                  const searchIcon = searchable
+                    ? el("button", {
+                        type: "button",
+                        title: "筛选此列",
+                        onClick: (e) => {
+                          e.stopPropagation();
+                          setSearchCol(isSearching ? null : c.id);
+                          if (isSearching) {
+                            setColumnFilters(columnFilters.filter((f) => f.id !== c.id));
+                          }
+                        },
+                        style: {
+                          border: "none", background: "none", cursor: "pointer", padding: 0,
+                          display: "inline-flex", color: filterVal || isSearching ? "var(--primary)" : "var(--muted-foreground)",
+                          opacity: filterVal || isSearching ? 1 : 0.55, marginLeft: 3, flex: "0 0 auto",
+                        },
+                      },
+                        el("svg", { width: 12, height: 12, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" },
+                          el("circle", { cx: 11, cy: 11, r: 7 }),
+                          el("path", { d: "M20 20l-3-3" })
+                        )
+                      )
+                    : null;
                   return el(TableHead, {
                     key: c.id,
                     onClick: canSort ? () => c.column.toggleSorting() : undefined,
@@ -149,12 +182,42 @@ export function createDataGrid(React, ui) {
                     onMouseLeave: () => setHoverCol(null),
                     title: canSort ? "点击排序" : undefined,
                     style: canSort
-                      ? { cursor: "pointer", userSelect: "none", whiteSpace: "nowrap", background: hoverCol === c.id ? "var(--muted)" : undefined, transition: "background-color .12s ease" }
-                      : { whiteSpace: "nowrap" },
+                      ? { cursor: "pointer", userSelect: "none", whiteSpace: "nowrap", background: hoverCol === c.id ? "var(--muted)" : undefined, transition: "background-color .12s ease", position: "relative" }
+                      : { whiteSpace: "nowrap", position: "relative" },
                   },
-                    flexRender(c.column.columnDef.header, c.getContext()),
-                    indicator
-                      ? el("span", { style: { marginLeft: 4, fontSize: 11, color: sorted ? "var(--primary)" : "var(--muted-foreground)", opacity: sorted ? 1 : 0.55 } }, indicator)
+                    el("div", { style: { display: "inline-flex", alignItems: "center" } },
+                      flexRender(c.column.columnDef.header, c.getContext()),
+                      indicator
+                        ? el("span", { style: { marginLeft: 4, fontSize: 11, color: sorted ? "var(--primary)" : "var(--muted-foreground)", opacity: sorted ? 1 : 0.55 } }, indicator)
+                        : null,
+                      searchIcon
+                    ),
+                    // 搜索 popover：absolute 挂在列头下，不撑开表格内容
+                    isSearching
+                      ? el("div", {
+                          style: {
+                            position: "absolute", top: "100%", left: 0, zIndex: 30, marginTop: 4,
+                            background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
+                            padding: 6, boxShadow: "0 10px 28px var(--shadow)", minWidth: 150,
+                          },
+                        },
+                          el("input", {
+                            value: filterVal,
+                            placeholder: "筛选 " + String(c.column.columnDef.header || "") + "…",
+                            autoFocus: true,
+                            onClick: (e) => e.stopPropagation(),
+                            onChange: (e) =>
+                              setColumnFilters(
+                                e.target.value
+                                  ? columnFilters.filter((f) => f.id !== c.id).concat([{ id: c.id, value: e.target.value }])
+                                  : columnFilters.filter((f) => f.id !== c.id)
+                              ),
+                            style: {
+                              height: 26, padding: "0 8px", fontSize: 12, border: "1px solid var(--primary)",
+                              borderRadius: 6, outline: "none", width: 132, background: "var(--card)", color: "inherit",
+                            },
+                          })
+                        )
                       : null
                   );
                 })
@@ -197,7 +260,25 @@ export function createDataGrid(React, ui) {
                     )
                   );
                 })
-              : el(TableRow, null, el(TableCell, { colSpan: (headerGroups[0] ? headerGroups[0].headers.length : 0) + (selectable ? 1 : 0) || 1, style: { textAlign: "center", color: "var(--muted-foreground)", padding: 18 } }, empty))
+              : el(TableRow, null,
+                  el(TableCell, { colSpan: (headerGroups[0] ? headerGroups[0].headers.length : 0) + (selectable ? 1 : 0) || 1, style: { height: 160, width: "100%", padding: 0, textAlign: "center", verticalAlign: "middle" } },
+                    el("div", {
+                      style: {
+                        width: "100%", boxSizing: "border-box",
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        gap: 10, padding: "30px 16px", color: "var(--muted-foreground)",
+                      },
+                    },
+                      el("svg", { width: 52, height: 52, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.1, strokeLinecap: "round", opacity: 0.55 },
+                        el("rect", { x: 3, y: 3, width: 18, height: 18, rx: 3 }),
+                        el("path", { d: "M3 9h18" }),
+                        el("circle", { cx: 9, cy: 13.5, r: 1.4 }),
+                        el("path", { d: "M12 13.5h4M12 17h6" })
+                      ),
+                      el("span", { style: { fontSize: 12.5, opacity: 0.9 } }, empty)
+                    )
+                  )
+                )
           )
         )
       ),

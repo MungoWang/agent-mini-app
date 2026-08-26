@@ -2,7 +2,7 @@ import { describe, it, expect, afterAll } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
-import { listStorageTables, storageTablePath, readAppTheme, writeAppTheme } from "./index.js";
+import { listStorageTables, storageTablePath, readAppTheme, writeAppTheme, loadCustomPalettes } from "./index.js";
 
 const tmpDirs: string[] = [];
 async function mkdir() {
@@ -65,12 +65,39 @@ describe("per-app theme（theme.json）", () => {
     expect(readAppTheme(d)).toEqual({ theme: "dark", palette: "tokyo" });
     expect(JSON.parse(await fs.promises.readFile(path.join(d, "theme.json"), "utf8"))).toEqual({ theme: "dark", palette: "tokyo" });
   });
-  it("非法值被 clamp；writeAppTheme(null) 删除文件（回退全局）", async () => {
+  it("theme 被 clamp、palette 保留自定义 id；writeAppTheme(null) 删除文件（回退全局）", async () => {
     const d = await mkdir();
-    writeAppTheme(d, { theme: "neon" as never, palette: "ocean" as never });
-    expect(readAppTheme(d)).toEqual({ theme: "light", palette: "tokyo" }); // neon→light, ocean→tokyo 迁移
+    writeAppTheme(d, { theme: "neon" as never, palette: "sakura" }); // 自定义 palette 不被 clamp
+    expect(readAppTheme(d)).toEqual({ theme: "light", palette: "sakura" });
     writeAppTheme(d, null);
     expect(readAppTheme(d)).toBeNull();
     await expect(fs.promises.access(path.join(d, "theme.json"))).rejects.toThrow();
+  });
+});
+
+describe("loadCustomPalettes（~/.monkey-mini-app/themes 扫描）", () => {
+  it("识别 theme-*.css、提取 name、解析 tokens；非 theme 前缀忽略", async () => {
+    const base = await mkdir(); // tmp 根
+    const runtimeRoot = path.join(base, "runtime"); // 模拟 runtimeRoot，themes 在其上级
+    const themes = path.join(base, "themes");
+    await fs.promises.mkdir(runtimeRoot, { recursive: true });
+    await fs.promises.mkdir(themes, { recursive: true });
+    await fs.promises.writeFile(
+      path.join(themes, "theme-sakura.css"),
+      '/* name: 樱 */:root[data-mode="light"]{--bg:#fff;--fg:#111;--primary:#e2628a;}:root[data-mode="dark"]{--bg:#231a1f;--fg:#eee;--primary:#ff9ec0;}'
+    );
+    await fs.promises.writeFile(path.join(themes, "theme-bad.css"), "not a theme");
+    await fs.promises.writeFile(path.join(themes, "readme.txt"), "ignored");
+
+    const palettes = loadCustomPalettes(runtimeRoot);
+    expect(palettes.length).toBe(1);
+    expect(palettes[0].id).toBe("sakura");
+    expect(palettes[0].label).toBe("樱");
+    expect(palettes[0].tokens.light.primary).toBe("#e2628a");
+    expect(palettes[0].tokens.dark.primary).toBe("#ff9ec0");
+    expect(palettes[0].custom).toBe(true);
+  });
+  it("目录不存在 → []", () => {
+    expect(loadCustomPalettes(path.join(os.tmpdir(), "mma-none-xyz"))).toEqual([]); // 目录不存在 → []
   });
 });

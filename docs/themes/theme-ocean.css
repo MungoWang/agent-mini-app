@@ -1,0 +1,43 @@
+/* name: 海洋 Ocean */
+:root[data-mode="light"] {
+  --bg: #eef6f5;
+  --fg: #1f3a36;
+  --surface: #ffffff;
+  --surface-fg: #1f3a36;
+  --border: #d5e8e4;
+  --muted: #e6f2f0;
+  --muted-fg: #6f9891;
+  --primary: #0e9488;
+  --primary-fg: #ffffff;
+  --secondary: #e0efec;
+  --secondary-fg: #1f3a36;
+  --accent: #d9f2ee;
+  --accent-fg: #0f5e56;
+  --destructive: #d64545;
+  --destructive-fg: #ffffff;
+  --ring: #0e9488;
+  --input: #f2faf8;
+  --radius: 12px;
+  --shadow: rgba(20, 120, 110, 0.1);
+}
+:root[data-mode="dark"] {
+  --bg: #0d1a18;
+  --fg: #cfe8e3;
+  --surface: #132320;
+  --surface-fg: #cfe8e3;
+  --border: #233b36;
+  --muted: #192d29;
+  --muted-fg: #7fa8a0;
+  --primary: #2dd4bf;
+  --primary-fg: #0d1a18;
+  --secondary: #1a2f2b;
+  --secondary-fg: #cfe8e3;
+  --accent: #15332e;
+  --accent-fg: #a7f3e8;
+  --destructive: #f87171;
+  --destructive-fg: #0d1a18;
+  --ring: #2dd4bf;
+  --input: #0a1513;
+  --radius: 12px;
+  --shadow: rgba(0, 0, 0, 0.5);
+}

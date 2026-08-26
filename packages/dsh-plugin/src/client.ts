@@ -61,6 +61,7 @@ var state = {
       return "global";
     }
   })(),
+  customPalettes: {},
   cardStyle: (function () {
     try {
       return clampCardStyle(localStorage.getItem("mma-card-style"));
@@ -147,18 +148,47 @@ function storedMode() {
 function initAppearance() {
   state.theme = storedMode() || (dshIsDark() ? "dark" : "light");
   try {
-    state.palette = clampPalette(localStorage.getItem("mma-palette"));
+    var raw = localStorage.getItem("mma-palette");
+    state.palette = typeof raw === "string" && raw ? raw : "default";
   } catch (_) {
     state.palette = "default";
   }
+}
+
+function normalizePalette(v) {
+  if (v && state.customPalettes[v]) return v;
+  return clampPalette(v);
+}
+function loadCustomPalettes() {
+  fetch(APPS_HOST + "/api/palettes")
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (j) {
+      if (!j || !j.ok || !Array.isArray(j.palettes)) return;
+      state.customPalettes = {};
+      j.palettes.forEach(function (p) {
+        if (p.custom) {
+          state.customPalettes[p.id] = { label: p.label, swatch: p.swatch, tokens: p.tokens };
+        }
+      });
+      paintThemePop();
+      applyTheme();
+    })
+    .catch(function () {});
+}
+function paletteTokens(pal, mode) {
+  var c = state.customPalettes[pal];
+  if (c && c.tokens && c.tokens[mode]) return c.tokens[mode];
+  return tokensOf(pal, mode);
 }
 
 function applyTheme(root) {
   var el = root || document.getElementById("mma-host");
   if (!el) return;
   var mode = state.theme === "dark" ? "dark" : "light";
-  var pal = clampPalette(state.palette);
-  var t = tokensOf(pal, mode);
+  var pal = state.customPalettes[state.palette] ? state.palette : clampPalette(state.palette);
+  var t = paletteTokens(pal, mode);
   el.setAttribute("data-theme", mode);
   el.setAttribute("data-palette", pal);
   var vars = {
@@ -202,7 +232,7 @@ function applyTheme(root) {
 function persistAppearance() {
   try {
     localStorage.setItem("mma-theme-mode", state.theme);
-    localStorage.setItem("mma-palette", clampPalette(state.palette));
+    localStorage.setItem("mma-palette", state.palette);
   } catch (_) {}
   fetch(APPS_HOST + "/api/host-config", {
     method: "POST",
@@ -213,7 +243,7 @@ function persistAppearance() {
 
 function setAppearance(next, scope) {
   if (next.theme === "light" || next.theme === "dark") state.theme = next.theme;
-  if (next.palette) state.palette = clampPalette(next.palette);
+  if (next.palette) state.palette = normalizePalette(next.palette);
   if (scope === "app") {
     // per-app：保存到该 app 的 theme.json，只更新该 app 的 iframe，全局不动
     var app = activeApp();
@@ -221,7 +251,7 @@ function setAppearance(next, scope) {
       var env = envForApp(app.id);
       var body = {
         theme: next.theme || env.theme,
-        palette: clampPalette(next.palette || env.palette),
+        palette: normalizePalette(next.palette || env.palette),
       };
       fetch(APPS_HOST + "/api/apps/" + encodeURIComponent(app.id) + "/theme", {
         method: "POST",
@@ -287,7 +317,7 @@ function envForApp(appId) {
   var t = appThemeOf(appId);
   return {
     theme: t && t.theme ? t.theme : state.theme,
-    palette: t && t.palette ? clampPalette(t.palette) : state.palette,
+    palette: t && t.palette ? normalizePalette(t.palette) : state.palette,
   };
 }
 function appThemeOf(appId) {
@@ -338,6 +368,9 @@ function toggleThemePop() {
 function paintThemePop() {
   var pop = document.getElementById("mma-theme-pop");
   if (!pop) return;
+  // 重建列表（含异步加载的自定义主题），再同步选中态
+  var list = pop.querySelector(".mma-pop-list");
+  if (list) list.innerHTML = paletteMenuHtml();
   var modes = pop.querySelectorAll("[data-mode]");
   for (var i = 0; i < modes.length; i++) {
     modes[i].setAttribute("data-on", modes[i].getAttribute("data-mode") === state.theme ? "1" : "0");
@@ -364,7 +397,7 @@ function paintThemePop() {
 }
 
 function paletteMenuHtml() {
-  return PALETTES.map(function (p) {
+  var items = PALETTES.map(function (p) {
     return (
       '<button type="button" class="mma-swatch" data-palette="' +
       p.id +
@@ -375,7 +408,21 @@ function paletteMenuHtml() {
       p.label +
       "</span></button>"
     );
-  }).join("");
+  });
+  Object.keys(state.customPalettes).forEach(function (id) {
+    var c = state.customPalettes[id];
+    items.push(
+      '<button type="button" class="mma-swatch" data-palette="' +
+        id +
+        '" role="menuitem">' +
+        '<i class="mma-dot" style="background:' +
+        c.swatch +
+        '"></i><span>' +
+        c.label +
+        '</span><i class="mma-custom-badge">自定义</i></button>'
+    );
+  });
+  return items.join("");
 }
 
 function paletteOptionsHtml() {
@@ -851,6 +898,7 @@ function ensureSkeleton() {
   host.setAttribute("data-cardstyle", state.cardStyle);
   bindHost(host);
   startSidebarSync();
+  loadCustomPalettes();
   return host;
 }
 
@@ -1779,7 +1827,13 @@ function openDashboard() {
     .then(function (j) {
       if (!j || !j.ok) return;
       if (j.theme === "light" || j.theme === "dark") state.theme = j.theme;
-      if (j.palette) state.palette = clampPalette(j.palette);
+      if (j.palette) {
+        var localPal = null;
+        try {
+          localPal = localStorage.getItem("mma-palette");
+        } catch (_) {}
+        if (!localPal) state.palette = clampPalette(j.palette);
+      }
       try {
         localStorage.setItem("mma-theme-mode", state.theme);
         localStorage.setItem("mma-palette", state.palette);

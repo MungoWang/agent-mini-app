@@ -408,6 +408,58 @@ const TOKENS: Record<PaletteId, Record<ModeId, TokenSet>> = {
   },
 };
 
+/* —— 自定义主题（~/.monkey-mini-app/themes/theme-<id>.css，一份文件含 light/dark 两模式） —— */
+const THEME_VAR_KEYS = [
+  "bg", "fg", "surface", "surface-fg", "border", "muted", "muted-fg",
+  "primary", "primary-fg", "secondary", "secondary-fg", "accent", "accent-fg",
+  "destructive", "destructive-fg", "ring", "input", "radius", "shadow",
+] as const;
+
+function kebabToCamel(k: string): string {
+  return k.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+/**
+ * 解析 theme-<id>.css → { light, dark } 两套 TokenSet。
+ * 格式：`:root[data-mode="light"]{ --bg:#fff; --fg:#111; ... }` 与 dark 同构。
+ * 缺失的次要变量用默认补齐，必须提供 bg/fg/primary 才认。
+ */
+export function parseThemeCss(
+  css: string,
+  id: string
+): { light: TokenSet; dark: TokenSet } | null {
+  const out: { light?: Record<string, string>; dark?: Record<string, string> } = {};
+  const blockRe = /:root\[data-mode="(light|dark)"\]\s*\{([^}]*)\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = blockRe.exec(String(css || "")))) {
+    const mode = m[1] as "light" | "dark";
+    const vars: Record<string, string> = {};
+    for (const key of THEME_VAR_KEYS) {
+      const vm = new RegExp(`--${key}\\s*:\\s*([^;\\n]+)`).exec(m[2]);
+      if (vm) vars[kebabToCamel(key)] = vm[1].trim();
+    }
+    if (vars.bg && vars.fg && vars.primary) out[mode] = vars;
+  }
+  if (!out.light || !out.dark) return null;
+  const base = {
+    surfaceFg: out.light.fg!,
+    secondary: out.light.muted!,
+    secondaryFg: out.light.fg!,
+    destructiveFg: "#ffffff",
+    radius: "12px",
+    shadow: "rgba(15, 23, 42, 0.1)",
+  };
+  const fill = (v: Record<string, string>): TokenSet =>
+    Object.assign({}, base, v) as TokenSet;
+  return { light: fill(out.light), dark: fill(out.dark) };
+}
+
+/** 从主题 css 提取名称注释（`/* name: xxx *\/`） */
+export function themeLabelFromCss(css: string, fallback: string): string {
+  const m = /\/\*\s*name\s*:\s*([^*]+)\*\//.exec(String(css || ""));
+  return (m && m[1].trim()) || fallback;
+}
+
 /** Accept current ids and migrate removed palettes (ocean/violet → new families). */
 export function clampPalette(value: unknown): PaletteId {
   if (
@@ -436,7 +488,7 @@ export function tokensOf(palette: PaletteId, mode: ModeId): TokenSet {
   return TOKENS[clampPalette(palette)][clampMode(mode)];
 }
 
-function cssVars(t: TokenSet): string {
+export function cssVars(t: TokenSet): string {
   return [
     `--background:${t.bg}`,
     `--foreground:${t.fg}`,
@@ -481,5 +533,7 @@ export function runnerThemeCss(): string {
     blocks.push(`html[data-theme="light"][data-palette="${id}"]{${cssVars(TOKENS[id].light)}}`);
     blocks.push(`html[data-theme="dark"][data-palette="${id}"]{${cssVars(TOKENS[id].dark)}}`);
   });
+  blocks.push(`html[data-theme="dark"] input[type="date"],html[data-theme="dark"] input[type="time"],html[data-theme="dark"] input[type="datetime-local"],html[data-theme="dark"] input[type="month"],html[data-theme="dark"] input[type="week"]{color-scheme:dark}`);
+  blocks.push(`html[data-theme="light"] input[type="date"],html[data-theme="light"] input[type="time"],html[data-theme="light"] input[type="datetime-local"],html[data-theme="light"] input[type="month"],html[data-theme="light"] input[type="week"]{color-scheme:light}`);
   return blocks.join("\n  ");
 }

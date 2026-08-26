@@ -1,0 +1,43 @@
+/* name: 晨雾 Mist */
+:root[data-mode="light"] {
+  --bg: #eef1f5;
+  --fg: #2b3542;
+  --surface: #ffffff;
+  --surface-fg: #2b3542;
+  --border: #d8dfe8;
+  --muted: #e7ebf1;
+  --muted-fg: #7d8a9c;
+  --primary: #5b7a9d;
+  --primary-fg: #ffffff;
+  --secondary: #e2e7ee;
+  --secondary-fg: #2b3542;
+  --accent: #e2e9f2;
+  --accent-fg: #3a5578;
+  --destructive: #d6455d;
+  --destructive-fg: #ffffff;
+  --ring: #5b7a9d;
+  --input: #f2f5f9;
+  --radius: 12px;
+  --shadow: rgba(60, 80, 110, 0.1);
+}
+:root[data-mode="dark"] {
+  --bg: #12161c;
+  --fg: #d5dce6;
+  --surface: #1a2028;
+  --surface-fg: #d5dce6;
+  --border: #2a333f;
+  --muted: #202732;
+  --muted-fg: #8d9aac;
+  --primary: #8fb3d9;
+  --primary-fg: #12161c;
+  --secondary: #242c37;
+  --secondary-fg: #d5dce6;
+  --accent: #243142;
+  --accent-fg: #c6daf0;
+  --destructive: #e06a80;
+  --destructive-fg: #12161c;
+  --ring: #8fb3d9;
+  --input: #0e1218;
+  --radius: 12px;
+  --shadow: rgba(0, 0, 0, 0.5);
+}

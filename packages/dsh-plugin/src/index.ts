@@ -119,8 +119,67 @@ import {
   DEFAULT_HOST_CONFIG,
   type HostConfig,
 } from "./host-config.js";
-import { clampMode, clampPalette, runnerThemeCss } from "./themes.js";
+import {
+  PALETTES,
+  clampMode,
+  clampPalette,
+  runnerThemeCss,
+  parseThemeCss,
+  themeLabelFromCss,
+  cssVars,
+  type TokenSet,
+} from "./themes.js";
 import { pinyin } from "pinyin-pro";
+
+/* —— 自定义主题：~/.monkey-mini-app/themes/theme-<id>.css —— */
+export type CustomPalette = {
+  id: string;
+  label: string;
+  swatch: string;
+  custom: true;
+  tokens: { light: TokenSet; dark: TokenSet };
+};
+
+export function customThemesDir(runtimeRoot: string): string {
+  return path.join(path.resolve(runtimeRoot, ".."), "themes");
+}
+
+export function loadCustomPalettes(runtimeRoot: string): CustomPalette[] {
+  const dir = customThemesDir(runtimeRoot);
+  const out: CustomPalette[] = [];
+  try {
+    if (!fs.existsSync(dir)) return out;
+    const names = fs.readdirSync(dir).filter((n) => /^theme-.+\.css$/.test(n));
+    for (const n of names) {
+      const id = n.replace(/^theme-/, "").replace(/\.css$/, "");
+      const css = fs.readFileSync(path.join(dir, n), "utf8");
+      const tokens = parseThemeCss(css, id);
+      if (!tokens) continue;
+      out.push({
+        id,
+        label: themeLabelFromCss(css, id),
+        swatch: tokens.dark.primary,
+        custom: true,
+        tokens,
+      });
+    }
+  } catch {
+    /* noop */
+  }
+  return out;
+}
+
+/** iframe runner 用的自定义 palette CSS（一份含 light/dark 两模式） */
+export function customPaletteCss(runtimeRoot: string): string {
+  return loadCustomPalettes(runtimeRoot)
+    .map((c) => {
+      return (
+        `html[data-theme="light"][data-palette="${c.id}"]{${cssVars(c.tokens.light)}}` +
+        `html[data-theme="dark"][data-palette="${c.id}"]{${cssVars(c.tokens.dark)}}`
+      );
+    })
+    .join("\n  ");
+}
 
 /* —— per-app 主题（存到 app 自己的 theme.json，null = 跟随全局） —— */
 export function appThemeFile(dir: string): string {
@@ -130,7 +189,7 @@ export function readAppTheme(dir: string): { theme: string; palette: string } | 
   try {
     const j = JSON.parse(fs.readFileSync(appThemeFile(dir), "utf8")) as { theme?: unknown; palette?: unknown };
     if (!j.theme) return null;
-    return { theme: clampMode(j.theme), palette: clampPalette(j.palette) };
+    return { theme: clampMode(j.theme), palette: typeof j.palette === "string" ? j.palette : "default" };
   } catch {
     return null;
   }
@@ -147,7 +206,7 @@ export function writeAppTheme(
     }
     return null;
   }
-  const next = { theme: clampMode(val.theme), palette: clampPalette(val.palette) };
+  const next = { theme: clampMode(val.theme), palette: typeof val.palette === "string" ? val.palette : "default" };
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(appThemeFile(dir), JSON.stringify(next, null, 2));
   return next;
@@ -927,7 +986,7 @@ function appRunnerHtml(appId: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>${appId}</title>
 <style>
-  ${runnerThemeCss()}
+  ${runnerThemeCss() + customPaletteCss(runtimeRootForConfig || "")}
   html,body,#root{margin:0;height:100%;background:var(--background);color:var(--foreground);font-family:var(--font-sans);}
   .err{padding:24px;color:#b91c1c;white-space:pre-wrap;}
   #root.boot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
@@ -1078,8 +1137,10 @@ function load(rel) {
     if (spec.startsWith(".")) return load(resolveRel(rel, spec));
     throw new Error("unsupported import: " + spec);
   };
-  const fn = new Function("require", "module", "exports", "React", out.code + ";return module.exports;");
-  fn(req, mod, mod.exports, React);
+  // 把所有 ui 组件名作为函数参数注入作用域：LLM 生成的 import 可能丢名字，
+  // 未 import 的组件（如 DateRangeInput）仍可直接引用（sucrase 编译后的 const 解构会遮蔽同名参数，无冲突）
+  const fn = new Function("require", "module", "exports", "React", ...Object.keys(uiBag), out.code + ";return module.exports;");
+  fn(req, mod, mod.exports, React, ...Object.values(uiBag));
   return mod.exports;
 }
 
@@ -1545,6 +1606,18 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
       if (url.pathname === "/api/ctx-tools" || url.pathname === "/api/monkey-mini-app/ctx-tools") {
         const listed = hostBridge?.listTools?.() ?? [];
         send(200, JSON.stringify({ ok: true, count: listed.length, tools: listed }));
+        return;
+      }
+      if (url.pathname === "/api/palettes") {
+        const builtin = PALETTES.map((p) => ({ id: p.id, label: p.label, swatch: p.swatch, custom: false }));
+        const custom = loadCustomPalettes(runtimeRoot).map((c) => ({
+          id: c.id,
+          label: c.label,
+          swatch: c.swatch,
+          custom: true,
+          tokens: c.tokens,
+        }));
+        send(200, JSON.stringify({ ok: true, palettes: builtin.concat(custom) }));
         return;
       }
       if (url.pathname === "/api/apps" || url.pathname === "/api/monkey-mini-app/apps") {

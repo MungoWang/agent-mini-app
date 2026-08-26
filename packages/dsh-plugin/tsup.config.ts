@@ -72,7 +72,7 @@ export default defineConfig([
     platform: "browser",
     splitting: false,
     minify: true,
-    // iframe 无 node_modules：CodeMirror/lezer/TanStack 必须打进 bundle
-    noExternal: [/@codemirror/, /@lezer/, /@tanstack/],
+    // iframe 无 node_modules：CodeMirror/lezer/TanStack/FullCalendar 必须打进 bundle
+    noExternal: [/@codemirror/, /@lezer/, /@tanstack/, /@fullcalendar/],
   },
 ]);

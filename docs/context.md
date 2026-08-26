@@ -234,7 +234,9 @@ curl -s http://127.0.0.1:17880/api/call -H 'content-type: application/json' \
 - palette：default / **tokyo**（东京夜）/ **forest**（苔原 Everforest）/ **matcha**（草莓抹茶）/ **yellow**（药丸黄）/ **zoro**（三刀流）/ **hokage**（火影黎明）/ slate（石墨）。删除了 ocean/violet，极简黑 noir 并入 slate（黑白同族）。
 - **迁移**：`clampPalette` 旧 id → ocean/mist → tokyo、violet/ink → matcha、paper/noir → slate；旧 localStorage/host.json 自动映射。
 - 参考色源：Tokyo Night（#1a1b26/#7aa2f7）、Everforest（#2d353b/#a7c080）、Strawberry Matcha（粉 #ee9aa6）、Yellow Pill（#facc15）、Zoro 三刀流（#4ade80）、Hokage Dawn（#f59e0b）。
-- 预览页：`docs/themes-preview.html`（含 Progress 条色板），截图 `docs/themes-preview-{light,dark}.png`。
+- **自定义主题**：`~/.monkey-mini-app/themes/theme-<id>.css`（一份文件含 `:root[data-mode="light"]` 与 `dark` 两套 `--xxx` 变量，首行 `/* name: xxx */` 作标题，缺 bg/fg/primary 不认）。host 扫描 → `/api/palettes` 合并（custom:true）→ 前端列表带「自定义」角标（主色淡底小徽章）；iframe 的 runner CSS 自动追加（customPaletteCss）。内置示例：`docs/themes/theme-{crimson,vanta,gold}.css`（暗红 / 纯黑 / 金）。
+- **坑**：前端 palette 存原值、应用时 `normalizePalette` 校验（自定义保留、内置 clamp）——`setAppearance`/persist/init/openDashboard 四处都要走它，否则自定义 id 会被 `clampPalette` 转成 default（切不过去）；弹窗列表在 `paintThemePop` 里**重建**（异步加载的自定义才进得来），不能只更新选中态。
+- 预览页：`docs/themes-preview.html`（含 Progress 条 + 自定义主题），截图 `docs/themes-preview-{light,dark}.png`。
 
 ## Host 列表：三套卡片方案 + monogram + commits
 
@@ -260,6 +262,20 @@ curl -s http://127.0.0.1:17880/api/call -H 'content-type: application/json' \
 - **React 18 双实例**：同容器重复 `createRoot` 会重建组件并丢状态（onChange 时序错乱），demo/宿主里要缓存 root。
 - **实测**：`docs/ui-kit-demo/`（http server + headless chrome dump-dom 断言，40 断言 × light/dark 全过，含点击选中/排序交互模拟）；截图 `docs/ui-kit-demo-all-{light,dark}.png`。
 - **Stepper**：圆点必须 `boxSizing: border-box`（active 2px border 不撑大行高，否则横线错位不在同一水平）；连接线激活语义 = **目标步已完成**（左线看 i、右线看 i+1 是否 `< active`），active 步的入线保持未激活；外层容器横向 gap 必须 0（否则相邻步两段线断开）；React 对 border 简写 + var()/color-mix() 解析不可靠 → 用 borderWidth/borderStyle/borderColor 拆分。
+
+## ui-kit 文件拆分（2026-08）
+
+`src/ui-kit.ts`（基础）+ `ui-kit/code.ts`（CM6）+ `ui-kit/extras.ts`（小组件：LogViewer/Markdown/KV/TagInput/FileInput/Stepper/SummaryBar，createExtras 合并 kanban+calendar）+ `ui-kit/kanban.ts`（KanbanBoard）+ `ui-kit/calendar.ts`（Calendar mini + FullCalendar 自绘）+ `ui-kit/data-grid.ts`。**大组件各自独立文件**，createExtras 内 `createKanban/createCalendar` 合并导出。**坑**：python 批量替换文件内容会吃换行（`replace('\n','')` 把文件弄成一行、`// @ts-nocheck` 注释吞掉全部代码）——改大文件用 edit/write 工具或小心正则。
+
+## ui-kit 组件清单（2026-08 扩展 II）
+
+- **KanbanBoard**：拖拽多栏卡片（HTML5 DnD，React state 驱动拖拽源，dataTransfer 仅作 fallback——jsdom 无 DragEvent 用普通 Event 测）。`renderCard(item, col, dnd)` 卡片 slot 不绑死样式，**dnd 需 `{...dnd}` 展开才可拖**（默认卡片自动带）；`onDragEnd({itemId,fromColumnId,toColumnId})` 受控。fixbench 示例：Jira ticket 风格卡片（key/type/priority/assignee/status + 优先级色条 + 点击看详情）。
+- **Calendar**（mini）：cell 必须显式 `background: transparent / color: var(--card-foreground)` + `font: inherit`——否则 dark 下 button 浏览器默认白底白字看不清；事件圆点 `var(--primary)`；`events` 兼容 `{date}` 与 `{start}`（可与 Full 共享）。
+- **FullCalendar**：**自绘 mac Calendar 布局**（不用 @fullcalendar——React 日历库带 React 副本/样式难配）。月/周/日三视图：月视图跨天事件周行内连续长条；**周/日视图 = 顶部日期头（每列周几+日期、今天红底圆标）+ 通栏 all-day 区 + 时间网格**，**跨天 all-day 事件是连续 bar**（gridColumn 跨列 + lane 堆叠 + 超周边界 clamp），timed 事件重叠 lane 并排，各列时间格 top 全列对齐（坑：all-day 区高度必须按全列最大值统一，否则网格线错位）。**交互**：单击选中、双击空白添加、pointer 拖选（月拖天、周/日拖时间段）预填表单；**点击已有事件 → 编辑表单**（预填 + `onUpdateEvent({...ev,新字段})` 保留 id）；表单用内置 DateInput/TimeInput（min/max 双向约束）。`onAddEvent({title,start,end,color,allDay})` 由调用方持久化。事件 start/end 支持 `YYYY-MM-DD` 与 `YYYY-MM-DDTHH:mm`。
+- **日期时间输入族**（extras.ts 内置，零依赖，shadcn 官方无原生 datetime）：`DateInput`（**popover 日历单选**）/`TimeInput`（原生 time）/`DateTimeInput`（popover 日期+原生时间）/`DateRangeInput`（**popover 日历拖选范围**，document 级 pointermove + elementFromPoint 找格，re-render 安全）/`TimeRangeInput`（**双滑块**：拖 start/end handle，15 分钟粒度）/`DateTimeRangeInput`；支持受控 value 与非受控 defaultValue；range 双向 min/max 约束。**DateRangeInput 单框显示**（`2026-08-20 – 2026-08-22`）。**popover 面板 fixed 定位 z-index 9999 + Dialog 内容盒 overflow:visible**（逃出 dialog 裁剪，不迁移 DOM——React 事件委托在 root 容器，移出会丢事件）。**坑**：cell 级 onPointerEnter/Over 在 React re-render 后失效（元素被替换）——拖选必须 document 级监听；原生 date/time 控件图标黑色 → 注入 `color-scheme`（light/dark 随 data-theme）。
+- **踩坑**：`TableCell({children, style})` 必须透传 `...rest` 否则 colSpan 丢失（空状态 td 只占 1 列宽）；colSpan td 在 table-layout auto 下不拉伸到表宽——**空状态时表格切 `tableLayout:"fixed" + width:"100%"`** 强制 td 全宽居中；demo（8123 /tmp/ui-demo）必须与 docs/ui-kit-demo 同步（cp index.html + ui-kit.js），否则调试的是旧文件。
+- **DataGrid**：列头搜索改 **popover**（th 内 absolute，不撑开表格）；空状态内置插图（SVG 盒子 + 放大镜）+ 文字，`empty` prop 自定义文案。**空状态容器不要设 `width:100%`**（会溢出 td 导致插图偏右 16px，实测 svg 中心 402 vs td 386），用默认 block 占满 + `box-sizing:border-box` 即可居中。
+- **测试坑**：jsdom 无 DragEvent（用 Event）；React 受控 input 直接赋值被 value tracker 拦截（用 `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call`）；describe 回调内 function 声明是块级作用域（helper 放模块顶层）。
 
 ## 测试体系（2026-08 扩充，101 UT 全绿）
 

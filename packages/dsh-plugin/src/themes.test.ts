@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampPalette, runnerThemeCss, tokensOf } from "./themes.js";
+import { clampPalette, parseThemeCss, runnerThemeCss, themeLabelFromCss, tokensOf } from "./themes.js";
 
 describe("themes", () => {
   it("clamps current and migrated palette ids", () => {
@@ -76,5 +76,36 @@ describe("themes", () => {
     expect(css).toContain("--accent:");
     expect(css).toContain("--shadow:");
     expect(css).toContain("--card-foreground:");
+  });
+});
+
+describe("parseThemeCss（自定义主题解析）", () => {
+  const CSS = `/* name: 测试主题 */
+:root[data-mode="light"]{--bg:#fff;--fg:#111;--surface:#fafafa;--border:#e0e0e0;--muted:#f0f0f0;--muted-fg:#777;--primary:#123abc;--primary-fg:#fff;--accent:#eef;--destructive:#d33;--ring:#123abc;--input:#f5f5f5;--radius:14px;--shadow:rgba(0,0,0,.1);}
+:root[data-mode="dark"]{--bg:#111;--fg:#eee;--surface:#1a1a1a;--border:#333;--muted:#222;--muted-fg:#aaa;--primary:#789;--primary-fg:#111;--accent:#234;--destructive:#e55;--ring:#789;--input:#181818;}`;
+  it("解析出 light/dark 两套 TokenSet", () => {
+    const r = parseThemeCss(CSS, "test")!;
+    expect(r).not.toBeNull();
+    expect(r.light.bg).toBe("#fff");
+    expect(r.light.primary).toBe("#123abc");
+    expect(r.dark.bg).toBe("#111");
+    expect(r.dark.primary).toBe("#789");
+    // 缺失的次要变量补默认
+    expect(r.light.radius).toBe("14px");
+    expect(r.light.destructiveFg).toBe("#ffffff");
+  });
+  it("缺 light/dark 任一模式 → null", () => {
+    expect(parseThemeCss(':root[data-mode="light"]{--bg:#fff;--fg:#111;--primary:#123}', "x")).toBeNull();
+    expect(parseThemeCss("plain text", "x")).toBeNull();
+    expect(parseThemeCss("", "x")).toBeNull();
+    expect(parseThemeCss(null as unknown as string, "x")).toBeNull();
+  });
+  it("缺关键变量（bg/fg/primary）→ null", () => {
+    const css = ':root[data-mode="light"]{--bg:#fff;--fg:#111;}:root[data-mode="dark"]{--bg:#000;--fg:#eee;}';
+    expect(parseThemeCss(css, "x")).toBeNull(); // 无 primary
+  });
+  it("themeLabelFromCss 提取 name", () => {
+    expect(themeLabelFromCss(CSS, "fallback")).toBe("测试主题");
+    expect(themeLabelFromCss("no name", "fb")).toBe("fb");
   });
 });
