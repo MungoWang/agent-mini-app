@@ -1,18 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Inline,
-  Stack,
-  Text,
-  useDashboardApi,
-} from "@monkeyagent/ui";
+import { Badge, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@monkey-mini-app/ui";
+import { useDashboardApi } from "@monkeyagent/host";
 
 type Ping = { now: number; theme: string };
 
@@ -46,41 +34,36 @@ export default function Ui() {
   const badge = error ? "destructive" : loading ? "secondary" : "default";
 
   return (
-    <Stack
-      gap={16}
-      style={{ padding: 24, maxWidth: 520, margin: "0 auto", width: "100%", boxSizing: "border-box" }}
-    >
+    <div className="p-6 w-full box-border flex flex-col gap-4">
       <div>
-        <Text variant="h2">连通检查</Text>
-        <Text variant="muted" style={{ marginTop: 4 }}>
-          用来确认小程序已经连上 Host
-        </Text>
+        <h2 className="text-xl font-semibold text-foreground m-0">连通检查</h2>
+        <p className="text-sm text-muted-foreground mt-1">用来确认小程序已经连上 Host</p>
       </div>
 
       <Card>
         <CardHeader>
-          <Inline style={{ justifyContent: "space-between" }}>
+          <div className="flex items-center justify-between w-full">
             <CardTitle>接口状态</CardTitle>
             <Badge variant={badge}>{status}</Badge>
-          </Inline>
+          </div>
           <CardDescription>走 Host 往返一次</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-2">
           {error ? (
-            <Text style={{ color: "var(--destructive)" }}>{error}</Text>
+            <p className="text-sm" style={{ color: "var(--destructive)" }}>{error}</p>
           ) : data ? (
-            <Stack gap={8}>
-              <Inline style={{ justifyContent: "space-between" }}>
-                <Text variant="muted">时间</Text>
-                <Text>{new Date(data.now).toLocaleString("zh-CN")}</Text>
-              </Inline>
-              <Inline style={{ justifyContent: "space-between" }}>
-                <Text variant="muted">主题</Text>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">时间</span>
+                <span>{new Date(data.now).toLocaleString("zh-CN")}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">主题</span>
                 <Badge variant="outline">{data.theme}</Badge>
-              </Inline>
-            </Stack>
+              </div>
+            </div>
           ) : (
-            <Text variant="muted">正在探测…</Text>
+            <p className="text-sm text-muted-foreground">正在探测…</p>
           )}
         </CardContent>
         <CardFooter>
@@ -89,6 +72,6 @@ export default function Ui() {
           </Button>
         </CardFooter>
       </Card>
-    </Stack>
+    </div>
   );
 }

@@ -1,9 +1,0 @@
-{
-  "id": "com.example.todo",
-  "name": "Todo",
-  "description": "本地待办，存在这台机器上",
-  "version": "0.1.0",
-  "entry": "ui.tsx",
-  "permissions": ["storage", "ui"],
-  "theme": { "followsHost": true }
-}

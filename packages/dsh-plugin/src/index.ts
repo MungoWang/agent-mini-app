@@ -10,8 +10,10 @@ import * as fs from "node:fs";
 import * as http from "node:http";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 
 const execFileAsync = promisify(execFile);
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 /** commits 计数：app 无 version 概念，以 git 历史提交次数为准。带 TTL 缓存避免每次拉列表都跑 git。 */
 const commitCountCache = new Map<string, { at: number; count: number }>();
@@ -110,6 +112,7 @@ import {
 import { createUiCore } from "@monkey-mini-app/ui-core";
 import { getSkillMarkdown, getSkillDir } from "@monkey-mini-app/agent-skills";
 import { compileAppSource, jsonClone } from "./compile-app-source.js";
+import { compileUiBundle, invalidateUiCache, resolveUiDistDir, uiBuildCacheSize } from "./compile-ui.js";
 import { httpRequest } from "./ctx-http.js";
 import {
   publicAppConfig,
@@ -567,21 +570,26 @@ async function collectLlmStream(
     maxTokens: (opts && opts.maxTokens) || 1024,
   };
   const acc: string[] = [];
+  let sawDelta = false;
   const iter = llmSvc.stream(req);
   for await (const chunk of iter as AsyncIterable<any>) {
     if (!chunk) continue;
-    if (chunk.type === "text-delta" && chunk.text) acc.push(chunk.text);
-    else if (
-      chunk.type === "block-end" &&
+    const type = chunk.type;
+    // Only the visible text stream counts. reasoning-* / usage / block-start
+    // chunks carry their own text and must be ignored (they are not the answer).
+    if (type === "text-delta" && typeof chunk.text === "string") {
+      sawDelta = true;
+      acc.push(chunk.text);
+    } else if (
+      type === "block-end" &&
       chunk.block &&
-      chunk.block.type === "text" &&
-      chunk.block.text
-    )
-      acc.push(chunk.block.text);
-    else if (typeof chunk.text === "string") acc.push(chunk.text);
-    else if (typeof chunk === "string") acc.push(chunk);
-  }
-  const out = acc.join("");
+      typeof chunk.block.text === "string"
+    ) {
+      // dsh streams both incremental deltas AND a final full block — only use
+      // the block when the stream had no deltas, else the text doubles up.
+      if (!sawDelta) acc.push(chunk.block.text);
+    }
+  }  const out = acc.join("");
   if (!out) throw new Error("llm stream empty");
   return coerceSchemaJson(out, opts);
 }
@@ -862,6 +870,31 @@ function createHostBridge(cordisCtx: LooseCtx) {
   return { bash, tool, mcp, llm, agent, listTools, config, credentials };
 }
 
+let lastUiWarmAt = 0;
+const UI_WARM_TTL_MS = 60_000;
+
+/** Background-compile every registered app's UI bundle (throttled). */
+async function warmUiBundles(runtimeRoot: string): Promise<void> {
+  const now = Date.now();
+  if (now - lastUiWarmAt < UI_WARM_TTL_MS) return;
+  lastUiWarmAt = now;
+  try {
+    const appsDir = path.join(runtimeRoot, "apps");
+    const dirs = fs.existsSync(appsDir) ? fs.readdirSync(appsDir) : [];
+    await Promise.all(
+      dirs.map(async (id) => {
+        try {
+          await compileUiBundle(path.join(appsDir, id));
+        } catch (e) {
+          console.warn("[monkey-mini-app] ui warm failed", id, String((e as Error)?.message || e).slice(0, 120));
+        }
+      })
+    );
+  } catch {
+    /* warm is best-effort */
+  }
+}
+
 function dashboardMtime(appDir: string): number {
   let max = 0;
   const bump = (fp: string) => {
@@ -902,26 +935,33 @@ function getDashboard(appDir: string) {
     },
     mcp: async (name: string, args?: Record<string, unknown>) => {
       if (!bridge) throw new Error("mcp: host bridge not ready");
+      if ((ctx as { signal?: AbortSignal }).signal?.aborted) throw new Error("cancelled");
       return bridge.mcp(name, args);
     },
     tool: async (name: string, args?: Record<string, unknown>) => {
       if (!bridge) throw new Error("tool: host bridge not ready");
+      if ((ctx as { signal?: AbortSignal }).signal?.aborted) throw new Error("cancelled");
       return bridge.tool(name, args);
     },
     listTools: () => (bridge ? bridge.listTools() : []),
     llm: async (prompt: string, opts?: Record<string, unknown>) => {
       if (!bridge) throw new Error("llm: host bridge not ready");
+      const sig = (ctx as { signal?: AbortSignal }).signal;
+      if (sig?.aborted) throw new Error("cancelled");
       return bridge.llm(prompt, opts);
     },
     agent: async (goal: string, opts?: Record<string, unknown>) => {
       if (!bridge) throw new Error("agent: host bridge not ready");
+      if ((ctx as { signal?: AbortSignal }).signal?.aborted) throw new Error("cancelled");
       return bridge.agent(goal, opts);
     },
     bash: async (command: string) => {
       if (!bridge) throw new Error("bash: host bridge not ready");
+      if ((ctx as { signal?: AbortSignal }).signal?.aborted) throw new Error("cancelled");
       return bridge.bash(command);
     },
-    http: httpRequest,
+    http: (url: string | HttpRequest, opts?: Omit<HttpRequest, "url">) =>
+      httpRequest(url, { ...opts, signal: (ctx as { signal?: AbortSignal }).signal }),
     system: {
       async metrics() {
         const cpus = os.cpus();
@@ -970,10 +1010,14 @@ function asToolObject(value: unknown): Record<string, unknown> {
   return v as Record<string, unknown>;
 }
 
-async function callMainApi(appDir: string, method: string, args: unknown) {
+async function callMainApi(appDir: string, method: string, args: unknown, signal?: AbortSignal) {
   const { def, ctx } = getDashboard(appDir);
   const fn = def.api?.[method];
   if (typeof fn !== "function") throw new Error("Method not found: " + method);
+  // Expose the current call's abort signal to the app (ctx.signal). The ctx is
+  // cached per app; overwriting is fine because scan-style flows take a lock.
+  (ctx as { signal?: AbortSignal }).signal = signal;
+  if (signal?.aborted) throw new Error("cancelled");
   return await fn(ctx, args ?? {});
 }
 
@@ -1024,144 +1068,34 @@ const APP_ID = ${safe};
   const pal = q.get("palette") || "default";
   const dock = q.get("dock") || "fill";
   document.documentElement.setAttribute("data-theme", th);
+  document.documentElement.classList.toggle("dark", th === "dark");
   document.documentElement.setAttribute("data-palette", pal);
   document.documentElement.setAttribute("data-dock", dock);
   window.addEventListener("message", (ev) => {
     const d = ev.data;
     if (!d || d.type !== "mma-set-env") return;
-    if (d.theme) document.documentElement.setAttribute("data-theme", d.theme);
+    if (d.theme) {
+      document.documentElement.setAttribute("data-theme", d.theme);
+      document.documentElement.classList.toggle("dark", d.theme === "dark");
+    }
     if (d.palette) document.documentElement.setAttribute("data-palette", d.palette);
     if (d.dock) document.documentElement.setAttribute("data-dock", d.dock);
   });
 })();
-const React = await import("https://esm.sh/react@18.3.1");
-const { createRoot } = await import("https://esm.sh/react-dom@18.3.1/client");
-const sucrase = await import("https://esm.sh/sucrase@3.35.0");
-const { useState, useEffect, useCallback } = React;
+const cssLink = document.createElement("link");
+cssLink.rel = "stylesheet";
+cssLink.href = "/ui.css";
+document.head.appendChild(cssLink);
 
-function invoke(method, args) {
-  return fetch("/api/invoke", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ appId: APP_ID, method, args }),
-  }).then((r) => r.json()).then((j) => {
-    if (!j.ok && j.error) throw new Error(j.error);
-    return j.value !== undefined ? j.value : j;
-  });
-}
-
-function makeStorage(file) {
-  return {
-    async get(key) {
-      const obj = (await invoke("storage.getFile", { key: file })) || {};
-      return Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : null;
-    },
-    async set(key, value) {
-      const obj = (await invoke("storage.getFile", { key: file })) || {};
-      obj[key] = value;
-      await invoke("storage.setFile", { key: file, value: obj });
-    },
-    async delete(key) {
-      const obj = (await invoke("storage.getFile", { key: file })) || {};
-      delete obj[key];
-      await invoke("storage.setFile", { key: file, value: obj });
-    },
-    async clear() { await invoke("storage.setFile", { key: file, value: {} }); },
-    table(name) { return makeStorage(String(name).replace(/[^A-Za-z0-9_-]/g, "_") + ".storage.json"); },
-  };
-}
-
-function unsupported(name) {
-  return async () => { throw new Error(name + " is not provided by this host (dsh plugin). Use storage / time.now."); };
-}
-
-function useDashboardApi(method, args, opts) {
-  const call = useCallback(async (m, a) => {
-    const j = await fetch("/api/call", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ appId: APP_ID, method: m, args: a || {} }),
-    }).then((r) => r.json());
-    if (!j.ok) throw new Error(j.error || "call failed");
-    return j.value;
-  }, []);
-  // New protocol: useDashboardApi() → { call }
-  if (typeof method !== "string") return { call };
-  // Legacy: useDashboardApi("foo", args) still exposes reload for old apps
-  const auto = !opts || opts.auto !== false;
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(!!auto);
-  const [error, setError] = useState(null);
-  const reload = useCallback(async () => {
-    setLoading(true); setError(null);
-    try { setData(await call(method, args || {})); }
-    catch (e) { setError(String(e && e.message || e)); }
-    finally { setLoading(false); }
-  }, [call, method, JSON.stringify(args || {})]);
-  useEffect(() => { if (auto) void reload(); }, [reload, auto]);
-  return { data, loading, error, reload, call };
-}
-
-const { createUiKit } = await import("/ui-kit.js");
-const kit = createUiKit(React);
-const uiBag = Object.assign({}, kit, { useDashboardApi });
-
-const pack = await fetch("/api/app/" + encodeURIComponent(APP_ID) + "/files").then((r) => r.json());
-const files = pack.files || {};
-const compiled = {};
-function resolveRel(from, spec) {
-  if (!spec.startsWith(".")) return spec;
-  const base = from.split("/").slice(0, -1);
-  for (const part of spec.split("/")) {
-    if (part === "." || part === "") continue;
-    if (part === "..") base.pop();
-    else base.push(part);
-  }
-  let rel = base.join("/");
-  const cands = [rel, rel + ".ts", rel + ".tsx", rel + ".js", rel + "/index.ts", rel + "/index.tsx"];
-  for (const c of cands) if (files[c] != null) return c;
-  throw new Error("cannot resolve " + spec + " from " + from);
-}
-function load(rel) {
-  if (compiled[rel]) return compiled[rel].exports;
-  const src = files[rel];
-  if (src == null) throw new Error("missing file " + rel);
-  const out = sucrase.transform(src, { transforms: ["typescript", "jsx", "imports"] });
-  const mod = { exports: {} };
-  compiled[rel] = mod;
-  const req = (spec) => {
-    if (spec === "react" || spec === "react/jsx-runtime") return React;
-    if (spec === "@monkeyagent/ui") return uiBag;
-    if (spec === "main.api.ts" || spec.indexOf("main.api") >= 0)
-      throw new Error("ui must not import main.api.ts; use useDashboardApi");
-    if (spec.startsWith(".")) return load(resolveRel(rel, spec));
-    throw new Error("unsupported import: " + spec);
-  };
-  // 把所有 ui 组件名作为函数参数注入作用域：LLM 生成的 import 可能丢名字，
-  // 未 import 的组件（如 DateRangeInput）仍可直接引用（sucrase 编译后的 const 解构会遮蔽同名参数，无冲突）
-  const fn = new Function("require", "module", "exports", "React", ...Object.keys(uiBag), out.code + ";return module.exports;");
-  fn(req, mod, mod.exports, React, ...Object.values(uiBag));
-  return mod.exports;
-}
-
+// 编译后的 app bundle 完全自包含（react + 组件 + useDashboardApi 都在里面），
+// 这里只需要按 id 加载。失败时展示可读错误。
 try {
-  const uiRel = files["ui.tsx"] ? "ui.tsx" : (files["ui.ts"] ? "ui.ts" : (files["App.tsx"] ? "App.tsx" : null));
-  if (!uiRel) throw new Error("missing ui.tsx");
-  const uiMod = load(uiRel);
-  const App = uiMod.default || uiMod.App || uiMod;
-  if (typeof App !== "function") throw new Error("ui.tsx must default-export a component");
-  const rootEl = document.getElementById("root");
-  if (!rootEl) throw new Error("missing #root");
-  rootEl.className = "";
-  rootEl.removeAttribute("role");
-  rootEl.removeAttribute("aria-label");
-  rootEl.replaceChildren();
-  createRoot(rootEl).render(React.createElement(App));
+  await import("/api/app/" + encodeURIComponent(APP_ID) + "/ui/entry.js");
 } catch (e) {
   const rootEl = document.getElementById("root");
   if (rootEl) {
     rootEl.className = "err";
-    rootEl.textContent = String((e && e.stack) || e);
+    rootEl.textContent = String((e && (e.stack || e.message)) || e);
   }
 }
 </script>
@@ -1221,17 +1155,19 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
     };
     return out && typeof out === "object" && !Array.isArray(out) ? out : { ok: true, tab: out };
   };
-  handlers.mini_app_call = async (input) => {
+  handlers.mini_app_call = async (input, signal) => {
     const appId = String(input.appId || "");
     const method = String(input.method || "");
     try {
       const value = await callMainApi(
         defaultResolveAppDir(runtimeRoot, appId),
         method,
-        input.args || {}
+        input.args || {},
+        signal
       );
       return { ok: true, value };
     } catch (e) {
+      if (signal?.aborted) return { ok: false, error: "cancelled", cancelled: true };
       return { ok: false, error: String((e as Error)?.message || e) };
     }
   };
@@ -1302,8 +1238,10 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
                 },
               ],
             },
-            async execute(args: Record<string, unknown>) {
-              return asToolObject(await invokeAgentTool(handlers, toolName, args ?? {}));
+            async execute(args: Record<string, unknown>, toolCtx?: { signal?: AbortSignal }) {
+              return asToolObject(
+                await invokeAgentTool(handlers, toolName, args ?? {}, toolCtx?.signal)
+              );
             },
           })
         : {
@@ -1319,8 +1257,10 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
                 },
               ],
             },
-            async execute(args: Record<string, unknown>) {
-              return asToolObject(await invokeAgentTool(handlers, toolName, args ?? {}));
+            async execute(args: Record<string, unknown>, toolCtx?: { signal?: AbortSignal }) {
+              return asToolObject(
+                await invokeAgentTool(handlers, toolName, args ?? {}, toolCtx?.signal)
+              );
             },
           };
       try {
@@ -1390,6 +1330,8 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
           return enrichAppMeta(a, dir);
         })
       );
+      // 后台预热 UI bundle（fire-and-forget，节流 60s）——首次打开 app 不再等编译
+      void warmUiBundles(runtimeRoot);
       return { apps: withMeta };
     } catch (e) {
       return { apps: [], error: String(e) };
@@ -1483,7 +1425,7 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
       return;
     }
     const url = new URL(req.url || "/", "http://127.0.0.1");
-    const send = (code: number, body: string, type = "application/json; charset=utf-8") => {
+    const send = (code: number, body: string | Buffer, type = "application/json; charset=utf-8") => {
       res.writeHead(code, { "Content-Type": type });
       res.end(body);
     };
@@ -1497,14 +1439,78 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
     };
     const storageFile = (appId: string) => path.join(appDirOf(appId), "storage", "default.json");
     try {
-      if (url.pathname === "/ui-kit.js") {
+      if (url.pathname === "/ui.css") {
         try {
-          const { fileURLToPath } = await import("node:url");
-          const dir = path.dirname(fileURLToPath(import.meta.url));
-          send(200, fs.readFileSync(path.join(dir, "ui-kit.js"), "utf8"), "application/javascript; charset=utf-8");
+          const css = fs.readFileSync(path.join(resolveUiDistDir(), "globals.css"), "utf8");
+          send(200, css, "text/css; charset=utf-8");
         } catch (e) {
-          send(500, "ui-kit missing: " + e, "text/plain");
+          send(500, "ui.css missing: " + e, "text/plain");
         }
+        return;
+      }
+      // demo-host gallery (apps/demo-host build output) — set MONKEY_MINI_APP_DEMO_DIR
+      // to override; falls back to the repo path when running from a checkout.
+      if (url.pathname === "/demo" || url.pathname.startsWith("/demo/")) {
+        const demoRoot =
+          process.env.MONKEY_MINI_APP_DEMO_DIR ||
+          path.join(MODULE_DIR, "..", "..", "..", "apps", "demo-host", "dist");
+        const rel =
+          url.pathname === "/demo"
+            ? "index.html"
+            : decodeURIComponent(url.pathname.slice("/demo/".length));
+        const fp = path.join(demoRoot, rel);
+        if (!fp.startsWith(demoRoot) || !fs.existsSync(fp) || !fs.statSync(fp).isFile()) {
+          send(404, JSON.stringify({ error: "demo asset missing: " + rel }));
+          return;
+        }
+        const ext = path.extname(fp);
+        const type =
+          ext === ".html" ? "text/html; charset=utf-8" :
+          ext === ".css" ? "text/css; charset=utf-8" :
+          ext === ".json" ? "application/json; charset=utf-8" :
+          ext === ".svg" ? "image/svg+xml" :
+          ext === ".woff2" ? "font/woff2" :
+          "application/javascript; charset=utf-8";
+        send(200, fs.readFileSync(fp), type);
+        return;
+      }
+      // per-app compiled UI bundle (main entry.js + lazy chunks)
+      const uiBuildMatch = url.pathname.match(/^\/api\/app\/([^/]+)\/ui\/([^/]+)$/);
+      if (uiBuildMatch) {
+        const appId = decodeURIComponent(uiBuildMatch[1]);
+        const name = decodeURIComponent(uiBuildMatch[2]);
+        const appDir = appDirOf(appId);
+        const files = await compileUiBundle(appDir);
+        const file = files.find((f) => f.name === name);
+        if (!file) {
+          send(404, JSON.stringify({ error: "bundle file missing: " + name }));
+          return;
+        }
+        const body = Buffer.from(file.contents);
+        res.writeHead(200, {
+          "Content-Type": "application/javascript; charset=utf-8",
+          "Content-Length": body.length,
+          "Cache-Control": "no-cache",
+        });
+        res.end(body);
+        return;
+      }
+      // raw ui dist assets (src/vendor/index.js/globals.css) for debugging
+      if (url.pathname.startsWith("/ui/")) {
+        const rel = decodeURIComponent(url.pathname.slice(4));
+        const base = resolveUiDistDir();
+        const fp = path.join(base, rel);
+        if (!fp.startsWith(base) || !fs.existsSync(fp) || !fs.statSync(fp).isFile()) {
+          send(404, JSON.stringify({ error: "ui asset missing: " + rel }));
+          return;
+        }
+        const ext = path.extname(fp);
+        const type =
+          ext === ".css" ? "text/css; charset=utf-8" :
+          ext === ".json" ? "application/json; charset=utf-8" :
+          ext === ".tsx" || ext === ".ts" ? "text/plain; charset=utf-8" :
+          "application/javascript; charset=utf-8";
+        send(200, fs.readFileSync(fp, "utf8"), type);
         return;
       }
       if (url.pathname === "/health") {
@@ -1802,6 +1808,7 @@ export async function apply(ctx: LooseCtx, config: Config = {}) {
         const appId = decodeURIComponent(delMatch[1]);
         const dir = appDirOf(appId);
         if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
+        invalidateUiCache(dir);
         send(200, JSON.stringify({ ok: true, appId }));
         return;
       }

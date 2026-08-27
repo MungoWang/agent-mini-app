@@ -1374,13 +1374,7 @@ function confirmDelete() {
 }
 
 function warmHost() {
-  var urls = [
-    APPS_HOST + "/api/apps",
-    APPS_HOST + "/ui-kit.js",
-    "https://esm.sh/react@18.3.1",
-    "https://esm.sh/react-dom@18.3.1/client",
-    "https://esm.sh/sucrase@3.35.0",
-  ];
+  var urls = [APPS_HOST + "/api/apps", APPS_HOST + "/ui.css"];
   urls.forEach(function (u) {
     try {
       fetch(u, { mode: "no-cors" }).catch(function () {});

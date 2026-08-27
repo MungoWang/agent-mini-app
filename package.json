@@ -7,9 +7,12 @@
     "build": "pnpm -r run build",
     "test": "vitest run",
     "smoke": "tsx scripts/smoke.ts",
-    "typecheck": "tsc -b --pretty false"
+    "typecheck": "tsc -b --pretty false",
+    "skill:gen": "node scripts/generate-skill.mjs",
+    "build:ui": "node scripts/build-ui.mjs"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^22.10.0",
     "happy-dom": "^20.11.6",
     "jsdom": "^30.0.1",

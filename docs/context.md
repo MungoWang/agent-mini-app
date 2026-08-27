@@ -22,14 +22,17 @@
 packages/dsh-plugin/          # 真正跑在 dsh web 里的插件
   src/index.ts                # host：工具、embedded server、loader、runner HTML
   src/client.ts               # dsh 网页：侧栏入口、dashboard、tabs、side panel
-  src/ui-kit.ts               # @monkeyagent/ui 运行时袋
+  src/compile-ui.ts           # host 端 UI 编译（esbuild-wasm per-app bundle）
   lib/                        # tsup 产物（gitignore），dsh 实际加载这里
-  skills/monkey-mini-app/SKILL.md
-templates/{hello,todo,sysmon,news}/
+  skills/monkey-mini-app/SKILL.md + references/ + templates/
+packages/ui/                  # @monkey-mini-app/ui 组件库（140+ 组件，独立 workspace 包）
+  dist/                       # 扁平具名 index + src + globals.css（node scripts/build-ui.mjs）
+apps/demo-host/               # 组件库 demo gallery（vite :5173 + e2e）
+scripts/generate-skill.mjs    # 组件契约自动生成（pnpm skill:gen）
 docs/context.md               # 本文件
 ```
 
-改 UI 行为：`src/client.ts`。改 API / 编译 / LLM / runner：`src/index.ts`。改组件袋：`src/ui-kit.ts`。然后 build，**重启 dsh web**，浏览器硬刷新。
+改 UI 行为：`src/client.ts`。改 API / 编译 / LLM / runner：`src/index.ts`。改 UI 编译：`src/compile-ui.ts`。改组件库：`packages/ui/` + `node scripts/build-ui.mjs`。然后 build，**重启 dsh web**，浏览器硬刷新。
 
 ## 运行态目录
 
@@ -75,7 +78,7 @@ docs/context.md               # 本文件
 ## UI 协议
 
 ```tsx
-import { useDashboardApi } from "@monkeyagent/ui";
+import { useDashboardApi } from "@monkeyagent/host";  // host 注入（编译时实现）
 export default function Ui() {
   const { call } = useDashboardApi(); // 只返回 { call }
   // 自己 useState + useEffect，不要 useDashboardApi("method", args)
@@ -84,10 +87,9 @@ export default function Ui() {
 
 禁止 UI：`fetch`、secrets、`ctx.llm/bash/mcp`、`window.mini`。
 
-组件：`@monkeyagent/ui` 是 **轻量 shadcn 同名袋**，不强制只用它。样式优先 CSS tokens：
-`--background --foreground --card --primary --primary-foreground --muted --muted-foreground --border --destructive --radius`
+组件：`@monkey-mini-app/ui`（140+ 组件：shadcn L1 + 日期/编辑器/看板/图表产品级）。布局用 **Tailwind classes**（`flex flex-col gap-3`）。`UiProvider` 由 host 编译时自动包裹。组件清单见 `packages/dsh-plugin/skills/monkey-mini-app/references/catalog.md`（`pnpm skill:gen` 自动生成）。
 
-iframe runner 从 **esm.sh** 拉 react / react-dom / sucrase。离线会挂。不要为了查 props 去读整份 `ui-kit.js`。
+iframe 运行时**完全离线**：`compile-ui.ts` 用 esbuild-wasm 把 `ui.tsx` + react + 用到的组件打包成单个自包含 ESM bundle（tree-shake 按 app 裁剪），不再依赖 esm.sh / sucrase。
 
 ## 后端协议
 
@@ -167,7 +169,8 @@ Base：`http://127.0.0.1:17880`
 | GET | `/api/apps` | 列表 |
 | POST | `/api/call` | `{ appId, method, args }` → `{ ok, value\|error }` |
 | GET | `/app/:id` | runner HTML |
-| GET | `/ui-kit.js` | 组件袋 |
+| GET | `/ui.css` | @monkey-mini-app/ui 全局样式 |
+| GET | `/api/app/:id/ui/entry.js` | per-app UI bundle（编译缓存） |
 | DELETE | `/api/app/:id` | 删 app |
 | GET/POST | `/api/llm-config` | 默认模型 |
 
@@ -248,34 +251,15 @@ curl -s http://127.0.0.1:17880/api/call -H 'content-type: application/json' \
 - **坑**：dock 切换（fill/side）模板结构不同（卡 vs 行），`setDock` 必须调 `paintList()` 重渲染，否则样式不切。
 - **坑**：改完 `pnpm -r build` 会用旧 src 覆盖 dsh-plugin/lib，务必只跑 `pnpm --filter @monkey-mini-app/dsh-monkey-mini-app build`。
 
-## ui-kit 组件库（2026-08 扩展）
+## UI 组件库（2026-08 重写：@monkey-mini-app/ui）
 
-- **文件拆分**：`src/ui-kit.ts`（基础）+ `src/ui-kit/code.ts`（CodeMirror 6：Editor/CodeBlock/JsonBlock/DiffView/copyText/parseUnified）+ `src/ui-kit/extras.ts`（LogViewer/Markdown/KeyValueEditor/TagInput/FileInput/Stepper/SummaryBar）+ `src/ui-kit/data-grid.ts`（DataGrid）。createUiKit 内部 `createXxx(React, ui)` 合并导出。
-- **CodeMirror**：ui-kit tsup 需 `noExternal: [/@codemirror/, /@lezer/, /@tanstack/]`（iframe 无 node_modules）；`minify: true`（1.25MB → 706KB）。
-- **MergeView**：`a/b` 是 **EditorStateConfig 对象**（`{ doc, extensions }`）——传字符串内容为空，传 `EditorState.create()` 实例会**静默丢掉 extensions**（语法高亮/只读/主题全失效，只剩内容）；外部更新用 `mv.a.dispatch` / `mv.b.dispatch`（无 updateA/B 方法）。`highlightChanges: false` 关闭词级下划线（wording check）；Monaco 风格行背景/gutter 用 `.cm-merge-a/.cm-merge-b .cm-changedLine(Gutter)` 覆盖。
-- **CM6 语法高亮是 StyleModule class 模式**（`.ͼx` 类 + 注入 CSS），不是 inline style——断言用 `getComputedStyle(span).color !== 默认前景` 验证，不能查 `.tok-*`。
-- **TanStack**：用框架无关的 `@tanstack/table-core` 的 `createTable`，不要 `@tanstack/react-table`（它会带自己的 React 副本 → iframe 里 React 双实例 `useState on null`）。
-  - **state 是外部受控**：`getState()` 读 `options.state`，必须在**渲染期间** `table.setOptions(完整配置)` 同步（官方 useReactTable 模式）；放 useEffect 里会渲染读旧值（排序/选中不生效）。
-  - **setOptions 每次要带全配置**：core 的 `mergeOptions` 只并默认项，row models（getCoreRowModel 等）/handlers 必须每次显式传入。
-  - `flexRender` 是 react-table 层，core 没有（本地 2 行实现）；`getState()` 需要完整 state，必须补 `columnPinning: {left:[],right:[]}`。
-  - **checkbox 不要加 `onClick: stopPropagation`**：React 合成事件里会掐掉随后的 onChange（选中/排序失效）；行点击判 `e.target.tagName === 'INPUT'` 跳过即可。
-- **React 18 双实例**：同容器重复 `createRoot` 会重建组件并丢状态（onChange 时序错乱），demo/宿主里要缓存 root。
-- **实测**：`docs/ui-kit-demo/`（http server + headless chrome dump-dom 断言，40 断言 × light/dark 全过，含点击选中/排序交互模拟）；截图 `docs/ui-kit-demo-all-{light,dark}.png`。
-- **Stepper**：圆点必须 `boxSizing: border-box`（active 2px border 不撑大行高，否则横线错位不在同一水平）；连接线激活语义 = **目标步已完成**（左线看 i、右线看 i+1 是否 `< active`），active 步的入线保持未激活；外层容器横向 gap 必须 0（否则相邻步两段线断开）；React 对 border 简写 + var()/color-mix() 解析不可靠 → 用 borderWidth/borderStyle/borderColor 拆分。
-
-## ui-kit 文件拆分（2026-08）
-
-`src/ui-kit.ts`（基础）+ `ui-kit/code.ts`（CM6）+ `ui-kit/extras.ts`（小组件：LogViewer/Markdown/KV/TagInput/FileInput/Stepper/SummaryBar，createExtras 合并 kanban+calendar）+ `ui-kit/kanban.ts`（KanbanBoard）+ `ui-kit/calendar.ts`（Calendar mini + FullCalendar 自绘）+ `ui-kit/data-grid.ts`。**大组件各自独立文件**，createExtras 内 `createKanban/createCalendar` 合并导出。**坑**：python 批量替换文件内容会吃换行（`replace('\n','')` 把文件弄成一行、`// @ts-nocheck` 注释吞掉全部代码）——改大文件用 edit/write 工具或小心正则。
-
-## ui-kit 组件清单（2026-08 扩展 II）
-
-- **KanbanBoard**：拖拽多栏卡片（HTML5 DnD，React state 驱动拖拽源，dataTransfer 仅作 fallback——jsdom 无 DragEvent 用普通 Event 测）。`renderCard(item, col, dnd)` 卡片 slot 不绑死样式，**dnd 需 `{...dnd}` 展开才可拖**（默认卡片自动带）；`onDragEnd({itemId,fromColumnId,toColumnId})` 受控。fixbench 示例：Jira ticket 风格卡片（key/type/priority/assignee/status + 优先级色条 + 点击看详情）。
-- **Calendar**（mini）：cell 必须显式 `background: transparent / color: var(--card-foreground)` + `font: inherit`——否则 dark 下 button 浏览器默认白底白字看不清；事件圆点 `var(--primary)`；`events` 兼容 `{date}` 与 `{start}`（可与 Full 共享）。
-- **FullCalendar**：**自绘 mac Calendar 布局**（不用 @fullcalendar——React 日历库带 React 副本/样式难配）。月/周/日三视图：月视图跨天事件周行内连续长条；**周/日视图 = 顶部日期头（每列周几+日期、今天红底圆标）+ 通栏 all-day 区 + 时间网格**，**跨天 all-day 事件是连续 bar**（gridColumn 跨列 + lane 堆叠 + 超周边界 clamp），timed 事件重叠 lane 并排，各列时间格 top 全列对齐（坑：all-day 区高度必须按全列最大值统一，否则网格线错位）。**交互**：单击选中、双击空白添加、pointer 拖选（月拖天、周/日拖时间段）预填表单；**点击已有事件 → 编辑表单**（预填 + `onUpdateEvent({...ev,新字段})` 保留 id）；表单用内置 DateInput/TimeInput（min/max 双向约束）。`onAddEvent({title,start,end,color,allDay})` 由调用方持久化。事件 start/end 支持 `YYYY-MM-DD` 与 `YYYY-MM-DDTHH:mm`。
-- **日期时间输入族**（extras.ts 内置，零依赖，shadcn 官方无原生 datetime）：`DateInput`（**popover 日历单选**）/`TimeInput`（原生 time）/`DateTimeInput`（popover 日期+原生时间）/`DateRangeInput`（**popover 日历拖选范围**，document 级 pointermove + elementFromPoint 找格，re-render 安全）/`TimeRangeInput`（**双滑块**：拖 start/end handle，15 分钟粒度）/`DateTimeRangeInput`；支持受控 value 与非受控 defaultValue；range 双向 min/max 约束。**DateRangeInput 单框显示**（`2026-08-20 – 2026-08-22`）。**popover 面板 fixed 定位 z-index 9999 + Dialog 内容盒 overflow:visible**（逃出 dialog 裁剪，不迁移 DOM——React 事件委托在 root 容器，移出会丢事件）。**坑**：cell 级 onPointerEnter/Over 在 React re-render 后失效（元素被替换）——拖选必须 document 级监听；原生 date/time 控件图标黑色 → 注入 `color-scheme`（light/dark 随 data-theme）。
-- **踩坑**：`TableCell({children, style})` 必须透传 `...rest` 否则 colSpan 丢失（空状态 td 只占 1 列宽）；colSpan td 在 table-layout auto 下不拉伸到表宽——**空状态时表格切 `tableLayout:"fixed" + width:"100%"`** 强制 td 全宽居中；demo（8123 /tmp/ui-demo）必须与 docs/ui-kit-demo 同步（cp index.html + ui-kit.js），否则调试的是旧文件。
-- **DataGrid**：列头搜索改 **popover**（th 内 absolute，不撑开表格）；空状态内置插图（SVG 盒子 + 放大镜）+ 文字，`empty` prop 自定义文案。**空状态容器不要设 `width:100%`**（会溢出 td 导致插图偏右 16px，实测 svg 中心 402 vs td 386），用默认 block 占满 + `box-sizing:border-box` 即可居中。
-- **测试坑**：jsdom 无 DragEvent（用 Event）；React 受控 input 直接赋值被 value tracker 拦截（用 `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call`）；describe 回调内 function 声明是块级作用域（helper 放模块顶层）。
+- **来源**：独立 workspace 包 `packages/ui/`（140+ 组件，shadcn v4 + Base UI + recharts/tiptap/CodeMirror/dnd-kit）。构建 `node scripts/build-ui.mjs` → `dist/`（**扁平具名 index** + 源码 + globals.css）。
+- **摇树**：dist 的 `index.js` 必须保持**扁平具名 re-export**（`export { Button } from "./src/components/button.tsx"`）——esbuild 对 `export *` 不跨模块摇树，具名 re-export 才会（Button app 产物 63KB vs 全量 2.7MB）。改组件导出名后必须重新 build。
+- **编译**：host 端 `compile-ui.ts` 用 esbuild-wasm 打包 ui.tsx（tree-shake + react 打进 bundle + useDashboardApi 虚拟模块注入 + UiProvider 包裹）。esbuild-wasm **不可被打包**（守卫检查），tsup external + dependencies 安装。
+- **使用**：`import { Button } from "@monkey-mini-app/ui"`；`import { useDashboardApi } from "@monkeyagent/host"`；布局用 Tailwind classes；**不要**额外 import lucide-react/recharts（库已内置）。
+- **分发**：dsh-plugin `workspace:*` 依赖 @monkey-mini-app/ui；本地 profile 安装 `scripts/install-dsh-plugin.sh`（profile pnpm-workspace.yaml 注册仓库 ui 包路径）。发布时 `pnpm publish` 自动转版本号。
+- **契约生成**：`pnpm skill:gen` → `scripts/generate-skill.mjs` 用 TS AST 从源码提取 props/类型/JSDoc → `packages/dsh-plugin/skills/monkey-mini-app/references/{catalog.md,contracts/*.md}`。
+- **demo**：`apps/demo-host/`（vite :5173 全组件 gallery + Playwright e2e）。
 
 ## 测试体系（2026-08 扩充，101 UT 全绿）
 

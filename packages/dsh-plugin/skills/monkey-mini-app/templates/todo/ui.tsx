@@ -9,18 +9,15 @@ import {
   CardTitle,
   Checkbox,
   Empty,
-  Inline,
   Input,
-  Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-  Text,
-  useDashboardApi,
-} from "@monkeyagent/ui";
+} from "@monkey-mini-app/ui";
+import { useDashboardApi } from "@monkeyagent/host";
 
 type Filter = "all" | "active" | "done";
 type TodoItem = { id: string; title: string; done: boolean };
@@ -83,51 +80,44 @@ export default function Ui() {
   }
 
   return (
-    <Stack
-      gap={16}
-      style={{ padding: 24, maxWidth: 720, margin: "0 auto", width: "100%", boxSizing: "border-box" }}
-    >
-      <Inline style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+    <div className="p-6 w-full box-border flex flex-col gap-4">
+      <div className="flex items-start justify-between w-full">
         <div>
-          <Text variant="h2">待办</Text>
-          <Text variant="muted" style={{ marginTop: 4 }}>
-            记在这台电脑上，关掉也不会丢
-          </Text>
+          <h2 className="text-xl font-semibold text-foreground m-0">待办</h2>
+          <p className="text-sm text-muted-foreground mt-1">记在这台电脑上，关掉也不会丢</p>
         </div>
-        <Inline gap={8}>
+        <div className="flex gap-2">
           <Badge variant="secondary">{stats.active} 未完成</Badge>
           <Badge variant="outline">{stats.done} 已完成</Badge>
-        </Inline>
-      </Inline>
+        </div>
+      </div>
 
       <Card>
         <CardHeader>
           <CardTitle>添加任务</CardTitle>
           <CardDescription>回车即可提交</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Inline>
-            <Input
-              value={draft}
-              placeholder="要做什么？"
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void add();
-              }}
-              style={{ flex: 1 }}
-            />
-            <Button onClick={() => void add()} disabled={!draft.trim()}>
-              添加
-            </Button>
-          </Inline>
+        <CardContent className="flex gap-2">
+          <Input
+            value={draft}
+            placeholder="要做什么？"
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void add();
+            }}
+            className="flex-1"
+          />
+          <Button onClick={() => void add()} disabled={!draft.trim()}>
+            添加
+          </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <Inline style={{ justifyContent: "space-between" }}>
+          <div className="flex items-center justify-between w-full flex-wrap gap-2">
             <CardTitle>任务</CardTitle>
-            <Inline gap={6}>
+            <div className="flex gap-1.5 flex-wrap">
               {FILTERS.map((item) => (
                 <Button
                   key={item.id}
@@ -144,12 +134,12 @@ export default function Ui() {
               <Button size="sm" variant="secondary" onClick={() => void refresh()}>
                 刷新
               </Button>
-            </Inline>
-          </Inline>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {error ? <Text style={{ color: "var(--destructive)" }}>{error}</Text> : null}
-          {loading && !items.length ? <Text variant="muted">加载中…</Text> : null}
+          {error ? <p className="text-sm" style={{ color: "var(--destructive)" }}>{error}</p> : null}
+          {loading && !items.length ? <p className="text-sm text-muted-foreground">加载中…</p> : null}
           {!loading && !items.length ? (
             <Empty title="还没有任务" description="在上面加一条就开始。" />
           ) : null}
@@ -157,10 +147,10 @@ export default function Ui() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead style={{ width: 40 }}></TableHead>
+                  <TableHead className="w-10"></TableHead>
                   <TableHead>标题</TableHead>
-                  <TableHead style={{ width: 100 }}>状态</TableHead>
-                  <TableHead style={{ width: 88 }}></TableHead>
+                  <TableHead className="w-24">状态</TableHead>
+                  <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -173,14 +163,14 @@ export default function Ui() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Text
+                      <span
                         style={{
                           textDecoration: item.done ? "line-through" : "none",
                           opacity: item.done ? 0.55 : 1,
                         }}
                       >
                         {item.title}
-                      </Text>
+                      </span>
                     </TableCell>
                     <TableCell>
                       <Badge variant={item.done ? "secondary" : "default"}>
@@ -203,6 +193,6 @@ export default function Ui() {
           ) : null}
         </CardContent>
       </Card>
-    </Stack>
+    </div>
   );
 }

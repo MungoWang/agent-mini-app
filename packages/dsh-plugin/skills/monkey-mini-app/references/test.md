@@ -12,7 +12,8 @@ Base: `http://127.0.0.1:17880`（插件 apply 时已 listen，打开小程序面
 | GET | `/api/ctx-tools` | | `{ count, tools: [{ name, description, schema }] }` |
 | POST | `/api/call` | `{ appId, method, args }` | `{ ok: true, value }` 或 `{ ok: false, error }` |
 | GET | `/app/:id` | | runner HTML |
-| GET | `/ui-kit.js` | | 组件袋 |
+| GET | `/api/app/:id/ui/entry.js` | | per-app UI bundle（编译缓存） |
+| GET | `/ui.css` | | @monkey-mini-app/ui 全局样式 |
 | DELETE | `/api/app/:id` | | `{ ok, appId }` |
 | GET/POST | `/api/host-config` | POST `{ hostPort, theme, palette, … }` | Host 设置 |
 | GET/POST | `/api/llm-config` | POST `{ provider, model }` | 写入 `runtime/llm.json` |

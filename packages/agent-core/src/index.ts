@@ -293,15 +293,16 @@ export function createAgentHandlers(ctx: AgentCoreContext): AgentHandlers {
 export async function invokeAgentTool(
   handlers: AgentHandlers,
   name: string,
-  input: Record<string, unknown> = {}
+  input: Record<string, unknown> = {},
+  signal?: AbortSignal
 ): Promise<unknown> {
   const map = handlers as unknown as Record<
     string,
-    (i: Record<string, unknown>) => Promise<unknown>
+    (i: Record<string, unknown>, signal?: AbortSignal) => Promise<unknown>
   >;
   const fn = map[name];
   if (!fn) throw new Error(`UNKNOWN_TOOL: ${name}`);
-  return fn(input);
+  return fn(input, signal);
 }
 
 export function defaultResolveAppDir(runtimeRoot: string, appId: string): string {

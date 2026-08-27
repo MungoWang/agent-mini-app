@@ -69,13 +69,11 @@ describe("host dashboard chrome", () => {
     expect(runner).not.toMatch(/ev\.data as \{/);
   });
 
-  it("shows a centered boot illustration until React mounts", () => {
+  it("shows a centered boot illustration until the UI bundle mounts", () => {
     expect(runner).toContain('id="root" class="boot"');
     expect(runner).toContain("#root.boot");
-    expect(runner).toContain('rootEl.className = ""');
-    expect(runner).toContain('rootEl.removeAttribute("role")');
-    expect(runner).toContain("rootEl.replaceChildren()");
     expect(runner).not.toContain('<div id="root">loading');
+    expect(runner).toContain('/ui/entry.js');
     expect(client).toContain("#mma-host .mma-frame .mma-load");
   });
 
@@ -88,14 +86,14 @@ describe("host dashboard chrome", () => {
     expect(runner).toContain("pendingOpen.current");
   });
 
-  it("compiles backend TS with sucrase and streams llm", () => {
-    expect(runner).toContain("sucrase");
+  it("compiles UI host-side with esbuild-wasm and streams llm", () => {
+    expect(runner).toContain("compileUiBundle");
     expect(runner).toContain("collectLlmStream");
     expect(runner).toContain("/api/host-config");
   });
 
   it("exposes ctx.http as a fetch client, not bash curl", () => {
-    expect(runner).toContain("http: httpRequest");
+    expect(runner).toContain("httpRequest(url, { ...opts, signal");
     expect(runner).toContain('from "./ctx-http.js"');
   });
 

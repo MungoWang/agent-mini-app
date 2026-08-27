@@ -43,7 +43,6 @@ fi
 echo "==> syntax check"
 node --check "$LIB/index.js"
 node --check "$LIB/client.js"
-node --check "$LIB/ui-kit.js"
 
 echo "==> import smoke (load plugin module, do not apply)"
 node --input-type=module -e "import('file://$LIB/index.js').then(m => {

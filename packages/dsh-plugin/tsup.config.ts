@@ -44,7 +44,7 @@ export default defineConfig([
     esbuildOptions(options) {
       options.alias = nodeAliases;
     },
-    external: ["isomorphic-git"],
+    external: ["isomorphic-git", "esbuild-wasm", "esbuild"],
     noExternal: [/^@monkey-mini-app\//, "sucrase"],
   },
   {
@@ -63,16 +63,5 @@ export default defineConfig([
     footer: {
       js: "return module.exports;}});",
     },
-  },
-  {
-    ...shared,
-    entry: { "ui-kit": "src/ui-kit.ts" },
-    format: ["esm"],
-    target: "es2020",
-    platform: "browser",
-    splitting: false,
-    minify: true,
-    // iframe 无 node_modules：CodeMirror/lezer/TanStack/FullCalendar 必须打进 bundle
-    noExternal: [/@codemirror/, /@lezer/, /@tanstack/, /@fullcalendar/],
   },
 ]);

@@ -1,0 +1,160 @@
+import type { UiMessages } from "./en"
+
+export const zh: UiMessages = {
+  common: {
+    today: "今天",
+    clear: "清除",
+    cancel: "取消",
+    confirm: "确认",
+    save: "保存",
+    delete: "删除",
+    search: "搜索…",
+    previous: "上一页",
+    next: "下一页",
+    copy: "复制",
+    close: "关闭",
+  },
+  datePicker: {
+    placeholder: "选择日期",
+  },
+  dateRangePicker: {
+    placeholder: "选择日期范围",
+  },
+  dateTimePicker: {
+    placeholder: "选择日期和时间",
+  },
+  dateTimeRange: {
+    start: "开始",
+    end: "结束",
+  },
+  timeRange: {
+    to: "至",
+  },
+  timezoneSelect: {
+    search: "搜索城市或时差…",
+    empty: "没有匹配的时区。",
+    common: "常用",
+    typeToSearch: (count: number) => `输入以搜索 ${count} 个时区`,
+    aria: (city: string) => `时区 ${city}`,
+  },
+  relativeDate: {
+    today: "今天",
+    last7d: "近 7 天",
+    last30d: "近 30 天",
+    sprint: "本迭代",
+    custom: "自定义",
+  },
+  searchInput: {
+    placeholder: "搜索…",
+  },
+  tagInput: {
+    placeholder: "添加标签…",
+  },
+  userPicker: {
+    placeholder: "选择用户",
+  },
+  passwordField: {
+    show: "显示密码",
+    hide: "隐藏密码",
+  },
+  numberField: {
+    decrease: "减少",
+    increase: "增加",
+  },
+  durationInput: {
+    hours: "时",
+    minutes: "分",
+    decrease: (unit: string) => `减少${unit}`,
+    increase: (unit: string) => `增加${unit}`,
+  },
+  copyable: {
+    copy: "复制",
+  },
+  confirmDialog: {
+    confirm: "确认",
+    cancel: "取消",
+  },
+  eventCalendar: {
+    today: "今天",
+    prev: "上一页",
+    next: "下一页",
+    month: "月",
+    week: "周",
+    day: "日",
+    allDay: "全天",
+    newEvent: "新建事件",
+    editEvent: "编辑事件",
+    eventTitle: "事件标题",
+    save: "保存",
+    delete: "删除",
+    more: (count: number) => `还有 ${count} 项`,
+    weekdays: ["一", "二", "三", "四", "五", "六", "日"],
+  },
+  dataGrid: {
+    search: "搜索…",
+    filterColumn: (label: string) => `筛选 ${label}…`,
+    clear: "清除",
+    clearFilters: "清除筛选",
+    noResults: "没有结果",
+    noResultsHint: "试试别的关键词，或清除列筛选。",
+    selectAll: "全选",
+    selectRow: "选择行",
+    row: "行",
+    rows: "行",
+    rowsLabel: "每页",
+    export: "导出",
+    view: "视图",
+    columns: "列",
+    previousPage: "上一页",
+    nextPage: "下一页",
+    selected: (count: number) => `已选 ${count} 项`,
+  },
+  fileDropzone: {
+    drop: "拖到这里，或点击选择文件",
+  },
+  kanbanIssue: {
+    assignee: "经办人",
+    reporter: "报告人",
+    updated: "更新",
+    unassigned: "未分配",
+    description: "描述",
+    noDescription: "暂无描述。",
+    comments: "评论",
+    noComments: "暂无评论。",
+  },
+  markdownEditor: {
+    edit: "编辑",
+    split: "分栏",
+    preview: "预览",
+  },
+  richText: {
+    placeholder: "写点什么…",
+    bold: "加粗",
+    italic: "斜体",
+    bullet: "无序列表",
+    ordered: "有序列表",
+    code: "代码",
+  },
+  pagination: {
+    previous: "上一页",
+    next: "下一页",
+    previousPage: "上一页",
+    nextPage: "下一页",
+  },
+  questionnaire: {
+    previous: "上一步",
+    skip: "跳过",
+    next: "下一步",
+    submit: "提交",
+  },
+  command: {
+    title: "命令面板",
+    description: "搜索要执行的命令…",
+  },
+  jiraWiki: {
+    empty: "空",
+  },
+  jqlInput: {
+    placeholder: "project = TMS AND status = Open",
+  },
+}

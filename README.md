@@ -29,4 +29,4 @@ dsh web --no-open --port 3080  # dsh + plugin → http://127.0.0.1:3080
 
 - `examples/com.example.hello`
 - `examples/com.example.counter`
-- `demo/server.mjs` — visual Host without full React toolchain
+- `apps/demo-host/` — @monkey-mini-app/ui component gallery (vite dev / host /demo)

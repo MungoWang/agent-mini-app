@@ -5,6 +5,8 @@ export type HttpRequest = {
   query?: Record<string, string | number | boolean | null | undefined>;
   body?: unknown;
   timeout?: number;
+  /** Host call abort (dsh stop button) — combined with the timeout. */
+  signal?: AbortSignal;
 };
 
 export type HttpResponse = {
@@ -88,12 +90,16 @@ export async function httpRequest(
 
   let res: Response;
   try {
+    const sig = req.signal;
+    if (sig?.aborted) throw new Error("cancelled");
+    const timeoutSignal = AbortSignal.timeout(ms);
+    const signal = sig ? AbortSignal.any([sig, timeoutSignal]) : timeoutSignal;
     res = await fetch(url, {
       method,
       headers: encoded.headers,
       body: encoded.body,
       redirect: "follow",
-      signal: AbortSignal.timeout(ms),
+      signal,
     });
   } catch (e) {
     const msg = errText(e);

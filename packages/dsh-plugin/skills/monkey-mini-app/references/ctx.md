@@ -14,6 +14,7 @@
 | `ctx.config` | `{ theme, palette, chatLanguage, hostPort, llm }` | 只含本 Host 配置（设置页 / 顶栏配色可改），**不是** dsh 设置 dump。`theme`=`light`/`dark`；`palette`=`default`/`ocean`/`violet`/`slate`（默认/海蓝/青紫/石墨） |
 | `ctx.credentials` | `Record<string,string>` | 声明过的密钥 |
 | `ctx.log(...args)` | | console |
+| `ctx.signal` | AbortSignal 或 undefined | 当前调用的取消信号（chat 点「停止」时 abort）。长任务在批次/循环间 `if (ctx.signal?.aborted) throw new Error("cancelled")`，`sleep` 也传它 |
 | `ctx.push(method, params)` | | 常为 no-op |
 | `ctx.system.metrics()` | os 快照 | |
 
@@ -21,7 +22,7 @@
 
 | API | 签名 | 返回 | Fallback | 失败 |
 |-----|------|------|----------|------|
-| `http(url)` / `http(url, opts)` | opts：`method?` `headers?` `query?` `body?` `timeout?`（默认 8s） | `{ ok, status, headers, text, json }`。`json` 仅当 Content-Type 含 json 且能 parse，否则 `null`。HTTP 4xx/5xx **不 throw**，看 `ok`/`status`。只允许 http/https | Node `fetch` | `http: timeout` / `http: only http/https` / `http: response too large` / `http: …` |
+| `http(url)` / `http(url, opts)` | opts：`method?` `headers?` `query?` `body?` `timeout?`（默认 8s）。自动组合 `ctx.signal`（停止即中断） | `{ ok, status, headers, text, json }`。`json` 仅当 Content-Type 含 json 且能 parse，否则 `null`。HTTP 4xx/5xx **不 throw**，看 `ok`/`status`。只允许 http/https | Node `fetch` | `http: timeout` / `http: only http/https` / `http: response too large` / `http: …` |
 | `bash(command)` | string | `{ stdout, stderr, exitCode }` | 本地 `bash -c` 120s/8MB → dsh `shell.run`。给本机命令用，**不要** `curl` | `bash unavailable` |
 | `tool(name, args)` | args **普通对象**，禁止 `{input}` | **string** | dsh tools | `tool: ctx.tools not available` |
 | `mcp(name, args?)` | 不要 `mcp_` 前缀 | string | `tool(name)` 再 `tool("mcp__"+name)`。dsh 登记名是 `mcp__<server>__<tool>`，例如 `ctx.mcp("everything__echo", { message: "hi" })` | 第一次错误 |
@@ -57,3 +58,24 @@ dsh 聊天模型走 **`llm.stream({ provider, model, messages })`**。不要因�
 **仅当 main.api.ts 会调用 `ctx.tool` 时**才调聊天工具 `mini_app_list_ctx_tools`。纯 storage / http / bash / llm 的 app 不要调。
 
 后端也可用 `ctx.listTools()`。不要假设 read/write/bash 一定存在或参数名固定。
+
+## 长耗时任务：必须采样 + 响应取消
+
+多源抓取 × LLM 分析这类任务，**不要全量跑**：
+
+- **采样走通流程**：10 个 RSS 取 2 个有代表性的源（如主站 + 高热度站）；批次只跑 1 批（如最热的 16~24 条）验证全链路；其余用启发式兜底。告诉用户「先跑样例，全量可后续加」。
+- **批次上限**：LLM 分析批次数硬上限（如 `MAX_BATCHES = 2`），避免单次调用跑 10 分钟。
+- **必须响应取消**：循环/批次/sleep 处检查 `ctx.signal`：
+  ```ts
+  async function sleep(ms: number, signal?: AbortSignal) {
+    return new Promise((resolve) => {
+      if (signal?.aborted) return resolve();
+      const t = setTimeout(resolve, ms);
+      signal?.addEventListener("abort", () => { clearTimeout(t); resolve(); }, { once: true });
+    });
+  }
+  // 批次间
+  if (ctx.signal?.aborted) throw new Error("cancelled");
+  await sleep(400, ctx.signal);
+  ```
+- **异步进度**：长任务提供 `scanStatus`/`progress` 类方法（写入 storage），UI 轮询；`scan` 本身 fire-and-forget 立即返回「已启动」。

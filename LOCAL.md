@@ -53,7 +53,7 @@ pnpm add -w /绝对路径/packages/dsh-plugin
 
 | 路径 | 说明 |
 |------|------|
-| `demo/server.mjs` | Host 视觉 Demo 服务 |
+| `apps/demo-host/` | @monkey-mini-app/ui 组件 gallery（vite :5173 / host /demo） |
 | `examples/com.example.hello` | 最小 UI 示例 |
 | `examples/com.example.counter` | storage 示例 |
 | `packages/dsh-plugin/skills/monkey-mini-app/SKILL.md` | Agent 创建规范（权威源：dsh-plugin/skills） |

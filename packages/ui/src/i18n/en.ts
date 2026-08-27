@@ -1,0 +1,168 @@
+export const en = {
+  common: {
+    today: "Today",
+    clear: "Clear",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    save: "Save",
+    delete: "Delete",
+    search: "Search…",
+    previous: "Previous",
+    next: "Next",
+    copy: "Copy",
+    close: "Close",
+  },
+  datePicker: {
+    placeholder: "Pick a date",
+  },
+  dateRangePicker: {
+    placeholder: "Pick a date range",
+  },
+  dateTimePicker: {
+    placeholder: "Pick date and time",
+  },
+  dateTimeRange: {
+    start: "Start",
+    end: "End",
+  },
+  timeRange: {
+    to: "to",
+  },
+  timezoneSelect: {
+    search: "Search city or offset…",
+    empty: "No timezone found.",
+    common: "Common",
+    typeToSearch: (count: number) => `Type to search ${count} timezones`,
+    aria: (city: string) => `Timezone ${city}`,
+  },
+  relativeDate: {
+    today: "Today",
+    last7d: "Last 7d",
+    last30d: "Last 30d",
+    sprint: "This sprint",
+    custom: "Custom",
+  },
+  searchInput: {
+    placeholder: "Search…",
+  },
+  tagInput: {
+    placeholder: "Add tag…",
+  },
+  userPicker: {
+    placeholder: "Select user",
+  },
+  passwordField: {
+    show: "Show password",
+    hide: "Hide password",
+  },
+  numberField: {
+    decrease: "Decrease",
+    increase: "Increase",
+  },
+  durationInput: {
+    hours: "h",
+    minutes: "m",
+    decrease: (unit: string) => `Decrease ${unit}`,
+    increase: (unit: string) => `Increase ${unit}`,
+  },
+  copyable: {
+    copy: "Copy",
+  },
+  confirmDialog: {
+    confirm: "Confirm",
+    cancel: "Cancel",
+  },
+  eventCalendar: {
+    today: "Today",
+    prev: "Prev",
+    next: "Next",
+    month: "Month",
+    week: "Week",
+    day: "Day",
+    allDay: "All day",
+    newEvent: "New event",
+    editEvent: "Edit event",
+    eventTitle: "Event title",
+    save: "Save",
+    delete: "Delete",
+    more: (count: number) => `+${count} more`,
+    weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+    ],
+  },
+  dataGrid: {
+    search: "Search…",
+    filterColumn: (label: string) => `Filter ${label}…`,
+    clear: "Clear",
+    clearFilters: "Clear filters",
+    noResults: "No results",
+    noResultsHint: "Try a different search, or clear column filters.",
+    selectAll: "Select all",
+    selectRow: "Select row",
+    row: "row",
+    rows: "rows",
+    rowsLabel: "Rows",
+    export: "Export",
+    view: "View",
+    columns: "Columns",
+    previousPage: "Previous page",
+    nextPage: "Next page",
+    selected: (count: number) => `${count} selected`,
+  },
+  fileDropzone: {
+    drop: "Drop files here, or click to browse",
+  },
+  kanbanIssue: {
+    assignee: "Assignee",
+    reporter: "Reporter",
+    updated: "Updated",
+    unassigned: "Unassigned",
+    description: "Description",
+    noDescription: "No description.",
+    comments: "Comments",
+    noComments: "No comments.",
+  },
+  markdownEditor: {
+    edit: "Edit",
+    split: "Split",
+    preview: "Preview",
+  },
+  richText: {
+    placeholder: "Write…",
+    bold: "Bold",
+    italic: "Italic",
+    bullet: "Bullet list",
+    ordered: "Ordered list",
+    code: "Code",
+  },
+  pagination: {
+    previous: "Previous",
+    next: "Next",
+    previousPage: "Go to previous page",
+    nextPage: "Go to next page",
+  },
+  questionnaire: {
+    previous: "Previous",
+    skip: "Skip",
+    next: "Next",
+    submit: "Submit",
+  },
+  command: {
+    title: "Command Palette",
+    description: "Search for a command to run...",
+  },
+  jiraWiki: {
+    empty: "Empty",
+  },
+  jqlInput: {
+    placeholder: "project = TMS AND status = Open",
+  },
+}
+
+export type UiMessages = typeof en
