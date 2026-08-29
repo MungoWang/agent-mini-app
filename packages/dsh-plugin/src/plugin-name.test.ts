@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -29,12 +29,26 @@ describe("dsh plugin list display name", () => {
 
 describe("host dashboard chrome", () => {
   const here = dirname(fileURLToPath(import.meta.url));
-  const client = readFileSync(join(here, "client.ts"), "utf8");
-  const runner = readFileSync(join(here, "index.ts"), "utf8");
+  // client 拆分为 client/ 目录多模块；测试拼接全部模块源码断言
+  const client = readdirSync(join(here, "client"))
+    .filter((f) => f.endsWith(".ts"))
+    .map((f) => readFileSync(join(here, "client", f), "utf8"))
+    .join("\n");
+  // runner/路由已抽至 host-core；拼接断言
+  const hostCoreSrc = (f: string) => readFileSync(join(here, "..", "..", "host-core", "src", f), "utf8");
+  const runner =
+    readFileSync(join(here, "index.ts"), "utf8") +
+    readFileSync(join(here, "dsh-adapter.ts"), "utf8") +
+    hostCoreSrc("runner.ts") +
+    hostCoreSrc("host.ts") +
+    hostCoreSrc("tools.ts") +
+    hostCoreSrc("apps.ts");
 
   it("does not concatenate dock title inside a string literal", () => {
     expect(client).not.toMatch(/title=""\s*\+\s*\(state\.dock/);
-    expect(client).toContain('side ? "铺满主区" : "钉到聊天右侧"');
+    const ui = readFileSync(join(here, "..", "..", "panel-core", "src", "components", "Toolbar.tsx"), "utf8");
+    expect(client).not.toMatch(/title=""\s*\+\s*\(state\.dock/);
+    expect(ui).toContain('side ? "铺满主区" : "钉到聊天右侧"');
   });
 
   it("animates fill/side dock with numeric left+width and pads the chat column", () => {
@@ -77,13 +91,12 @@ describe("host dashboard chrome", () => {
     expect(client).toContain("#mma-host .mma-frame .mma-load");
   });
 
-  it("opens from mini_app_open via pending-open poll", () => {
-    expect(client).toContain("/api/pending-open");
-    expect(runner).toContain("/api/pending-open");
-    expect(runner).toContain("mini_app_call");
-    expect(runner).toContain("asToolObject");
-    expect(runner).toContain("handlers.mini_app_open");
-    expect(runner).toContain("pendingOpen.current");
+  it("opens from mini_app_open via SSE app:open event", () => {
+    expect(client).toContain("/api/events");
+    expect(client).toContain('addEventListener("app:open"');
+    expect(runner).toContain("app:open");
+    expect(runner).toContain('tools.on("after", "mini_app_open"');
+    expect(runner).toContain("EventSource");
   });
 
   it("compiles UI host-side with esbuild-wasm and streams llm", () => {
@@ -94,21 +107,20 @@ describe("host dashboard chrome", () => {
 
   it("exposes ctx.http as a fetch client, not bash curl", () => {
     expect(runner).toContain("httpRequest(url, { ...opts, signal");
-    expect(runner).toContain('from "./ctx-http.js"');
+    expect(runner).toContain('httpRequest');
   });
 
-  it("invokes ctx.tool via the tool body, not (name, args) on the scheduler", () => {
-    expect(runner).toContain("stubExec");
-    expect(runner).toMatch(/\.execute\(payload, stubExec\)/);
-    expect(runner).toContain("arguments: payload");
-    expect(runner).not.toContain("tools.execute(resolved || name, payload)");
+  it("invokes agent tools via the tool body (invokeAgentTool), not the scheduler", () => {
+    expect(runner).toContain("invokeAgentTool");
+    expect(runner).toContain("registerTools");
+    expect(runner).toContain("toolDef.execute");
   });
 
   it("has a theme popover on the chrome and extra palettes in the runner", () => {
-    const themes = readFileSync(join(here, "themes.ts"), "utf8");
-    expect(client).toContain("mma-theme-pop");
-    expect(client).toContain("data-palette");
-    expect(client).toContain("PALETTES");
+    const themes = readFileSync(join(here, "..", "..", "panel-core", "src", "themes.ts"), "utf8");
+    const ui = readFileSync(join(here, "..", "..", "panel-core", "src", "components", "ThemePop.tsx"), "utf8");
+    expect(ui).toContain("mma-theme-pop");
+    expect(ui).toContain("data-palette");
     expect(themes).toContain("海蓝");
     expect(themes).toContain("青紫");
     expect(themes).toContain("石墨");
@@ -118,13 +130,10 @@ describe("host dashboard chrome", () => {
     expect(runner).toContain("runnerThemeCss");
   });
 
-  it("opens settings for host port and keeps pending-open before ack", () => {
+  it("opens settings for host port", () => {
     expect(client).toContain("mma-settings");
     expect(client).toContain("/api/host-config");
     expect(client).toContain("openDashboard();");
-    expect(client.indexOf("openDashboard();")).toBeLessThan(
-      client.indexOf("/api/pending-open/ack")
-    );
   });
 
   it("exports ModuleLoader surface from TypeScript (name/inject/apply/FooterButton)", () => {

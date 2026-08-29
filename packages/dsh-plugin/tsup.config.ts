@@ -4,27 +4,12 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const alias = (name: string) => path.join(root, name, "src/index.ts");
 const pkgId = "@monkey-mini-app/dsh-monkey-mini-app";
-
-const nodeAliases = {
-  "@monkey-mini-app/runtime-core": alias("runtime-core"),
-  "@monkey-mini-app/adapter-node": alias("adapter-node"),
-  "@monkey-mini-app/app-history": alias("app-history"),
-  "@monkey-mini-app/app-history-git": alias("app-history-git"),
-  "@monkey-mini-app/agent-core": alias("agent-core"),
-  "@monkey-mini-app/ui-core": alias("ui-core"),
-  "@monkey-mini-app/agent-skills": alias("agent-skills"),
-  "@monkey-mini-app/host-port": alias("host-port"),
-  "@monkey-mini-app/bridge-protocol": alias("bridge-protocol"),
-  "@monkey-mini-app/api-client": alias("api-client"),
-  "@monkey-mini-app/theme-light": alias("theme-light"),
-  "@monkey-mini-app/theme-dark": alias("theme-dark"),
-};
 
 const shared: Options = {
   outDir: "lib",
   clean: false,
+  treeshake: false,
   dts: false,
   sourcemap: false,
   // package.json is "type": "module"; without this, CJS client becomes .cjs
@@ -42,21 +27,29 @@ export default defineConfig([
     target: "node20",
     platform: "node",
     esbuildOptions(options) {
-      options.alias = nodeAliases;
+      options.alias = {
+        "@monkey-mini-app/host-core": path.join(root, "host-core", "src/index.ts"),
+      };
     },
     external: ["isomorphic-git", "esbuild-wasm", "esbuild"],
-    noExternal: [/^@monkey-mini-app\//, "sucrase"],
+    noExternal: [
+      "@monkey-mini-app/host-core",
+      "@monkey-mini-app/panel-core",
+      "@monkey-mini-app/ui",
+      "sucrase",
+    ],
   },
   {
     ...shared,
-    entry: { client: "src/client.ts" },
+    entry: { client: "src/client/index.ts" },
     format: ["cjs"],
     target: "es2020",
     platform: "browser",
     splitting: false,
     cjsInterop: false,
     // dsh ModuleLoader supplies require("react") at runtime
-    external: ["react"],
+    external: ["react", "react-dom", "react-dom/client", "react/jsx-runtime"],
+    noExternal: ["@monkey-mini-app/panel-core", "lucide-react"],
     banner: {
       js: `window.__ModuleLoader__.load({id:${JSON.stringify(pkgId)},factory:function(require){var module={exports:{}};var exports=module.exports;`,
     },

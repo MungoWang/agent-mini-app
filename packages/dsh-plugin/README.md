@@ -50,7 +50,7 @@ dsh plugin --profile web remove @monkey-mini-app/dsh-monkey-mini-app
 | `mini_app_history_*` | commit / list tree / reset / revert |
 | `mini_app_set_theme` | Host theme |
 
-Agent instructions live only in `skills/monkey-mini-app/` (SKILL.md + references + templates). `@monkey-mini-app/agent-skills` only resolves that path — no second copy.
+Agent instructions live only in `skills/monkey-mini-app/` (SKILL.md + references + templates). `src/skills.ts` only resolves that path — no second copy.
 
 File create/edit should use **Harness file tools**; this plugin owns **runtime semantics** (register, history, tabs).
 
@@ -88,7 +88,7 @@ packages/dsh-plugin/
 └── README.zh-CN.md
 ```
 
-Shared libraries (not bundles): `@monkey-mini-app/agent-core`, `runtime-core`, `ui-core`, …
+Shared library: `@monkey-mini-app/host-core` (runtime, git, tools, bridge). Panel UI: `@monkey-mini-app/panel-core`.
 
 ## Model Experience
 

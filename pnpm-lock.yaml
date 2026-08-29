@@ -14,6 +14,9 @@ importers:
       '@types/node':
         specifier: ^22.10.0
         version: 22.20.1
+      '@vitest/coverage-v8':
+        specifier: 2.1.9
+        version: 2.1.9(vitest@2.1.9(@types/node@22.20.1)(happy-dom@20.11.6)(jsdom@30.0.1)(lightningcss@1.32.0))
       happy-dom:
         specifier: ^20.11.6
         version: 20.11.6
@@ -29,6 +32,28 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.1)(happy-dom@20.11.6)(jsdom@30.0.1)(lightningcss@1.32.0)
+
+  apps/app-host:
+    dependencies:
+      '@monkey-mini-app/panel-core':
+        specifier: workspace:*
+        version: link:../../packages/panel-core
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@vitejs/plugin-react':
+        specifier: ^5.0.0
+        version: 5.2.0(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12))
+      typescript:
+        specifier: ~5.9.2
+        version: 5.9.3
+      vite:
+        specifier: ^7.0.0
+        version: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
 
   apps/demo-host:
     dependencies:
@@ -139,221 +164,17 @@ importers:
         specifier: ^7
         version: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
 
-  packages/adapter-dsh:
-    dependencies:
-      '@monkey-mini-app/adapter-node':
-        specifier: workspace:*
-        version: link:../adapter-node
-      '@monkey-mini-app/agent-core':
-        specifier: workspace:*
-        version: link:../agent-core
-      '@monkey-mini-app/agent-skills':
-        specifier: workspace:*
-        version: link:../agent-skills
-      '@monkey-mini-app/app-history':
-        specifier: workspace:*
-        version: link:../app-history
-      '@monkey-mini-app/app-history-git':
-        specifier: workspace:*
-        version: link:../app-history-git
-      '@monkey-mini-app/runtime-core':
-        specifier: workspace:*
-        version: link:../runtime-core
-      '@monkey-mini-app/ui-core':
-        specifier: workspace:*
-        version: link:../ui-core
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/adapter-node:
-    dependencies:
-      '@monkey-mini-app/host-port':
-        specifier: workspace:*
-        version: link:../host-port
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/agent-core:
-    dependencies:
-      '@monkey-mini-app/host-port':
-        specifier: workspace:*
-        version: link:../host-port
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/agent-skills:
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/api-client:
-    dependencies:
-      '@monkey-mini-app/bridge-protocol':
-        specifier: workspace:*
-        version: link:../bridge-protocol
-    devDependencies:
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/app-history:
-    dependencies:
-      '@monkey-mini-app/host-port':
-        specifier: workspace:*
-        version: link:../host-port
-    devDependencies:
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/app-history-git:
-    dependencies:
-      '@monkey-mini-app/host-port':
-        specifier: workspace:*
-        version: link:../host-port
-      isomorphic-git:
-        specifier: ^1.29.0
-        version: 1.41.8
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/bridge-protocol:
-    devDependencies:
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
   packages/dsh-plugin:
     dependencies:
-      '@codemirror/autocomplete':
-        specifier: ^6.20.3
-        version: 6.20.3
-      '@codemirror/commands':
-        specifier: ^6.11.0
-        version: 6.11.0
-      '@codemirror/lang-css':
-        specifier: ^6.3.1
-        version: 6.3.1
-      '@codemirror/lang-html':
-        specifier: ^6.4.12
-        version: 6.4.12
-      '@codemirror/lang-javascript':
-        specifier: ^6.2.5
-        version: 6.2.5
-      '@codemirror/lang-json':
-        specifier: ^6.0.2
-        version: 6.0.2
-      '@codemirror/lang-markdown':
-        specifier: ^6.5.2
-        version: 6.5.2
-      '@codemirror/lang-python':
-        specifier: ^6.2.1
-        version: 6.2.1
-      '@codemirror/lang-sql':
-        specifier: ^6.10.0
-        version: 6.10.0
-      '@codemirror/lang-xml':
-        specifier: ^6.1.0
-        version: 6.1.0
-      '@codemirror/lang-yaml':
-        specifier: ^6.1.3
-        version: 6.1.3
-      '@codemirror/language':
-        specifier: ^6.12.4
-        version: 6.12.4
-      '@codemirror/merge':
-        specifier: ^6.12.2
-        version: 6.12.2
-      '@codemirror/search':
-        specifier: ^6.7.1
-        version: 6.7.1
-      '@codemirror/state':
-        specifier: ^6.7.1
-        version: 6.7.1
-      '@codemirror/view':
-        specifier: ^6.43.9
-        version: 6.43.9
-      '@lezer/highlight':
-        specifier: ^1.2.3
-        version: 1.2.3
+      '@monkey-mini-app/host-core':
+        specifier: workspace:*
+        version: link:../host-core
+      '@monkey-mini-app/panel-core':
+        specifier: workspace:*
+        version: link:../panel-core
       '@monkey-mini-app/ui':
         specifier: workspace:*
         version: link:../ui
-      '@tanstack/react-table':
-        specifier: ^8.21.3
-        version: 8.21.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       esbuild:
         specifier: ^0.28.2
         version: 0.28.2
@@ -373,6 +194,18 @@ importers:
       '@types/node':
         specifier: ^22.13.4
         version: 22.20.1
+      '@types/react':
+        specifier: '19'
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: '19'
+        version: 19.2.5(@types/react@19.2.18)
+      react:
+        specifier: '19'
+        version: 19.2.8
+      react-dom:
+        specifier: '19'
+        version: 19.2.8(react@19.2.8)
       tsup:
         specifier: ^8.3.6
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
@@ -383,47 +216,32 @@ importers:
         specifier: ^3.0.5
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
 
-  packages/host-port:
-    devDependencies:
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/runtime-core:
+  packages/host-core:
     dependencies:
-      '@monkey-mini-app/api-client':
+      '@monkey-mini-app/panel-core':
         specifier: workspace:*
-        version: link:../api-client
-      '@monkey-mini-app/bridge-protocol':
+        version: link:../panel-core
+      '@monkey-mini-app/ui':
         specifier: workspace:*
-        version: link:../bridge-protocol
-      '@monkey-mini-app/host-port':
-        specifier: workspace:*
-        version: link:../host-port
-      '@monkey-mini-app/theme-dark':
-        specifier: workspace:*
-        version: link:../theme-dark
-      '@monkey-mini-app/theme-light':
-        specifier: workspace:*
-        version: link:../theme-light
+        version: link:../ui
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      esbuild-wasm:
+        specifier: ^0.25.12
+        version: 0.25.12
+      isomorphic-git:
+        specifier: ^1.29.0
+        version: 1.41.8
+      pinyin-pro:
+        specifier: ^3.29.3
+        version: 3.29.3
+      sucrase:
+        specifier: ^3.35.1
+        version: 3.35.1
     devDependencies:
-      '@monkey-mini-app/adapter-node':
-        specifier: workspace:*
-        version: link:../adapter-node
-      '@monkey-mini-app/app-history':
-        specifier: workspace:*
-        version: link:../app-history
-      '@monkey-mini-app/app-history-git':
-        specifier: workspace:*
-        version: link:../app-history-git
       '@types/node':
-        specifier: ^22.13.4
+        specifier: ^22
         version: 22.20.1
       tsup:
         specifier: ^8.3.6
@@ -431,39 +249,34 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/panel-core:
+    dependencies:
+      lucide-react:
+        specifier: ^0.544.0
+        version: 0.544.0(react@19.2.8)
+    devDependencies:
+      '@types/react':
+        specifier: '19'
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: '19'
+        version: 19.2.5(@types/react@19.2.18)
+      react:
+        specifier: '19'
+        version: 19.2.8
+      react-dom:
+        specifier: '19'
+        version: 19.2.8(react@19.2.8)
+      typescript:
+        specifier: ~5.7.3
+        version: 5.7.3
 
   packages/smoke-test:
     dependencies:
-      '@monkey-mini-app/adapter-dsh':
+      '@monkey-mini-app/host-core':
         specifier: workspace:*
-        version: link:../adapter-dsh
-      '@monkey-mini-app/adapter-node':
-        specifier: workspace:*
-        version: link:../adapter-node
-      '@monkey-mini-app/agent-core':
-        specifier: workspace:*
-        version: link:../agent-core
-      '@monkey-mini-app/agent-skills':
-        specifier: workspace:*
-        version: link:../agent-skills
-      '@monkey-mini-app/api-client':
-        specifier: workspace:*
-        version: link:../api-client
-      '@monkey-mini-app/app-history':
-        specifier: workspace:*
-        version: link:../app-history
-      '@monkey-mini-app/app-history-git':
-        specifier: workspace:*
-        version: link:../app-history-git
-      '@monkey-mini-app/runtime-core':
-        specifier: workspace:*
-        version: link:../runtime-core
-      '@monkey-mini-app/ui-core':
-        specifier: workspace:*
-        version: link:../ui-core
+        version: link:../host-core
     devDependencies:
       '@types/node':
         specifier: ^22.13.4
@@ -474,61 +287,6 @@ importers:
       vitest:
         specifier: ^3.0.5
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/tauri-integration:
-    dependencies:
-      '@monkey-mini-app/adapter-node':
-        specifier: workspace:*
-        version: link:../adapter-node
-      '@monkey-mini-app/app-history':
-        specifier: workspace:*
-        version: link:../app-history
-      '@monkey-mini-app/app-history-git':
-        specifier: workspace:*
-        version: link:../app-history-git
-      '@monkey-mini-app/host-port':
-        specifier: workspace:*
-        version: link:../host-port
-      '@monkey-mini-app/runtime-core':
-        specifier: workspace:*
-        version: link:../runtime-core
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/theme-dark:
-    devDependencies:
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/theme-light:
-    devDependencies:
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
 
   packages/ui:
     dependencies:
@@ -695,25 +453,6 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.32.0)(tsx@4.23.12)
-
-  packages/ui-core:
-    dependencies:
-      '@monkey-mini-app/host-port':
-        specifier: workspace:*
-        version: link:../host-port
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
 
 packages:
 
@@ -907,6 +646,9 @@ packages:
       '@types/react':
         optional: true
 
+  '@bcoe/v8-coverage@0.2.3':
+    resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
@@ -936,26 +678,11 @@ packages:
   '@codemirror/lang-markdown@6.5.2':
     resolution: {integrity: sha512-AwBOdkWYuA//WcM0xO5PfHPUcmz/O2i5o0Nsg1U69SII/loCJlFI1Romd9xp2HYb1kYJRGZotyqRghuHH5n8Kw==}
 
-  '@codemirror/lang-python@6.2.1':
-    resolution: {integrity: sha512-IRjC8RUBhn9mGR9ywecNhB51yePWCGgvHfY1lWN/Mrp3cKuHr0isDKia+9HnvhiWNnMpbGhWrkhuWOc09exRyw==}
-
-  '@codemirror/lang-sql@6.10.0':
-    resolution: {integrity: sha512-6ayPkEd/yRw0XKBx5uAiToSgGECo/GY2NoJIHXIIQh1EVwLuKoU8BP/qK0qH5NLXAbtJRLuT73hx7P9X34iO4w==}
-
-  '@codemirror/lang-xml@6.1.0':
-    resolution: {integrity: sha512-3z0blhicHLfwi2UgkZYRPioSgVTo9PV5GP5ducFH6FaHy0IAJRg+ixj5gTR1gnT/glAIC8xv4w2VL1LoZfs+Jg==}
-
-  '@codemirror/lang-yaml@6.1.3':
-    resolution: {integrity: sha512-AZ8DJBuXGVHybpBQhmZtgew5//4hv3tdkXnr3vDmOUMJRuB6vn/uuwtmTOTlqEaQFg3hQSVeA90NmvIQyUV6FQ==}
-
   '@codemirror/language@6.12.4':
     resolution: {integrity: sha512-1q4PaT+o6PbgpkJt4Q8Fv5XJxTy4FUZ4MWETtyiDw3J0Pyr9E2vqcKL+k9wcvjNTIsauxvE7OfmWj3FRPHQ76A==}
 
   '@codemirror/lint@6.9.7':
     resolution: {integrity: sha512-28/+iWLYxKxsvGYhSYL7zaCZqLz5+FFFDq9tVsvGv9kv8RY4fFAchJ5WX9M3YrrRlTIsECjsXPqeNgnSmNP2dg==}
-
-  '@codemirror/merge@6.12.2':
-    resolution: {integrity: sha512-V8JvyAPjHbPupqP7BeMcsdsYCbyPij74jxIbaIJDORI+VZzW44zFmon8bF+oxGWvOKhcRmkiUMXd8MxHr3YA2w==}
 
   '@codemirror/search@6.7.1':
     resolution: {integrity: sha512-uMe5UO6PamJtSHrXhhHOzSX3ReWtiJrva6GnPMwSOrZtiExb5X5eExhr2OUZQVvdxPsKpY3Ro2mFbQadpPWmHA==}
@@ -1653,15 +1380,6 @@ packages:
 
   '@lezer/markdown@1.7.2':
     resolution: {integrity: sha512-iTkYvoVcKt3WkeL7qUDyXHONZEwLio4wj8KTNi2dnjQEXBZKMV63BpQrPqfsM+OkvuRbiSTAcycYAsQzLhRNoQ==}
-
-  '@lezer/python@1.1.19':
-    resolution: {integrity: sha512-MhQIURHRytsNzP/YXnqpYKW6la6voAH3kyplTOOiCdjyFY6cWWGFVmYVdHIPrElqSDf4iCDktQCockB9FxuhzQ==}
-
-  '@lezer/xml@1.0.6':
-    resolution: {integrity: sha512-CdDwirL0OEaStFue/66ZmFSeppuL6Dwjlk8qk153mSQwiSH/Dlri4GNymrNWnUmPl2Um7QfV1FO9KFUyX3Twww==}
-
-  '@lezer/yaml@1.0.4':
-    resolution: {integrity: sha512-2lrrHqxalACEbxIbsjhqGpSW8kWpUKuY6RHgnSAFZa6qK62wvnPxA8hGOwOoDbwHcOFs5M4o27mjGu+P7TvBmw==}
 
   '@marijn/find-cluster-break@1.0.4':
     resolution: {integrity: sha512-Wy0V7+SGUjnF9/TkiM1hKVDPj7jKXduPNboMVtHTA8dySMURWqfg/JZ9E2Sq8JgSJmkl7k7Qe9FLeMSrSraWmQ==}
@@ -2584,6 +2302,15 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
+
+  '@vitest/coverage-v8@2.1.9':
+    resolution: {integrity: sha512-Z2cOr0ksM00MpEfyVE8KXIYPEcBFxdbLSs56L8PO0QQMxt/6bDj45uQfxoc96v05KW3clk7vvgP0qfDit9DmfQ==}
+    peerDependencies:
+      '@vitest/browser': 2.1.9
+      vitest: 2.1.9
+    peerDependenciesMeta:
+      '@vitest/browser':
+        optional: true
 
   '@vitest/coverage-v8@3.2.7':
     resolution: {integrity: sha512-NEGWJS2XNu2PfRLQwOO3CTKj1tTETxNBdk454vDxVBhxJYhPaA/eS0nAI0c+1El1P7a60z8+i+ZrQoGESweGKg==}
@@ -5193,6 +4920,11 @@ packages:
     resolution: {integrity: sha512-nAYYwfY3qnzX30IkA6AQZjVbtK6duGontcQm1WSG1MD94YLqK0515GNApXkoxKOWMusVssAHWLh9SeaoefYFGw==}
     engines: {node: '>= 0.4'}
 
+  typescript@5.7.3:
+    resolution: {integrity: sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
@@ -5818,6 +5550,8 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.18
 
+  '@bcoe/v8-coverage@0.2.3': {}
+
   '@bcoe/v8-coverage@1.0.2': {}
 
   '@bramus/specificity@2.4.2':
@@ -5883,42 +5617,6 @@ snapshots:
       '@lezer/common': 1.5.2
       '@lezer/markdown': 1.7.2
 
-  '@codemirror/lang-python@6.2.1':
-    dependencies:
-      '@codemirror/autocomplete': 6.20.3
-      '@codemirror/language': 6.12.4
-      '@codemirror/state': 6.7.1
-      '@lezer/common': 1.5.2
-      '@lezer/python': 1.1.19
-
-  '@codemirror/lang-sql@6.10.0':
-    dependencies:
-      '@codemirror/autocomplete': 6.20.3
-      '@codemirror/language': 6.12.4
-      '@codemirror/state': 6.7.1
-      '@lezer/common': 1.5.2
-      '@lezer/highlight': 1.2.3
-      '@lezer/lr': 1.4.10
-
-  '@codemirror/lang-xml@6.1.0':
-    dependencies:
-      '@codemirror/autocomplete': 6.20.3
-      '@codemirror/language': 6.12.4
-      '@codemirror/state': 6.7.1
-      '@codemirror/view': 6.43.9
-      '@lezer/common': 1.5.2
-      '@lezer/xml': 1.0.6
-
-  '@codemirror/lang-yaml@6.1.3':
-    dependencies:
-      '@codemirror/autocomplete': 6.20.3
-      '@codemirror/language': 6.12.4
-      '@codemirror/state': 6.7.1
-      '@lezer/common': 1.5.2
-      '@lezer/highlight': 1.2.3
-      '@lezer/lr': 1.4.10
-      '@lezer/yaml': 1.0.4
-
   '@codemirror/language@6.12.4':
     dependencies:
       '@codemirror/state': 6.7.1
@@ -5933,14 +5631,6 @@ snapshots:
       '@codemirror/state': 6.7.1
       '@codemirror/view': 6.43.9
       crelt: 1.0.7
-
-  '@codemirror/merge@6.12.2':
-    dependencies:
-      '@codemirror/language': 6.12.4
-      '@codemirror/state': 6.7.1
-      '@codemirror/view': 6.43.9
-      '@lezer/highlight': 1.2.3
-      style-mod: 4.1.3
 
   '@codemirror/search@6.7.1':
     dependencies:
@@ -6438,24 +6128,6 @@ snapshots:
     dependencies:
       '@lezer/common': 1.5.2
       '@lezer/highlight': 1.2.3
-
-  '@lezer/python@1.1.19':
-    dependencies:
-      '@lezer/common': 1.5.2
-      '@lezer/highlight': 1.2.3
-      '@lezer/lr': 1.4.10
-
-  '@lezer/xml@1.0.6':
-    dependencies:
-      '@lezer/common': 1.5.2
-      '@lezer/highlight': 1.2.3
-      '@lezer/lr': 1.4.10
-
-  '@lezer/yaml@1.0.4':
-    dependencies:
-      '@lezer/common': 1.5.2
-      '@lezer/highlight': 1.2.3
-      '@lezer/lr': 1.4.10
 
   '@marijn/find-cluster-break@1.0.4': {}
 
@@ -7304,6 +6976,24 @@ snapshots:
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
       vite: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+    transitivePeerDependencies:
+      - supports-color
+
+  '@vitest/coverage-v8@2.1.9(vitest@2.1.9(@types/node@22.20.1)(happy-dom@20.11.6)(jsdom@30.0.1)(lightningcss@1.32.0))':
+    dependencies:
+      '@ampproject/remapping': 2.3.0
+      '@bcoe/v8-coverage': 0.2.3
+      debug: 4.4.3
+      istanbul-lib-coverage: 3.2.2
+      istanbul-lib-report: 3.0.1
+      istanbul-lib-source-maps: 5.0.6
+      istanbul-reports: 3.2.0
+      magic-string: 0.30.21
+      magicast: 0.3.5
+      std-env: 3.10.0
+      test-exclude: 7.0.2
+      tinyrainbow: 1.2.0
+      vitest: 2.1.9(@types/node@22.20.1)(happy-dom@20.11.6)(jsdom@30.0.1)(lightningcss@1.32.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -10284,6 +9974,8 @@ snapshots:
       es-errors: 1.3.0
       is-typed-array: 1.1.15
 
+  typescript@5.7.3: {}
+
   typescript@5.9.3: {}
 
   ufo@1.6.4: {}
@@ -10608,50 +10300,6 @@ snapshots:
       '@types/node': 24.13.3
       happy-dom: 20.11.6
       jsdom: 26.1.0
-    transitivePeerDependencies:
-      - jiti
-      - less
-      - lightningcss
-      - msw
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - yaml
-
-  vitest@3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12):
-    dependencies:
-      '@types/chai': 5.2.3
-      '@vitest/expect': 3.2.7
-      '@vitest/mocker': 3.2.7(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12))
-      '@vitest/pretty-format': 3.2.7
-      '@vitest/runner': 3.2.7
-      '@vitest/snapshot': 3.2.7
-      '@vitest/spy': 3.2.7
-      '@vitest/utils': 3.2.7
-      chai: 5.3.3
-      debug: 4.4.3
-      expect-type: 1.4.0
-      magic-string: 0.30.21
-      pathe: 2.0.3
-      picomatch: 4.0.5
-      std-env: 3.10.0
-      tinybench: 2.9.0
-      tinyexec: 0.3.2
-      tinyglobby: 0.2.17
-      tinypool: 1.1.1
-      tinyrainbow: 2.0.0
-      vite: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
-      vite-node: 3.2.4(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/debug': 4.1.13
-      '@types/node': 24.13.3
-      happy-dom: 20.11.6
-      jsdom: 30.0.1
     transitivePeerDependencies:
       - jiti
       - less

@@ -1,5 +1,7 @@
 # monkey-mini-app Design Specification
 
+> **Deprecated as the live architecture document (2026-08-29).** Package surface is five packages (`panel-core`, `host-core`, `ui`, `dsh-plugin`, `smoke-test`). See `docs/host-architecture.md` and `docs/superpowers/specs/2026-08-29-package-consolidation.md`.
+
 > **Product name:** monkey-mini-app  
 > **Status:** Implementation-ready baseline  
 > **Audience:** Engineers and coding agents (LLMs) implementing the system  

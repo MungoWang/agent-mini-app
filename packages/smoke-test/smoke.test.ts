@@ -2,10 +2,11 @@ import { describe, it, expect } from "vitest";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs/promises";
-import { createRuntime } from "@monkey-mini-app/runtime-core";
-import { createNodeHostPort } from "@monkey-mini-app/adapter-node";
-import { createGitHistoryAdapter } from "@monkey-mini-app/app-history-git";
-import { createHistory } from "@monkey-mini-app/app-history";
+import {
+  createRuntime,
+  createNodeHostPort,
+  createGitHistoryAdapter,
+} from "@monkey-mini-app/host-core";
 
 describe("smoke: end-to-end runtime", () => {
   it("full path: register → storage → history reset tree → host invoke", async () => {
@@ -16,7 +17,7 @@ describe("smoke: end-to-end runtime", () => {
         getUser: async () => ({ id: "u1", name: "Ada" }),
       },
     });
-    const history = createHistory(createGitHistoryAdapter());
+    const history = createGitHistoryAdapter();
     const rt = await createRuntime({ host, history });
 
     await rt.registerAppFromFiles("com.smoke.demo", {

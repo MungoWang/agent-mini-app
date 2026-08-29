@@ -59,10 +59,10 @@ dsh plugin --profile web remove @monkey-mini-app/dsh-monkey-mini-app
 | `config.runtimeRoot` / `MONKEY_MINI_APP_ROOT` | `~/.monkey-mini-app/runtime` |
 | `config.themeId` | `light` |
 
-## 与 `@monkey-mini-app/adapter-dsh` 的关系
+## 与 host-core 的关系
 
-- **`dsh-plugin`**：标准 **可安装 bundle**（给 `dsh plugin add` 用）。
-- **`adapter-dsh`**：早期 harness 无关的接线库；新集成请以本包为准。
+- **`dsh-plugin`**：标准 **可安装 bundle**（给 `dsh plugin add` 用）+ dsh adapter。
+- **`host-core`**：agent 无关的 createHost / runtime / git / tools。
 
 ## 已知限制
 

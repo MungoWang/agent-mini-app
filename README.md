@@ -17,13 +17,11 @@ dsh web --no-open --port 3080  # dsh + plugin → http://127.0.0.1:3080
 
 | Package | Role |
 |---------|------|
-| `runtime-core` | App registry, bridge, storage, theme |
-| `agent-core` | Tool handlers
-| `dsh-plugin/skills` | SKILL.md + templates（AI 生成契约，唯一源）
-| `agent-skills` | 仅 resolve skill 路径，无第二份正文 |
-| `dsh-plugin` | DeepSeek Harness bundle (link into web profile) |
-| `ui-core` | Multi-tab state |
-| `app-history-git` | Single-branch commit tree via isomorphic-git |
+| `panel-core` | Pure React panel UI (zero host) |
+| `host-core` | Agent-agnostic host: createHost, runtime, git, tools, bridge, ports |
+| `ui` | Component library |
+| `dsh-plugin` | DeepSeek Harness bundle + skill path helpers |
+| `smoke-test` | Integration tests |
 
 ## Examples
 

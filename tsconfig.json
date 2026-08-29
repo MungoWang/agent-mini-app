@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": [
+    "packages/host-core/src/**/*.ts",
+    "packages/host-core/src/**/*.tsx",
+    "packages/dsh-plugin/src/**/*.ts",
+    "packages/dsh-plugin/src/**/*.tsx",
+    "packages/panel-core/src/**/*.ts",
+    "packages/panel-core/src/**/*.tsx",
+    "packages/smoke-test/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/lib",
+    "**/*.test.ts",
+    "packages/panel-core/src/**/*.d.ts"
+  ]
+}

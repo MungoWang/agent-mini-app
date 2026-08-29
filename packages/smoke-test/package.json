@@ -9,15 +9,7 @@
     "typecheck": "echo ok"
   },
   "dependencies": {
-    "@monkey-mini-app/runtime-core": "workspace:*",
-    "@monkey-mini-app/adapter-node": "workspace:*",
-    "@monkey-mini-app/app-history": "workspace:*",
-    "@monkey-mini-app/app-history-git": "workspace:*",
-    "@monkey-mini-app/api-client": "workspace:*",
-    "@monkey-mini-app/agent-core": "workspace:*",
-    "@monkey-mini-app/agent-skills": "workspace:*",
-    "@monkey-mini-app/ui-core": "workspace:*",
-    "@monkey-mini-app/adapter-dsh": "workspace:*"
+    "@monkey-mini-app/host-core": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^3.0.5",

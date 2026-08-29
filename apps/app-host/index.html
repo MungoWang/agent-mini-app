@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>app-host · panel-core 复用验证</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #f5f7f8; }
+      #host { position: fixed; inset: 0 0 0 260px; }
+      .rail { position: fixed; inset: 0 auto 0 0; width: 260px; background: #eef1f4; border-right: 1px solid #dfe3e8; padding: 16px; box-sizing: border-box; }
+      .rail h3 { margin: 0 0 8px; font-size: 14px; }
+      .rail p { font-size: 12px; color: #666; line-height: 1.6; }
+      .btn-open { display: block; width: 100%; height: 34px; border: 1px solid #d0d5dc; border-radius: 8px; background: #fff; cursor: pointer; font-size: 13px; margin-top: 12px; }
+      .btn-open:hover { background: #f0f3f6; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; background: #e0f2e9; color: #1a7f4b; font-size: 11px; margin-bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="rail">
+      <span class="badge">app-host · 纯 panel-core</span>
+      <h3>复用验证</h3>
+      <p>这个页面没有 dsh、没有插件协议——只 import <code>@monkey-mini-app/panel-core</code>，实现一组模拟 MiniAppActions 就渲染出了完整面板。</p>
+      <button class="btn-open" id="btn-open">打开小程序面板</button>
+    </div>
+    <div id="host"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

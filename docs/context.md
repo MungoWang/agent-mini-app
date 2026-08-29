@@ -19,20 +19,24 @@
 ## 仓库与关键文件
 
 ```
-packages/dsh-plugin/          # 真正跑在 dsh web 里的插件
-  src/index.ts                # host：工具、embedded server、loader、runner HTML
-  src/client.ts               # dsh 网页：侧栏入口、dashboard、tabs、side panel
-  src/compile-ui.ts           # host 端 UI 编译（esbuild-wasm per-app bundle）
+packages/dsh-plugin/          # 真正跑在 dsh web 里的插件（唯一 dsh 壳）
+  src/index.ts                # apply：createHost + dsh adapter
+  src/dsh-adapter.ts          # HostAdapter（bash/llm/agent/tool/mcp）
+  src/client/                 # dsh 网页：侧栏入口、dashboard、tabs、side panel
+  src/skills.ts               # resolve skills/monkey-mini-app
   lib/                        # tsup 产物（gitignore），dsh 实际加载这里
   skills/monkey-mini-app/SKILL.md + references/ + templates/
+packages/host-core/           # agent 无关 host：createHost / runtime / git / tools / bridge
+packages/panel-core/          # 纯 React 面板（零宿主）
 packages/ui/                  # @monkey-mini-app/ui 组件库（140+ 组件，独立 workspace 包）
   dist/                       # 扁平具名 index + src + globals.css（node scripts/build-ui.mjs）
+packages/smoke-test/          # 集成测试
 apps/demo-host/               # 组件库 demo gallery（vite :5173 + e2e）
 scripts/generate-skill.mjs    # 组件契约自动生成（pnpm skill:gen）
 docs/context.md               # 本文件
 ```
 
-改 UI 行为：`src/client.ts`。改 API / 编译 / LLM / runner：`src/index.ts`。改 UI 编译：`src/compile-ui.ts`。改组件库：`packages/ui/` + `node scripts/build-ui.mjs`。然后 build，**重启 dsh web**，浏览器硬刷新。
+改 UI 行为：`packages/dsh-plugin/src/client/`。改 host 组装：`dsh-plugin/src/index.ts`。改 UI 编译 / runtime / git：`packages/host-core/src/`。改组件库：`packages/ui/` + `node scripts/build-ui.mjs`。然后 build，**重启 dsh web**，浏览器硬刷新。
 
 ## 运行态目录
 
@@ -204,7 +208,7 @@ curl -s http://127.0.0.1:17880/api/call -H 'content-type: application/json' \
 5. esm.sh + mtime 缓存
 6. Checklist：call 键 ⊆ api 键；MCP 不要 `{input}`
 
-权威 skill 只在 dsh-plugin/skills；`@monkey-mini-app/agent-skills` 仅 resolve 该路径。
+权威 skill 只在 dsh-plugin/skills；`dsh-plugin/src/skills.ts` 仅 resolve 该路径。
 
 ## 已知坑（修过或仍在）
 

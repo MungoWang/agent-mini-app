@@ -6,20 +6,32 @@
 
 ## 改哪里
 
+产品面只有 **5 个包**：`panel-core` · `host-core` · `ui` · `dsh-plugin` · `smoke-test`。
+
 | 目标 | 文件 |
 |------|------|
-| dsh 侧栏入口、tabs、side panel、主题、加载态 | `packages/dsh-plugin/src/client.ts` |
-| host :17880、loader、ctx、LLM、runner HTML | `packages/dsh-plugin/src/index.ts` |
-| **host 端 UI 编译（esbuild-wasm per-app bundle）** | `packages/dsh-plugin/src/compile-ui.ts` |
+| dsh 侧栏入口、tabs、side panel、主题、加载态 | `packages/dsh-plugin/src/client/` |
+| dsh 组装（createHost + HostAdapter） | `packages/dsh-plugin/src/index.ts` + `dsh-adapter.ts` |
+| skill 路径 helpers | `packages/dsh-plugin/src/skills.ts` |
+| **host 能力（createHost / runtime / git / tools / UI 编译 / HTTP）** | `packages/host-core/src/` |
 | UI 组件库（`@monkey-mini-app/ui`，140+ 组件） | `packages/ui/`（构建：`node scripts/build-ui.mjs` → dist） |
+| 纯 React 面板（零宿主） | `packages/panel-core/` |
 | 组件库 skill 契约（自动生成） | `scripts/generate-skill.mjs` → `pnpm skill:gen` |
 | 组件库 demo gallery | `apps/demo-host/`（`pnpm --filter demo-host dev` :5173） |
 | 生成 app 的说明书 | **唯一源** `packages/dsh-plugin/skills/monkey-mini-app/`（SKILL.md + references/ + templates/） |
 | 设计/历史决策 | `docs/context.md` |
 
-`lib/` 是 tsup 产物（gitignore）。改完 `pnpm --filter @monkey-mini-app/dsh-monkey-mini-app build`，重启 dsh web，硬刷新浏览器。
+`packages/dsh-plugin/lib/` 是 tsup 产物（gitignore）。改完 `pnpm --filter @monkey-mini-app/dsh-monkey-mini-app build`，重启 dsh web，硬刷新浏览器。
 
-## 架构（2026-08 重写后）
+## 架构（2026-08 重写后；2026-09 createHost；2026-08-29 五包合并）
+
+- **五包**：`panel-core`（纯 React UI，零宿主）→ `host-core`（**agent 无关 host 能力**：`createHost(adapter, options)` 组合根 + runtime/node-fs/git(isomorphic-git)/tools/bridge/ports/builtin themes）→ `dsh-plugin`（唯一 dsh 壳：`dsh-adapter.ts` + `client/` + `skills.ts`）+ `ui` 组件库 + `smoke-test`。
+- **组合根**：dsh 的 `apply` = `createHost(buildDshAdapter(ctx), {runtimeRoot, hostPort, themeId, demoDir}).apply(ctx)`；换 agent 只写 HostAdapter（http/git/runner/UI 编译/dashboard 引擎全部复用）。
+- **原则**：能力(managers) 与接口形式(HTTP 路由 / agent 工具) 分离——HTTP 不借道 agent 工具；llm/agent 是宿主能力（host-core 不实现 provider/harness）；伪抽象判定：有状态/操作集才做 Manager 接口，纯函数不包装。
+- **接入**：宿主 `createMiniAppPanel(adapter)` → `mount(el)` + `open()/close()` + `actions.fetchApps()`。adapter 字段均可选（不实现 history 就不显示历史按钮）。
+- **主题系统在 core**：`PALETTES/TOKENS/applyThemeTo`（`packages/panel-core/src/themes.ts`）。runtime token packs 在 `host-core/src/runtime/themes-builtin.ts`。`applyPanelTheme()` 用 core `applyThemeTo`。
+- **core 边界铁律**：core 禁止宿主字符串/API/文案（dsh 路径、`/api/...`、空态文案走 adapter `emptyText?`）；宿主禁止 import `panel-core/src/*`（只走 `@monkey-mini-app/panel-core`）。边界契约见 `packages/panel-core/README.md`。
+- **git**：产品代码全部 `isomorphic-git`（`host-core/src/git.ts`：HistoryPort + 读 helpers），禁止 `child_process` git CLI。
 
 - **UI 运行时**：iframe 里不再有浏览器内编译。host 用 **esbuild-wasm** 把 `ui.tsx` + 用到的组件打包成**单个自包含 ESM bundle**（react + 组件 + useDashboardApi 全部打进，tree-shake 按 app 裁剪，产物几十 KB ~ 1MB）。
 - **组件库** `@monkey-mini-app/ui` 是独立 npm workspace 包（exports 指 dist：扁平具名 index + 源码 + globals.css），dsh-plugin 以 `workspace:*` 依赖它。改组件库 → `node scripts/build-ui.mjs`（生成扁平 index，让 esbuild 能摇树）。
