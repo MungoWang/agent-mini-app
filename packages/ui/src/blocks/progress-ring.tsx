@@ -2,7 +2,7 @@ import { cn } from "../lib/utils"
 
 export function ProgressRing({
   value,
-  size = 40,
+  size,
   className,
 }: {
   value: number
@@ -17,8 +17,8 @@ export function ProgressRing({
     <svg
       data-testid="progress-ring"
       viewBox="0 0 40 40"
-      style={{ width: size, height: size }}
-      className={cn("-rotate-90", className)}
+      style={size ? { width: size, height: size } : undefined}
+      className={cn("-rotate-90 size-10", className)}
     >
       <circle cx="20" cy="20" r={r} className="fill-none stroke-muted" strokeWidth="4" />
       <circle

@@ -51,9 +51,9 @@ export function ChartBlockExamples() {
         <div className="grid gap-3 md:grid-cols-3">
           <StatCard title="Runs" value="128" delta="+12%" trend="up" />
           <TrendCard title="Throughput" value="22" delta="+4" trend="up" data={trend} />
-          <div className="flex items-center gap-3">
-            <Sparkline data={trend} />
-            <Gauge value={72} label="Pass rate" />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-32"><Sparkline data={trend} /></div>
+            <Gauge value={72} label="Pass rate" size={64} />
             <ProgressRing value={72} />
           </div>
         </div>
