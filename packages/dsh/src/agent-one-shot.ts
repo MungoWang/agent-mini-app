@@ -244,23 +244,24 @@ async function composeOneShotSetup(agentCtx: DshCtx): Promise<{ commit(): void }
   return {
     commit() {
       const agent = isRecord(agentCtx) ? agentCtx.agent : undefined;
-      const session =
-        isRecord(agent) && isRecord(agent.session) && typeof agent.session.append === "function"
-          ? agent.session
+      const sessionRec = isRecord(agent) && isRecord(agent.session) ? agent.session : undefined;
+      const append =
+        sessionRec && typeof sessionRec.append === "function"
+          ? (sessionRec.append as (type: string, data: Record<string, unknown>) => void)
           : undefined;
-      if (!session) return;
+      if (!append) return;
       try {
-        session.append("approval/policy", { policy: "never", source: "delegation" });
+        append("approval/policy", { policy: "never", source: "delegation" });
       } catch {
         /* optional capability */
       }
       try {
-        session.append("sandbox/mode", { mode: "danger-full-access", source: "delegation" });
+        append("sandbox/mode", { mode: "danger-full-access", source: "delegation" });
       } catch {
         /* optional capability */
       }
       try {
-        session.append("permission/preset", {
+        append("permission/preset", {
           preset: "danger-full-access",
           source: "delegation",
         });

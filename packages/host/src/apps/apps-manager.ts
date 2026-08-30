@@ -624,7 +624,7 @@ export class AppsManager {
     const callCtx: AppCallContext = {
       appId,
       appDir,
-      hostLlm: this.config.llm,
+      hostLlm: this.config.llm ?? undefined,
     };
     Object.defineProperty(callCtx, "signal", {
       enumerable: true,
