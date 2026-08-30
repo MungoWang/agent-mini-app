@@ -1,89 +1,46 @@
-# monkey-mini-app — 本地快速运行
+# 本地开发
 
-## 依赖
-
-- Node.js ≥ 20
-- 网络（首次装 `dsh` / `pnpm` / `isomorphic-git`）
-
-## 一键
+## 安装 / 更新 dsh 插件
 
 ```bash
-unzip monkey-mini-app.zip
-cd monkey-mini-app
-chmod +x scripts/*.sh
-bash scripts/setup.sh
+bash scripts/install-dsh-mini-app.sh
+dsh web --no-open          # http://127.0.0.1:3080 ；apps host :17880
 ```
 
-## 两条路径
+脚本会：构建 `ui` + `dsh` bundle、path-link 进 dsh web profile、bootstrap `host.json`（若不存在）。
 
-### A. 只看 Host Demo（不需要 dsh）
+仅重写配置：
 
 ```bash
-bash scripts/run-demo.sh
-# → http://127.0.0.1:8080
+pnpm exec tsx scripts/mma-init.ts
 ```
 
-- 多 Tab：Hello / Counter  
-- Counter 写入 `~/.monkey-mini-app/runtime/apps/com.example.counter/storage/default.json`（可用 `MONKEY_MINI_APP_ROOT` 改）
-
-### B. dsh web + 本地 link 插件（和开发机同一套）
+## 日常改码
 
 ```bash
-# setup.sh 已执行过则跳过；单独重装：
-bash scripts/install-dsh-plugin.sh
+# 改 host / panel / dsh 源码后
+pnpm --filter @monkey-mini-app/dsh-mini-app build
+# 重启 dsh web，浏览器硬刷新
 
-dsh web --no-open --port 3080
-# → http://127.0.0.1:3080
+# 改组件库
+node scripts/build-ui.mjs
+pnpm skill:gen   # 可选：刷新 UI skill 契约
 ```
 
-启动日志应出现：
+## 测试
 
-```text
-[monkey-mini-app] loaded · tools=13 · skill=...
+```bash
+pnpm lint
+pnpm test
+pnpm exec tsc -b
 ```
 
-插件以 **path link** 挂到 `~/.dsh/profiles/web`：
+## 文档
 
-```text
-pnpm add -w /绝对路径/packages/dsh-plugin
-# package.json → dsh.profile.bundles 含 "@monkey-mini-app/dsh-monkey-mini-app"
-```
+统一入口：[`docs/README.md`](./docs/README.md)。不要在仓库根另起长文。
 
-## Demo / 示例
+## 常见问题
 
-| 路径 | 说明 |
-|------|------|
-| `apps/demo-host/` | @monkey-mini-app/ui 组件 gallery（vite :5173 / host /demo） |
-| `examples/com.example.hello` | 最小 UI 示例 |
-| `examples/com.example.counter` | storage 示例 |
-| `packages/dsh-plugin/skills/monkey-mini-app/SKILL.md` | Agent 创建规范（权威源：dsh-plugin/skills） |
-| `packages/dsh-plugin` | dsh bundle（`lib/` 已预构建） |
-
-## dsh 界面入口
-
-重启 `dsh web` 并硬刷新浏览器后：
-
-- 「新会话」按钮**右侧**出现 **Apps**
-- 侧栏底部（设置附近）也会有 **Apps**
-- 点击打开 Mini App Dashboard
-
-官方没有「新会话右侧」slot，同行按钮由 client 半部锚定「新会话」DOM 插入。
-
-## 环境变量
-
-| 变量 | 默认 | 含义 |
-|------|------|------|
-| `MONKEY_MINI_APP_ROOT` | `~/.monkey-mini-app/runtime` | apps 运行态根目录 |
-| `DSH_HOME` | `~/.dsh` | dsh 配置与 profile |
-| `PORT` | `8080` | demo 端口 |
-
-## 排错
-
-1. **`tools.register failed`** — 需 dsh-tools 支持的 `defineTool` + `output.schema`；本仓库 `src/index.ts`（tsup → `lib/index.js`）已按当前 dsh 修好。  
-2. **找不到 isomorphic-git** — `cd packages/dsh-plugin && npm i isomorphic-git`  
-3. **pnpm workspace root 警告** — 安装脚本已用 `pnpm add -w`。  
-4. **插件未进 composition** — 看 `~/.dsh/profiles/web/package.json` 的 `dsh.profile.bundles`。
-
-## 设计文档
-
-见同级或包内：`monkey-mini-app-design.md`（若与 zip 一并打包）。
+1. **缺 host.json** — 跑 `install-dsh-mini-app.sh` 或 `mma-init.ts`。
+2. **主题刷新丢失** — 确认 apps host 已更新（`POST /api/host-config`）；硬刷新浏览器。
+3. **旧包名** — `dsh-plugin` / `host-core` / `panel-core` 已删除；见 tag `archive/pre-cutover-legacy-2026-08-29`。

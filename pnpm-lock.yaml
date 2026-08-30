@@ -39,28 +39,6 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.1)(happy-dom@20.11.6)(jsdom@30.0.1)(lightningcss@1.32.0)
 
-  apps/app-host:
-    dependencies:
-      '@monkey-mini-app/panel-core':
-        specifier: workspace:*
-        version: link:../../packages/panel-core
-      react:
-        specifier: ^19.2.0
-        version: 19.2.8
-      react-dom:
-        specifier: ^19.2.0
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@vitejs/plugin-react':
-        specifier: ^5.0.0
-        version: 5.2.0(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12))
-      typescript:
-        specifier: ~5.9.2
-        version: 5.9.3
-      vite:
-        specifier: ^7.0.0
-        version: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
-
   apps/demo-host:
     dependencies:
       '@codemirror/lang-html':
@@ -240,58 +218,6 @@ importers:
         specifier: ^3.0.5
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
 
-  packages/dsh-plugin:
-    dependencies:
-      '@monkey-mini-app/host-core':
-        specifier: workspace:*
-        version: link:../host-core
-      '@monkey-mini-app/panel-core':
-        specifier: workspace:*
-        version: link:../panel-core
-      '@monkey-mini-app/ui':
-        specifier: workspace:*
-        version: link:../ui
-      esbuild:
-        specifier: ^0.28.2
-        version: 0.28.2
-      esbuild-wasm:
-        specifier: ^0.25.12
-        version: 0.25.12
-      isomorphic-git:
-        specifier: ^1.27.1
-        version: 1.41.8
-      pinyin-pro:
-        specifier: ^3.29.3
-        version: 3.29.3
-      sucrase:
-        specifier: ^3.35.1
-        version: 3.35.1
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.4
-        version: 22.20.1
-      '@types/react':
-        specifier: '19'
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: '19'
-        version: 19.2.5(@types/react@19.2.18)
-      react:
-        specifier: '19'
-        version: 19.2.8
-      react-dom:
-        specifier: '19'
-        version: 19.2.8(react@19.2.8)
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@30.0.1)(lightningcss@1.32.0)(tsx@4.23.12)
-
   packages/host:
     dependencies:
       '@hono/node-server':
@@ -332,40 +258,6 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
-  packages/host-core:
-    dependencies:
-      '@monkey-mini-app/panel-core':
-        specifier: workspace:*
-        version: link:../panel-core
-      '@monkey-mini-app/ui':
-        specifier: workspace:*
-        version: link:../ui
-      esbuild:
-        specifier: ^0.28.2
-        version: 0.28.2
-      esbuild-wasm:
-        specifier: ^0.25.12
-        version: 0.25.12
-      isomorphic-git:
-        specifier: ^1.29.0
-        version: 1.41.8
-      pinyin-pro:
-        specifier: ^3.29.3
-        version: 3.29.3
-      sucrase:
-        specifier: ^3.35.1
-        version: 3.35.1
-    devDependencies:
-      '@types/node':
-        specifier: ^22
-        version: 22.20.1
-      tsup:
-        specifier: ^8.3.6
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-
   packages/panel:
     dependencies:
       i18next:
@@ -391,33 +283,11 @@ importers:
         specifier: ~5.7.3
         version: 5.7.3
 
-  packages/panel-core:
-    dependencies:
-      lucide-react:
-        specifier: ^0.544.0
-        version: 0.544.0(react@19.2.8)
-    devDependencies:
-      '@types/react':
-        specifier: '19'
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: '19'
-        version: 19.2.5(@types/react@19.2.18)
-      react:
-        specifier: '19'
-        version: 19.2.8
-      react-dom:
-        specifier: '19'
-        version: 19.2.8(react@19.2.8)
-      typescript:
-        specifier: ~5.7.3
-        version: 5.7.3
-
   packages/smoke-test:
     dependencies:
-      '@monkey-mini-app/host-core':
+      '@monkey-mini-app/host':
         specifier: workspace:*
-        version: link:../host-core
+        version: link:../host
     devDependencies:
       '@types/node':
         specifier: ^22.13.4
@@ -4566,9 +4436,6 @@ packages:
   pify@4.0.1:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
-
-  pinyin-pro@3.29.3:
-    resolution: {integrity: sha512-+UU9bx6vfDw8amOJGHm0TE0rdQl8VPylsDWviQ5OOQ3e+on1xRP4OqDbiDuMT5OISgvfl/Y6ez1BBRaIP80GLQ==}
 
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
@@ -9734,8 +9601,6 @@ snapshots:
   picomatch@4.0.5: {}
 
   pify@4.0.1: {}
-
-  pinyin-pro@3.29.3: {}
 
   pirates@4.0.7: {}
 

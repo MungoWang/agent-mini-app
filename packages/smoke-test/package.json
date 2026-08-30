@@ -9,7 +9,7 @@
     "typecheck": "echo ok"
   },
   "dependencies": {
-    "@monkey-mini-app/host-core": "workspace:*"
+    "@monkey-mini-app/host": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^3.0.5",

@@ -1,30 +1,37 @@
 # monkey-mini-app
 
-AI-friendly local Host runtime for many React mini-apps (manifest + App.tsx + optional storage / history).
+AI-friendly local Host runtime for many React mini-apps (`manifest.json` + `ui.tsx` + `main.api.ts`).
 
-## Quick start (local)
+## Quick start
 
 See **[LOCAL.md](./LOCAL.md)**.
 
 ```bash
-chmod +x scripts/*.sh
-bash scripts/setup.sh          # install dsh + link plugin
-bash scripts/run-demo.sh       # Host UI → http://127.0.0.1:8080
-dsh web --no-open --port 3080  # dsh + plugin → http://127.0.0.1:3080
+bash scripts/install-dsh-mini-app.sh
+dsh web --no-open          # http://127.0.0.1:3080
+# apps host default :17880
 ```
 
 ## Packages
 
 | Package | Role |
 |---------|------|
-| `panel-core` | Pure React panel UI (zero host) |
-| `host-core` | Agent-agnostic host: createHost, runtime, git, tools, bridge, ports |
+| `host` | Agent-agnostic host: AppsManager, git, Hono, UI compile, tools |
+| `panel` | Pure React panel UI (`PanelHost`) |
+| `dsh` | DeepSeek Harness plugin (`@monkey-mini-app/dsh-mini-app`) + skills |
 | `ui` | Component library |
-| `dsh-plugin` | DeepSeek Harness bundle + skill path helpers |
 | `smoke-test` | Integration tests |
+
+## Docs
+
+Start at **[docs/README.md](./docs/README.md)**. Agents: **[AGENTS.md](./AGENTS.md)**.
 
 ## Examples
 
-- `examples/com.example.hello`
-- `examples/com.example.counter`
-- `apps/demo-host/` — @monkey-mini-app/ui component gallery (vite dev / host /demo)
+- Skill templates: `packages/dsh/skills/monkey-mini-app/templates/`
+- `apps/demo-host/` — `@monkey-mini-app/ui` gallery (`pnpm --filter demo-host dev`)
+
+## Legacy
+
+Pre-cutover packages (`host-core` / `panel-core` / `dsh-plugin`) live only on tag
+`archive/pre-cutover-legacy-2026-08-29` and under `docs/archive/`.

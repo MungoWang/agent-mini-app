@@ -3,9 +3,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": [
-      "ES2022"
-    ],
+    "lib": ["ES2022"],
     "strict": true,
     "skipLibCheck": true,
     "declaration": true,
@@ -17,27 +15,11 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@monkey-mini-app/panel-core": [
-        "packages/panel-core/src/index.ts"
-      ],
-      "@monkey-mini-app/panel": [
-        "packages/panel/src/index.ts"
-      ],
-      "@monkey-mini-app/ui": [
-        "packages/ui/src/index.ts"
-      ],
-      "@deepseek-ai/dsh-tools": [
-        "packages/dsh-plugin/src/dsh-tools.d.ts"
-      ],
-      "@monkey-mini-app/host-core": [
-        "packages/host-core/src/index.ts"
-      ],
-      "@monkey-mini-app/host": [
-        "packages/host/src/index.ts"
-      ],
-      "@monkey-mini-app/dsh-mini-app": [
-        "packages/dsh/src/index.ts"
-      ]
+      "@monkey-mini-app/panel": ["packages/panel/src/index.ts"],
+      "@monkey-mini-app/ui": ["packages/ui/src/index.ts"],
+      "@deepseek-ai/dsh-tools": ["packages/dsh/src/dsh-tools.d.ts"],
+      "@monkey-mini-app/host": ["packages/host/src/index.ts"],
+      "@monkey-mini-app/dsh-mini-app": ["packages/dsh/src/index.ts"]
     }
   }
 }

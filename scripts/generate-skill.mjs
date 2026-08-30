@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Extract component contracts from @monkey-mini-app/ui source (TS AST + JSDoc)
- * and write packages/dsh-plugin/skills/monkey-mini-app/references/{catalog.md,contracts/*.md}
+ * and write packages/dsh/skills/monkey-mini-app/references/{catalog.md,contracts/*.md}
  * plus packages/ui/ai/catalog.json
  *
  * Each contract includes:
@@ -26,7 +26,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, "..")
 const uiRoot = path.join(root, "packages/ui")
 const srcRoot = path.join(uiRoot, "src")
-const skillRef = path.join(root, "packages/dsh-plugin/skills/monkey-mini-app/references")
+const skillRef = path.join(root, "packages/dsh/skills/monkey-mini-app/references")
 const contractsDir = path.join(skillRef, "contracts")
 const catalogMdPath = path.join(skillRef, "catalog.md")
 const catalogJsonPath = path.join(uiRoot, "ai/catalog.json")

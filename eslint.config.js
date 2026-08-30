@@ -28,11 +28,9 @@ export default tseslint.config(
       "**/lib/**",
       "coverage/**",
       "apps/**",
-      "packages/host-core/**",
-      "packages/panel-core/**",
-      "packages/dsh-plugin/**",
       "packages/ui/**",
       "packages/smoke-test/**",
+      "docs/**",
     ],
   },
   {
@@ -60,8 +58,6 @@ export default tseslint.config(
           paths: [
             { name: "@monkey-mini-app/panel", message: "host must not import panel" },
             { name: "@monkey-mini-app/dsh-mini-app", message: "host must not import dsh" },
-            { name: "@monkey-mini-app/panel-core", message: "host must not import panel" },
-            { name: "@monkey-mini-app/dsh-plugin", message: "host must not import dsh" },
           ],
           patterns: [
             {
@@ -87,8 +83,6 @@ export default tseslint.config(
           paths: [
             { name: "@monkey-mini-app/host", message: "panel must not import host" },
             { name: "@monkey-mini-app/dsh-mini-app", message: "panel must not import dsh" },
-            { name: "@monkey-mini-app/host-core", message: "panel must not import host" },
-            { name: "@monkey-mini-app/dsh-plugin", message: "panel must not import dsh" },
           ],
           patterns: [
             {
