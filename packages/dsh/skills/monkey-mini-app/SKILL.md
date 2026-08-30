@@ -83,6 +83,15 @@ mini_app_reload({ appId })  // { ok, errors, compiled, committed? }
 
 ## UI（@monkey-mini-app/ui）
 
+**组件库是「参考 / 便利」，不是硬性规范。** 它只是帮你省掉重复造轮子——合适的场景直接用，但**别为了用组件而用**。允许完全自由的发挥：
+
+- **先判断**：这个 UI 有没有现成组件？**有且合适 → 用**（省 token、风格统一）；**没有、或要独特视觉/交互、或用户明确要「自由发挥」→ 用原生元素（`div`/`span`/`button`/`input`/`table`/`svg`…）+ Tailwind classes 自行实现**，不用迁就组件库去硬凑。
+- **可混用**：骨架（卡片/页头/弹窗）用库组件，细节或视觉特殊处用原生 + Tailwind。
+- **自由发挥的边界**：原生元素 + Tailwind 随意；但 UI 仍**只能** import `react` / `@monkey-mini-app/ui` / `@monkeyagent/host` / 相对 `./lib`（编译器限制，**不能 import 任意 npm 包**）。需要图表/图标/编辑器等能力时从 `@monkey-mini-app/ui` 拿，或自己用 CSS/SVG 实现。
+- **不用管的**：`UiProvider` host 自动包裹；布局用 Tailwind classes（库里没有 Stack/Text 这类布局件）。
+
+下面是「常用姿势」示例，**不是唯一写法**——复杂/特殊 UI 完全可以全手写。
+
 ```tsx
 import { useEffect, useState } from "react";
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Textarea } from "@monkey-mini-app/ui";
