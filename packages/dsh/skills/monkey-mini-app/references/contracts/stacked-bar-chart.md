@@ -10,6 +10,7 @@
 
 | field | type | required | note |
 |---|---|:---:|---|
+| `className` | `string \| undefined` |  |  |
 | `config` | `ChartConfig` | ✓ |  |
 | `data` | `Record<string, string \| number>[]` | ✓ |  |
 | `keys` | `string[]` | ✓ |  |

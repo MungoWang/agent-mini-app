@@ -10,9 +10,11 @@
 
 | field | type | required | note |
 |---|---|:---:|---|
+| `className` | `string \| undefined` |  |  |
 | `config` | `ChartConfig` | ✓ |  |
 | `data` | `{ label: string; value: number; }[]` | ✓ |  |
 | `dataKey` | `string \| undefined` |  |  |
+| `size` | `number \| undefined` |  |  |
 
 ## Types
 

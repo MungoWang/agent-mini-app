@@ -11,8 +11,10 @@
 | field | type | required | note |
 |---|---|:---:|---|
 | `center` | `string \| undefined` |  |  |
+| `className` | `string \| undefined` |  |  |
 | `config` | `ChartConfig` | ✓ |  |
 | `data` | `Slice[]` | ✓ |  |
+| `size` | `number \| undefined` |  |  |
 
 ## Types
 

@@ -10,4 +10,5 @@
 
 | field | type | required | note |
 |---|---|:---:|---|
+| `className` | `string \| undefined` |  |  |
 | `data` | `{ value: number; }[]` | ✓ |  |
