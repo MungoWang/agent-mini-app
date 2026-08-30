@@ -11,7 +11,7 @@ const shared: Options = {
   outDir: "lib",
   clean: false,
   treeshake: false,
-  dts: false,
+  dts: true,
   sourcemap: false,
   outExtension() {
     return { js: ".js" };
@@ -25,27 +25,23 @@ export default defineConfig([
     format: ["esm"],
     target: "node20",
     platform: "node",
-    esbuildOptions(options) {
-      options.alias = {
-        "@monkey-mini-app/host": path.join(root, "host", "src/index.ts"),
-        // Server must not load panel's React entry; bundle pure themes only.
-        "@monkey-mini-app/panel/themes": path.join(root, "panel", "src/themes.ts"),
-      };
-    },
+    // host/panel/ui are shared, published packages: require them at runtime so a
+    // second host port (or react-host) can reuse them — do NOT bundle copies in.
     external: [
+      "@monkey-mini-app/*",
       "isomorphic-git",
       "esbuild-wasm",
       "esbuild",
       "hono",
       "@hono/node-server",
-      "@monkey-mini-app/ui",
-      "@monkey-mini-app/panel",
       "@deepseek-ai/dsh-session",
       "@deepseek-ai/dsh-llm",
       "@deepseek-ai/dsh-subagent",
       "@deepseek-ai/dsh-tools",
+      "sucrase",
+      "i18next",
     ],
-    noExternal: ["@monkey-mini-app/host", "@monkey-mini-app/panel/themes", "sucrase", "i18next"],
+    noExternal: [],
   },
   {
     ...shared,

@@ -4,14 +4,15 @@
   "description": "DeepSeek Harness plugin: mini-app host wiring, panel, and skills",
   "type": "module",
   "main": "./lib/index.js",
-  "types": "./src/index.ts",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "default": "./lib/index.js"
     },
     "./client": {
+      "types": "./lib/client.d.cts",
       "import": "./lib/client.js",
       "require": "./lib/client.js",
       "default": "./lib/client.js"
@@ -54,9 +55,9 @@
     "@deepseek-ai/dsh-session": "0.1.1-rc.2",
     "@deepseek-ai/dsh-subagent": "0.1.1-rc.2",
     "@hono/node-server": "^2.1.1",
-    "@monkey-mini-app/host": "workspace:*",
-    "@monkey-mini-app/panel": "workspace:*",
-    "@monkey-mini-app/ui": "workspace:^",
+    "@monkey-mini-app/host": "^0.1.0",
+    "@monkey-mini-app/panel": "^0.1.0",
+    "@monkey-mini-app/ui": "^0.1.0",
     "esbuild": "^0.28.2",
     "esbuild-wasm": "^0.25.12",
     "hono": "^4.8.0",
