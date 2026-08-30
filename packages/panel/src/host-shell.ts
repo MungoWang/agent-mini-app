@@ -22,8 +22,6 @@ export type HostShellOptions = {
   hostUrl: string;
   /** Persistence backend. Defaults to window.localStorage. */
   storage?: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null;
-  /** DOM node the shell should mount the panel into. */
-  container?: HTMLElement;
   cardStyle?: CardStyle;
   locale?: string;
   emptyText?: string;
@@ -102,15 +100,26 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
     onHostChange: (next) => opts.onHostChange?.(next),
     frameController: {
       url: (appId) => frame.url(appId),
-      mount: (appId) => frame.mount(appId),
+      // Lazy-bind the frames container (React may not have rendered #mma-frames yet).
+      mount: (appId) => { ensureFrameContainer(); frame.mount(appId); },
       unmount: (appId) => frame.unmount(appId),
-      reload: (appId) => frame.reload(appId),
+      reload: (appId) => { ensureFrameContainer(); frame.reload(appId); },
       syncEnv: () => frame.postEnvAll(),
     },
   });
 
+  let framesBound = false;
+  function ensureFrameContainer(): void {
+    if (framesBound) return;
+    const el = containerEl?.querySelector("#mma-frames") ?? document.getElementById("mma-frames");
+    if (el) {
+      frame.setContainer(el as HTMLElement);
+      framesBound = true;
+    }
+  }
+
   let panel: PanelInstance | null = null;
-  let containerEl: HTMLElement | null = opts.container ?? null;
+  let containerEl: HTMLElement | null = null;
 
   function optOnOpen(): void {
     setPanelState({ visible: true });
@@ -141,17 +150,44 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
       return panel;
     },
     mount(el) {
-      containerEl = el;
-      setPanelState({ theme: themePrefs.theme, palette: themePrefs.palette });
-      applyThemeTo(el, themePrefs.theme, themePrefs.palette);
-      const framesEl = document.getElementById("mma-frames");
-      if (framesEl) frame.setContainer(framesEl);
-      this.panel.mount(el);
+      // The panel chrome CSS is scoped to #mma-host; create a fixed dock container so
+      // the panel lays out (mirrors dsh's ensureSkeleton). Setting data-ready/dock/
+      // cardstyle activates the panel's position + dock rules.
+      containerEl = document.createElement("div");
+      containerEl.id = "mma-host";
+      containerEl.setAttribute("data-ready", "1");
+      containerEl.setAttribute("data-dock", getPanelState().dock);
+      containerEl.setAttribute("data-cardstyle", getPanelState().cardStyle);
+      Object.assign(containerEl.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        right: "0",
+        bottom: "0",
+        zIndex: "40",
+        display: "flex",
+        flexDirection: "column",
+        background: "var(--dsw-alias-bg, #f7f7f8)",
+        color: "var(--dsw-alias-fg, #111)",
+        fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif",
+      });
+      const target = el ?? document.body;
+      target.appendChild(containerEl);
+
+      setPanelState({ theme: themePrefs.theme, palette: themePrefs.palette, visible: true });
+      applyThemeTo(containerEl, themePrefs.theme, themePrefs.palette);
+      this.panel.mount(containerEl);
+      // MiniAppPanel renders #mma-frames inside .mma-stage; bind it AFTER mount.
+      const framesEl = containerEl.querySelector("#mma-frames");
+      if (framesEl) frame.setContainer(framesEl as HTMLElement);
+      void this.panel.actions.fetchApps();
     },
     unmount() {
       panel?.unmount();
       panel = null;
       frame.unmountAll();
+      containerEl?.parentNode?.removeChild(containerEl);
+      containerEl = null;
     },
     openPanel: optOnOpen,
     closePanel: optOnClose,
