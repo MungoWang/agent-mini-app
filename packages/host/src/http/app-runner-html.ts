@@ -74,9 +74,10 @@ const APP_ID = ${safe};
     if (d.dock) document.documentElement.setAttribute("data-dock", d.dock);
   });
 })();
+// Per-app stylesheet: shared base (theme + components) + the app's own utilities.
 const cssLink = document.createElement("link");
 cssLink.rel = "stylesheet";
-cssLink.href = "/ui.css";
+cssLink.href = "/api/app/" + encodeURIComponent(APP_ID) + "/ui.css";
 document.head.appendChild(cssLink);
 try {
   await import("/api/app/" + encodeURIComponent(APP_ID) + "/ui/entry.js");

@@ -1,4 +1,5 @@
 import { AppsManager } from "./apps/apps-manager.ts";
+import { AppCssCompiler } from "./compile/app-css.ts";
 import { UiCompiler } from "./compile/ui-compiler.ts";
 import { parseHostConfig } from "./config/parse.ts";
 import { HostEventBus } from "./events/host-events.ts";
@@ -30,12 +31,14 @@ export function createHost(
   const tools = new ToolFacade(apps, git, paths, events);
   const compiler = new UiCompiler(paths);
   apps.setUiCompiler(compiler);
+  const css = new AppCssCompiler(paths);
   const themes = options.themes ?? EMPTY_THEME_RESOURCE;
   const http = new HttpGateway(
     apps,
     config,
     paths,
     compiler,
+    css,
     git,
     themes,
     events,

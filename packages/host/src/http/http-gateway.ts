@@ -11,6 +11,7 @@ import { readAppTheme, writeAppTheme } from "../apps/app-theme.ts";
 import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
 import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
 import { asAppId } from "../brand.ts";
+import type { AppCssCompiler } from "../compile/app-css.ts";
 import { resolveUiDistDir, type UiBuildFile, type UiCompiler } from "../compile/ui-compiler.ts";
 import { writeHostConfig } from "../config/write.ts";
 import { HostError } from "../errors.ts";
@@ -156,6 +157,7 @@ export class HttpGateway {
     private readonly config: HostConfig,
     private readonly paths: WorkspacePaths,
     private readonly compiler: UiCompiler,
+    private readonly css: AppCssCompiler,
     private readonly git: GitHistory,
     private readonly themes: ThemeResource = EMPTY_THEME_RESOURCE,
     private readonly events?: HostEventBus,
@@ -488,6 +490,25 @@ export class HttpGateway {
         return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
       } catch (cause) {
         return c.text(`ui.css missing: ${errorMessage(cause)}`, 500);
+      }
+    });
+
+    // Per-app stylesheet: the app's own utilities, compiled reliably from a temp copy
+    // of its UI source (Tailwind `@source` a real file — never no-ops on app-only
+    // classes). Falls back to the shared stylesheet.
+    app.get("/api/app/:appId/ui.css", async (c) => {
+      const appId = c.req.param("appId");
+      const dir = this.apps.dirOf(asAppId(appId));
+      try {
+        const css = await this.css.compile(dir);
+        return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
+      } catch (cause) {
+        try {
+          const css = fs.readFileSync(path.join(resolveUiDistDir(), "globals.css"), "utf8");
+          return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
+        } catch {
+          return c.text(`app ui.css failed: ${errorMessage(cause)}`, 500);
+        }
       }
     });
 

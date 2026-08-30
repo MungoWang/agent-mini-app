@@ -43,15 +43,20 @@ describe("S2 · real HTTP socket end-to-end", () => {
       const html = await (await fetch(`${origin}/app/com.smoke.http`)).text();
       expect(html).toContain('id="root" class="boot"');
       expect(html).toContain("/api/app/\" + encodeURIComponent(APP_ID) + \"/ui/entry.js");
-      // the app shell loads the single shared stylesheet
-      expect(html).toContain("/ui.css");
+      // the app shell loads its per-app stylesheet (shared base + app utilities)
+      expect(html).toContain('href = "/api/app/" + encodeURIComponent(APP_ID) + "/ui.css"');
 
       // /api/app/:id/ui/entry.js compiles
       const entry = await (await fetch(`${origin}/api/app/com.smoke.http/ui/entry.js`)).text();
       expect(entry.startsWith('{"error"')).toBe(false);
       expect(entry.length).toBeGreaterThan(2000);
 
-      // the shared stylesheet serves the Tailwind utilities (theme tokens survive)
+      // per-app stylesheet carries the theme tokens + the app's own utility classes
+      const appCss = await (await fetch(`${origin}/api/app/com.smoke.http/ui.css`)).text();
+      expect(appCss).toContain("--background");
+      expect(appCss).toContain(".p-4");
+
+      // shared stylesheet still serves the repo-wide Tailwind base
       const css = await (await fetch(`${origin}/ui.css`)).text();
       expect(css).toContain("--background");
 
