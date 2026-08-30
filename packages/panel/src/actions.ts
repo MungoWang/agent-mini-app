@@ -1,6 +1,7 @@
 import type { PanelI18n } from "./i18n.ts";
 import type { PanelHost } from "./panel-host.ts";
 import { capabilitiesOf } from "./panel-host.ts";
+import { isHostUnreachable } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
 import { applyThemeTo, clampPalette, type CustomPaletteMap } from "./themes.ts";
 import type { AppItem, CardStyle, DockId, PanelActions, PanelState, TabItem } from "./types.ts";
@@ -241,7 +242,14 @@ export function createPanelActions(
         .then((apps) => {
           setPanelState({ apps, loading: false });
         })
-        .catch((e) => setPanelState({ error: errorMessage(e), loading: false }));
+        .catch((e) => {
+          setPanelState({
+            error: isHostUnreachable(e)
+              ? i18n.t("list.hostUnreachable", { url: e.url })
+              : errorMessage(e),
+            loading: false,
+          });
+        });
     },
     setCardStyle: (v: CardStyle) => setPanelState({ cardStyle: v }),
   };

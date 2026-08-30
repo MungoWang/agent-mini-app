@@ -10,19 +10,6 @@ export function appsOrigin(port: number): string {
   return `http://127.0.0.1:${port}`;
 }
 
-export function appFrameUrl(
-  origin: string,
-  appId: string,
-  query: { theme: string; palette: string; dock: string },
-): string {
-  const params = new URLSearchParams({
-    theme: query.theme,
-    palette: query.palette,
-    dock: query.dock,
-  });
-  return `${origin}/app/${encodeURIComponent(appId)}?${params.toString()}`;
-}
-
 export function readStoredAppsOrigin(storage: Pick<Storage, "getItem"> | null): string | null {
   if (!storage) return null;
   try {

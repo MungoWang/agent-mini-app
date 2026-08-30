@@ -11,7 +11,6 @@ import { readAppTheme, writeAppTheme } from "../apps/app-theme.ts";
 import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
 import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
 import { asAppId } from "../brand.ts";
-import type { AppCssCompiler } from "../compile/app-css.ts";
 import { resolveUiDistDir, type UiBuildFile, type UiCompiler } from "../compile/ui-compiler.ts";
 import { writeHostConfig } from "../config/write.ts";
 import { HostError } from "../errors.ts";
@@ -50,7 +49,11 @@ function listenHttp(server: Server, port: number): Promise<number> {
 }
 
 function closeHttp(server: Server): Promise<void> {
+  // Node's server.close() waits for every open connection to drain. The SSE
+  // /api/events stream is a long-lived keep-alive, so a bind-close-rebind
+  // (hostPort change) would hang forever. Force-destroy all connections first.
   return new Promise((resolve, reject) => {
+    server.closeAllConnections?.();
     server.close((err) => {
       if (err) reject(err);
       else resolve();
@@ -153,7 +156,6 @@ export class HttpGateway {
     private readonly config: HostConfig,
     private readonly paths: WorkspacePaths,
     private readonly compiler: UiCompiler,
-    private readonly css: AppCssCompiler,
     private readonly git: GitHistory,
     private readonly themes: ThemeResource = EMPTY_THEME_RESOURCE,
     private readonly events?: HostEventBus,
@@ -499,23 +501,6 @@ export class HttpGateway {
         return c.body(buf, 200, { "Content-Type": ext === ".woff2" ? "font/woff2" : "application/octet-stream" });
       } catch (cause) {
         return c.text(`font missing: ${errorMessage(cause)}`, 404);
-      }
-    });
-
-    app.get("/api/app/:appId/ui.css", async (c) => {
-      const appId = c.req.param("appId");
-      const dir = this.apps.dirOf(asAppId(appId));
-      try {
-        const css = await this.css.compile(dir);
-        return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
-      } catch (cause) {
-        // Fall back to the shared stylesheet so the app still renders.
-        try {
-          const css = fs.readFileSync(path.join(resolveUiDistDir(), "globals.css"), "utf8");
-          return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
-        } catch {
-          return c.text(`app ui.css failed: ${errorMessage(cause)}`, 500);
-        }
       }
     });
 

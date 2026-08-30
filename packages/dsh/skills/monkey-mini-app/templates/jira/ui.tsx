@@ -22,6 +22,7 @@ import {
   Input,
   Kanban,
   type KanbanCard,
+  NativeSelect,
   PageHeader,
   Select,
   SelectContent,
@@ -205,11 +206,11 @@ export default function Ui() {
               <TabsTrigger value="table"><Icon.Table size={14} strokeWidth={2} /> 表格</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Select value={assignee} onChange={(v) => setAssignee(v as string)}>
+          <NativeSelect value={assignee} onChange={(e) => setAssignee(e.target.value)}>
             {["all", ...ASSIGNEES].map((a) => (
               <option key={a} value={a}>{a === "all" ? "全部负责人" : a}</option>
             ))}
-          </Select>
+          </NativeSelect>
           {error && <span className="text-sm" style={{ color: "var(--destructive)" }}>{error}</span>}
         </FilterBar>
 
@@ -225,7 +226,7 @@ export default function Ui() {
                 columns={columns}
                 data={issues}
                 pageSize={10}
-                onRowClick={(row) => setSel(row.original)}
+                onRowClick={(issue) => setSel(issue)}
               />
             )}
           </CardContent>

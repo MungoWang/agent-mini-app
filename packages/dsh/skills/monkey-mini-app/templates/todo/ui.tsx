@@ -10,6 +10,9 @@ import {
   CardTitle,
   Checkbox,
   Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
   FilterBar,
   Icon,
   Input,
@@ -122,7 +125,12 @@ export default function Ui() {
             {error && <p className="text-sm" style={{ color: "var(--destructive)" }}>{error}</p>}
             {loading && !items.length ? <p className="text-sm text-muted-foreground">加载中…</p> : null}
             {!loading && !items.length ? (
-              <Empty title="还没有任务" description="上面加一条就开始。" />
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>还没有任务</EmptyTitle>
+                  <EmptyDescription>上面加一条就开始。</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             ) : null}
             {items.length ? (
               <Table>

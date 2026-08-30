@@ -24,7 +24,7 @@ export { createMiniAppPanel } from "./panel.tsx";
 export type { Palette, PanelHost } from "./panel-host.ts";
 export { capabilitiesOf } from "./panel-host.ts";
 export type { RestOptions } from "./rest.ts";
-export { appFrameUrl, createRestPanelHost, formToHostConfigBody, hostConfigToForm, parseAppsResponse, parseCommitDetail, parseCommitList, parsePalettes, parseStorageTables, readJson } from "./rest.ts";
+export { appFrameUrl, createRestPanelHost, formToHostConfigBody, hostConfigToForm, HostUnreachableError, isHostUnreachable, parseAppsResponse, parseCommitDetail, parseCommitList, parsePalettes, parseStorageTables, readJson } from "./rest.ts";
 export {
   getPanelState,
   resetPanelState,

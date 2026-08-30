@@ -7,6 +7,7 @@ import {
   createPanelI18n,
   defaultHideThemePop,
   getPanelState,
+  HostUnreachableError,
   resetPanelState,
   setPanelState,
 } from "@monkey-mini-app/panel";
@@ -45,6 +46,16 @@ describe("createPanelActions + FakePanelHost", () => {
     actions.fetchApps();
     await flush();
     expect(getPanelState().error).toBe("boom");
+    expect(getPanelState().loading).toBe(false);
+  });
+
+  it("fetchApps shows a localized host-unreachable message with the url", async () => {
+    const err = new HostUnreachableError("http://127.0.0.1:17880/api/apps");
+    const { actions } = actionsFor(createFakePanelHost({ fetchError: err }), "zh-CN");
+    actions.fetchApps();
+    await flush();
+    expect(getPanelState().error).toContain("http://127.0.0.1:17880/api/apps");
+    expect(getPanelState().error).toContain("无法连接小程序 host");
     expect(getPanelState().loading).toBe(false);
   });
 

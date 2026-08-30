@@ -42,6 +42,7 @@
     "open": "已打开",
     "commits": "{{count}} commits",
     "loadError": "列表加载失败：{{message}}",
+    "hostUnreachable": "无法连接小程序 host（{{url}}）：host 未启动或端口被占用。请释放端口，或编辑 runtime/host.json 的 hostPort 后重启。",
     "retry": "重试",
     "empty": "还没有小程序。",
     "noMatch": "没有匹配「{{query}}」的小程序。"

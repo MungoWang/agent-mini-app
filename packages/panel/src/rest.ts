@@ -23,10 +23,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export type RestOptions = {
   /** Origin to reach a `packages/host` Hono server (e.g. http://127.0.0.1:17880). */
   hostUrl: string;
+  /** Optional: resolve the host URL dynamically (host-port migration). Defaults to hostUrl. */
+  getHostUrl?: () => string;
   /** Persistence backend for theme prefs. Defaults to window.localStorage. */
   storage?: Pick<Storage, "getItem" | "setItem"> | null;
   /** The current host's card style (for host-config form defaults). */
   cardStyle?: CardStyle;
+  /** Optional: resolve the current card style dynamically (defaults to cardStyle). */
+  getCardStyle?: () => CardStyle;
   locale?: LocaleId;
   emptyText?: string;
   /** Optional overrides for opening/closing the panel (SPA wiring). */
@@ -34,15 +38,39 @@ export type RestOptions = {
   onClose?: () => void;
   /** Fired when the host reports a new port (e.g. after saving a different hostPort). */
   onHostChange?: (nextHostUrl: string) => void;
+  /** Fired after a successful host-config save (theme/cardStyle/origin side effects). */
+  onConfigSaved?: (form: Record<string, string>) => void;
   /** Iframe control — provide a function that mounts/unmounts the app iframe. */
   frameController?: PanelHostIF["frame"];
   deleteApp?: (appId: string) => Promise<void>;
 };
 
 export async function readJson(url: string, init?: RequestInit): Promise<unknown> {
-  const res = await fetch(url, init);
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch (cause) {
+    throw new HostUnreachableError(url, cause);
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<unknown>;
+}
+
+/** Thrown when a `packages/host` server cannot be reached at the network level (port blocked / host not started). */
+export class HostUnreachableError extends Error {
+  readonly url: string;
+  constructor(url: string, cause?: unknown) {
+    super(`Cannot reach apps host: ${url}`);
+    this.name = "HostUnreachableError";
+    this.url = url;
+    if (cause !== undefined) {
+      Object.defineProperty(this, "cause", { value: cause, configurable: true, writable: true });
+    }
+  }
+}
+
+export function isHostUnreachable(e: unknown): e is HostUnreachableError {
+  return e instanceof HostUnreachableError;
 }
 
 export function appFrameUrl(
@@ -54,7 +82,7 @@ export function appFrameUrl(
 }
 
 function parseAppTheme(raw: unknown): AppItem["theme"] {
-  if (raw == null) return null;
+  if (raw === null) return null;
   if (!isRecord(raw)) return undefined;
   const theme = typeof raw.theme === "string" ? raw.theme : "";
   const palette = typeof raw.palette === "string" ? raw.palette : "";
@@ -121,42 +149,67 @@ function asCommit(raw: unknown): Commit | null {
 }
 
 export function parseCommitList(raw: unknown): Commit[] {
-  if (!isRecord(raw) || !Array.isArray(raw.commits)) return [];
-  return raw.commits.map((c) => asCommit(c)).filter((c): c is Commit => c !== null);
+  const rec = isRecord(raw) ? raw : {};
+  const list = Array.isArray(rec.commits)
+    ? rec.commits
+    : Array.isArray(rec.nodes)
+      ? rec.nodes
+      : [];
+  return list.map((c) => asCommit(c)).filter((c): c is Commit => c !== null);
 }
 
 export function parseCommitDetail(raw: unknown, id: string): Commit {
-  const commit = isRecord(raw) && isRecord(raw.commit) ? raw.commit : raw;
-  return asCommit(commit) ?? { id, message: "", time: "", files: undefined };
+  const rec = isRecord(raw) ? raw : {};
+  const inner = isRecord(rec.commit) ? rec.commit : rec;
+  return asCommit(inner) ?? { id, message: "", time: "", files: [] };
 }
 
 export function parseStorageTables(raw: unknown): StorageTable[] {
-  if (!isRecord(raw) || !Array.isArray(raw.tables)) return [];
+  const rec = isRecord(raw) ? raw : {};
+  const list = Array.isArray(rec.tables) ? rec.tables : [];
   const out: StorageTable[] = [];
-  for (const row of raw.tables) {
-    if (!isRecord(row)) continue;
-    out.push({ name: typeof row.name === "string" ? row.name : "", size: typeof row.size === "number" ? row.size : 0, updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : "" });
+  for (const row of list) {
+    if (!isRecord(row) || typeof row.name !== "string") continue;
+    out.push({
+      name: row.name,
+      size: typeof row.size === "number" ? row.size : undefined,
+      updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : undefined,
+    });
   }
   return out;
 }
 
 export function parsePalettes(raw: unknown): Palette[] {
-  if (!isRecord(raw) || !Array.isArray(raw.palettes)) return [];
-  return raw.palettes.map((p) => (isRecord(p) ? { id: String(p.id ?? ""), label: String(p.label ?? p.id ?? ""), swatch: String(p.swatch ?? "") } : null)).filter((p): p is Palette => p !== null);
+  const rec = isRecord(raw) ? raw : {};
+  const list = Array.isArray(rec.palettes) ? rec.palettes : [];
+  const out: Palette[] = [];
+  for (const p of list) {
+    if (!isRecord(p) || typeof p.id !== "string") continue;
+    if (p.custom === false) continue;
+    out.push({
+      id: p.id,
+      label: typeof p.label === "string" ? p.label : p.id,
+      swatch: typeof p.swatch === "string" ? p.swatch : "#888",
+      tokens: isRecord(p.tokens) ? (p.tokens as Palette["tokens"]) : undefined,
+    });
+  }
+  return out;
 }
 
 /** Build a `PanelHost` that talks to a `packages/host` Hono server over HTTP. */
 export function createRestPanelHost(opts: RestOptions): PanelHostIF {
-  const origin = opts.hostUrl.replace(/\/$/, "");
   const storage = opts.storage ?? (typeof window !== "undefined" ? window.localStorage : null);
+  function origin(): string {
+    return (opts.getHostUrl ? opts.getHostUrl() : opts.hostUrl).replace(/\/$/, "");
+  }
 
   const host: PanelHostIF = {
     locale: opts.locale,
     emptyText: opts.emptyText,
-    fetchApps: async () => parseAppsResponse(await readJson(`${origin}/api/apps`)),
+    fetchApps: async () => parseAppsResponse(await readJson(`${origin()}/api/apps`)),
     palettes: async () => {
       try {
-        return parsePalettes(await readJson(`${origin}/api/palettes`));
+        return parsePalettes(await readJson(`${origin()}/api/palettes`));
       } catch {
         return [];
       }
@@ -170,21 +223,22 @@ export function createRestPanelHost(opts: RestOptions): PanelHostIF {
       } catch {
         /* ignore */
       }
-      void fetch(`${origin}/api/host-config`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ theme, palette }) }).catch(() => {});
+      void fetch(`${origin()}/api/host-config`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ theme, palette }) }).catch(() => {});
     },
     appTheme: {
       save: async (appId, t) => {
-        await fetch(`${origin}/api/apps/${encodeURIComponent(appId)}/theme`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(t) }).catch(() => {});
+        await fetch(`${origin()}/api/apps/${encodeURIComponent(appId)}/theme`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(t) }).catch(() => {});
       },
       clear: async (appId) => {
-        await fetch(`${origin}/api/apps/${encodeURIComponent(appId)}/theme`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ reset: true }) }).catch(() => {});
+        await fetch(`${origin()}/api/apps/${encodeURIComponent(appId)}/theme`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ reset: true }) }).catch(() => {});
       },
     },
     config: {
-      load: async () => hostConfigToForm(await readJson(`${origin}/api/host-config`), opts.cardStyle ?? "stamp"),
+      load: async () =>
+        hostConfigToForm(await readJson(`${origin()}/api/host-config`), opts.getCardStyle?.() ?? opts.cardStyle ?? "stamp"),
       save: async (cfg) => {
         const body = formToHostConfigBody(cfg);
-        const res = await fetch(`${origin}/api/host-config`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+        const res = await fetch(`${origin()}/api/host-config`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
         const raw: unknown = await res.json().catch(() => ({}));
         if (!res.ok || (isRecord(raw) && raw.ok === false)) {
           throw new Error(isRecord(raw) && typeof raw.error === "string" ? raw.error : `HTTP ${res.status}`);
@@ -192,27 +246,28 @@ export function createRestPanelHost(opts: RestOptions): PanelHostIF {
         // host may report a new port; notify so the shell can migrate.
         const hostPort = isRecord(raw) ? raw.hostPort : undefined;
         if (typeof hostPort === "number" && Number.isInteger(hostPort) && hostPort > 0) {
-          const next = `${new URL(origin).protocol}//${new URL(origin).hostname}:${hostPort}`;
-          if (next !== origin) opts.onHostChange?.(next);
+          const next = `${new URL(origin()).protocol}//${new URL(origin()).hostname}:${hostPort}`;
+          if (next !== origin()) opts.onHostChange?.(next);
         }
+        opts.onConfigSaved?.(cfg);
       },
     },
     history: {
-      list: async (appId) => parseCommitList(await readJson(`${origin}/api/apps/${encodeURIComponent(appId)}/history?limit=50`)),
-      detail: async (appId, id) => parseCommitDetail(await readJson(`${origin}/api/apps/${encodeURIComponent(appId)}/history/${encodeURIComponent(id)}`), id),
+      list: async (appId) => parseCommitList(await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/history?limit=50`)),
+      detail: async (appId, id) => parseCommitDetail(await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/history/${encodeURIComponent(id)}`), id),
     },
     storage: {
-      listTables: async (appId) => parseStorageTables(await readJson(`${origin}/api/apps/${encodeURIComponent(appId)}/storage`)),
+      listTables: async (appId) => parseStorageTables(await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/storage`)),
       readTable: async (appId, name) => {
-        const raw = await readJson(`${origin}/api/apps/${encodeURIComponent(appId)}/storage/${encodeURIComponent(name)}`);
+        const raw = await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/storage/${encodeURIComponent(name)}`);
         return isRecord(raw) && "value" in raw ? raw.value : raw;
       },
     },
     deleteApp: opts.deleteApp ?? (async (appId: string) => {
-      await fetch(`${origin}/api/app/${encodeURIComponent(appId)}`, { method: "DELETE" }).catch(() => {});
+      await fetch(`${origin()}/api/app/${encodeURIComponent(appId)}`, { method: "DELETE" }).catch(() => {});
     }),
     frame: opts.frameController ?? {
-      url: (appId) => `${origin}/app/${encodeURIComponent(appId)}`,
+      url: (appId) => `${origin()}/app/${encodeURIComponent(appId)}`,
       mount: () => undefined,
       unmount: () => undefined,
       reload: () => undefined,

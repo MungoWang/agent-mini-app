@@ -42,6 +42,7 @@
     "open": "Open",
     "commits": "{{count}} commits",
     "loadError": "Failed to load list: {{message}}",
+    "hostUnreachable": "Cannot reach the mini-app host ({{url}}): the host is not running or the port is taken. Free the port, or set hostPort in runtime/host.json and restart.",
     "retry": "Retry",
     "empty": "No mini apps yet.",
     "noMatch": "No mini apps matching \"{{query}}\"."

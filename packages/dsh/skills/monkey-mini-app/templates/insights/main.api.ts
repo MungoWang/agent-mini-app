@@ -90,7 +90,7 @@ export default defineDashboard({
 });
 
 function sleep(ms: number, signal?: AbortSignal) {
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     if (signal?.aborted) return resolve();
     const t = setTimeout(resolve, ms);
     signal?.addEventListener("abort", () => {

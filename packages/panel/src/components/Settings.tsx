@@ -70,12 +70,12 @@ export function Settings() {
         <input id="mma-cfg-model" value={form.model || ""} onChange={set("model")} />
       </label>
       <div className="mma-settings-actions">
-        <span className="mma-settings-msg" id="mma-cfg-msg">
-          {s.cfgMsg}
-        </span>
         <button type="button" className="mma-textbtn" id="mma-cfg-save" onClick={() => actions.saveHostConfig(form)}>
           {t("settings.save")}
         </button>
+        <span className="mma-settings-msg" id="mma-cfg-msg">
+          {s.cfgMsg}
+        </span>
       </div>
     </div>
   );

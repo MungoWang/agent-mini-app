@@ -97,7 +97,7 @@ export default function Ui() {
                     { id: "s3", title: "总结" },
                   ]}
                   current={run.steps.length >= 2 ? 2 : run.steps.length}
-                  horizontal
+                  orientation="horizontal"
                 />
               </CardContent>
             </Card>

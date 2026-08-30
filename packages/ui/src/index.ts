@@ -1,4 +1,5 @@
 export * from "./lib/utils"
+export * from "./lib/icons"
 export * from "./i18n/context"
 export * from "./components/accordion"
 export * from "./components/alert-dialog"

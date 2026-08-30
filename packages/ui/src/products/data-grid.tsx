@@ -108,6 +108,8 @@ export type DataGridProps<TData> = {
   toolbar?: React.ReactNode
   getRowId?: (row: TData) => string
   renderExpanded?: (row: TData) => React.ReactNode
+  /** Fired when a row is clicked, with the row's data. */
+  onRowClick?: (row: TData) => void
   onStateChange?: (state: {
     sorting: SortingState
     columnFilters: ColumnFiltersState
@@ -363,6 +365,7 @@ export function DataGrid<TData>({
   toolbar,
   getRowId,
   renderExpanded,
+  onRowClick,
   onStateChange,
 }: DataGridProps<TData>) {
   const t = useLabels("dataGrid")
@@ -549,11 +552,10 @@ export function DataGrid<TData>({
                   data-testid="data-grid-row"
                   className="h-10"
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() =>
-                    renderExpanded
-                      ? setExpandedId((id) => (id === row.id ? null : row.id))
-                      : undefined
-                  }
+                  onClick={() => {
+                    onRowClick?.(row.original)
+                    if (renderExpanded) setExpandedId((id) => (id === row.id ? null : row.id))
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-3 py-0">

@@ -142,10 +142,10 @@ describe("DshShell", () => {
       shell.openPanel();
     });
     await act(async () => {
-      shell.host.persistTheme("dark", "tokyo");
+      shell.host.persistTheme?.("dark", "tokyo");
     });
     expect(window.localStorage.getItem("mma-theme-mode")).toBe("dark");
-    expect(getPanelState().theme).toBe("dark");
+    expect(window.localStorage.getItem("mma-palette")).toBe("tokyo");
     await act(async () => {
       shell.dispose();
     });

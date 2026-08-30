@@ -19,6 +19,7 @@ Product table: sort, column filter popover, global search, pagination.
 | `features` | `DataGridFeatures \| undefined` |  |  |
 | `getRowId` | `((row: TData) => string) \| undefined` |  |  |
 | `onPageIndexChange` | `((pageIndex: number) => void) \| undefined` |  | Fired on every page change (also when the user flips pages). |
+| `onRowClick` | `((row: TData) => void) \| undefined` |  | Fired when a row is clicked, with the row's data. |
 | `onStateChange` | `((state: { sorting: SortingState; columnFilters: ColumnFiltersState; globalFilter: string; pagination: { pageIndex: number; pageSize: number; }; }) => void) \| undefined` |  |  |
 | `pageIndex` | `number \| undefined` |  | Controlled current page (0-based). Omit for internal state. |
 | `pageSize` | `number \| undefined` |  |  |

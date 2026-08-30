@@ -12,6 +12,8 @@
     "smoke": "vitest run packages/smoke-test",
     "typecheck": "tsc -b --pretty false",
     "skill:gen": "node scripts/generate-skill.mjs",
+    "react-host": "tsx scripts/dev-react-host.mts",
+    "tpl:check": "tsx scripts/check-templates.mts",
     "build:ui": "node scripts/build-ui.mjs",
     "publish:prep": "pnpm build:ui && pnpm skill:gen && pnpm --filter @monkey-mini-app/dsh-mini-app build",
     "publish": "pnpm publish:prep && pnpm -r publish"

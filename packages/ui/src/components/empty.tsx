@@ -2,7 +2,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
-function Empty({ className, ...props }: React.ComponentProps<"div">) {
+function Empty({
+  className,
+  title,
+  description,
+  children,
+  ...props
+}: React.ComponentProps<"div"> & {
+  /** Convenience: renders an EmptyTitle as the empty-state heading. */
+  title?: React.ReactNode
+  /** Convenience: renders an EmptyDescription under the title. */
+  description?: React.ReactNode
+}) {
   return (
     <div
       data-slot="empty"
@@ -11,7 +22,15 @@ function Empty({ className, ...props }: React.ComponentProps<"div">) {
         className
       )}
       {...props}
-    />
+    >
+      {title != null || description != null ? (
+        <EmptyHeader>
+          {title != null ? <EmptyTitle>{title}</EmptyTitle> : null}
+          {description != null ? <EmptyDescription>{description}</EmptyDescription> : null}
+        </EmptyHeader>
+      ) : null}
+      {children}
+    </div>
   )
 }
 

@@ -35,7 +35,20 @@ export async function apply(ctx: DshCtx, config: DshPluginConfig = {}): Promise<
     config: hostConfig,
     themes,
   });
-  const { port } = await host.apply(ctx);
+  let port: number;
+  try {
+    ({ port } = await host.apply(ctx));
+  } catch (cause) {
+    // A port collision must not take down the whole dsh web: log the action and
+    // clean up the half-attached host instead of throwing (which crashes dsh).
+    const msg = cause instanceof Error ? cause.message : String(cause);
+    console.error(
+      `[monkey-mini-app] apps host failed to start on ${hostConfig.hostPort}: ${msg}\n` +
+        `  Free the port, or edit ${hostConfig.runtimeRoot}/host.json (hostPort) and restart.`,
+    );
+    await host.stop().catch(() => {});
+    return () => {};
+  }
   console.log(`[monkey-mini-app] apps host http://127.0.0.1:${port}`);
   console.log(`[monkey-mini-app] loaded · runtimeRoot=${hostConfig.runtimeRoot} · skill=${getSkillDir()}`);
   return () => {

@@ -43,18 +43,18 @@ describe("S2 · real HTTP socket end-to-end", () => {
       const html = await (await fetch(`${origin}/app/com.smoke.http`)).text();
       expect(html).toContain('id="root" class="boot"');
       expect(html).toContain("/api/app/\" + encodeURIComponent(APP_ID) + \"/ui/entry.js");
-      expect(html).toContain("/api/app/\" + encodeURIComponent(APP_ID) + \"/ui.css");
+      // the app shell loads the single shared stylesheet
+      expect(html).toContain("/ui.css");
 
       // /api/app/:id/ui/entry.js compiles
       const entry = await (await fetch(`${origin}/api/app/com.smoke.http/ui/entry.js`)).text();
       expect(entry.startsWith('{"error"')).toBe(false);
       expect(entry.length).toBeGreaterThan(2000);
 
-      // /ui.css + per-app ui.css both serve css
+      // the shared stylesheet serves the comprehensive Tailwind utilities
       const css = await (await fetch(`${origin}/ui.css`)).text();
       expect(css).toContain("--background");
-      const appCss = await (await fetch(`${origin}/api/app/com.smoke.http/ui.css`)).text();
-      expect(appCss).toContain("--background");
+      expect(css).toContain("lg\\:grid-cols-2");
 
       // theme set (POST) → read back (GET) → clear (POST null → follow global)
       const setTheme = (await (await fetch(`${origin}/api/apps/com.smoke.http/theme`, {

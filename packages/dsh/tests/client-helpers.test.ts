@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   appFrameUrl,
+  formToHostConfigBody,
+  hostConfigToForm,
+  parseAppsResponse,
+  parseCommitDetail,
+  parseCommitList,
+  parsePalettes,
+  parseStorageTables,
+  readJson,
+} from "@monkey-mini-app/panel";
+
+import {
   APPS_HOST_KEY,
   appsOrigin,
   originFromHostPort,
@@ -9,16 +20,9 @@ import {
   resolveAppsOrigin,
   writeStoredAppsOrigin,
 } from "../src/client/apps-host.ts";
-import {
-  formToHostConfigBody,
-  hostConfigToForm,
-  parseAppsResponse,
-  parseCommitList,
-} from "../src/client/http.ts";
 import { layoutBox, sideWidthPx } from "../src/client/layout-box.ts";
 import { isDarkFromProbes } from "../src/client/theme.ts";
 import { clampCardStyle, escapeHtml, luminanceOf } from "../src/client/utils.ts";
-import { DshPanelHost, type DshPanelHostHooks } from "../src/panel-host.ts";
 
 function memoryStorage(init: Record<string, string> = {}): Storage {
   const map = new Map(Object.entries(init));
@@ -35,27 +39,6 @@ function memoryStorage(init: Record<string, string> = {}): Storage {
     setItem: (k: string, v: string) => {
       map.set(k, v);
     },
-  };
-}
-
-function fakeHooks(overrides: Partial<DshPanelHostHooks> = {}): DshPanelHostHooks {
-  return {
-    origin: () => "http://127.0.0.1:17880",
-    setOrigin: () => undefined,
-    theme: () => "light",
-    palette: () => "tokyo",
-    dock: () => "fill",
-    cardStyle: () => "stamp",
-    setCardStyle: () => undefined,
-    persistThemeLocal: () => undefined,
-    openPanel: () => undefined,
-    closePanel: () => undefined,
-    mountFrame: () => undefined,
-    unmountFrame: () => undefined,
-    reloadFrame: () => undefined,
-    syncFramesEnv: () => undefined,
-    storage: () => null,
-    ...overrides,
   };
 }
 
@@ -85,24 +68,6 @@ describe("apps host / frame url", () => {
     writeStoredAppsOrigin(storage, "http://127.0.0.1:19191");
     expect(storage.getItem(APPS_HOST_KEY)).toBe("http://127.0.0.1:19191");
     expect(originFromHostPort(19191, "http://127.0.0.1:17880")).toBe("http://127.0.0.1:19191");
-  });
-});
-
-describe("DshPanelHost.frame.url", () => {
-  it("matches PanelHost frame.url → http://127.0.0.1:${port}/app/...", () => {
-    const host = new DshPanelHost(
-      fakeHooks({
-        origin: () => "http://127.0.0.1:17880",
-        theme: () => "dark",
-        palette: () => "default",
-        dock: () => "fill",
-      }),
-    );
-    const url = host.frame.url("com.example.todo");
-    expect(url).toMatch(/^http:\/\/127\.0\.0\.1:17880\/app\/com\.example\.todo\?/);
-    expect(typeof host.openPanel).toBe("function");
-    expect(typeof host.closePanel).toBe("function");
-    expect(typeof host.fetchApps).toBe("function");
   });
 });
 
@@ -142,6 +107,24 @@ describe("parse helpers", () => {
       { id: "abc", message: "m", time: "t", files: undefined },
     ]);
     expect(parseCommitList({ nodes: [{ id: "n1", message: "x", time: "now" }] })[0]?.id).toBe("n1");
+  });
+
+  it("parses palettes, storage and commit detail defaults", () => {
+    expect(parsePalettes({ palettes: [{ id: "x", custom: false }] })).toEqual([]);
+    expect(parsePalettes({ palettes: [{ id: "x", label: "X", tokens: { a: 1 } }] })[0]?.id).toBe("x");
+    expect(parseStorageTables({ tables: [{ name: "t", updatedAt: "now" }] })).toEqual([
+      { name: "t", size: undefined, updatedAt: "now" },
+    ]);
+    expect(parseCommitDetail({ commit: { id: "z" } }, "z").id).toBe("z");
+    expect(parseCommitDetail(null, "z")).toEqual({ id: "z", message: "", time: "", files: [] });
+  });
+
+  it("readJson throws on HTTP errors", async () => {
+    const orig = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response("{}", { status: 404, headers: { "content-type": "application/json" } })) as typeof fetch;
+    await expect(readJson("http://127.0.0.1/x")).rejects.toThrow(/HTTP 404/);
+    globalThis.fetch = orig;
   });
 });
 
