@@ -27,7 +27,7 @@ createHost(new DshCapabilities(ctx), new DshLifecycle(ctx), { config }).apply(ct
 ## 运行时布局
 
 `WorkspacePaths` 唯一拼路径。典型：`~/.monkey-mini-app/runtime/{host.json,apps/...}`。  
-运行时 **不发明** `host.json` 缺省；缺文件 → 跑 `scripts/install-dsh-mini-app.sh` 或 `pnpm exec tsx scripts/mma-init.ts`。
+插件首启对**缺失**的 `host.json` 自动 bootstrap 写完整缺省（无 `runtimeRoot`/`hostPort` 即用默认值）；对**已存在但损坏**的文件 fail loud。
 
 ## 安装
 

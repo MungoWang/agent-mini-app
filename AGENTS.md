@@ -36,7 +36,7 @@
 - 接缝名：`HostCapabilities` / `HostLifecycle` / `PanelHost`（不要再加 `Adapter` 主接缝）。
 - `HostCapabilities.*(callCtx, …)`；`bindCapsToContext` → 作者 `ctx.*`；opts 不 merge。
 - 路径只经 `WorkspacePaths`；业务代码禁止硬编码 `~/.monkey-mini-app`。
-- 配置：install / `mma-init` 写完整 `host.json`；运行时 `loadHostConfig` fail loud。
+- 配置：插件首启自动 `bootstrapHostConfig` 写完整 `host.json`（缺才建）；host.json 已存在但损坏仍 fail loud。
 - git：产品代码 `isomorphic-git`（`packages/host/src/git/`），禁止 `child_process` git CLI。
 - UI：host esbuild 打单文件 ESM；iframe 内不编译。
 - 旧包已删；快照 tag：`archive/pre-cutover-legacy-2026-08-29`。
@@ -55,7 +55,7 @@
 8. 小程序入口与「设置」同一套折叠 class；点入口用 `data-mma-open` 事件委托。
 9. 组件库 dist `index.js` 须为扁平具名 re-export；改导出名后重跑 `node scripts/build-ui.mjs`。
 10. esbuild-wasm 不可打包的依赖必须 external（dsh `tsup.config.ts` 已配）。
-11. 运行时不发明 `host.json` 缺省字段；缺文件提示跑 install / `mma-init`。
+11. 运行时不发明 `host.json` 缺省字段；插件首启对**缺失**文件自动 bootstrap 写完整 `host.json`；对**已存在但损坏**的文件 fail loud（不静默覆盖）。
 
 ## 代码风格（eslint，可 autofix）
 

@@ -1,3 +1,4 @@
+import { mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 
@@ -5,7 +6,6 @@ import {
   type AbsolutePath,
   asAbsolutePath,
   bootstrapHostConfig,
-  createHostI18n,
   type HostConfig,
   HostConfigError,
   loadHostConfig,
@@ -39,15 +39,10 @@ export function resolveRuntimeRoot(config: DshPluginConfig = {}): AbsolutePath {
   return bootstrapHostConfig({}).runtimeRoot;
 }
 
-function missingConfigError(file: string, cause?: unknown): HostConfigError {
-  const i18n = createHostI18n("zh-CN");
-  const message = `${i18n.t("config.missingFile", { path: file })} ${i18n.t("config.missingHint")}`;
-  return new HostConfigError(message, { code: "HOST_CONFIG_NOT_FOUND", cause });
-}
-
 /**
- * Runtime load: read host.json, no field defaults.
- * Missing file fails loud with an install/init hint.
+ * Runtime load: read host.json.
+ * A missing file is bootstrapped on first run (so `dsh plugin add` just works);
+ * a present-but-corrupt host.json still fails loud (never silently patched).
  */
 export function loadPluginHostConfig(config: DshPluginConfig = {}): HostConfig {
   const runtimeRoot = resolveRuntimeRoot(config);
@@ -55,8 +50,14 @@ export function loadPluginHostConfig(config: DshPluginConfig = {}): HostConfig {
   try {
     return loadHostConfig(paths);
   } catch (cause) {
+    // First run: bootstrap a complete host.json so `dsh plugin add` just works.
+    // A present-but-corrupt host.json still fails loud (we never silently patch it).
     if (cause instanceof HostConfigError && cause.code === "HOST_CONFIG_NOT_FOUND") {
-      throw missingConfigError(paths.hostConfigFile(), cause);
+      const cfg = bootstrapHostConfig({ runtimeRoot });
+      mkdirSync(cfg.runtimeRoot, { recursive: true });
+      mkdirSync(paths.appsDir(), { recursive: true });
+      writeFileSync(paths.hostConfigFile(), `${JSON.stringify(cfg, null, 2)}\n`);
+      return cfg;
     }
     throw cause;
   }

@@ -37,8 +37,8 @@ const config = loadHostConfig();      // fail loud — runtime invents no defaul
 const config = bootstrapHostConfig({ runtimeRoot, hostPort });  // tests
 ```
 
-A missing `host.json` is an error: run `scripts/install-dsh-mini-app.sh` or
-`pnpm exec tsx scripts/mma-init.ts`.
+A missing `host.json` is auto-bootstrapped by the dsh plugin on first run; a present-but-corrupt
+file still fails loud (the host never silently patches it).
 
 ## Per-UI compile
 

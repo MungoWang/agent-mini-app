@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,14 +22,11 @@ describe("plugin surface", () => {
 });
 
 describe("loadPluginHostConfig / apply", () => {
-  it("throws with an install hint when host.json is missing", async () => {
+  it("bootstraps a complete host.json when missing (first run)", () => {
     const dir = mkdtempSync(path.join(tmpdir(), "mma-dsh-"));
-    expect(() => loadPluginHostConfig({ runtimeRoot: dir })).toThrow(HostConfigError);
-    expect(() => loadPluginHostConfig({ runtimeRoot: dir })).toThrow(/host\.json/);
-    expect(() => loadPluginHostConfig({ runtimeRoot: dir })).toThrow(/安装脚本|mma init/);
-
-    await expect(apply({}, { runtimeRoot: dir })).rejects.toThrow(HostConfigError);
-    await expect(apply({}, { runtimeRoot: dir })).rejects.toThrow(/安装脚本|mma init/);
+    const cfg = loadPluginHostConfig({ runtimeRoot: dir });
+    expect(cfg.runtimeRoot).toBe(dir);
+    expect(existsSync(path.join(dir, "host.json"))).toBe(true);
   });
 
   it("does not invent theme/port when the file is partial", () => {

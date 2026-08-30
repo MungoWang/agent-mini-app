@@ -21,21 +21,16 @@
 ## 安装
 
 ```bash
-pnpm add @monkey-mini-app/dsh-mini-app
+dsh plugin --profile web add @monkey-mini-app/dsh-mini-app
 ```
 
-然后启用插件（Cordis）并打开 dsh web：
+然后打开 dsh web：
 
 ```bash
 dsh web --no-open   # http://127.0.0.1:3080 ；apps host 默认 :17880
 ```
 
-首次运行请先初始化运行时配置：
-
-```bash
-bash scripts/install-dsh-mini-app.sh
-# 或手动：pnpm exec tsx scripts/mma-init.ts
-```
+首次启动会自动初始化运行时配置（写出完整 `host.json`），侧栏即出现「小程序」入口。
 
 ## 使用
 
