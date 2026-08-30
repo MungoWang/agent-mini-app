@@ -1,6 +1,6 @@
 {
   "name": "@monkey-mini-app/host",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Agent-agnostic mini-app host: Host, apps, git, Hono HTTP, compile, tools facade",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,11 +14,12 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "tsup"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
-    "@monkey-mini-app/ui": "workspace:*",
+    "@monkey-mini-app/ui": "^0.1.0",
     "diff": "^9.0.0",
     "esbuild": "^0.28.2",
     "esbuild-wasm": "^0.25.12",
@@ -38,5 +39,9 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "bump": true
 }

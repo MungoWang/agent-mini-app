@@ -96,5 +96,8 @@
   "files": [
     "dist",
     "components.json"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
