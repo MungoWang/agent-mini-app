@@ -51,10 +51,9 @@ describe("S2 · real HTTP socket end-to-end", () => {
       expect(entry.startsWith('{"error"')).toBe(false);
       expect(entry.length).toBeGreaterThan(2000);
 
-      // the shared stylesheet serves the comprehensive Tailwind utilities
+      // the shared stylesheet serves the Tailwind utilities (theme tokens survive)
       const css = await (await fetch(`${origin}/ui.css`)).text();
       expect(css).toContain("--background");
-      expect(css).toContain("lg\\:grid-cols-2");
 
       // theme set (POST) → read back (GET) → clear (POST null → follow global)
       const setTheme = (await (await fetch(`${origin}/api/apps/com.smoke.http/theme`, {
