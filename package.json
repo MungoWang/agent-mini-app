@@ -16,7 +16,10 @@
     "tpl:check": "tsx scripts/check-templates.mts",
     "build:ui": "node scripts/build-ui.mjs",
     "publish:prep": "pnpm build:ui && pnpm skill:gen && pnpm --filter @monkey-mini-app/dsh-mini-app build",
-    "publish": "pnpm publish:prep && pnpm -r publish"
+    "publish": "pnpm publish:prep && pnpm -r publish",
+    "dsh:debug": "tsx scripts/dsh-debug-switch.mts debug",
+    "dsh:prod": "tsx scripts/dsh-debug-switch.mts prod",
+    "publish:packages": "tsx scripts/publish.mts"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
