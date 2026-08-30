@@ -1,21 +1,45 @@
 /**
- * Per-app Tailwind CSS compilation (reliable).
+ * Per-app Tailwind CSS compilation (in place, under a `.autogen` dir).
  *
- * Runtime mini-apps live OUTSIDE this repo, so any class they use that never appears in
- * the repo silently no-ops (Tailwind only scans within its project root). This re-runs
- * Tailwind against a COPY of the app dir (real files, NOT a symlink — symlinked dirs are
- * scanned unreliably and can drop classes) so every class the app actually uses — in
- * ui.tsx AND any sub-component /lib file — is present. Cached on disk keyed by the
- * mtime of every app source file (editing a sub-component invalidates).
+ * Each runtime app already lives in its own directory. Rather than copying the app into a
+ * temp scan dir (which broke `@source` — it resolves relative to the input.css's own dir,
+ * not `--cwd`), we compile in place:
+ *
+ *   <appDir>/.autogen/tailwind-gen.css   — build entry, host-written
+ *   <appDir>/.autogen/ui.css             — compiled output, host-written
+ *
+ * The `.autogen` marker makes it obvious these are generated artifacts (the app author / AI
+ * should not hand-edit them — any edit is overwritten on the next compile). The entry only
+ * emits the app's OWN utilities (import tailwindcss with source disabled + a source glob that
+ * scans the app root one level up), so responsive, arbitrary and app-only classes land here.
+ * The shared base (theme tokens + shadcn + repo utilities) is served separately at `/ui.css`,
+ * so we never import it by absolute path (Tailwind v4 strips that to a no-op), which keeps
+ * working after publish (the npm package ships `dist/` only).
+ *
+ * `tailwindcss` is a dependency of `@monkey-mini-app/ui`, so the CLI is resolvable at runtime.
+ * Because the app dir has no `node_modules`, we link `tailwindcss` into a SHARED runtime-root
+ * `node_modules` (an ancestor of every app), so the import resolves. Cached by comparing the
+ * app's source mtimes against the compiled `ui.css` mtime.
  */
 import { execFile } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 
 import type { WorkspacePaths } from "../paths/workspace-paths.ts";
 import { resolveUiDistDir } from "./ui-compiler.ts";
 
-const SCAN_DIR = ".mma-css-scan";
+const AUTOGEN = ".autogen";
+const GEN_CSS = "tailwind-gen.css";
+const UI_CSS = "ui.css";
 
 type TailwindBin = { bin: string; root: string };
 
@@ -35,18 +59,14 @@ function findTailwind(): TailwindBin {
   throw new Error("tailwindcss CLI not found (run: pnpm install && node scripts/build-ui.mjs)");
 }
 
-function findBaseCss(): string {
-  const dist = resolveUiDistDir();
-  for (const c of [
-    path.resolve(dist, "..", "src", "styles", "globals.css"),
-    path.resolve(dist, "..", "..", "src", "styles", "globals.css"),
-  ]) {
-    if (hasFile(c)) return c;
-  }
-  throw new Error("ui globals.css source not found next to the ui dist");
+/** Resolve the tailwindcss package dir from a tailwind project root (has .bin/tailwindcss). */
+function resolveTailwindPackage(root: string): string {
+  const req = createRequire(path.join(root, "package.json"));
+  const pkgJson = req.resolve("tailwindcss/package.json");
+  return path.dirname(pkgJson);
 }
 
-/** All app source files whose classes belong in the app's css (UI + sub-components, not main.api.ts/manifest). */
+/** All app source files whose classes belong in the app's css (UI + sub-components). */
 function appFiles(appDir: string): string[] {
   const out: string[] = [];
   const walk = (dir: string): void => {
@@ -57,6 +77,7 @@ function appFiles(appDir: string): string[] {
       return;
     }
     for (const n of names) {
+      if (n === AUTOGEN || n === "node_modules") continue;
       const p = path.join(dir, n);
       let st;
       try {
@@ -65,7 +86,6 @@ function appFiles(appDir: string): string[] {
         continue;
       }
       if (st.isDirectory()) {
-        if (p.includes("node_modules") || p.includes("/storage")) continue;
         walk(p);
       } else if (/\.(ts|tsx|js|jsx)$/.test(n) && !/\.(test|spec)\./.test(n)) {
         out.push(p);
@@ -76,109 +96,85 @@ function appFiles(appDir: string): string[] {
   return out;
 }
 
-function cacheSig(appDir: string): string {
+function maxMtime(appDir: string): number {
   let max = 0;
-  let count = 0;
   for (const fp of appFiles(appDir)) {
     try {
       const t = statSync(fp).mtimeMs;
       if (t > max) max = t;
-      count++;
     } catch {
       /* missing */
     }
   }
-  return `${max.toString(36)}-${count.toString(36)}`;
-}
-
-function cacheKey(appDir: string, sig: string): string {
-  const id = path.basename(path.resolve(appDir)).replace(/[^A-Za-z0-9_-]/g, "_");
-  return `${id}-${sig}`;
+  return max;
 }
 
 function run(bin: string, args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
     execFile(bin, args, (err, _stdout, stderr) => {
-      if (err) reject(new Error((stderr || err.message).slice(0, 400)));
+      if (err) reject(new Error((stderr || err.message).slice(0, 600)));
       else resolve();
     });
   });
 }
 
 export class AppCssCompiler {
-  private readonly cache = new Map<string, { sig: string; css: string }>();
+  private readonly cache = new Map<string, string>();
 
   constructor(private readonly paths: WorkspacePaths) {}
 
   async compile(appDir: string): Promise<string> {
-    const sig = cacheSig(appDir);
     const hit = this.cache.get(appDir);
-    if (hit && hit.sig === sig) return hit.css;
+    if (hit !== undefined) return hit;
 
-    const cacheDir = path.join(this.paths.uiCacheDir(), cacheKey(appDir, sig));
-    const cached = path.join(cacheDir, "styles.css");
-    try {
-      if (hasFile(cached)) {
-        const css = readFileSync(cached, "utf8");
-        this.cache.set(appDir, { sig, css });
-        return css;
-      }
-    } catch {
-      /* rebuild */
+    const genCss = path.join(appDir, AUTOGEN, GEN_CSS);
+    const uiCss = path.join(appDir, AUTOGEN, UI_CSS);
+    const maxSrc = maxMtime(appDir);
+
+    // Cache = the app's own generated ui.css; recompile only when a source file is newer or
+    // the output is absent (so a hand-edit to ui.css is always overwritten by the next compile).
+    if (maxSrc > 0 && existsSync(uiCss) && statSync(uiCss).mtimeMs >= maxSrc) {
+      const css = readFileSync(uiCss, "utf8");
+      this.cache.set(appDir, css);
+      return css;
     }
 
-    const tailwind = findTailwind();
-    const css = await this.buildCss(appDir, tailwind);
-    try {
-      mkdirSync(cacheDir, { recursive: true });
-      writeFileSync(cached, css);
-    } catch {
-      /* cache write non-fatal */
-    }
-    this.cache.set(appDir, { sig, css });
+    const css = await this.buildCss(appDir, genCss, uiCss);
+    this.cache.set(appDir, css);
     return css;
   }
 
-  private async buildCss(appDir: string, tw: TailwindBin): Promise<string> {
-    const baseCss = findBaseCss();
-    const id = path.basename(path.resolve(appDir)).replace(/[^A-Za-z0-9_-]/g, "_");
-    // Copy the app dir into the tailwind project root (real files — no symlink, which
-    // the Oxide scanner scans unreliably) and @source a RELATIVE path (Tailwind only
-    // walks paths inside the project root). Per-app subdir avoids concurrency races.
-    const scanBase = path.join(tw.root, SCAN_DIR);
-    const scanApp = path.join(scanBase, id);
-    const workDir = path.join(this.paths.uiCacheDir(), "css");
-    const input = path.join(workDir, "input.css");
-    const output = path.join(workDir, "styles.css");
+  private async buildCss(appDir: string, genCss: string, uiCss: string): Promise<string> {
+    const tw = findTailwind();
+    this.ensureTailwindLink(tw);
+    mkdirSync(path.dirname(genCss), { recursive: true });
 
-    mkdirSync(scanBase, { recursive: true });
-    mkdirSync(workDir, { recursive: true });
-    rmSync(scanApp, { recursive: true, force: true });
+    writeFileSync(
+      genCss,
+      [
+        '@import "tailwindcss" source(none);',
+        '@source "../*.{ts,tsx,js,jsx}";',
+        '@source "../**/*.{ts,tsx,js,jsx}";',
+      ].join("\n") + "\n",
+    );
+
+    await run(tw.bin, ["-i", genCss, "-o", uiCss, "--minify", "--cwd", appDir]);
+    return readFileSync(uiCss, "utf8");
+  }
+
+  /** Link tailwindcss into a shared runtime-root node_modules so every app can resolve it. */
+  private ensureTailwindLink(tw: TailwindBin): void {
+    const parent = path.join(this.paths.root, "node_modules");
+    const link = path.join(parent, "tailwindcss");
+    if (existsSync(link)) return;
+    mkdirSync(parent, { recursive: true });
+    let target = path.join(parent, "tailwindcss");
     try {
-      cpSync(appDir, scanApp, { recursive: true });
-    } catch (cause) {
-      throw new Error(`app css copy failed: ${cause instanceof Error ? cause.message : String(cause)}`);
+      target = resolveTailwindPackage(tw.root);
+    } catch {
+      /* leave target as-is; symlink below will fail loudly if unresolvable */
     }
-
-    const inputSrc = [
-      `@import "${baseCss}";`,
-      `@source "./${SCAN_DIR}/${id}/**/*.{ts,tsx}";`,
-    ].join("\n") + "\n";
-    writeFileSync(input, inputSrc);
-
-    let stdoutText = "";
-    try {
-      await run(tw.bin, ["-i", input, "-o", output, "--minify", "--cwd", tw.root]);
-      stdoutText = readFileSync(output, "utf8")
-        .split("url(./files/")
-        .join("url(/files/");
-    } catch (cause) {
-      const message = cause instanceof Error ? cause.message : String(cause);
-      throw new Error(`app css failed: ${message}`, { cause });
-    } finally {
-      rmSync(scanApp, { recursive: true, force: true });
-    }
-    return stdoutText;
+    symlinkSync(target, link, "dir");
   }
 }
 

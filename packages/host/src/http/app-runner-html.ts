@@ -75,6 +75,12 @@ const APP_ID = ${safe};
   });
 })();
 // Per-app stylesheet: shared base (theme + components) + the app's own utilities.
+// Shared base (theme tokens + shadcn + repo utilities) first, then the app's own utilities
+// (responsive / arbitrary / app-only classes) compiled into the app's stylesheet.
+const baseCss = document.createElement("link");
+baseCss.rel = "stylesheet";
+baseCss.href = "/ui.css";
+document.head.appendChild(baseCss);
 const cssLink = document.createElement("link");
 cssLink.rel = "stylesheet";
 cssLink.href = "/api/app/" + encodeURIComponent(APP_ID) + "/ui.css";

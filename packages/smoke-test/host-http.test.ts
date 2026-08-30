@@ -53,8 +53,9 @@ describe("S2 · real HTTP socket end-to-end", () => {
 
       // per-app stylesheet carries the theme tokens + the app's own utility classes
       const appCss = await (await fetch(`${origin}/api/app/com.smoke.http/ui.css`)).text();
-      expect(appCss).toContain("--background");
+      // per-app stylesheet carries the app's OWN utilities (theme lives in the shared base)
       expect(appCss).toContain(".p-4");
+      expect(appCss).not.toContain("--background");
 
       // shared stylesheet still serves the repo-wide Tailwind base
       const css = await (await fetch(`${origin}/ui.css`)).text();

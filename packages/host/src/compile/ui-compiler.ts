@@ -198,7 +198,7 @@ function walkMtime(dir: string, bump: (fp: string) => void): void {
     const full = path.join(dir, n);
     const st = fs.statSync(full);
     if (st.isDirectory()) {
-      if (n === "storage" || n === ".git" || n === "node_modules" || n === ".ui-build") continue;
+      if (n === "storage" || n === ".git" || n === "node_modules" || n === ".ui-build" || n === ".autogen") continue;
       walkMtime(full, bump);
     } else if (/\.(tsx?|jsx?|json|css)$/.test(n)) {
       bump(full);

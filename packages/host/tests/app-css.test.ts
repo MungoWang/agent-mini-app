@@ -50,8 +50,8 @@ describe("per-app Tailwind CSS", () => {
     }
     // Responsive variants must also be generated (Tailwind v4 @source content scan).
     expect(css).toContain("\\:grid-cols-2");
-    // Theme tokens survive so dark/light + palette still work.
-    expect(css).toContain("--background");
+    // The per-app sheet carries the app's utilities only — the theme lives in the shared base.
+    expect(css).not.toContain("--background");
   }, 60_000);
 
   it("serves the shared /ui.css for apps with no ui.tsx", async () => {

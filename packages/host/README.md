@@ -43,11 +43,13 @@ A missing `host.json` is an error: run `scripts/install-dsh-mini-app.sh` or
 ## Per-UI compile
 
 Each app's `ui.tsx` is compiled to a self-contained ESM bundle, and its **own** Tailwind
-stylesheet is generated per app (`/api/app/:id/ui.css`): the host copies the app's UI
-source into a temp scan dir inside the project root and `@source`s it, so every app class
-— base, responsive (`lg:grid-cols-2`) and arbitrary (`w-[320px]`) — lands in that app's
-stylesheet while theme tokens + repo utilities come from the base. Apps without a
-`ui.tsx` fall back to the shared `globals.css`.
+stylesheet is generated in place under `/.autogen/` (`tailwind-gen.css` + `ui.css`). The
+authoring entry imports `tailwindcss` (source scan disabled) and `@source`s the app root, so
+every app-only class — responsive (`lg:grid-cols-2`), arbitrary (`w-[320px]`) and unique —
+lands in that app's sheet. The shared base (theme tokens + shadcn + repo utilities) is
+served separately at `/ui.css`; the iframe loads `/ui.css` first, then the app's sheet. Apps
+without a `ui.tsx` fall back to the shared `globals.css`. `tailwindcss` is resolved via a
+shared runtime-root `node_modules` link so it works outside the repo and after publish.
 
 ## HTTP
 
