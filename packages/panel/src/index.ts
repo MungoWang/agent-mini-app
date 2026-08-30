@@ -12,6 +12,10 @@ export { ThemePop } from "./components/ThemePop.tsx";
 export { Toolbar } from "./components/Toolbar.tsx";
 export { PanelProvider, usePanelActions, usePanelI18n } from "./context.tsx";
 export { PanelError } from "./errors.ts";
+export type { FrameController, FrameControllerOptions, FrameEnv, FrameRecord } from "./frame.ts";
+export { createFrameController } from "./frame.ts";
+export type { HostShellInstance, HostShellOptions } from "./host-shell.ts";
+export { createHostShell } from "./host-shell.ts";
 export type { I18nParams, PanelI18n } from "./i18n.ts";
 export { createPanelI18n, resolvePanelLocale } from "./i18n.ts";
 export { appBlurb, hue, monoOf } from "./lib.ts";
@@ -19,12 +23,8 @@ export type { CreateMiniAppPanelOptions, PanelInstance } from "./panel.tsx";
 export { createMiniAppPanel } from "./panel.tsx";
 export type { Palette, PanelHost } from "./panel-host.ts";
 export { capabilitiesOf } from "./panel-host.ts";
-export { createRestPanelHost, appFrameUrl, parseAppsResponse, parseCommitList, parseCommitDetail, parseStorageTables, parsePalettes, hostConfigToForm, formToHostConfigBody, readJson } from "./rest.ts";
 export type { RestOptions } from "./rest.ts";
-export { createFrameController } from "./frame.ts";
-export type { FrameController, FrameControllerOptions, FrameEnv, FrameRecord } from "./frame.ts";
-export { createHostShell } from "./host-shell.ts";
-export type { HostShellInstance, HostShellOptions } from "./host-shell.ts";
+export { appFrameUrl, createRestPanelHost, formToHostConfigBody, hostConfigToForm, parseAppsResponse, parseCommitDetail, parseCommitList, parsePalettes, parseStorageTables, readJson } from "./rest.ts";
 export {
   getPanelState,
   resetPanelState,

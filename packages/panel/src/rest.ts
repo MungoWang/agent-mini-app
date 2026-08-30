@@ -7,6 +7,7 @@
  * the same `PanelHost` by wrapping this. All data/HTTP logic lives here; the panel
  * never contains /api strings.
  */
+import type { Palette, PanelHost as PanelHostIF } from "./panel-host.ts";
 import type {
   AppItem,
   CardStyle,
@@ -14,7 +15,6 @@ import type {
   LocaleId,
   StorageTable,
 } from "./types.ts";
-import type { Palette, PanelHost as PanelHostIF } from "./panel-host.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

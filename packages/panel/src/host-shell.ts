@@ -9,12 +9,12 @@
  *
  * Both the dsh plugin and a standalone apps/react-host SPA use this.
  */
-import { createMiniAppPanel, type PanelInstance } from "./panel.tsx";
-import { applyThemeTo } from "./themes.ts";
-import { createRestPanelHost, appFrameUrl } from "./rest.ts";
 import { createFrameController, type FrameController } from "./frame.ts";
+import { createMiniAppPanel, type PanelInstance } from "./panel.tsx";
 import type { PanelHost } from "./panel-host.ts";
+import { appFrameUrl,createRestPanelHost } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
+import { applyThemeTo } from "./themes.ts";
 import type { CardStyle, DockId } from "./types.ts";
 
 export type HostShellOptions = {
