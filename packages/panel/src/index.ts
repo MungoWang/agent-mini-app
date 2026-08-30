@@ -19,6 +19,12 @@ export type { CreateMiniAppPanelOptions, PanelInstance } from "./panel.tsx";
 export { createMiniAppPanel } from "./panel.tsx";
 export type { Palette, PanelHost } from "./panel-host.ts";
 export { capabilitiesOf } from "./panel-host.ts";
+export { createRestPanelHost, appFrameUrl, parseAppsResponse, parseCommitList, parseCommitDetail, parseStorageTables, parsePalettes, hostConfigToForm, formToHostConfigBody, readJson } from "./rest.ts";
+export type { RestOptions } from "./rest.ts";
+export { createFrameController } from "./frame.ts";
+export type { FrameController, FrameControllerOptions, FrameEnv, FrameRecord } from "./frame.ts";
+export { createHostShell } from "./host-shell.ts";
+export type { HostShellInstance, HostShellOptions } from "./host-shell.ts";
 export {
   getPanelState,
   resetPanelState,
