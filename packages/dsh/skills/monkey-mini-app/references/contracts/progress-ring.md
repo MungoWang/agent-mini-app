@@ -10,4 +10,6 @@
 
 | field | type | required | note |
 |---|---|:---:|---|
+| `className` | `string \| undefined` |  |  |
+| `size` | `number \| undefined` |  |  |
 | `value` | `number` | ✓ |  |

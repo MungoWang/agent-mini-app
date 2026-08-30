@@ -11,4 +11,5 @@
 | field | type | required | note |
 |---|---|:---:|---|
 | `label` | `string \| undefined` |  |  |
+| `size` | `number \| undefined` |  |  |
 | `value` | `number` | ✓ |  |

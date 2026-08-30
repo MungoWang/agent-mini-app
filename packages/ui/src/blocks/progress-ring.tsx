@@ -1,4 +1,14 @@
-export function ProgressRing({ value }: { value: number }) {
+import { cn } from "../lib/utils"
+
+export function ProgressRing({
+  value,
+  size = 40,
+  className,
+}: {
+  value: number
+  size?: number
+  className?: string
+}) {
   const clamped = Math.min(100, Math.max(0, value))
   const r = 16
   const c = 2 * Math.PI * r
@@ -7,7 +17,8 @@ export function ProgressRing({ value }: { value: number }) {
     <svg
       data-testid="progress-ring"
       viewBox="0 0 40 40"
-      className="size-10 -rotate-90"
+      style={{ width: size, height: size }}
+      className={cn("-rotate-90", className)}
     >
       <circle cx="20" cy="20" r={r} className="fill-none stroke-muted" strokeWidth="4" />
       <circle

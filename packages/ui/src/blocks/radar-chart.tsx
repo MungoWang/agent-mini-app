@@ -19,7 +19,7 @@ export function RadarChart({
   dataKey?: string
 }) {
   return (
-    <ChartContainer config={config} className="mx-auto aspect-square h-56" data-testid="radar-chart">
+    <ChartContainer config={config} className="mx-auto aspect-square w-full max-w-80" data-testid="radar-chart">
       <ReRadar data={data}>
         <PolarGrid />
         <PolarAngleAxis dataKey="label" />

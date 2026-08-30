@@ -19,7 +19,7 @@ export function StackedBarChart({
   keys: string[]
 }) {
   return (
-    <ChartContainer config={config} className="h-56 w-full" data-testid="bar-chart">
+    <ChartContainer config={config} className="aspect-video w-full" data-testid="bar-chart">
       <ReBar accessibilityLayer data={data}>
         <CartesianGrid vertical={false} />
         <XAxis dataKey="label" tickLine={false} axisLine={false} />

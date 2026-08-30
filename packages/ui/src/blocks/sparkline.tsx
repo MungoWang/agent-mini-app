@@ -10,7 +10,7 @@ const config = {
 
 export function Sparkline({ data }: { data: { value: number }[] }) {
   return (
-    <ChartContainer config={config} className="h-10 w-24" data-testid="sparkline">
+    <ChartContainer config={config} className="h-20 w-full" data-testid="sparkline">
       <LineChart data={data}>
         <Line dataKey="value" type="monotone" stroke="var(--color-value)" strokeWidth={1.5} dot={false} />
       </LineChart>

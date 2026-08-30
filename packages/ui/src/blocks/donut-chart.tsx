@@ -22,7 +22,7 @@ export function DonutChart({
 }) {
   return (
     <div className="relative" data-testid="donut-chart">
-      <ChartContainer config={config} className="mx-auto aspect-square h-48">
+      <ChartContainer config={config} className="mx-auto aspect-square w-full max-w-80">
         <PieChart>
           <ChartTooltip content={<ChartTooltipContent hideLabel />} />
           <Pie data={data} dataKey="value" nameKey="name" innerRadius={50} />
