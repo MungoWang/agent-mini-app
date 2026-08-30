@@ -1,0 +1,6 @@
+{
+  "config": {
+    "missingFile": "Host config file not found: {{path}}",
+    "missingHint": "Run the install script or mma init to create host.json."
+  }
+}

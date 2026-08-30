@@ -44,8 +44,9 @@ dsh plugin --profile web remove @monkey-mini-app/dsh-monkey-mini-app
 
 | Tool | Purpose |
 |------|---------|
-| `mini_app_list` / `mini_app_get` / `mini_app_validate` | Discover apps |
-| `mini_app_register` | Register file map into runtime |
+| `mini_app_list` / `mini_app_get` / `mini_app_reload` | Discover apps; reload = validate + sync compile |
+| `mini_app_register` | Create scaffold (manifest required) |
+| `mini_app_read` / `edit` / `write` / `delete` / `list_files` | Edit existing app sources |
 | `mini_app_open` / `list_tabs` / `focus` / `close_tab` | Multi-tab host |
 | `mini_app_history_*` | commit / list tree / reset / revert |
 | `mini_app_set_theme` | Host theme |

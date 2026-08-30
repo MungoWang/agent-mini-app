@@ -143,7 +143,7 @@ export default defineDashboard({
 | `tool(name, args)` | **string** | args 普通 JSON 对象，禁止 `{ input }` / Date / function。宿主调 **tool 定义的 execute(args, exec)**，不要把 dsh `tools.execute` 当成 `(name, args)` |
 | `mcp(name, args?)` | string | 不要 `mcp_` 前缀 |
 | `llm(prompt, opts?)` | **string** | 见下 |
-| `agent(goal, opts?)` | string | 有 agents 用 agents，否则 loop llm |
+| `agent(goal, opts?)` | string | dsh：one-shot `agents.create`（见 skill `ctx.md`）；过程流式演进见 [`agent-capability.md`](./agent-capability.md) |
 
 ### LLM
 

@@ -1,0 +1,8 @@
+{
+  "id": "com.example.sysmon",
+  "name": "系统监控",
+  "description": "CPU、内存、磁盘和进程",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "theme": { "followsHost": true }
+}

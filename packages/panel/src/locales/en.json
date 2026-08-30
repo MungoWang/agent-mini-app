@@ -1,0 +1,92 @@
+{
+  "tabs": {
+    "all": "All",
+    "allTitle": "All mini apps",
+    "close": "Close {{title}}"
+  },
+  "toolbar": {
+    "delete": "Delete",
+    "reload": "Reload",
+    "theme": "Theme",
+    "history": "History",
+    "storage": "Storage",
+    "settings": "Settings",
+    "dockFill": "Fill main area",
+    "dockSide": "Pin to chat right",
+    "close": "Close"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "custom": "Custom",
+    "global": "Global",
+    "currentApp": "Current app",
+    "openAppFirst": "Open an app first",
+    "saveTo": "Save to \"{{name}}\"",
+    "followGlobal": "Follow global (clear app theme)"
+  },
+  "palette": {
+    "default": "Default",
+    "tokyo": "Tokyo Night",
+    "forest": "Everforest",
+    "matcha": "Strawberry Matcha",
+    "yellow": "Yellow Pill",
+    "zoro": "Three Swords",
+    "hokage": "Hokage Dawn",
+    "slate": "Slate"
+  },
+  "list": {
+    "title": "Mini apps",
+    "count": "{{count}} apps",
+    "search": "Search mini apps",
+    "open": "Open",
+    "commits": "{{count}} commits",
+    "loadError": "Failed to load list: {{message}}",
+    "retry": "Retry",
+    "empty": "No mini apps yet.",
+    "noMatch": "No mini apps matching \"{{query}}\"."
+  },
+  "settings": {
+    "title": "Settings",
+    "hostPort": "Host port",
+    "language": "Language",
+    "langZh": "Chinese",
+    "langEn": "English",
+    "theme": "Theme",
+    "palette": "Palette",
+    "cardStyle": "Card style",
+    "cardStamp": "Stamp",
+    "cardEtch": "Etch",
+    "cardHero": "Hero",
+    "cardList": "List",
+    "llmProvider": "LLM Provider",
+    "llmModel": "LLM model",
+    "save": "Save"
+  },
+  "modal": {
+    "title": "Delete mini app",
+    "body": "This will delete \"{{name}}\" and its local data. This cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Delete"
+  },
+  "browse": {
+    "history": "History",
+    "storage": "Storage",
+    "close": "Close",
+    "loading": "Loading…",
+    "files": "{{count}} files",
+    "back": "← Back",
+    "noFiles": "No file changes",
+    "noCommits": "No commits yet",
+    "noStorage": "No storage files",
+    "expandMsg": "Show more",
+    "collapseMsg": "Show less"
+  },
+  "load": {
+    "label": "Loading"
+  },
+  "config": {
+    "saved": "Saved",
+    "error": "✗ {{message}}"
+  }
+}

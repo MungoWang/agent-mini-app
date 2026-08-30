@@ -1,0 +1,6 @@
+{
+  "config": {
+    "missingFile": "未找到 host 配置文件：{{path}}",
+    "missingHint": "请先运行安装脚本或 mma init 生成 host.json。"
+  }
+}

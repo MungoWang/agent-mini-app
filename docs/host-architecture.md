@@ -1,5 +1,9 @@
 # MiniApp Host 架构大纲（host-core · createHost）
 
+> **2026-08-29 foundation:** parallel packages `host` / `panel` / `dsh-mini-app` are specified in [docs/superpowers/specs/2026-08-29-mma-next-foundation-design.md](./superpowers/specs/2026-08-29-mma-next-foundation-design.md). This outline describes the **legacy** `host-core` stack, kept until cutover (Task 10).
+>
+> 相关后续调研：PI 宿主 → [pi-extension-port.md](./pi-extension-port.md)；`ctx.agent` 流式演进 → [agent-capability.md](./agent-capability.md)。
+>
 > 状态：**大纲**（2026-09；2026-08-29 五包合并）。dotnet HostBuilder 风格的组合根：`createHost(adapter, options)` → host 实例 → 生命周期方法。
 > 目标：host-core 是 **agent 无关**的 host 能力库；任何 agent（dsh / PI）只实现一个 adapter 插件实例即可获得完整 mini-app host。
 

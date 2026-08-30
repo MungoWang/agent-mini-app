@@ -1,0 +1,6 @@
+# monkey-mini-app — installable dsh profile bundle layer
+# Official shape: https://deepseek-harness.github.io/deepseek-harness/en/develop/basic/publish
+- insert:
+    - id: monkey-mini-app
+      name: "@monkey-mini-app/dsh-mini-app"
+      config: {}

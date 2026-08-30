@@ -1,0 +1,8 @@
+{
+  "id": "com.example.news",
+  "name": "今日摘要",
+  "description": "拉取公开头条，整理成三条要点",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "theme": { "followsHost": true }
+}

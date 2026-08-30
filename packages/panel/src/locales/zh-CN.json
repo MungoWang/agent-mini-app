@@ -1,0 +1,92 @@
+{
+  "tabs": {
+    "all": "全部",
+    "allTitle": "全部小程序",
+    "close": "关闭 {{title}}"
+  },
+  "toolbar": {
+    "delete": "删除",
+    "reload": "重新加载",
+    "theme": "主题",
+    "history": "提交历史",
+    "storage": "存储",
+    "settings": "设置",
+    "dockFill": "铺满主区",
+    "dockSide": "钉到聊天右侧",
+    "close": "关闭"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "custom": "自定义",
+    "global": "全局",
+    "currentApp": "当前小程序",
+    "openAppFirst": "打开小程序后可用",
+    "saveTo": "保存到「{{name}}」",
+    "followGlobal": "跟随全局（清除本应用主题）"
+  },
+  "palette": {
+    "default": "默认",
+    "tokyo": "东京夜",
+    "forest": "苔原",
+    "matcha": "草莓抹茶",
+    "yellow": "药丸黄",
+    "zoro": "三刀流",
+    "hokage": "火影黎明",
+    "slate": "石墨"
+  },
+  "list": {
+    "title": "小程序",
+    "count": "{{count}} 个",
+    "search": "搜索小程序",
+    "open": "已打开",
+    "commits": "{{count}} commits",
+    "loadError": "列表加载失败：{{message}}",
+    "retry": "重试",
+    "empty": "还没有小程序。",
+    "noMatch": "没有匹配「{{query}}」的小程序。"
+  },
+  "settings": {
+    "title": "设置",
+    "hostPort": "Host 端口",
+    "language": "界面语言",
+    "langZh": "中文",
+    "langEn": "English",
+    "theme": "主题",
+    "palette": "调色板",
+    "cardStyle": "卡片样式",
+    "cardStamp": "印章",
+    "cardEtch": "蚀刻",
+    "cardHero": "海报",
+    "cardList": "列表",
+    "llmProvider": "LLM Provider",
+    "llmModel": "LLM 模型",
+    "save": "保存"
+  },
+  "modal": {
+    "title": "删除小程序",
+    "body": "将删除「{{name}}」及其本地数据，无法撤销。",
+    "cancel": "取消",
+    "confirm": "删除"
+  },
+  "browse": {
+    "history": "提交历史",
+    "storage": "存储",
+    "close": "关闭",
+    "loading": "加载中…",
+    "files": "{{count}} 个文件",
+    "back": "← 返回",
+    "noFiles": "无文件改动",
+    "noCommits": "暂无提交记录",
+    "noStorage": "暂无存储文件",
+    "expandMsg": "展开全文",
+    "collapseMsg": "收起"
+  },
+  "load": {
+    "label": "加载中"
+  },
+  "config": {
+    "saved": "已保存",
+    "error": "✗ {{message}}"
+  }
+}

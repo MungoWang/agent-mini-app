@@ -26,8 +26,8 @@
 | `bash(command)` | string | `{ stdout, stderr, exitCode }` | 本地 `bash -c` 120s/8MB → dsh `shell.run`。给本机命令用，**不要** `curl` | `bash unavailable` |
 | `tool(name, args)` | args **普通对象**，禁止 `{input}` | **string** | dsh tools | `tool: ctx.tools not available` |
 | `mcp(name, args?)` | 不要 `mcp_` 前缀 | string | `tool(name)` 再 `tool("mcp__"+name)`。dsh 登记名是 `mcp__<server>__<tool>`，例如 `ctx.mcp("everything__echo", { message: "hi" })` | 第一次错误 |
-| `llm(prompt, opts?)` | `opts: { model?, provider?, schema?, system? }` | **string** | 1) `ctx.llm.stream` 2) complete/chat 3) OpenAI HTTP | `llm unavailable: ...` / `llm http N` / `llm stream empty` |
-| `agent(goal, opts?)` | `opts: { maxIterations?, schema? }` | string | agents.run/spawn 否则 loop llm | 同 llm |
+| `llm(prompt, opts?)` | 见下方 **ModelCallOptions** | **string** | dsh `llm.stream` | `llm: no dsh model service` / `llm stream empty` |
+| `agent(goal, opts?)` | **ModelCallOptions** + `onEvent?`（见下） | **string** | dsh one-shot agent（与聊天 session 隔离）；可用工具循环。不要用多次 `ctx.llm` 假装 agent | `agent: … unbound` / `empty result` / `cancelled` |
 
 ```ts
 const r = await ctx.http("https://example.com/api", {
@@ -42,15 +42,69 @@ const data = r.json ?? JSON.parse(r.text);
 
 POST：`ctx.http(url, { method: "POST", body: { a: 1 } })`（对象会 JSON 编码）。RSS/HTML 用 `r.text`。
 
-### LLM 路由
+### ModelCallOptions（`llm` / `agent` 共用最小集合）
 
-`opts.provider/model` → `~/.monkey-mini-app/runtime/llm.json` → 默认 `deepseek-official` / `deepseek-v4-flash`。
+```ts
+type ModelCallOptions = {
+  provider?: string;   // 默认跟 dsh 当前模型；可不传
+  model?: string;
+  system?: string;
+  schema?: object;     // JSON Schema；要对象时用，再 JSON.parse 返回值
+  maxTokens?: number;
+  signal?: AbortSignal; // api 调用里通常已有 ctx.signal，可省略
+};
 
-dsh 聊天模型走 **`llm.stream({ provider, model, messages })`**。不要因为没看到 `DEEPSEEK_API_KEY` 就认定不能总结。
+// llm
+await ctx.llm(prompt, opts?: ModelCallOptions): Promise<string>
 
-`opts.schema`：宿主要求只回 JSON（无 markdown）；返回仍是 **字符串**，自己 `JSON.parse`。完整例子 [llm-json.md](llm-json.md)。
+// agent = ModelCallOptions + onEvent + maxIterations + cwd
+await ctx.agent(goal, opts?: ModelCallOptions & {
+  /** Soft turn cap: host cancels after this many completed turns. */
+  maxIterations?: number;
+  onEvent?: (ev: AgentEvent) => void;
+  /**
+   * Working dir mode (default "process").
+   * app = 当前小程序目录；process = dsh 启动目录；temp = 临时目录；custom = 配 cwd 绝对路径。
+   * 只传 cwd 路径 ⇒ 视为 custom。cwd + 非 custom 的 cwdType ⇒ 报错。
+   */
+  cwdType?: "app" | "process" | "temp" | "custom";
+  cwd?: string; // 绝对路径；custom 必填，或单独传
+}): Promise<string>
+```
 
-给模型的提示宜短：要最终答案、要 JSON 就走 `schema`，不必再堆「不要解释」。
+路由：`opts.provider/model` → dsh 当前 `agent-default-model` → `deepseek-official` / `deepseek-v4-flash`。不必改 `host.json`。
+
+### `opts.schema`（llm + agent）
+
+软约束「只回 JSON」+ 剥 markdown；**返回仍是 string**，`JSON.parse`。例子 → [llm-json.md](llm-json.md)。提示宜短，约束交给 schema。
+
+### `opts.onEvent`（仅 agent）— 过程事件完整形状
+
+返回值仍是最终 string；`onEvent` 只观测过程。UI 用 storage 轮询即可：
+
+```ts
+type AgentEvent =
+  | { type: "status"; status: "running" | "idle" }
+  | { type: "text-delta"; text: string }
+  | { type: "tool"; phase: "start" | "end"; name: string; args?: unknown; result?: unknown }
+  | { type: "turn"; phase: "start"; turn: number }
+  | { type: "turn"; phase: "end"; turn: number; reason?: { kind: string; error?: unknown; reason?: unknown } }
+  // reason.kind 常见：completed | blocked | error | aborted | max-tokens
+  | { type: "error"; message: string }
+  | { type: "done"; text: string };
+
+const trace = [];
+const text = await ctx.agent("根据材料给出洞察", {
+  schema: { type: "object", properties: { summary: { type: "string" } }, required: ["summary"] },
+  onEvent: (ev) => {
+    trace.push(ev);
+    void ctx.storage.set("agentTrace", trace);
+  },
+});
+const insight = JSON.parse(text);
+```
+
+`ctx.agent` 与用户聊天 session 隔离（ephemeral，跑完 dispose）。
 
 
 ## 列出当前 tool

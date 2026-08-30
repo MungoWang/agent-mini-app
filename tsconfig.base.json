@@ -20,6 +20,9 @@
       "@monkey-mini-app/panel-core": [
         "packages/panel-core/src/index.ts"
       ],
+      "@monkey-mini-app/panel": [
+        "packages/panel/src/index.ts"
+      ],
       "@monkey-mini-app/ui": [
         "packages/ui/src/index.ts"
       ],
@@ -28,6 +31,12 @@
       ],
       "@monkey-mini-app/host-core": [
         "packages/host-core/src/index.ts"
+      ],
+      "@monkey-mini-app/host": [
+        "packages/host/src/index.ts"
+      ],
+      "@monkey-mini-app/dsh-mini-app": [
+        "packages/dsh/src/index.ts"
       ]
     }
   }
