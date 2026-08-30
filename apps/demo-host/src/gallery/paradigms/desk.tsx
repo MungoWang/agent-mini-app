@@ -3,15 +3,12 @@ import {
   CalendarDays,
   Check,
   Circle,
-  Coffee,
   Pause,
   Play,
   Plus,
-  Timer,
 } from "lucide-react"
 import { Badge } from "@monkey-mini-app/ui/components/badge"
 import { Button } from "@monkey-mini-app/ui/components/button"
-import { Progress } from "@monkey-mini-app/ui/components/progress"
 import { Tabs, TabsList, TabsTrigger } from "@monkey-mini-app/ui/components/tabs"
 import { StyleHeader, Reveal, useCountUp } from "./shared"
 
@@ -110,7 +107,7 @@ function Metric({
             />
             <circle
               cx="100"
-              cy={pts.split(" ").at(-1).split(",")[1]}
+              cy={(pts.split(" ").at(-1) ?? "0,0").split(",")[1]}
               r="2.2"
               fill={up ? "oklch(0.627 0.17 149.2)" : "oklch(0.769 0.188 70.08)"}
             />
@@ -124,7 +121,7 @@ function Metric({
 export function DeskParadigm() {
   const [tasks, setTasks] = React.useState<Task[]>(INITIAL_TASKS)
   const [focusing, setFocusing] = React.useState(false)
-  const [focusSec, setFocusSec] = React.useState(2 * 3600 + 47 * 60)
+  const [focusSec] = React.useState(2 * 3600 + 47 * 60)
   const [selectedDay, setSelectedDay] = React.useState(26)
   const [period, setPeriod] = React.useState<"week" | "month">("week")
 

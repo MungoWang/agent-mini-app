@@ -1,13 +1,17 @@
 import { defineDashboard } from "@monkeyagent/dashboard";
 
-/** 修复前的代码（有 bug 的版本） */
+// ⭐ 关键：StatusBadge / health 类组件认的都是小写状态词（pass|fail|blocked|flaky|running|pending），
+//         不要用 "PASS"/"FAIL" 之类大写 —— 会落到默认 pending 灰色、颜色全错。
+type CaseStatus = "pass" | "fail" | "blocked";
+type TestCase = { id: string; name: string; status: CaseStatus; duration: number };
+type LogLine = { level: "info" | "debug" | "warn" | "error"; text: string };
+
 const DEFAULT_BEFORE = `function fetchWithRetry(url) {
   const res = fetch(url); // 网络错误直接抛，无重试
   if (!res.ok) throw new Error("HTTP " + res.status);
   return res;
 }`;
 
-/** 修复后的代码（带重试与异常处理） */
 const DEFAULT_AFTER = `function fetchWithRetry(url, retries = 2) {
   let lastErr;
   for (let i = 0; i <= retries; i++) {
@@ -22,31 +26,29 @@ const DEFAULT_AFTER = `function fetchWithRetry(url, retries = 2) {
   throw lastErr;
 }`;
 
-const LOGS = [
-  { level: "info", text: "[10:00:01] 复现：无网络时 fetchWithRetry 直接抛错" },
-  { level: "info", text: "[10:00:02] 分析：缺少异常捕获与重试逻辑" },
-  { level: "debug", text: "[10:00:03] 方案：增加 retries 参数 + try/catch 循环" },
-  { level: "warn", text: "[10:00:04] 回归结果：2 通过 / 1 失败 / 1 阻塞" },
-];
-
-const CASES = [
-  { id: "TC-01", name: "正常请求返回", status: "PASS", duration: 42 },
-  { id: "TC-02", name: "一次失败后重试成功", status: "PASS", duration: 310 },
-  { id: "TC-03", name: "重试耗尽抛错", status: "FAIL", duration: 1204 },
-  { id: "TC-04", name: "非 2xx 状态码处理", status: "BLOCKED", duration: 0 },
+const CASES: TestCase[] = [
+  { id: "TC-01", name: "正常请求返回", status: "pass", duration: 42 },
+  { id: "TC-02", name: "一次失败后重试成功", status: "pass", duration: 310 },
+  { id: "TC-03", name: "重试耗尽抛错", status: "fail", duration: 1204 },
+  { id: "TC-04", name: "非 2xx 状态码处理", status: "blocked", duration: 0 },
 ];
 
 export default defineDashboard({
-  name: "修复工坊",
-  description: "修复前后 diff 对比、执行日志与用例结果",
+  name: "修复基准",
+  description: "编辑 → diff 对比 → 用例表格，改完写回",
   api: {
     async get(ctx) {
       const saved = await ctx.storage.get("after");
       return {
         before: DEFAULT_BEFORE,
         after: typeof saved === "string" && saved ? saved : DEFAULT_AFTER,
-        logs: LOGS,
         cases: CASES,
+        logs: [
+          { level: "info", text: "[10:00:01] 复现：无网络时 fetchWithRetry 直接抛错" },
+          { level: "info", text: "[10:00:02] 分析：缺少异常捕获与重试逻辑" },
+          { level: "debug", text: "[10:00:03] 方案：增加 retries 参数 + try/catch 循环" },
+          { level: "warn", text: "[10:00:04] 回归结果：2 通过 / 1 失败 / 1 阻塞" },
+        ] as LogLine[],
         savedAt: (await ctx.storage.get("savedAt")) || 0,
       };
     },

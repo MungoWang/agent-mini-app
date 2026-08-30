@@ -8,16 +8,20 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage packages/host/tests packages/panel/tests packages/dsh/tests",
     "lint": "eslint packages/host packages/panel packages/dsh",
-    "smoke": "tsx scripts/smoke.ts",
+    "lint:fix": "eslint packages/host packages/panel packages/dsh --fix",
+    "smoke": "vitest run packages/smoke-test",
     "typecheck": "tsc -b --pretty false",
     "skill:gen": "node scripts/generate-skill.mjs",
-    "build:ui": "node scripts/build-ui.mjs"
+    "build:ui": "node scripts/build-ui.mjs",
+    "publish:prep": "pnpm build:ui && pnpm skill:gen && pnpm --filter @monkey-mini-app/dsh-mini-app build",
+    "publish": "pnpm publish:prep && pnpm -r publish"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^22.10.0",
     "@vitest/coverage-v8": "2.1.9",
     "eslint": "^9.39.5",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
     "happy-dom": "^20.11.6",
     "jsdom": "^30.0.1",
     "tsx": "^4.19.2",

@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "jsx": "react-jsx",
     "lib": [
       "ES2022",
@@ -13,6 +13,7 @@
     "declarationMap": false
   },
   "include": [
-    "src"
+    "src",
+    "tests"
   ]
 }

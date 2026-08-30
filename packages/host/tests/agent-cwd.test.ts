@@ -1,10 +1,10 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { resolveAgentCwd } from "../src/agent-cwd.ts";
+import { type AgentCwdType, resolveAgentCwd } from "../src/agent-cwd.ts";
 import { HostError } from "../src/errors.ts";
 
 describe("resolveAgentCwd", () => {
@@ -52,5 +52,22 @@ describe("resolveAgentCwd", () => {
     expect(() =>
       resolveAgentCwd({ cwd: path.join(tmpdir(), "mma-missing-" + Date.now()) }),
     ).toThrow(HostError);
+  });
+
+  it("rejects a cwd that is a file, not a directory", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "mma-file-"));
+    const fp = path.join(dir, "notes.txt");
+    writeFileSync(fp, "x");
+    expect(() => resolveAgentCwd({ cwd: fp })).toThrow(/not a directory/);
+  });
+
+  it("rejects an unknown cwdType instead of falling back to process", () => {
+    expect(() => resolveAgentCwd({ cwdType: "sideways" as AgentCwdType })).toThrow(
+      /cwdType must be app\|process\|temp\|custom/,
+    );
+  });
+
+  it("accepts an explicit null-ish cwd (whitespace only ⇒ implied process cwd)", () => {
+    expect(resolveAgentCwd({ cwd: "   " })).toBe(path.resolve(process.cwd()));
   });
 });

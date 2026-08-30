@@ -75,6 +75,15 @@ describe("ctx.http", () => {
     expect(r.text).toBe("ok");
   });
 
+  it("sends no request body at all for a body-less POST", async () => {
+    globalThis.fetch = vi.fn(async (_input, init) => {
+      expect(init?.body).toBeUndefined();
+      return new Response("ok", { status: 200 });
+    }) as typeof fetch;
+    const r = await httpRequest({ url: "https://api.example.com/ping", method: "POST" });
+    expect(r.text).toBe("ok");
+  });
+
   it("leaves XML as text and json=null", async () => {
     globalThis.fetch = vi.fn(
       async () =>

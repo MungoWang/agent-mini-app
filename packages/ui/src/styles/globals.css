@@ -330,6 +330,13 @@
     --sidebar-ring: oklch(0.70 0.07 198);
 }
 
+/* unDraw illustrations (vendor, free/MIT) use --primary-svg-color for their accent.
+   Point it at --primary so empty states follow the active palette in light/dark.
+   Other unDraw colors are replaced with theme tokens at vendor time (vendor-undraw.mjs). */
+:root {
+  --primary-svg-color: var(--primary);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

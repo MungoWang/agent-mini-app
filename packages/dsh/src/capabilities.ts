@@ -9,7 +9,7 @@ import type {
 } from "@monkey-mini-app/host";
 
 import { runDshAgentOneShot } from "./agent-one-shot.ts";
-import { getService, isRecord, toolsOf, type DshCtx, type DshLlmService } from "./ctx.ts";
+import { type DshCtx, type DshLlmService,getService, isRecord, toolsOf } from "./ctx.ts";
 import { resolveLlmRoute } from "./llm-route.ts";
 import { collectLlmStream, stringifyToolResult } from "./llm-stream.ts";
 

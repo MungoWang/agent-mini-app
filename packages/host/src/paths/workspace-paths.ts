@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { asAbsolutePath, asAppId, type AbsolutePath, type AppId } from "../brand.ts";
+import { type AbsolutePath, type AppId,asAbsolutePath, asAppId } from "../brand.ts";
 import { HostError } from "../errors.ts";
 
 function joinUnder(root: AbsolutePath, ...parts: string[]): AbsolutePath {

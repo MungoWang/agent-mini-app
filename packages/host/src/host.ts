@@ -1,8 +1,8 @@
+import type { HttpGateway } from "./http/http-gateway.ts";
+import type { WorkspacePaths } from "./paths/workspace-paths.ts";
 import type { HostCapabilities } from "./capabilities.ts";
 import { HostError } from "./errors.ts";
-import type { HttpGateway } from "./http/http-gateway.ts";
 import type { HostLifecycle, HostServices } from "./lifecycle.ts";
-import type { WorkspacePaths } from "./paths/workspace-paths.ts";
 import type { HostConfig } from "./types.ts";
 
 /** Agent-agnostic host. `apply` = attach + listen on the Hono HttpGateway. */

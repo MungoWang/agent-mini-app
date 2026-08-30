@@ -44,6 +44,8 @@ function listComponentFiles() {
   // extras that the flat index should also surface (i18n / hooks / utils)
   const extra = [
     "lib/utils",
+    "lib/icons",
+    "lib/illustrations",
     "i18n/context",
     "i18n/en",
     "i18n/zh",

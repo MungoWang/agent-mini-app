@@ -3,10 +3,10 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-  HostError,
   asAbsolutePath,
   asAppId,
   assertNever,
+  HostError,
   isAbsolutePath,
   isAppId,
   WorkspacePaths,

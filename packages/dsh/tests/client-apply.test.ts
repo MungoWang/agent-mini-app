@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resetPanelState } from "@monkey-mini-app/panel";
 
-import { FooterButton, apply, name } from "../src/client/index.ts";
+import { apply, FooterButton, name } from "../src/client/index.ts";
 
 class FakeRO {
   observe(): void {}

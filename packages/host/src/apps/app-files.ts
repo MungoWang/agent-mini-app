@@ -14,18 +14,18 @@ import {
 } from "node:fs";
 import path from "node:path";
 
-import { asAppId, type AbsolutePath, type AppId } from "../brand.ts";
+import { type AbsolutePath, type AppId,asAppId } from "../brand.ts";
 import { HostError } from "../errors.ts";
 import type { WorkspacePaths } from "../paths/workspace-paths.ts";
-import { parseManifest } from "./manifest.ts";
 import {
   applyEditsToNormalizedContent,
   detectLineEnding,
+  type Edit,
   generateDiffString,
   normalizeToLF,
   restoreLineEndings,
-  type Edit,
 } from "./edit-diff.ts";
+import { parseManifest } from "./manifest.ts";
 
 const SKIP_DIRS = new Set([".git", "node_modules", "storage", ".ui-build", ".ui-cache"]);
 

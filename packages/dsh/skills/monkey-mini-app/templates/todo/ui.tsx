@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
+
 import {
+  AppShell,
   Badge,
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   Checkbox,
   Empty,
+  FilterBar,
+  Icon,
   Input,
+  PageHeader,
   Table,
   TableBody,
   TableCell,
@@ -20,18 +24,14 @@ import {
 import { useDashboardApi } from "@monkeyagent/host";
 
 type Filter = "all" | "active" | "done";
-type TodoItem = { id: string; title: string; done: boolean };
+type TodoItem = { id: string; title: string; done: boolean; createdAt: number };
 type Stats = { total: number; active: number; done: number };
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "全部" },
-  { id: "active", label: "未完成" },
+  { id: "active", label: "进行中" },
   { id: "done", label: "已完成" },
 ];
-
-function errText(e: unknown) {
-  return String((e as Error)?.message || e);
-}
 
 export default function Ui() {
   const { call } = useDashboardApi();
@@ -42,15 +42,16 @@ export default function Ui() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // ⭐ 关键：refresh 依赖 filter，filter 变就重拉；用 useCallback 避免无限循环
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const pack = await call("list", { filter });
+      const pack = (await call("list", { filter })) as { items: TodoItem[]; stats: Stats };
       setItems(Array.isArray(pack?.items) ? pack.items : []);
       setStats(pack?.stats ?? { total: 0, active: 0, done: 0 });
     } catch (e) {
-      setError(errText(e));
+      setError(String((e as Error)?.message || e));
     } finally {
       setLoading(false);
     }
@@ -66,7 +67,7 @@ export default function Ui() {
       await job();
       await refresh();
     } catch (e) {
-      setError(errText(e));
+      setError(String((e as Error)?.message || e));
     }
   }
 
@@ -80,119 +81,89 @@ export default function Ui() {
   }
 
   return (
-    <div className="p-6 w-full box-border flex flex-col gap-4">
-      <div className="flex items-start justify-between w-full">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground m-0">待办</h2>
-          <p className="text-sm text-muted-foreground mt-1">记在这台电脑上，关掉也不会丢</p>
-        </div>
-        <div className="flex gap-2">
-          <Badge variant="secondary">{stats.active} 未完成</Badge>
-          <Badge variant="outline">{stats.done} 已完成</Badge>
-        </div>
-      </div>
+    // ⭐ 关键：一屏固定 —— AppShell 定高，main 内部滚动，页面不整体滚。
+    //         让「内容不被裁成一条缝」+ 侧栏折叠/钉到右侧后仍撑满。
+    <AppShell header={<PageHeader title="待办" description="CRUD · 状态筛选 · 归档" />}>
+      <div className="flex h-full min-h-0 flex-col gap-3">
+        <FilterBar>
+          {FILTERS.map((f) => (
+            <Button key={f.id} size="sm" variant={filter === f.id ? "default" : "outline"} onClick={() => setFilter(f.id)}>
+              {f.label}
+            </Button>
+          ))}
+          <div className="ml-auto flex items-center gap-2">
+            <Badge variant="secondary">{stats.active} 进行中</Badge>
+            <Badge variant="outline">{stats.done} 已完成</Badge>
+            <Button size="sm" variant="ghost" onClick={() => void act(() => call("archive", {}))}>
+              <Icon.Archive size={16} strokeWidth={2} /> 归档
+            </Button>
+          </div>
+        </FilterBar>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>添加任务</CardTitle>
-          <CardDescription>回车即可提交</CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2">
-          <Input
-            value={draft}
-            placeholder="要做什么？"
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") void add();
-            }}
-            className="flex-1"
-          />
-          <Button onClick={() => void add()} disabled={!draft.trim()}>
-            添加
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between w-full flex-wrap gap-2">
-            <CardTitle>任务</CardTitle>
-            <div className="flex gap-1.5 flex-wrap">
-              {FILTERS.map((item) => (
-                <Button
-                  key={item.id}
-                  size="sm"
-                  variant={filter === item.id ? "default" : "outline"}
-                  onClick={() => setFilter(item.id)}
-                >
-                  {item.label}
-                </Button>
-              ))}
-              <Button size="sm" variant="ghost" onClick={() => void act(() => call("clearDone", {}))}>
-                清除已完成
-              </Button>
-              <Button size="sm" variant="secondary" onClick={() => void refresh()}>
-                刷新
+        <Card className="min-h-0 flex-1 overflow-hidden">
+          <CardHeader>
+            <CardTitle>添加任务</CardTitle>
+            <div className="flex gap-2">
+              <Input
+                value={draft}
+                placeholder="要做什么？回车提交"
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void add();
+                }}
+                className="flex-1"
+              />
+              <Button onClick={() => void add()} disabled={!draft.trim()}>
+                <Icon.Plus size={16} strokeWidth={2} /> 添加
               </Button>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {error ? <p className="text-sm" style={{ color: "var(--destructive)" }}>{error}</p> : null}
-          {loading && !items.length ? <p className="text-sm text-muted-foreground">加载中…</p> : null}
-          {!loading && !items.length ? (
-            <Empty title="还没有任务" description="在上面加一条就开始。" />
-          ) : null}
-          {items.length ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10"></TableHead>
-                  <TableHead>标题</TableHead>
-                  <TableHead className="w-24">状态</TableHead>
-                  <TableHead className="w-20"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={item.done}
-                        onCheckedChange={() => void act(() => call("toggle", { id: item.id }))}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        style={{
-                          textDecoration: item.done ? "line-through" : "none",
-                          opacity: item.done ? 0.55 : 1,
-                        }}
+          </CardHeader>
+          <CardContent className="flex flex-col min-h-0 flex-1 gap-2 overflow-y-auto">
+            {error && <p className="text-sm" style={{ color: "var(--destructive)" }}>{error}</p>}
+            {loading && !items.length ? <p className="text-sm text-muted-foreground">加载中…</p> : null}
+            {!loading && !items.length ? (
+              <Empty title="还没有任务" description="上面加一条就开始。" />
+            ) : null}
+            {items.length ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10"></TableHead>
+                    <TableHead>标题</TableHead>
+                    <TableHead className="w-20">状态</TableHead>
+                    <TableHead className="w-20"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={item.done}
+                          onCheckedChange={() => void act(() => call("toggle", { id: item.id }))}
+                        />
+                      </TableCell>
+                      <TableCell
+                        style={{ textDecoration: item.done ? "line-through" : "none", opacity: item.done ? 0.55 : 1 }}
                       >
                         {item.title}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={item.done ? "secondary" : "default"}>
-                        {item.done ? "已完成" : "未完成"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => void act(() => call("remove", { id: item.id }))}
-                      >
-                        删除
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : null}
-        </CardContent>
-      </Card>
-    </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={item.done ? "secondary" : "default"}>{item.done ? "已完成" : "进行中"}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="ghost" onClick={() => void act(() => call("remove", { id: item.id }))}>
+                          <Icon.Trash2 size={16} strokeWidth={2} />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : null}
+          </CardContent>
+        </Card>
+      </div>
+    </AppShell>
   );
 }

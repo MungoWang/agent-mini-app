@@ -1,6 +1,6 @@
 import type { ModelRouteOptions } from "@monkey-mini-app/host";
 
-import { getService, isRecord, type DshCtx } from "./ctx.ts";
+import { type DshCtx,getService, isRecord } from "./ctx.ts";
 
 /** Same defaults as dsh `agent-default-model` / legacy dsh-adapter. */
 export const DSH_LLM_FALLBACK = {

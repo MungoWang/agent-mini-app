@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync,readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -43,6 +43,6 @@ export function getTemplateFiles(name: string): Record<string, string> {
   return out;
 }
 
-export function getHelloTemplateFiles(): Record<string, string> {
-  return getTemplateFiles("hello");
+export function getSkeletonTemplateFiles(): Record<string, string> {
+  return getTemplateFiles("minimal");
 }

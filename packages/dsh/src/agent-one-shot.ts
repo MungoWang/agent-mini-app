@@ -7,18 +7,18 @@ import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
 
 import {
-  effectiveSignal,
-  isMiniAppToolName,
-  resolveAgentCwd,
   type AgentEventHandler,
   type AgentRunOptions,
   type AppCallContext,
+  effectiveSignal,
+  isMiniAppToolName,
+  resolveAgentCwd,
 } from "@monkey-mini-app/host";
 
 import { createSessionEventProjector, emitAgentEvent } from "./agent-event-project.ts";
-import { getService, isRecord, toolsOf, type DshCtx } from "./ctx.ts";
-import { coerceSchemaJson, withJsonInstruction } from "./llm-stream.ts";
+import { type DshCtx,getService, isRecord, toolsOf } from "./ctx.ts";
 import { resolveLlmRoute } from "./llm-route.ts";
+import { coerceSchemaJson, withJsonInstruction } from "./llm-stream.ts";
 
 type AgentHandle = {
   agent: {

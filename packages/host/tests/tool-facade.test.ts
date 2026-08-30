@@ -6,15 +6,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   AppsManager,
+  bootstrapHostConfig,
   GitHistory,
+  type HostConfig,
   HostError,
+  type HostEvent,
   HostEventBus,
   ToolFacade,
   UiCompiler,
   WorkspacePaths,
-  bootstrapHostConfig,
-  type HostConfig,
-  type HostEvent,
 } from "@monkey-mini-app/host";
 
 function boot(): {

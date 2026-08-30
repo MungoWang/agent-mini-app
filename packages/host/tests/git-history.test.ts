@@ -4,7 +4,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { GitHistory, HostError, bootstrapHostConfig } from "@monkey-mini-app/host";
+import { bootstrapHostConfig,GitHistory, HostError } from "@monkey-mini-app/host";
 
 async function tempDir(): Promise<string> {
   const config = bootstrapHostConfig({

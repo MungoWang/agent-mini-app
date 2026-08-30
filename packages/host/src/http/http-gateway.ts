@@ -1,26 +1,36 @@
 import fs from "node:fs";
 import { createServer, type Server } from "node:http";
+import { createServer as createNetServer } from "node:net";
 import path from "node:path";
 
 import { getRequestListener } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-import { createServer as createNetServer } from "node:net";
-
 import { readAppTheme, writeAppTheme } from "../apps/app-theme.ts";
-import type { AppsManager } from "../apps/apps-manager.ts";
+import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
 import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
 import { asAppId } from "../brand.ts";
+import type { AppCssCompiler } from "../compile/app-css.ts";
 import { resolveUiDistDir, type UiBuildFile, type UiCompiler } from "../compile/ui-compiler.ts";
 import { writeHostConfig } from "../config/write.ts";
 import { HostError } from "../errors.ts";
-import type { GitHistory } from "../git/git-history.ts";
 import { formatSse, type HostEventBus } from "../events/host-events.ts";
+import type { GitHistory } from "../git/git-history.ts";
 import { WorkspacePaths } from "../paths/workspace-paths.ts";
 import { EMPTY_THEME_RESOURCE, type ThemeResource } from "../theme-resource.ts";
-import { LOCALE_IDS, THEME_IDS, type HostConfig, type LocaleId, type ThemeId } from "../types.ts";
+import { type HostConfig, LOCALE_IDS, type LocaleId, THEME_IDS, type ThemeId } from "../types.ts";
 import { appRunnerHtml } from "./app-runner-html.ts";
+
+/** Resolve a @fontsource-variable/geist font file (walk up from the ui dist). */
+function geistFontPath(name: string): string {
+  for (let dir = resolveUiDistDir(); dir !== path.dirname(dir); dir = path.dirname(dir)) {
+    const fp = path.join(dir, "..", "..", "node_modules", "@fontsource-variable", "geist", "files", name);
+    const p = path.resolve(fp);
+    if (fs.existsSync(p)) return p;
+  }
+  return path.join(resolveUiDistDir(), "..", "..", "node_modules", "@fontsource-variable", "geist", "files", name);
+}
 
 function listenHttp(server: Server, port: number): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -143,6 +153,7 @@ export class HttpGateway {
     private readonly config: HostConfig,
     private readonly paths: WorkspacePaths,
     private readonly compiler: UiCompiler,
+    private readonly css: AppCssCompiler,
     private readonly git: GitHistory,
     private readonly themes: ThemeResource = EMPTY_THEME_RESOURCE,
     private readonly events?: HostEventBus,
@@ -423,12 +434,88 @@ export class HttpGateway {
       return c.json({ ok: true });
     });
 
+    // 首页索引：列出已安装的 mini-app，方便逐个打开（裸 host 也有一张入口页）
+    app.get("/", async (c) => {
+      let items: AppItem[] = [];
+      try {
+        items = await this.apps.list();
+      } catch {
+        items = [];
+      }
+      const esc = (s: string) => s.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
+      const cards = items
+        .map((a) => `<a class="card" href="/app/${encodeURIComponent(a.id)}">
+          <div class="mono">${esc(a.acronym || a.name.slice(0, 2).toUpperCase())}</div>
+          <div>
+            <div class="name">${esc(a.name)}</div>
+            <div class="desc">${esc(a.description || a.id)}</div>
+            <div class="meta">${esc(a.id)} · ${a.commits} commits</div>
+          </div>
+        </a>`)
+        .join("\n");
+      const html = `<!doctype html>
+<html><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>${esc(this.config.theme ?? "monkey-mini-app")} · 小程序</title>
+<link rel="stylesheet" href="/ui.css"/>
+<style>
+  html,body{margin:0;height:100%;background:var(--background,#fff);color:var(--foreground,#111);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);}
+  body{padding:40px;}
+  h1{font-size:1.5rem;margin:0 0 4px;}
+  .sub{color:var(--muted-foreground,#666);margin:0 0 24px;font-size:.9rem;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;max-width:1100px;}
+  .card{display:flex;gap:14px;padding:16px;border:1px solid var(--border,#e2e2e2);border-radius:14px;text-decoration:none;color:inherit;background:var(--card,#fff);transition:border-color .15s, transform .15s;}
+  .card:hover{border-color:var(--primary,#2563eb);transform:translateY(-2px);}
+  .mono{width:48px;height:48px;border-radius:12px;background:var(--muted,#f2f2f2);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--primary,#2563eb);flex-shrink:0;}
+  .name{font-weight:600;font-size:1rem;}
+  .desc{color:var(--muted-foreground,#666);font-size:.85rem;margin-top:2px;}
+  .meta{color:var(--muted-foreground,#999);font-size:.72rem;margin-top:8px;font-family:monospace;}
+</style>
+</head><body>
+<h1>小程序</h1>
+<p class="sub">共 ${items.length} 个 · 点开进入</p>
+<div class="grid">${cards}</div>
+</body></html>`;
+      return c.html(html);
+    });
+
     app.get("/ui.css", (c) => {
       try {
         const css = fs.readFileSync(path.join(resolveUiDistDir(), "globals.css"), "utf8");
         return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
       } catch (cause) {
         return c.text(`ui.css missing: ${errorMessage(cause)}`, 500);
+      }
+    });
+
+    // Geist 字体（@fontsource-variable/geist）由 winocss @font-face url 引用，host 在这里直接吐文件
+    app.get("/files/:name", (c) => {
+      const name = path.basename(c.req.param("name") || "");
+      try {
+        const p = geistFontPath(name);
+        const buf = fs.readFileSync(p);
+        const ext = path.extname(name).toLowerCase();
+        return c.body(buf, 200, { "Content-Type": ext === ".woff2" ? "font/woff2" : "application/octet-stream" });
+      } catch (cause) {
+        return c.text(`font missing: ${errorMessage(cause)}`, 404);
+      }
+    });
+
+    app.get("/api/app/:appId/ui.css", async (c) => {
+      const appId = c.req.param("appId");
+      const dir = this.apps.dirOf(asAppId(appId));
+      try {
+        const css = await this.css.compile(dir);
+        return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
+      } catch (cause) {
+        // Fall back to the shared stylesheet so the app still renders.
+        try {
+          const css = fs.readFileSync(path.join(resolveUiDistDir(), "globals.css"), "utf8");
+          return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
+        } catch {
+          return c.text(`app ui.css failed: ${errorMessage(cause)}`, 500);
+        }
       }
     });
 

@@ -4,10 +4,10 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+  Host} from "@monkey-mini-app/host";
 import {
   AppsManager,
-  Host,
-  ToolFacade,
   bootstrapHostConfig,
   createHost,
   type HostCapabilities,
@@ -15,6 +15,7 @@ import {
   type HostLifecycle,
   type HostServices,
   type ThemeResource,
+  ToolFacade,
 } from "@monkey-mini-app/host";
 
 function validConfig(): HostConfig {

@@ -1,0 +1,8 @@
+{
+  "id": "com.example.minimal",
+  "name": "骨架示例",
+  "description": "最小可运行结构：一次 call 往返 + 读 Host 配置",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "theme": { "followsHost": true }
+}

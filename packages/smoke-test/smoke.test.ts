@@ -5,6 +5,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  asAppId,
   bootstrapHostConfig,
   createHost,
   type HostServices,
@@ -59,7 +60,7 @@ export default defineDashboard({
     expect(names).toContain("mini_app_reload");
 
     // ensure runtime layout exists
-    expect(path.isAbsolute(services!.paths.appDir("com.smoke.demo"))).toBe(true);
+    expect(path.isAbsolute(services!.paths.appDir(asAppId("com.smoke.demo")))).toBe(true);
 
     await host.stop();
   }, 30_000);

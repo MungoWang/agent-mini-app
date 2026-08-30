@@ -3,32 +3,32 @@ import { rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { asAppId, isAppId, type AbsolutePath, type AppId } from "../brand.ts";
-import type { HostCapabilities } from "../capabilities.ts";
-import { HostError } from "../errors.ts";
-import type { GitHistory } from "../git/git-history.ts";
-import { WorkspacePaths } from "../paths/workspace-paths.ts";
 import type { AgentRunOptions } from "../agent-events.ts";
 import type { AppCallContext } from "../app-runtime.ts";
+import { type AbsolutePath, type AppId,asAppId, isAppId } from "../brand.ts";
+import type { HostCapabilities } from "../capabilities.ts";
 import { bindCapsToContext } from "../capabilities.ts";
-import type { LlmRunOptions } from "../model-call.ts";
-import type { HostConfig } from "../types.ts";
 import type { UiCompiler } from "../compile/ui-compiler.ts";
+import { HostError } from "../errors.ts";
+import type { GitHistory } from "../git/git-history.ts";
+import type { LlmRunOptions } from "../model-call.ts";
+import { WorkspacePaths } from "../paths/workspace-paths.ts";
+import type { HostConfig } from "../types.ts";
 import {
   deleteAppFile,
+  type Edit,
   editAppFile,
   listAppFiles,
-  readAppFile,
-  writeAppFile,
-  type Edit,
   type ListedFile,
   type MutateFileResult,
+  readAppFile,
   type ReadFileRange,
   type ReadFileResult,
+  writeAppFile,
 } from "./app-files.ts";
 import { compileAppSource } from "./compile-app-source.ts";
-import { httpRequest, type HttpRequest, type HttpResponse } from "./ctx-http.ts";
-import { acronymOf, parseManifest, type AppManifest } from "./manifest.ts";
+import { type HttpRequest, httpRequest, type HttpResponse } from "./ctx-http.ts";
+import { acronymOf, type AppManifest,parseManifest } from "./manifest.ts";
 
 export type AppItem = {
   id: AppId;

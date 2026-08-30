@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { getHelloTemplateFiles, getSkillDir, getSkillMarkdown } from "../src/skills.ts";
+import { getSkeletonTemplateFiles, getSkillDir, getSkillMarkdown } from "../src/skills.ts";
 
 describe("skills path", () => {
   it("resolves SKILL.md under the package skills tree", () => {
@@ -13,8 +13,8 @@ describe("skills path", () => {
     expect(getSkillMarkdown()).toContain("mini_app_register");
   });
 
-  it("loads the hello template files", () => {
-    const files = getHelloTemplateFiles();
+  it("loads the minimal skeleton template files", () => {
+    const files = getSkeletonTemplateFiles();
     expect(files["manifest.json"]).toBeTruthy();
     expect(files["ui.tsx"]).toBeTruthy();
     expect(files["main.api.ts"]).toBeTruthy();

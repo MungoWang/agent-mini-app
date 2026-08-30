@@ -1,3 +1,4 @@
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 import tseslint from "typescript-eslint";
 
 const mmaPackages = [
@@ -43,9 +44,42 @@ export default tseslint.config(
         ecmaFeatures: { jsx: true },
       },
     },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+      "simple-import-sort": simpleImportSort,
+    },
     rules: {
       "no-undef": "off",
       "no-unused-vars": "off",
+
+      // Unified style (match existing host/panel/dsh code)
+      quotes: ["error", "double", { avoidEscape: true, allowTemplateLiterals: true }],
+      semi: ["error", "always"],
+      "jsx-quotes": ["error", "prefer-double"],
+
+      // Imports
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "separate-type-imports" },
+      ],
+      "@typescript-eslint/no-import-type-side-effects": "error",
+      "simple-import-sort/imports": [
+        "error",
+        {
+          groups: [
+            // Node builtins
+            ["^node:"],
+            // External packages
+            ["^@?\\w"],
+            // Internal workspace packages
+            ["^@monkey-mini-app/", "^@monkeyagent/"],
+            // Relative parent / sibling / index
+            ["^\\.\\.(?!/?$)", "^\\.\\./?$", "^\\./(?=.*/)(?!/?$)", "^\\.(?!/?$)", "^\\./?$"],
+          ],
+        },
+      ],
+      "simple-import-sort/exports": "error",
+
       "no-restricted-syntax": monkeyMiniAppStringRule,
     },
   },

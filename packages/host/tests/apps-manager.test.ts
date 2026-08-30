@@ -1,20 +1,20 @@
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import {
+  type AppCallContext,
   AppsManager,
-  GitHistory,
-  HostError,
-  WorkspacePaths,
   asAppId,
   bootstrapHostConfig,
-  parseManifest,
-  type AppCallContext,
+  GitHistory,
   type HostCapabilities,
   type HostConfig,
+  HostError,
+  parseManifest,
+  WorkspacePaths,
 } from "@monkey-mini-app/host";
 
 function boot(caps: HostCapabilities = {}): {

@@ -107,6 +107,8 @@ export default function Ui() {
 - **布局用 Tailwind classes**（`flex flex-col gap-3 p-4 grid md:grid-cols-3 w-full space-y-4`），库内没有 Stack/Text 这类布局组件
 - **`UiProvider` 由 host 自动包裹**（locale 跟随 host 设置），不要自己写 Provider
 - 组件清单（props + 类型 + 示例）→ **[references/catalog.md](references/catalog.md)** 与 **[references/contracts/](references/contracts/)**（自动生成，改组件后 `pnpm skill:gen` 再生成）
+- **图标**：`import { Icon } from "@monkey-mini-app/ui"` 后用 `Icon.HelpCircle`（任意 lucide 名都行）；**常用推荐子集 + 何时用** → **[references/icons.md](references/icons.md)**（不要读上千个名，看这份精简的）
+- **空状态插图**：`import { IlluServerStatus } from "@monkey-mini-app/ui"`（`Illu*`，已 token 化跟主题）
 - 组件库已内置 lucide 图标 / recharts / CodeMirror 等依赖——**不要**额外 import 这些 npm 包；从 `@monkey-mini-app/ui` 拿
 
 | 场景 | 组件 |
@@ -181,16 +183,19 @@ export default defineDashboard({
 | 何时 | 打开 |
 |------|------|
 | 组件 props / 类型 / 示例 | [references/catalog.md](references/catalog.md) → [references/contracts/](references/contracts/) |
-| `ctx.*` 完整契约（含 agent `onEvent` 事件形状） | [references/ctx.md](references/ctx.md)（用 `ctx.http`，不要 bash curl） |
+| 图标子集（`Icon` 命名空间，何时用） | [references/icons.md](references/icons.md) || `ctx.*` 完整契约（含 agent `onEvent` 事件形状） | [references/ctx.md](references/ctx.md)（用 `ctx.http`，不要 bash curl） |
 | `schema` 结构化 JSON 例子 | [references/llm-json.md](references/llm-json.md) |
 | **真的要用** `ctx.tool` | 先 `mini_app_list_ctx_tools`，再 [references/tools.md](references/tools.md) |
 | 相对 import、`./lib` 解析 | [references/loader.md](references/loader.md) |
 | 人类调试 Host `:17880` / curl | [references/test.md](references/test.md)（≠ `ctx.http`） |
-| 连通检查 / 最小 UI | `templates/hello/` |
-| 筛选、表格类 CRUD | `templates/todo/` |
-| RSS + `ctx.http` + `./lib` + 结构化 LLM | `templates/news/` |
-| 本机指标 + bash 解析 | `templates/sysmon/` |
-| 编辑/diff/日志/用例表格（复杂组件示例） | `templates/fixbench/` |
+| 骨架基线 / 最小可运行结构 | `templates/minimal/` |
+| 本地 CRUD + 筛选 + 派生统计 | `templates/todo/` |
+| 联网数据 → 模型摘要（长任务/采样/取消） | `templates/insights/` |
+| 本机指标实时看板（system + bash） | `templates/monitor/` |
+| 编辑/diff/日志/用例表格（复杂组件示例） | `templates/review/` |
+| `ctx.agent` 多步任务 + 过程/取消 | `templates/agentrun/` |
+| 看板/表格双视图 + 编辑 + AI（flagship） | `templates/jira/` |
+| **先把 7 个模板的指引侧重读一遍再选** | [`templates/README.md`](templates/README.md) |
 | 报错 | [references/troubleshoot.md](references/troubleshoot.md) |
 
 普通 storage CRUD **先用上面骨架**，不要为了记笔记去读整份 Todo。模板是风格样板：中文产品文案、`call` 自己管 loading/error、后端可用 TypeScript。

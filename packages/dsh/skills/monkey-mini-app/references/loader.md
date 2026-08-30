@@ -27,4 +27,4 @@ Host 在服务端即时编译：**后端**用 sucrase 编译 `main.api.ts` / `li
 
 抓网页用 `ctx.http("https://…", { timeout: 8000 })`，看 `r.ok` / `r.text` / `r.json`；解析写在 `./lib`。本机命令才 `ctx.bash`。
 
-改 `ui.tsx` / `main.api.ts` / `lib/*.ts` 会按 mtime 重新编译。RSS + lib 完整例子见 `templates/news/`。
+改 `ui.tsx` / `main.api.ts` / `lib/*.ts` 会按 mtime 重新编译。RSS + lib 完整例子见 `templates/insights/`。

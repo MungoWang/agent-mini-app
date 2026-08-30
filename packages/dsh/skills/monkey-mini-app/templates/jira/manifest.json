@@ -1,0 +1,9 @@
+{
+  "id": "com.example.jira",
+  "name": "Jira 看板",
+  "description": "看板/表格双视图 · 状态与评论编辑 · AI 记工时",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "theme": { "followsHost": true },
+  "acronym": "JB"
+}

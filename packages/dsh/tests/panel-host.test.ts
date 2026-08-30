@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DshPanelHost, type DshPanelHostHooks } from "../src/panel-host.ts";
+import { originFromHostPort, readStoredAppsOrigin, writeStoredAppsOrigin } from "../src/client/apps-host.ts";
 import {
   formToHostConfigBody,
   parseCommitDetail,
@@ -8,7 +8,7 @@ import {
   parseStorageTables,
   readJson,
 } from "../src/client/http.ts";
-import { originFromHostPort, readStoredAppsOrigin, writeStoredAppsOrigin } from "../src/client/apps-host.ts";
+import { DshPanelHost, type DshPanelHostHooks } from "../src/panel-host.ts";
 
 const origFetch = globalThis.fetch;
 

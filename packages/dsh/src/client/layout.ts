@@ -1,7 +1,8 @@
 import { installFootCss } from "./css.ts";
-import "./globals.ts";
-import { DOCK_ANIM_MS, layoutBox, sideWidthPx, type DockId } from "./layout-box.ts";
+import { DOCK_ANIM_MS, type DockId,layoutBox, sideWidthPx } from "./layout-box.ts";
 import { dshIsDark } from "./theme.ts";
+
+import "./globals.ts";
 
 export type LayoutState = {
   dock: DockId;

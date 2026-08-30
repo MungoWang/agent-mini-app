@@ -32,7 +32,7 @@ function readTemplateFiles(name: string): Record<string, string> {
 }
 
 describe("headless skill templates", () => {
-  it("registers hello + todo templates via AppsManager", async () => {
+  it("registers minimal + todo templates via AppsManager", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "mma-samples-"));
     let services: HostServices | undefined;
     const host = createHost(
@@ -51,19 +51,19 @@ describe("headless skill templates", () => {
     expect(skillMarkdown).toContain("monkey-mini-app");
     expect(tools.definitions().length).toBeGreaterThan(5);
 
-    await apps.register("com.example.hello", readTemplateFiles("hello"));
+    await apps.register("com.example.minimal", readTemplateFiles("minimal"));
     await apps.register("com.example.todo", readTemplateFiles("todo"));
 
     const list = await apps.list();
     expect(list.map((a) => a.id).sort()).toEqual([
-      "com.example.hello",
+      "com.example.minimal",
       "com.example.todo",
     ]);
 
-    // hello / todo templates expose at least one callable method after compile
-    const helloPing = await apps.call("com.example.hello", "ping", {}).catch((e: Error) => e.message);
-    // templates may use different method names — just ensure register+list works and call path is live
-    expect(typeof helloPing === "string" || helloPing !== undefined).toBe(true);
+    // minimal exposes its own api keys — call the real one and assert a shape
+    const ping = (await apps.call("com.example.minimal", "ping", {})) as { appId?: string; theme?: string };
+    expect(ping.appId).toBe("com.example.minimal");
+    expect(typeof ping.theme).toBe("string");
 
     await host.stop();
   }, 60_000);

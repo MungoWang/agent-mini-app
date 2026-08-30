@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   createMiniAppPanel,
-  resetPanelState,
   type PanelInstance,
+  resetPanelState,
 } from "@monkey-mini-app/panel";
 
 import { createFakePanelHost } from "./fake-panel-host.ts";

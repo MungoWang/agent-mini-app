@@ -48,7 +48,7 @@ describe("DshLifecycle", () => {
     expect(provided[0]).toMatchObject({ key: "monkeyMiniApp" });
     const listed = registered.find((t) => (t as { name?: string }).name === "mini_app_list") as {
       execute: (args: Record<string, unknown>) => Promise<unknown>;
-      output: { render: (a: unknown, v: unknown) => unknown };
+      output: { render: (a: unknown, v: unknown) => Array<{ type: string; text?: string }> };
     };
     await expect(listed.execute({})).resolves.toEqual({ apps: [] });
     expect(listed.output.render(null, { ok: true })[0]).toMatchObject({ type: "text" });

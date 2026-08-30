@@ -1,8 +1,0 @@
-{
-  "id": "com.example.fixbench",
-  "name": "修复工坊",
-  "description": "修复前后 diff 对比、执行日志与用例结果",
-  "version": "0.1.0",
-  "entry": "ui.tsx",
-  "theme": { "followsHost": true }
-}

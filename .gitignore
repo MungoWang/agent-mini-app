@@ -7,4 +7,5 @@ packages/dsh/lib/
 coverage/
 tmp/
 .runtime-test/
+.mma-css-scan/
 apps/tauri-shell/src-tauri/target/

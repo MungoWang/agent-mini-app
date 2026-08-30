@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-import { createMiniAppPanel, getPanelState, resetPanelState, type PanelInstance } from "@monkey-mini-app/panel";
+import { createMiniAppPanel, getPanelState, type PanelInstance,resetPanelState } from "@monkey-mini-app/panel";
 
 import { createFakePanelHost } from "./fake-panel-host.ts";
 

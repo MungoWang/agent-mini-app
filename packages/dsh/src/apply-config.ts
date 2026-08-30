@@ -2,14 +2,14 @@ import { homedir } from "node:os";
 import path from "node:path";
 
 import {
-  HostConfigError,
-  WorkspacePaths,
+  type AbsolutePath,
   asAbsolutePath,
   bootstrapHostConfig,
   createHostI18n,
-  loadHostConfig,
-  type AbsolutePath,
   type HostConfig,
+  HostConfigError,
+  loadHostConfig,
+  WorkspacePaths,
 } from "@monkey-mini-app/host";
 
 export type DshPluginConfig = {

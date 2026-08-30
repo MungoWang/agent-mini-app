@@ -3,15 +3,14 @@ import {
   createMiniAppPanel,
   defaultHideThemePop,
   getPanelState,
-  setPanelState,
   type PanelInstance,
+  setPanelState,
 } from "@monkey-mini-app/panel";
 
 import { DshPanelHost } from "../panel-host.ts";
 import { resolveAppsOrigin, writeStoredAppsOrigin } from "./apps-host.ts";
 import { installFootCss } from "./css.ts";
 import { FrameController } from "./frame.ts";
-import "./globals.ts";
 import {
   armDockAnim,
   clearVisTimer,
@@ -24,9 +23,11 @@ import {
   startSidebarSync,
   syncHostToSidebar,
 } from "./layout.ts";
-import { layoutBox, type DockId } from "./layout-box.ts";
+import { type DockId,layoutBox } from "./layout-box.ts";
 import { dshIsDark, readStoredMode, readStoredPalette } from "./theme.ts";
 import { clampCardStyle, css } from "./utils.ts";
+
+import "./globals.ts";
 
 const ANIM_MS = 320;
 

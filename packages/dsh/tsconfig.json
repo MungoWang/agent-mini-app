@@ -7,12 +7,14 @@
       "ES2022",
       "DOM"
     ],
+    "types": ["node"],
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "declaration": false,
     "declarationMap": false
   },
   "include": [
-    "src"
+    "src",
+    "tests"
   ]
 }

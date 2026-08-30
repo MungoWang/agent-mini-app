@@ -1,5 +1,5 @@
 /** Injected panel CSS (dsh-style data-plugin-css). Host calls injectPanelCss() on mount. */
-export const PANEL_CSS_TAG = "panel"
+export const PANEL_CSS_TAG = "panel";
 
 const CSS = [
   "#mma-host{color:var(--dsw-alias-fg,#111);background:var(--dsw-alias-bg,#f7f7f8);overflow:hidden;}",
@@ -147,7 +147,7 @@ const CSS = [
   "#mma-host .mma-diff-line--ctx{color:inherit;opacity:.85;}",
   "#mma-host .mma-bempty{padding:20px;opacity:.6;text-align:center;font-size:13px;}",
   "#mma-host .mma-berr{padding:16px;color:#b91c1c;font-size:13px;}",
-]
+];
 
 export function injectPanelCss(): void {
   if (typeof document === "undefined") return;

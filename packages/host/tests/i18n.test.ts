@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { HostError, createHostI18n, type LocaleId } from "@monkey-mini-app/host";
+import { createHostI18n, HostError, type LocaleId } from "@monkey-mini-app/host";
 
 const originalNodeEnv = process.env.NODE_ENV;
 
@@ -55,5 +55,14 @@ describe("createHostI18n", () => {
   it("rejects an unknown locale", () => {
     expect(() => createHostI18n("zh" as LocaleId)).toThrow(HostError);
     expect(() => createHostI18n("zh" as LocaleId)).toThrow(/unsupported locale/);
+  });
+
+  it("rejects a key that resolves to a namespace object instead of a string", () => {
+    const { t } = createHostI18n("zh-CN");
+    // `params` reach i18next as options, so returnObjects leaks the raw object through.
+    expect(() => t("config", { returnObjects: "true" })).toThrow(HostError);
+    expect(() => t("config", { returnObjects: "true" })).toThrow(
+      /i18n key did not resolve to a string: config/,
+    );
   });
 });

@@ -1,10 +1,10 @@
+import { usePanelState } from "../store.ts";
 import { ListRegion } from "./AppList.tsx";
 import { Browse } from "./Browse.tsx";
 import { Modal } from "./Modal.tsx";
 import { Settings } from "./Settings.tsx";
 import { Tabs } from "./Tabs.tsx";
 import { Toolbar } from "./Toolbar.tsx";
-import { usePanelState } from "../store.ts";
 
 export function MiniAppPanel() {
   const s = usePanelState();

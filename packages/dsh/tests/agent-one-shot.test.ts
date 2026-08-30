@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { runDshAgentOneShot, type DshAgentHelpers } from "../src/agent-one-shot.ts";
+import { type DshAgentHelpers,runDshAgentOneShot } from "../src/agent-one-shot.ts";
 
 const fakeHelpers: DshAgentHelpers = {
   SessionId: (id) => id,

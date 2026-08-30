@@ -7,7 +7,6 @@ import { useCountUp, StyleHeader, Reveal } from "./shared"
  * 强制暗色 + 荧光强调（emerald/cyan）+ 细网格 + 大数字。
  * 参照：金融大盘 / 监控大屏（适合数字密集但要有秩序）。
  */
-const DATA_BG = "oklch(0.12 0.03 195.31 / 0.91)"
 const GRID_LINE = "rgba(160,210,255,0.05)"
 const PANEL_LINE = "rgba(160,210,255,0.08)"
 
@@ -36,7 +35,6 @@ function Metric({
           background: dark ? "rgba(160,210,255,0.03)" : "rgba(255,255,255,0.3)",
           backdropFilter: dark ? undefined : "blur(50px)",
           border: dark ? undefined : "0.5px solid rgba(255,255,255,0.4)",
-          borderColor: dark ? PANEL_LINE : undefined,
           boxShadow: dark ? "none" : "0 4px 24px rgba(60,80,110,0.07), inset 0 1px 0 rgba(255,255,255,0.45)",
         }}
       >

@@ -3,10 +3,11 @@ import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { HostConfigError } from "@monkey-mini-app/host";
 import { describe, expect, it } from "vitest";
 
-import { apply, loadPluginHostConfig, name, inject, resolveRuntimeRoot } from "../src/index.ts";
+import { HostConfigError } from "@monkey-mini-app/host";
+
+import { apply, inject, loadPluginHostConfig, name, resolveRuntimeRoot } from "../src/index.ts";
 
 const srcFile = fileURLToPath(new URL("../src/index.ts", import.meta.url));
 

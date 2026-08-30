@@ -1,4 +1,4 @@
-import { asAppId, type AppId } from "../brand.ts";
+import { type AppId,asAppId } from "../brand.ts";
 import { HostError } from "../errors.ts";
 
 export type AppManifest = {

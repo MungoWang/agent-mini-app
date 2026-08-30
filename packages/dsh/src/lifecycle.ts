@@ -4,10 +4,20 @@ import path from "node:path";
 
 import type { HostLifecycle, HostServices, LogLevel, ToolDefinition } from "@monkey-mini-app/host";
 
-import { isRecord, toolsOf, type DshCtx } from "./ctx.ts";
+import { type DshCtx,isRecord, toolsOf } from "./ctx.ts";
 import { getSkillDir, getSkillMarkdown } from "./skills.ts";
 
 type DefineTool = (opts: Record<string, unknown>) => unknown;
+
+/**
+ * Tool accepted by {@link registerTools}.
+ *
+ * `execute` is optional here on purpose: host's `ToolDefinition` requires it, but
+ * this dsh seam defends against definitions that lack it and registers an executor
+ * returning `{ ok: false, error: "no execute" }`. Widening the type at the seam keeps
+ * that runtime contract expressible instead of forcing callers to fake an executor.
+ */
+export type RegisterableTool = Omit<ToolDefinition, "execute"> & { execute?: ToolDefinition["execute"] };
 
 export type DshLifecycleOptions = {
   skillDest?: string;
@@ -91,7 +101,7 @@ function toDshValueSchema(field: Record<string, unknown>, fallbackDesc?: string)
 }
 
 /** Convert ToolDefinition.inputSchema → dsh-tools `parameters` map. */
-function toolParameters(toolDef: ToolDefinition): Record<string, unknown> {
+function toolParameters(toolDef: RegisterableTool): Record<string, unknown> {
   const schema = isRecord(toolDef.inputSchema) ? toolDef.inputSchema : {};
   const props = isRecord(schema.properties) ? schema.properties : {};
   const required = new Set(Array.isArray(schema.required) ? schema.required.map(String) : []);
@@ -108,7 +118,7 @@ function toolParameters(toolDef: ToolDefinition): Record<string, unknown> {
 
 export function registerTools(
   ctx: DshCtx,
-  tools: ToolDefinition[],
+  tools: RegisterableTool[],
   defineTool: DefineTool | null,
 ): Array<() => void> {
   const disposers: Array<() => void> = [];

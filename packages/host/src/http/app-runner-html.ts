@@ -76,7 +76,7 @@ const APP_ID = ${safe};
 })();
 const cssLink = document.createElement("link");
 cssLink.rel = "stylesheet";
-cssLink.href = "/ui.css";
+cssLink.href = "/api/app/" + encodeURIComponent(APP_ID) + "/ui.css";
 document.head.appendChild(cssLink);
 try {
   await import("/api/app/" + encodeURIComponent(APP_ID) + "/ui/entry.js");

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { PanelError, createPanelI18n, resolvePanelLocale, type LocaleId } from "@monkey-mini-app/panel";
+import { createPanelI18n, type LocaleId,PanelError, resolvePanelLocale } from "@monkey-mini-app/panel";
 
 const originalNodeEnv = process.env.NODE_ENV;
 

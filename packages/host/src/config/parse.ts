@@ -1,11 +1,11 @@
 import { asAbsolutePath } from "../brand.ts";
 import { HostConfigError } from "../errors.ts";
 import {
-  LOCALE_IDS,
-  THEME_IDS,
   type HostConfig,
-  type LocaleId,
   type LlmConfig,
+  LOCALE_IDS,
+  type LocaleId,
+  THEME_IDS,
   type ThemeId,
 } from "../types.ts";
 

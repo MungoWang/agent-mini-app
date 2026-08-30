@@ -5,7 +5,7 @@
  */
 import { createHost } from "@monkey-mini-app/host";
 
-import { loadPluginHostConfig, type DshPluginConfig } from "./apply-config.ts";
+import { type DshPluginConfig,loadPluginHostConfig } from "./apply-config.ts";
 import { DshCapabilities } from "./capabilities.ts";
 import type { DshCtx } from "./ctx.ts";
 import { DshLifecycle } from "./lifecycle.ts";
@@ -16,17 +16,17 @@ export const packageName = "@monkey-mini-app/dsh-mini-app";
 export const name = "monkey-mini-app";
 export const inject = ["tools"];
 
-export { loadPluginHostConfig, resolveRuntimeRoot } from "./apply-config.ts";
-export type { DshPluginConfig } from "./apply-config.ts";
-export { DshCapabilities } from "./capabilities.ts";
-export { DshLifecycle } from "./lifecycle.ts";
-export { getHelloTemplateFiles, getSkillDir, getSkillMarkdown, getTemplateFiles } from "./skills.ts";
-export type { DshCtx } from "./ctx.ts";
-export { DshThemeResource } from "./theme-resource.ts";
-export { runDshAgentOneShot } from "./agent-one-shot.ts";
 export type { AgentOneShotDeps, DshAgentHelpers } from "./agent-one-shot.ts";
-export { resolveLlmRoute, DSH_LLM_FALLBACK } from "./llm-route.ts";
-export { withJsonInstruction, coerceSchemaJson, collectLlmStream } from "./llm-stream.ts";
+export { runDshAgentOneShot } from "./agent-one-shot.ts";
+export type { DshPluginConfig } from "./apply-config.ts";
+export { loadPluginHostConfig, resolveRuntimeRoot } from "./apply-config.ts";
+export { DshCapabilities } from "./capabilities.ts";
+export type { DshCtx } from "./ctx.ts";
+export { DshLifecycle } from "./lifecycle.ts";
+export { DSH_LLM_FALLBACK,resolveLlmRoute } from "./llm-route.ts";
+export { coerceSchemaJson, collectLlmStream,withJsonInstruction } from "./llm-stream.ts";
+export { getSkeletonTemplateFiles, getSkillDir, getSkillMarkdown, getTemplateFiles } from "./skills.ts";
+export { DshThemeResource } from "./theme-resource.ts";
 
 export async function apply(ctx: DshCtx, config: DshPluginConfig = {}): Promise<() => void> {
   const hostConfig = loadPluginHostConfig(config);

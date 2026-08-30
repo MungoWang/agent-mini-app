@@ -1,6 +1,5 @@
 import * as React from "react"
 import {
-  Activity,
   CheckCircle2,
   Circle,
   Cloud,

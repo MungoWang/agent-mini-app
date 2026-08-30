@@ -10,11 +10,14 @@
   "include": [
     "packages/host/src/**/*.ts",
     "packages/host/src/**/*.tsx",
+    "packages/host/tests/**/*.ts",
     "packages/dsh/src/**/*.ts",
     "packages/dsh/src/**/*.tsx",
+    "packages/dsh/tests/**/*.ts",
     "packages/panel/src/**/*.ts",
     "packages/panel/src/**/*.tsx",
+    "packages/panel/tests/**/*.ts",
     "packages/smoke-test/**/*.ts"
   ],
-  "exclude": ["**/node_modules", "**/dist", "**/lib", "**/*.test.ts"]
+  "exclude": ["**/node_modules", "**/dist", "**/lib"]
 }

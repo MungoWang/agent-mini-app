@@ -1,8 +1,0 @@
-{
-  "id": "com.example.hello",
-  "name": "连通检查",
-  "description": "确认小程序已经连上 Host",
-  "version": "0.2.0",
-  "entry": "ui.tsx",
-  "theme": { "followsHost": true }
-}

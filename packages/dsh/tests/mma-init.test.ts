@@ -2,8 +2,9 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { parseHostConfig } from "@monkey-mini-app/host";
 import { describe, expect, it } from "vitest";
+
+import { parseHostConfig } from "@monkey-mini-app/host";
 
 import { writeHostConfig } from "../../../scripts/mma-init.ts";
 

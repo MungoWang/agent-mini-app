@@ -1,17 +1,17 @@
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { asAppId } from "../src/brand.ts";
 import { readAppFile } from "../src/apps/app-files.ts";
+import { asAbsolutePath,asAppId } from "../src/brand.ts";
 import { HostError } from "../src/errors.ts";
 import { WorkspacePaths } from "../src/paths/workspace-paths.ts";
 
 function fixture(text: string): { paths: WorkspacePaths; appId: string } {
   const root = mkdtempSync(path.join(tmpdir(), "mma-read-"));
-  const paths = new WorkspacePaths(root as `/` & string);
+  const paths = new WorkspacePaths(asAbsolutePath(root));
   const appId = "com.example.read";
   const dir = paths.appDir(asAppId(appId));
   mkdirSync(dir, { recursive: true });

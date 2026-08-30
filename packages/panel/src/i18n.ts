@@ -1,8 +1,8 @@
 import { createInstance } from "i18next";
 
-import { PanelError } from "./errors.ts";
 import en from "./locales/en.json" with { type: "json" };
 import zhCN from "./locales/zh-CN.json" with { type: "json" };
+import { PanelError } from "./errors.ts";
 import { LOCALE_IDS, type LocaleId } from "./types.ts";
 
 export type I18nParams = Record<string, string | number>;

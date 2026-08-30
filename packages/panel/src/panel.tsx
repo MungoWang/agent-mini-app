@@ -1,7 +1,7 @@
 import { createRoot, type Root } from "react-dom/client";
 
-import { createPanelActions } from "./actions.ts";
 import { MiniAppPanel } from "./components/MiniAppPanel.tsx";
+import { createPanelActions } from "./actions.ts";
 import { PanelProvider } from "./context.tsx";
 import { createPanelI18n, resolvePanelLocale } from "./i18n.ts";
 import { capabilitiesOf, type PanelHost } from "./panel-host.ts";

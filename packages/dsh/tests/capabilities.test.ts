@@ -2,8 +2,9 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import type { AppCallContext } from "@monkey-mini-app/host";
 import { describe, expect, it } from "vitest";
+
+import type { AppCallContext } from "@monkey-mini-app/host";
 
 import { DshCapabilities } from "../src/capabilities.ts";
 import type { DshCtx } from "../src/ctx.ts";

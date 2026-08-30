@@ -12,14 +12,14 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "types": ["node"],
     "outDir": "dist",
-    "baseUrl": ".",
     "paths": {
-      "@monkey-mini-app/panel": ["packages/panel/src/index.ts"],
-      "@monkey-mini-app/ui": ["packages/ui/src/index.ts"],
-      "@deepseek-ai/dsh-tools": ["packages/dsh/src/dsh-tools.d.ts"],
-      "@monkey-mini-app/host": ["packages/host/src/index.ts"],
-      "@monkey-mini-app/dsh-mini-app": ["packages/dsh/src/index.ts"]
+      "@monkey-mini-app/panel": ["./packages/panel/src/index.ts"],
+      "@monkey-mini-app/ui": ["./packages/ui/src/index.ts"],
+      "@deepseek-ai/dsh-tools": ["./packages/dsh/src/dsh-tools.d.ts"],
+      "@monkey-mini-app/host": ["./packages/host/src/index.ts"],
+      "@monkey-mini-app/dsh-mini-app": ["./packages/dsh/src/index.ts"]
     }
   }
 }

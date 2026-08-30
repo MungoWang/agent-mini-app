@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  APPS_HOST_KEY,
   appFrameUrl,
+  APPS_HOST_KEY,
   appsOrigin,
   originFromHostPort,
   readStoredAppsOrigin,
@@ -16,9 +16,9 @@ import {
   parseCommitList,
 } from "../src/client/http.ts";
 import { layoutBox, sideWidthPx } from "../src/client/layout-box.ts";
-import { DshPanelHost, type DshPanelHostHooks } from "../src/panel-host.ts";
-import { clampCardStyle, escapeHtml, luminanceOf } from "../src/client/utils.ts";
 import { isDarkFromProbes } from "../src/client/theme.ts";
+import { clampCardStyle, escapeHtml, luminanceOf } from "../src/client/utils.ts";
+import { DshPanelHost, type DshPanelHostHooks } from "../src/panel-host.ts";
 
 function memoryStorage(init: Record<string, string> = {}): Storage {
   const map = new Map(Object.entries(init));

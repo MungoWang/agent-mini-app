@@ -547,12 +547,12 @@ export function applyThemeTo(
   palette: unknown,
   custom?: CustomPaletteMap
 ): { theme: ModeId; palette: PaletteId } {
-  const mode = clampMode(theme)
-  const c = custom && palette ? custom[String(palette)] : undefined
-  const pal = c ? (String(palette) as string) : clampPalette(palette as PaletteId)
-  const t = (c && c.tokens && c.tokens[mode]) || tokensOf(pal as PaletteId, mode)
-  el.setAttribute("data-theme", mode)
-  el.setAttribute("data-palette", pal)
+  const mode = clampMode(theme);
+  const c = custom && palette ? custom[String(palette)] : undefined;
+  const pal = c ? (String(palette) as string) : clampPalette(palette as PaletteId);
+  const t = (c && c.tokens && c.tokens[mode]) || tokensOf(pal as PaletteId, mode);
+  el.setAttribute("data-theme", mode);
+  el.setAttribute("data-palette", pal);
   const map: Record<string, string> = {
     "--dsw-alias-bg": t.bg,
     "--dsw-alias-fg": t.fg,
@@ -582,9 +582,9 @@ export function applyThemeTo(
     "--destructive-foreground": t.destructiveFg,
     "--radius": t.radius,
     "--shadow": t.shadow,
-  }
-  for (const k of Object.keys(map)) el.style.setProperty(k, map[k])
-  el.style.background = t.bg
-  el.style.color = t.fg
-  return { theme: mode, palette: pal as PaletteId }
+  };
+  for (const k of Object.keys(map)) el.style.setProperty(k, map[k]);
+  el.style.background = t.bg;
+  el.style.color = t.fg;
+  return { theme: mode, palette: pal as PaletteId };
 }

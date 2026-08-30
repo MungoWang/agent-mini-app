@@ -15,7 +15,7 @@
 
 ## `ctx.llm` 例子
 
-完整 RSS + `./lib` + schema 见 `templates/news/`。
+完整 RSS + `./lib` + schema 见 `templates/insights/`。
 
 ```ts
 const SCHEMA = {

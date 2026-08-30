@@ -1,16 +1,18 @@
 import { createElement, type ReactElement } from "react";
+
 import { defaultHideThemePop, getPanelState, subscribePanel } from "@monkey-mini-app/panel";
 
 import { installFootCss } from "./css.ts";
-import "./globals.ts";
 import { DshShell } from "./shell.ts";
+
+import "./globals.ts";
 
 export const name = "monkey-mini-app-client";
 export const inject = ["slots"] as const;
 
 export { DshPanelHost } from "../panel-host.ts";
-export { createMiniAppPanel } from "@monkey-mini-app/panel";
 export { appFrameUrl, appsOrigin } from "./apps-host.ts";
+export { createMiniAppPanel } from "@monkey-mini-app/panel";
 
 type SlotsCtx = {
   slots?: {

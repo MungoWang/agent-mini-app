@@ -1,4 +1,3 @@
-import * as React from "react"
 import { ArrowUpRight, Quote } from "lucide-react"
 import { Badge } from "@monkey-mini-app/ui/components/badge"
 import { Button } from "@monkey-mini-app/ui/components/button"

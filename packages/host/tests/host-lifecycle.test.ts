@@ -4,21 +4,22 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+  HttpGateway} from "@monkey-mini-app/host";
 import {
   AppsManager,
-  GitHistory,
-  Host,
-  HostConfigError,
-  HostError,
-  HttpGateway,
-  ToolFacade,
-  WorkspacePaths,
   bootstrapHostConfig,
   createHost,
+  GitHistory,
+  Host,
   type HostCapabilities,
   type HostConfig,
+  HostConfigError,
+  HostError,
   type HostLifecycle,
   type HostServices,
+  ToolFacade,
+  WorkspacePaths,
 } from "@monkey-mini-app/host";
 
 function validConfig(hostPort = 0): HostConfig {

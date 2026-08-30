@@ -153,6 +153,7 @@ function TestCaseRow({ id, name, onRun }: { id: string; name: string; onRun: () 
           className="text-muted-foreground h-6 gap-1 px-1.5 text-[11px] opacity-0 transition-opacity group-hover:opacity-100"
           onClick={() => {
             setState("run")
+            onRun()
             setTimeout(() => setState(Math.random() > 0.3 ? "pass" : "fail"), 900)
           }}
         >

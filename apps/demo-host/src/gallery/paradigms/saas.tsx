@@ -1,4 +1,3 @@
-import * as React from "react"
 import {
   ArrowUpRight,
   Bell,
@@ -20,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@monkey-mini-app/ui/components/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@monkey-mini-app/ui/components/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@monkey-mini-app/ui/components/tabs"
 import { Progress } from "@monkey-mini-app/ui/components/progress"
 import { Sparkline } from "@monkey-mini-app/ui/blocks/sparkline"
 import { StyleHeader, useCountUp, Reveal } from "./shared"

@@ -1,0 +1,9 @@
+{
+  "id": "com.example.agentrun",
+  "name": "任务执行器",
+  "description": "让模型干一个多步活，实时展示过程，可取消",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "theme": { "followsHost": true },
+  "acronym": "RW"
+}
