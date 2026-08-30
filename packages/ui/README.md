@@ -1,8 +1,9 @@
 # @monkey-mini-app/ui
 
-`react` component library for mini-apps. Every React panel in this repo renders from these
-components. It is the **only** UI package a mini-app may import (besides `react` and
-`@monkey-agent/host`).
+`react` component library for mini-apps. **It's a reference / convenience, not a spec** —
+use it to save reimplementing common components (tables, forms, charts, dialogs, editors),
+but you're free to build custom UI with raw HTML elements + Tailwind classes instead
+(and the two mix freely). It's the **only** UI **package** a mini-app may import.
 
 ## Install
 

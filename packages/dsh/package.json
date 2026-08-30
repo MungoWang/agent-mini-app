@@ -23,7 +23,8 @@
     "lib",
     "cordis.patch.yml",
     "tsup.config.ts",
-    "skills"
+    "skills",
+    "assets"
   ],
   "scripts": {
     "build": "rm -rf lib && tsup",
