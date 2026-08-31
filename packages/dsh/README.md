@@ -18,6 +18,12 @@
 ![demo](./assets/demo-app.png)
 *打开一个 mini-app（能力实验室：LLM / Agent / 工具 / 网络 / 命令）。*
 
+![side](./assets/sidebar-mode.png)
+*mini-app 钉到侧栏（待办）：对话在左、应用在右。*
+
+![complex](./assets/complex-demo-app.png)
+*复杂 mini-app（AI 热点雷达：多源聚合 + LLM 分析 + 图表）。*
+
 ## 安装
 
 ```bash
@@ -48,4 +54,4 @@ dsh web --no-open   # http://127.0.0.1:3080 ；apps host 默认 :17880
 - **插件入口**：导出 `apply(ctx, config?)`（Cordis）、常量 `name="monkey-mini-app"`、`inject=["tools"]`，以及 `DshCapabilities` / `DshLifecycle` / `DshThemeResource`。
 - **client**：`@monkey-mini-app/dsh-mini-app/client` 导出 `FooterButton` / `createMiniAppPanel` / `appFrameUrl` / `appsOrigin`。
 - **deps**：`@monkey-mini-app/host` / `panel` / `ui` 为运行时 `require`（external，不打进去），发布后仍从 npm 解析。
-- **运行时配置**：`host.json` 不允许缺省——缺了就提示跑 install / `mma-init`。
+- **运行时配置**：首启自动 bootstrap 写完整 `host.json`（缺才建）；`host.json` 已存在但损坏仍 fail loud。
