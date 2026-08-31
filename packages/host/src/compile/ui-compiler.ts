@@ -159,6 +159,22 @@ function makeUiPlugin(distDir: string, appId: string): Plugin {
       build.onResolve({ filter: /^@monkey-mini-app\/ui$/ }, () => ({
         path: path.join(distDir, "index.js"),
       }));
+      // The ui package's src files import each other via @monkey-mini-app/ui/<subpath>.
+      // Those resolve through the package.json exports to ./dist/src/<subpath> (no extension),
+      // which Node/esbuild don't append extensions for in a hoisted install. Resolve them
+      // explicitly against distDir/src so it works in dev, npm and anywhere.
+      build.onResolve({ filter: /^@monkey-mini-app\/ui\// }, (args) => {
+        const rel = args.path.slice("@monkey-mini-app/ui/".length);
+        for (const ext of [".tsx", ".ts", ".jsx", ".js"]) {
+          const c = path.join(distDir, "src", rel + ext);
+          if (fs.existsSync(c)) return { path: c };
+        }
+        for (const idx of ["index.tsx", "index.ts", "index.js"]) {
+          const c = path.join(distDir, "src", rel, idx);
+          if (fs.existsSync(c)) return { path: c };
+        }
+        return { errors: [{ text: `could not resolve @monkey-mini-app/ui subpath: ${args.path}` }] };
+      });
       build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
         try {
           return { path: req.resolve(args.path) };
