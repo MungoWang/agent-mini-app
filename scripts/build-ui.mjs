@@ -26,7 +26,7 @@ const srcRoot = path.join(uiRoot, "src");
 const outRoot = path.join(uiRoot, "dist");
 
 /** Files that export non-component utilities (kept in flat index, but not in catalog). */
-const SKIP_EXPORT_FILES = new Set(["index", "cells", "column-meta"]);
+const SKIP_EXPORT_FILES = new Set(["index", "cells", "column-meta", "jql-language"]);
 
 const COMPONENT_DIRS = ["components", "composites", "products", "blocks"];
 

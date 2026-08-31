@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { codeToHtml } from "shiki"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
@@ -33,21 +32,28 @@ export function CodeBlock({
 
   React.useEffect(() => {
     let cancelled = false
-    codeToHtml(code, {
-      lang,
-      theme: dark ? "github-dark" : "github-light",
-    })
-      .then((out) => {
+    // Dynamic import so shiki (all langs/themes) is code-split into a lazy chunk
+    // and only fetched when a CodeBlock is actually rendered.
+    ;(async () => {
+      try {
+        const { codeToHtml } = await import("https://esm.run/shiki@4.4.3")
+        let out: string
+        try {
+          out = await codeToHtml(code, {
+            lang,
+            theme: dark ? "github-dark" : "github-light",
+          })
+        } catch {
+          out = await codeToHtml(code, {
+            lang: "text",
+            theme: dark ? "github-dark" : "github-light",
+          })
+        }
         if (!cancelled) setHtml(out)
-      })
-      .catch(() =>
-        codeToHtml(code, {
-          lang: "text",
-          theme: dark ? "github-dark" : "github-light",
-        }).then((out) => {
-          if (!cancelled) setHtml(out)
-        })
-      )
+      } catch {
+        // CDN unavailable / unsupported lang → keep the native <pre><code> fallback.
+      }
+    })()
     return () => {
       cancelled = true
     }
