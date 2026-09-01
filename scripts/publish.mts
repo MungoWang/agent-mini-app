@@ -58,7 +58,7 @@ for (const name of ORDER) {
 }
 
 console.log("\n[publish] clean-install smoke test...");
-const tmp = path.join(root, ".publish-smoke");
+const tmp = path.join(root, "publish-smoke");
 execFileSync("rm", ["-rf", tmp]);
 execFileSync("mkdir", ["-p", tmp]);
 execFileSync("npm", ["init", "-y"], { cwd: tmp });
