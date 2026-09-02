@@ -281,9 +281,6 @@ importers:
       '@hono/node-server':
         specifier: ^2.1.1
         version: 2.1.1(hono@4.13.5)
-      '@monkey-mini-app/sdk':
-        specifier: workspace:^
-        version: link:../sdk
       '@monkey-mini-app/ui':
         specifier: ^0.1.0
         version: 0.1.1(@babel/runtime@7.29.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.9)(@date-fns/tz@1.5.0)(@tiptap/core@3.30.4(@tiptap/pm@3.30.4))(@tiptap/extensions@3.30.4(@tiptap/core@3.30.4(@tiptap/pm@3.30.4))(@tiptap/pm@3.30.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(codemirror@6.0.2)(react-dom@19.2.8(react@19.2.8))(react-is@18.3.1)(react@19.2.8)(typescript@5.9.3)
