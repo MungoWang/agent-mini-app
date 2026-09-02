@@ -104,11 +104,14 @@ Repo automation lives under `scripts/` by lifecycle stage — see [`scripts/READ
 
 
 ```bash
+pnpm verify          # preferred after refactor: build + skill + templates + lint + tsc + test + dsh build
+# or piece-wise:
 pnpm lint
 pnpm skill           # gen:skill + check:skill
+pnpm check:templates
 pnpm test
-pnpm test:coverage   # host/panel/dsh lines ≥85%
-pnpm exec tsc -b
+pnpm test:coverage   # host/panel/dsh lines ≥85% (also: pnpm verify:coverage)
+pnpm typecheck       # tsc -b
 pnpm --filter @monkey-mini-app/dsh-mini-app build
 ```
 
