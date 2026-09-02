@@ -2,8 +2,8 @@
 # Install @monkey-mini-app/dsh-mini-app into the local dsh *web* profile via path link.
 # Flow:
 #   1) ensure dsh / pnpm are installed
-#   2) build ui dist + sdk.js + dsh bundle (tsup)
-#   3) profile pnpm-workspace.yaml gains repo host/panel/ui/sdk as workspace members
+#   2) build ui dist + iframe sdk.js + api dist + dsh bundle (tsup)
+#   3) profile pnpm-workspace.yaml gains repo host/panel/ui/api as workspace members
 #   4) pnpm add -w workspace packages then pnpm add -w <plugin path>
 #   5) bootstrap write complete host.json (via bootstrapHostConfig)
 #   6) append bundle name to package.json dsh.profile.bundles
@@ -16,7 +16,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PLUGIN="$ROOT/packages/dsh"
 UI_PKG="$ROOT/packages/ui"
-SDK_PKG="$ROOT/packages/sdk"
+API_PKG="$ROOT/packages/api"
 HOST_PKG="$ROOT/packages/host"
 PANEL_PKG="$ROOT/packages/panel"
 PROFILE_DIR="${DSH_HOME:-$HOME/.dsh}/profiles/web"
@@ -32,10 +32,10 @@ if ! command -v pnpm >/dev/null 2>&1; then
   npm install -g pnpm@11
 fi
 
-echo "[install] building @monkey-mini-app/ui dist..."
-(cd "$ROOT" && node scripts/build/ui.mjs)
+echo "[install] building @monkey-mini-app/ui dist + iframe bundles..."
+(cd "$ROOT" && node scripts/build/ui.mjs && node scripts/build/sdk.mjs)
 echo "[install] building @monkey-mini-app/api dist..."
-(cd "$ROOT" && node scripts/build/sdk.mjs)
+(cd "$ROOT" && node scripts/build/api.mjs)
 echo "[install] building lib/ from src (tsup)..."
 (cd "$PLUGIN" && rm -rf lib && pnpm exec tsup)
 for f in index.js client.js; do
@@ -93,7 +93,7 @@ EOF
 }
 
 ensure_workspace_member "$UI_PKG"
-ensure_workspace_member "$SDK_PKG"
+ensure_workspace_member "$API_PKG"
 ensure_workspace_member "$HOST_PKG"
 ensure_workspace_member "$PANEL_PKG"
 

@@ -4,7 +4,7 @@
  *   pnpm publish:packages [--bump patch|minor|major]
  *
  * Verifies each package is buildable + has no `workspace:` deps, then publishes in
- * dependency order (ui → sdk → host → panel → dsh) with public access, and finishes with a
+ * dependency order (ui → api → host → panel → dsh) with public access, and finishes with a
  * clean-install smoke test. Runs `npm publish` per package (its prepack/prepublishOnly
  * builds first).
 
@@ -84,7 +84,7 @@ if (!process.argv.includes("--skip-e2e")) {
   console.warn("[publish] skipping test:dsh (--skip-e2e)");
 }
 
-console.log("\n[publish] publishing in order ui → sdk → host → panel → dsh...");
+console.log("\n[publish] publishing in order ui → api → host → panel → dsh...");
 for (const name of ORDER) {
   console.log(`\n── publish @monkey-mini-app/${name} ──`);
   const file = pkgPath(name);

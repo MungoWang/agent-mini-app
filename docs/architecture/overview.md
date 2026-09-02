@@ -9,11 +9,9 @@
 | `packages/host` | `@monkey-mini-app/host` | AppsManager / GitHistory / Hono / UiCompiler / ToolFacade / config |
 | `packages/panel` | `@monkey-mini-app/panel` | Host-agnostic React panel (`PanelHost` seam; no `/api`) |
 | `packages/dsh` | `@monkey-mini-app/dsh-mini-app` | dsh adapter: capabilities + lifecycle + client + skills |
-| `packages/sdk` | `@monkey-mini-app/ui` | Author package: `useApp` + UI kit re-export + `defineApp` types |
-| `packages/ui` | `@monkey-mini-app/ui` | Component kit (bundled into the SDK / iframe) |
+| `packages/ui` | `@monkey-mini-app/ui` | Author UI package: kit + `useApp`; iframe `/mma/runtime.js` + `/mma/sdk.js` |
+| `packages/api` | `@monkey-mini-app/api` | Backend `defineApp` + `AppCtx` types (host injects runtime) |
 | `packages/smoke-test` | — | Integration / sample smoke tests |
-
-Dependency direction (eslint-enforced): `host` ↛ `panel`/`dsh`; `panel` ↛ `host`/`dsh`; `dsh` → `host` + `panel`.
 
 ## Composition root
 

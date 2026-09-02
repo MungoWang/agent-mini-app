@@ -27,7 +27,8 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 |------|------|
 | Platform host (AppsManager / Git / Hono / UI compile / tools) | `packages/host/src/` |
 | Platform panel (`PanelHost`, host-agnostic) | `packages/panel/src/` |
-| Mini-app author SDK | `packages/sdk/` → `node scripts/build/sdk.mjs` |
+| Mini-app UI author package | `packages/ui/` → `pnpm build:ui` + `pnpm build:sdk` (iframe) |
+| Mini-app backend contract | `packages/api/` → `pnpm build:api` |
 | UI kit | `packages/ui/` → `node scripts/build/ui.mjs` |
 | dsh adapter (plugin + client + skills) | `packages/dsh/` (npm: `@monkey-mini-app/dsh-mini-app`) |
 | Mini-app authoring skill (platform) | `skills/monkey-mini-app/` |

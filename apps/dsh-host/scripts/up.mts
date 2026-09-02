@@ -29,7 +29,7 @@ const HOST_PORT = 17880;
 const DSH_HOME = path.join(appDir, ".dsh");
 const RUNTIME = path.join(appDir, "mma-runtime");
 const PROFILE = path.join(DSH_HOME, "profiles", "web");
-const ORDER = ["ui", "sdk", "host", "panel", "dsh"] as const;
+const ORDER = ["ui", "api", "host", "panel", "dsh"] as const;
 
 const children: ChildProcess[] = [];
 

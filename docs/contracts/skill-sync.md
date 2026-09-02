@@ -64,7 +64,7 @@ Effect: `env-table.md` went from 332 prop rows (5 real, with `String.prototype` 
 `packages/smoke-test/catalog-consistency.test.ts` invokes the gate, so `pnpm test` covers it too.
 
 `pnpm check:templates` is the other half: it type-checks every skill template against the
-**real** SDK types (`packages/sdk/src`), so an example that would generate a broken app
+**real** UI/API types (`packages/ui/src`, `packages/api/src`), so an example that would generate a broken app
 cannot stay committed. Only diagnostics inside `templates/**` fail it; `packages/ui`
 internals are reported as a note.
 
