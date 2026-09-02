@@ -38,7 +38,10 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.68.0",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "@monkey-mini-app/api": "workspace:*",
+    "@monkey-mini-app/ui": "workspace:*",
+    "@monkey-mini-app/host": "workspace:*"
   },
   "engines": {
     "node": ">=20"

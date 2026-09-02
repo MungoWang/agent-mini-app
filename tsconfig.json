@@ -4,8 +4,13 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
-    "lib": ["ES2022", "DOM"],
-    "types": ["node"]
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "packages/host/src/**/*.ts",
@@ -20,5 +25,9 @@
     "packages/api/tests/**/*.ts",
     "packages/smoke-test/**/*.ts"
   ],
-  "exclude": ["**/node_modules", "**/dist", "**/lib"]
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/lib"
+  ]
 }

@@ -84,7 +84,7 @@ export function CodeEditor({
           darkTheme: { of: (v: boolean) => unknown }
         }
         const pick = (m: unknown, name: string): ((o?: object) => unknown) => {
-          const n = bare(m as { default?: unknown }) as Record<string, unknown>
+          const n = bare(m as object & { default?: object }) as Record<string, unknown>
           const fn = n[name] ?? (n.default as Record<string, unknown> | undefined)?.[name]
           if (typeof fn !== "function") throw new Error(`lang ${name} missing`)
           return fn as (o?: object) => unknown
