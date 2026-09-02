@@ -39,6 +39,7 @@ function AppCard({ app }: { app: AppItem }) {
     <button
       type="button"
       className="mma-card"
+      data-app-id={app.id}
       style={{ "--h": hue(app.id) } as React.CSSProperties}
       onClick={() => actions.openAppTab(app)}
     >
@@ -70,6 +71,7 @@ function AppRow({ app }: { app: AppItem }) {
     <button
       type="button"
       className="mma-row"
+      data-app-id={app.id}
       style={{ "--h": hue(app.id) } as React.CSSProperties}
       onClick={() => actions.openAppTab(app)}
     >

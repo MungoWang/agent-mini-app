@@ -1,99 +1,1524 @@
 {
-  "package": "@monkey-mini-app/ui",
-  "css": "@monkey-mini-app/ui/globals.css",
-  "import": "import { Button, DataGrid, DatePicker, UiProvider } from \"@monkey-mini-app/ui\"",
+  "package": "@monkey-mini-app/sdk",
+  "css": "injected by the host (do not import)",
+  "import": "import { Button, DataGrid, DatePicker, useApp, Icon } from \"@monkey-mini-app/sdk\"",
   "generated": true,
-  "composites": [
-    "Autocomplete",
-    "Cascader",
-    "ColorPicker",
-    "ConfirmDialog",
-    "Copyable",
-    "CurrencyInput",
-    "DatePicker",
-    "DateRangePicker",
-    "DateTimePicker",
-    "DateTimeRangePicker",
-    "DurationInput",
-    "MiniCalendar",
-    "NumberField",
-    "PasswordField",
-    "PhoneInput",
-    "Rating",
-    "RelativeDatePicker",
-    "SearchInput",
-    "SliderRange",
-    "TagInput",
-    "TimePicker",
-    "TimeRangePicker",
-    "TimeWheel",
-    "TimezoneSelect",
-    "Transfer",
-    "UserPicker"
+  "families": [
+    {
+      "name": "Layout & structure",
+      "blurb": "Shell / split / scroll containers and display atoms — they arrange, they don't interact."
+    },
+    {
+      "name": "Navigation",
+      "blurb": "Menus, sidebars, palettes, tabs, pagination, scroll-spy."
+    },
+    {
+      "name": "Surface",
+      "blurb": "Elevates content above the page: card, dialog, sheet, drawer, popover, tooltip, accordion."
+    },
+    {
+      "name": "Form",
+      "blurb": "Inputs, selects, toggles, buttons and actions — anything the user edits."
+    },
+    {
+      "name": "Data & tables",
+      "blurb": "Rows, grids, boards, trees, sortable lists and their filters."
+    },
+    {
+      "name": "Chart & data",
+      "blurb": "Stat / KPI cards, charts, gauges, sparklines, git graph."
+    },
+    {
+      "name": "Feedback & status",
+      "blurb": "Status/severity badges, progress, skeleton, spinner, alerts, empty states, toasts."
+    },
+    {
+      "name": "Calendar & date",
+      "blurb": "Calendars, date/time pickers and ranges, durations, timezones, scheduling views."
+    },
+    {
+      "name": "Realtime",
+      "blurb": "Live feeds, timelines, logs and consoles."
+    },
+    {
+      "name": "Rich text",
+      "blurb": "Markdown / rich-text render and edit, wiki markup."
+    },
+    {
+      "name": "Discovery & inspect",
+      "blurb": "Inspect, compare and browse artefacts: diff, JSON, code, requests, attachments."
+    }
   ],
-  "products": [
-    "CodeBlock",
-    "CodeEditor",
-    "DataGrid",
-    "DiffViewer",
-    "EventCalendar",
-    "FileDropzone",
-    "Gantt",
-    "JiraWiki",
-    "JqlInput",
-    "JsonViewer",
-    "Kanban",
-    "KanbanIssuePanel",
-    "LogViewer",
-    "Markdown",
-    "MarkdownEditor",
-    "RichTextEditor",
-    "SortableList",
-    "Stepper",
-    "Timeline",
-    "TreeView"
-  ],
-  "blocks": [
-    "ActivityFeed",
-    "AppShell",
-    "AttachmentGallery",
-    "CommentThread",
-    "DescriptionList",
-    "DetailPanel",
-    "DonutChart",
-    "EnvBadge",
-    "FileTree",
-    "FilterBar",
-    "Gauge",
-    "NotificationCenter",
-    "PageHeader",
-    "ProgressRing",
-    "RadarChart",
-    "RequestInspector",
-    "RunTimeline",
-    "Scrollspy",
-    "SeverityChip",
-    "Sparkline",
-    "StackedBarChart",
-    "StatCard",
-    "StatusBadge",
-    "Terminal",
-    "TestStepList",
-    "TrendCard"
-  ],
-  "primitives": [
-    "Button",
-    "Input",
-    "Select",
-    "Dialog",
-    "Sheet",
-    "Tabs",
-    "Table",
-    "Card",
-    "Badge",
-    "Sidebar",
-    "Tooltip",
-    "Resizable",
-    "ScrollArea"
-  ]
+  "components": {
+    "Accordion": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Collapsible groups in settings/details.",
+      "contract": "references/contracts/accordion.md",
+      "parts": [
+        "Accordion",
+        "AccordionContent",
+        "AccordionItem",
+        "AccordionTrigger"
+      ],
+      "helpers": []
+    },
+    "ActivityFeed": {
+      "componentType": "block",
+      "family": "Realtime",
+      "primitive": false,
+      "when": "Read-only “who did what when” — commits, deploys, agent runs. For steps with status use `RunTimeline`.",
+      "contract": "references/contracts/activity-feed.md"
+    },
+    "Alert": {
+      "componentType": "component",
+      "family": "Feedback & status",
+      "primitive": true,
+      "when": "Explaining a failed state in place. Transient → `toast()`.",
+      "contract": "references/contracts/alert.md",
+      "parts": [
+        "Alert",
+        "AlertAction",
+        "AlertDescription",
+        "AlertTitle"
+      ],
+      "helpers": []
+    },
+    "AlertDialog": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Deleting/irreversible actions that must be answered.",
+      "contract": "references/contracts/alert-dialog.md",
+      "parts": [
+        "AlertDialog",
+        "AlertDialogAction",
+        "AlertDialogCancel",
+        "AlertDialogContent",
+        "AlertDialogDescription",
+        "AlertDialogFooter",
+        "AlertDialogHeader",
+        "AlertDialogMedia",
+        "AlertDialogOverlay",
+        "AlertDialogPortal",
+        "AlertDialogTitle",
+        "AlertDialogTrigger"
+      ],
+      "helpers": []
+    },
+    "AppShell": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Root layout for a mini-app page",
+      "contract": "references/contracts/app-shell.md"
+    },
+    "AspectRatio": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "Keeping an image/video/embed from shifting the layout while loading.",
+      "contract": "references/contracts/aspect-ratio.md",
+      "parts": [
+        "AspectRatio"
+      ],
+      "helpers": []
+    },
+    "Attachment": {
+      "componentType": "component",
+      "family": "Discovery & inspect",
+      "primitive": true,
+      "when": "One selected file inside a form. A grid of many → `AttachmentGallery`.",
+      "contract": "references/contracts/attachment.md",
+      "parts": [
+        "Attachment",
+        "AttachmentAction",
+        "AttachmentActions",
+        "AttachmentContent",
+        "AttachmentDescription",
+        "AttachmentGroup",
+        "AttachmentMedia",
+        "AttachmentTitle",
+        "AttachmentTrigger"
+      ],
+      "helpers": []
+    },
+    "AttachmentGallery": {
+      "componentType": "block",
+      "family": "Discovery & inspect",
+      "primitive": false,
+      "when": "A record has N files/images and you show them as tiles, not a table.",
+      "contract": "references/contracts/attachment-gallery.md"
+    },
+    "Autocomplete": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Free text allowed but known values should be suggested. Strict pick-list → `Select`.",
+      "contract": "references/contracts/autocomplete.md"
+    },
+    "Avatar": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "User initials/photo next to a name in rows, comments, pickers.",
+      "contract": "references/contracts/avatar.md",
+      "parts": [
+        "Avatar",
+        "AvatarBadge",
+        "AvatarFallback",
+        "AvatarGroup",
+        "AvatarGroupCount",
+        "AvatarImage"
+      ],
+      "helpers": []
+    },
+    "Badge": {
+      "componentType": "component",
+      "family": "Feedback & status",
+      "primitive": true,
+      "when": "Static tags/counts. Status → `StatusBadge`, severity → `SeverityChip`.",
+      "contract": "references/contracts/badge.md",
+      "parts": [
+        "Badge"
+      ],
+      "helpers": [
+        "badgeVariants"
+      ]
+    },
+    "Breadcrumb": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Deep mini-app views; usually one level is enough — prefer `Tabs`/`AppShell` nav.",
+      "contract": "references/contracts/breadcrumb.md",
+      "parts": [
+        "Breadcrumb",
+        "BreadcrumbEllipsis",
+        "BreadcrumbItem",
+        "BreadcrumbLink",
+        "BreadcrumbList",
+        "BreadcrumbPage",
+        "BreadcrumbSeparator"
+      ],
+      "helpers": []
+    },
+    "Bubble": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Conversational UI (assistant turns). Records/logs → `ActivityFeed` / `Message`.",
+      "contract": "references/contracts/bubble.md",
+      "parts": [
+        "Bubble",
+        "BubbleContent",
+        "BubbleGroup",
+        "BubbleReactions"
+      ],
+      "helpers": []
+    },
+    "Button": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Every click target. `variant=\"destructive\"` for delete, `size=\"icon*\"` for icon-only (add aria-label).",
+      "contract": "references/contracts/button.md",
+      "parts": [
+        "Button"
+      ],
+      "helpers": [
+        "buttonVariants"
+      ]
+    },
+    "ButtonGroup": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "2–5 mutually related actions (view switch, alignment). Tabs of content → `Tabs`.",
+      "contract": "references/contracts/button-group.md",
+      "parts": [
+        "ButtonGroup",
+        "ButtonGroupSeparator",
+        "ButtonGroupText"
+      ],
+      "helpers": [
+        "buttonGroupVariants"
+      ]
+    },
+    "Calendar": {
+      "componentType": "component",
+      "family": "Calendar & date",
+      "primitive": true,
+      "when": "An inline calendar inside your own layout. As a field with input → `DatePicker`.",
+      "contract": "references/contracts/calendar.md",
+      "parts": [
+        "Calendar",
+        "CalendarDayButton"
+      ],
+      "helpers": []
+    },
+    "Card": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "The default container for a block of related UI.",
+      "contract": "references/contracts/card.md",
+      "parts": [
+        "Card",
+        "CardAction",
+        "CardContent",
+        "CardDescription",
+        "CardFooter",
+        "CardHeader",
+        "CardTitle"
+      ],
+      "helpers": []
+    },
+    "Cascader": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Hierarchical codes (region → site → line). Flat tree → `TreeView`.",
+      "contract": "references/contracts/cascader.md"
+    },
+    "Chart": {
+      "componentType": "component",
+      "family": "Chart & data",
+      "primitive": true,
+      "when": "Only when no `*Chart` block fits — then you own the series. Prefer `DonutChart` / `StackedBarChart` / `Sparkline` / `Gauge` / `RadarChart`.",
+      "contract": "references/contracts/chart.md",
+      "parts": [
+        "ChartContainer",
+        "ChartLegend",
+        "ChartLegendContent",
+        "ChartStyle",
+        "ChartTooltip",
+        "ChartTooltipContent"
+      ],
+      "helpers": []
+    },
+    "Checkbox": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Multi-select rows / opt-in.",
+      "contract": "references/contracts/checkbox.md",
+      "parts": [
+        "Checkbox"
+      ],
+      "helpers": []
+    },
+    "CodeBlock": {
+      "componentType": "product",
+      "family": "Discovery & inspect",
+      "primitive": false,
+      "when": "Showing a snippet/command. Editable → `CodeEditor`.",
+      "contract": "references/contracts/code-block.md"
+    },
+    "CodeEditor": {
+      "componentType": "product",
+      "family": "Discovery & inspect",
+      "primitive": false,
+      "when": "Editing config/scripts in-app. Do not `import @codemirror/*` or add it to package.json.",
+      "contract": "references/contracts/code-editor.md"
+    },
+    "Collapsible": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "A single disclosure (advanced options). Several stacked → `Accordion`.",
+      "contract": "references/contracts/collapsible.md",
+      "parts": [
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger"
+      ],
+      "helpers": []
+    },
+    "ColorPicker": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Theme/label colour config. Never for secrets.",
+      "contract": "references/contracts/color-picker.md"
+    },
+    "Combobox": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "When you need full control of the popover list. Simple suggestion box → `Autocomplete`.",
+      "contract": "references/contracts/combobox.md",
+      "parts": [
+        "Combobox",
+        "ComboboxChip",
+        "ComboboxChips",
+        "ComboboxChipsInput",
+        "ComboboxCollection",
+        "ComboboxContent",
+        "ComboboxEmpty",
+        "ComboboxGroup",
+        "ComboboxInput",
+        "ComboboxItem",
+        "ComboboxLabel",
+        "ComboboxList",
+        "ComboboxSeparator",
+        "ComboboxTrigger",
+        "ComboboxValue"
+      ],
+      "helpers": [
+        "useComboboxAnchor"
+      ]
+    },
+    "Command": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Jump between views/actions inside one app.",
+      "contract": "references/contracts/command.md",
+      "parts": [
+        "Command",
+        "CommandDialog",
+        "CommandEmpty",
+        "CommandGroup",
+        "CommandInput",
+        "CommandItem",
+        "CommandList",
+        "CommandSeparator",
+        "CommandShortcut"
+      ],
+      "helpers": []
+    },
+    "CommentThread": {
+      "componentType": "block",
+      "family": "Realtime",
+      "primitive": false,
+      "when": "Issue/ticket discussion, review comments. Editing a comment is your job, not the component's.",
+      "contract": "references/contracts/comment-thread.md"
+    },
+    "CommitGraph": {
+      "componentType": "product",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "App history, release notes, git timeline views",
+      "contract": "references/contracts/commit-graph.md"
+    },
+    "ConfirmDialog": {
+      "componentType": "composite",
+      "family": "Surface",
+      "primitive": false,
+      "when": "Any destructive action. Needs a form inside → compose `Dialog` yourself.",
+      "contract": "references/contracts/confirm-dialog.md"
+    },
+    "ContextMenu": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Row/canvas operations. Trigger-button actions → `DropdownMenu`.",
+      "contract": "references/contracts/context-menu.md",
+      "parts": [
+        "ContextMenu",
+        "ContextMenuCheckboxItem",
+        "ContextMenuContent",
+        "ContextMenuGroup",
+        "ContextMenuItem",
+        "ContextMenuLabel",
+        "ContextMenuPortal",
+        "ContextMenuRadioGroup",
+        "ContextMenuRadioItem",
+        "ContextMenuSeparator",
+        "ContextMenuShortcut",
+        "ContextMenuSub",
+        "ContextMenuSubContent",
+        "ContextMenuSubTrigger",
+        "ContextMenuTrigger"
+      ],
+      "helpers": []
+    },
+    "Copyable": {
+      "componentType": "composite",
+      "family": "Discovery & inspect",
+      "primitive": false,
+      "when": "IDs, hashes, URLs, tokens the user pastes elsewhere.",
+      "contract": "references/contracts/copyable.md"
+    },
+    "CurrencyInput": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Money fields; keeps the raw string out of your state.",
+      "contract": "references/contracts/currency-input.md"
+    },
+    "DataGrid": {
+      "componentType": "product",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "Any list/table of rows — prefer over raw Table*",
+      "contract": "references/contracts/data-grid.md"
+    },
+    "DatePicker": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Filtering or storing one day. With a clock → `DateTimePicker`.",
+      "contract": "references/contracts/date-picker.md"
+    },
+    "DateRangePicker": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Filters needing from/to calendar days",
+      "contract": "references/contracts/date-range-picker.md"
+    },
+    "DateTimePicker": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Scheduling moments, not days.",
+      "contract": "references/contracts/date-time-picker.md"
+    },
+    "DateTimeRangePicker": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Run windows, on-call shifts.",
+      "contract": "references/contracts/date-time-range-picker.md"
+    },
+    "DescriptionList": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Detail/inspector panel of a selected row — the default “show one record” view.",
+      "contract": "references/contracts/description-list.md"
+    },
+    "DetailPanel": {
+      "componentType": "block",
+      "family": "Surface",
+      "primitive": false,
+      "when": "Master-detail after row/card click",
+      "contract": "references/contracts/detail-panel.md"
+    },
+    "Dialog": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`.",
+      "contract": "references/contracts/dialog.md",
+      "parts": [
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger"
+      ],
+      "helpers": []
+    },
+    "DiffViewer": {
+      "componentType": "product",
+      "family": "Discovery & inspect",
+      "primitive": false,
+      "when": "Comparing two versions of text. Pass `original` + `modified` strings.",
+      "contract": "references/contracts/diff-viewer.md"
+    },
+    "DonutChart": {
+      "componentType": "block",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "Part-of-whole (≤6 slices): storage usage, status split. More categories → `StackedBarChart`.",
+      "contract": "references/contracts/donut-chart.md"
+    },
+    "Drawer": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Mobile-ish bottom sheet on narrow panels. Desktop detail → `Sheet`.",
+      "contract": "references/contracts/drawer.md",
+      "parts": [
+        "Drawer",
+        "DrawerClose",
+        "DrawerContent",
+        "DrawerDescription",
+        "DrawerFooter",
+        "DrawerHeader",
+        "DrawerOverlay",
+        "DrawerPortal",
+        "DrawerSwipeHandle",
+        "DrawerTitle",
+        "DrawerTrigger"
+      ],
+      "helpers": []
+    },
+    "DropdownMenu": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Row `MoreHorizontal` actions. Free-form panel content → `Popover`.",
+      "contract": "references/contracts/dropdown-menu.md",
+      "parts": [
+        "DropdownMenu",
+        "DropdownMenuCheckboxItem",
+        "DropdownMenuContent",
+        "DropdownMenuGroup",
+        "DropdownMenuItem",
+        "DropdownMenuLabel",
+        "DropdownMenuPortal",
+        "DropdownMenuRadioGroup",
+        "DropdownMenuRadioItem",
+        "DropdownMenuSeparator",
+        "DropdownMenuShortcut",
+        "DropdownMenuSub",
+        "DropdownMenuSubContent",
+        "DropdownMenuSubTrigger",
+        "DropdownMenuTrigger"
+      ],
+      "helpers": []
+    },
+    "DurationInput": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Timeouts/estimates where you store minutes but type human units.",
+      "contract": "references/contracts/duration-input.md"
+    },
+    "Empty": {
+      "componentType": "component",
+      "family": "Feedback & status",
+      "primitive": true,
+      "when": "Any list/panel with no rows — pair media with an `Illu*`.",
+      "contract": "references/contracts/empty.md",
+      "parts": [
+        "Empty",
+        "EmptyContent",
+        "EmptyDescription",
+        "EmptyHeader",
+        "EmptyMedia",
+        "EmptyTitle"
+      ],
+      "helpers": []
+    },
+    "EnvBadge": {
+      "componentType": "block",
+      "family": "Feedback & status",
+      "primitive": false,
+      "when": "prd / stg / dev markers in headers and tables.",
+      "contract": "references/contracts/env-badge.md"
+    },
+    "EnvTable": {
+      "componentType": "block",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "Settings / deploy preview / secrets display",
+      "contract": "references/contracts/env-table.md"
+    },
+    "EventCalendar": {
+      "componentType": "product",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Scheduling, on-call, release windows",
+      "contract": "references/contracts/event-calendar.md"
+    },
+    "Field": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Any form row that must read well and stay accessible.",
+      "contract": "references/contracts/field.md",
+      "parts": [
+        "Field",
+        "FieldContent",
+        "FieldDescription",
+        "FieldError",
+        "FieldGroup",
+        "FieldLabel",
+        "FieldLegend",
+        "FieldSeparator",
+        "FieldSet",
+        "FieldTitle"
+      ],
+      "helpers": []
+    },
+    "FileDropzone": {
+      "componentType": "product",
+      "family": "Form",
+      "primitive": false,
+      "when": "Getting a local File into the app (then upload via `ctx.http` in the api layer).",
+      "contract": "references/contracts/file-dropzone.md"
+    },
+    "FileTree": {
+      "componentType": "block",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "Repo/zip contents where selection matters. Plain nested list → `TreeView`.",
+      "contract": "references/contracts/file-tree.md"
+    },
+    "FilterBar": {
+      "componentType": "block",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "Above DataGrid or any filtered list",
+      "contract": "references/contracts/filter-bar.md"
+    },
+    "Gantt": {
+      "componentType": "product",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Plans/schedules with start+end per row. Ordered events → `Timeline`.",
+      "contract": "references/contracts/gantt.md"
+    },
+    "Gauge": {
+      "componentType": "block",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "A single health/capacity number that needs a zone (SLO, disk). Series over time → `Sparkline`.",
+      "contract": "references/contracts/gauge.md"
+    },
+    "HoverCard": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Peek a user/issue without navigating. Needs a decision → `Dialog`.",
+      "contract": "references/contracts/hover-card.md",
+      "parts": [
+        "HoverCard",
+        "HoverCardContent",
+        "HoverCardTrigger"
+      ],
+      "helpers": []
+    },
+    "Input": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Plain text. Numbers → `NumberField`; secrets → `PasswordField`; search → `SearchInput`.",
+      "contract": "references/contracts/input.md",
+      "parts": [
+        "Input"
+      ],
+      "helpers": []
+    },
+    "InputGroup": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Search/url/amount fields with adornments; keep validation in `NumberField` etc.",
+      "contract": "references/contracts/input-group.md",
+      "parts": [
+        "InputGroup",
+        "InputGroupAddon",
+        "InputGroupButton",
+        "InputGroupInput",
+        "InputGroupText",
+        "InputGroupTextarea"
+      ],
+      "helpers": []
+    },
+    "Item": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "A uniform list row when `DataGrid` is too heavy.",
+      "contract": "references/contracts/item.md",
+      "parts": [
+        "Item",
+        "ItemActions",
+        "ItemContent",
+        "ItemDescription",
+        "ItemFooter",
+        "ItemGroup",
+        "ItemHeader",
+        "ItemMedia",
+        "ItemSeparator",
+        "ItemTitle"
+      ],
+      "helpers": []
+    },
+    "JiraWiki": {
+      "componentType": "product",
+      "family": "Rich text",
+      "primitive": false,
+      "when": "Jira description / comment body",
+      "contract": "references/contracts/jira-wiki.md"
+    },
+    "JqlInput": {
+      "componentType": "product",
+      "family": "Form",
+      "primitive": false,
+      "when": "Issue search / saved filters",
+      "contract": "references/contracts/jql-input.md"
+    },
+    "JsonViewer": {
+      "componentType": "product",
+      "family": "Discovery & inspect",
+      "primitive": false,
+      "when": "API responses/config. Plain text with wrapping → `CodeBlock`.",
+      "contract": "references/contracts/json-viewer.md"
+    },
+    "Kanban": {
+      "componentType": "product",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "Issue/workflow boards",
+      "contract": "references/contracts/kanban.md"
+    },
+    "KanbanIssuePanel": {
+      "componentType": "product",
+      "family": "Surface",
+      "primitive": false,
+      "when": "Board + click-to-edit issue. Pair with `Kanban`'s selected card.",
+      "contract": "references/contracts/kanban-issue-panel.md"
+    },
+    "Kbd": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "Documenting ⌘K-style shortcuts in help panels.",
+      "contract": "references/contracts/kbd.md",
+      "parts": [
+        "Kbd",
+        "KbdGroup"
+      ],
+      "helpers": []
+    },
+    "Label": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Always bind `htmlFor` — bare text labels are not accessible.",
+      "contract": "references/contracts/label.md",
+      "parts": [
+        "Label"
+      ],
+      "helpers": []
+    },
+    "LogViewer": {
+      "componentType": "product",
+      "family": "Realtime",
+      "primitive": false,
+      "when": "Streaming / CLI-style log output",
+      "contract": "references/contracts/log-viewer.md"
+    },
+    "Markdown": {
+      "componentType": "product",
+      "family": "Rich text",
+      "primitive": false,
+      "when": "Model output, README-ish bodies. Children must be a string.",
+      "contract": "references/contracts/markdown.md"
+    },
+    "MarkdownEditor": {
+      "componentType": "product",
+      "family": "Rich text",
+      "primitive": false,
+      "when": "Authoring md bodies. Read-only render → `Markdown`.",
+      "contract": "references/contracts/markdown-editor.md"
+    },
+    "Marker": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "Small state markers inside a sentence or legend.",
+      "contract": "references/contracts/marker.md",
+      "parts": [
+        "Marker",
+        "MarkerContent",
+        "MarkerIcon"
+      ],
+      "helpers": [
+        "markerVariants"
+      ]
+    },
+    "Menubar": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Rarely right for a panel-width mini-app — prefer `Tabs` / `DropdownMenu`.",
+      "contract": "references/contracts/menubar.md",
+      "parts": [
+        "Menubar",
+        "MenubarCheckboxItem",
+        "MenubarContent",
+        "MenubarGroup",
+        "MenubarItem",
+        "MenubarLabel",
+        "MenubarMenu",
+        "MenubarPortal",
+        "MenubarRadioGroup",
+        "MenubarRadioItem",
+        "MenubarSeparator",
+        "MenubarShortcut",
+        "MenubarSub",
+        "MenubarSubContent",
+        "MenubarSubTrigger",
+        "MenubarTrigger"
+      ],
+      "helpers": []
+    },
+    "Message": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Assistant/user turns. Timestamped log rows → `LogViewer`.",
+      "contract": "references/contracts/message.md",
+      "parts": [
+        "Message",
+        "MessageAvatar",
+        "MessageContent",
+        "MessageFooter",
+        "MessageGroup",
+        "MessageHeader"
+      ],
+      "helpers": []
+    },
+    "MessageScroller": {
+      "componentType": "component",
+      "family": "Realtime",
+      "primitive": true,
+      "when": "Streaming chat output. Logs by timestamp → `LogViewer`.",
+      "contract": "references/contracts/message-scroller.md",
+      "parts": [
+        "MessageScroller",
+        "MessageScrollerButton",
+        "MessageScrollerContent",
+        "MessageScrollerItem",
+        "MessageScrollerProvider",
+        "MessageScrollerViewport"
+      ],
+      "helpers": []
+    },
+    "MiniCalendar": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Inside a popover or sidebar. Full page with events → `EventCalendar`.",
+      "contract": "references/contracts/mini-calendar.md"
+    },
+    "NativeSelect": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Short option lists where a plain select is enough and `Select` is overkill.",
+      "contract": "references/contracts/native-select.md",
+      "parts": [
+        "NativeSelect",
+        "NativeSelectOptGroup",
+        "NativeSelectOption"
+      ],
+      "helpers": []
+    },
+    "NavigationMenu": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Not for mini-apps with one screen — use `Tabs` or `AppShell` sidebar.",
+      "contract": "references/contracts/navigation-menu.md",
+      "parts": [
+        "NavigationMenu",
+        "NavigationMenuContent",
+        "NavigationMenuIndicator",
+        "NavigationMenuItem",
+        "NavigationMenuLink",
+        "NavigationMenuList",
+        "NavigationMenuPositioner",
+        "NavigationMenuTrigger"
+      ],
+      "helpers": [
+        "navigationMenuTriggerStyle"
+      ]
+    },
+    "NotificationCenter": {
+      "componentType": "block",
+      "family": "Feedback & status",
+      "primitive": false,
+      "when": "Inbox/alert panel. Audit log (read-only, with time) → `ActivityFeed`.",
+      "contract": "references/contracts/notification-center.md"
+    },
+    "NumberField": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Any number the user edits — keeps NaN out of your state.",
+      "contract": "references/contracts/number-field.md"
+    },
+    "PageHeader": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Top of a page inside AppShell main",
+      "contract": "references/contracts/page-header.md"
+    },
+    "Pagination": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Only when you page by hand; `DataGrid` does this itself.",
+      "contract": "references/contracts/pagination.md",
+      "parts": [
+        "Pagination",
+        "PaginationContent",
+        "PaginationEllipsis",
+        "PaginationItem",
+        "PaginationLink",
+        "PaginationNext",
+        "PaginationPrevious"
+      ],
+      "helpers": []
+    },
+    "PasswordField": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Typing a token/password into your own state. **Never** persist it to storage.",
+      "contract": "references/contracts/password-field.md"
+    },
+    "PhoneInput": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "CN/mobile numbers.",
+      "contract": "references/contracts/phone-input.md"
+    },
+    "Popover": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Small editor/filter anchored to a control. Menus of commands → `DropdownMenu`.",
+      "contract": "references/contracts/popover.md",
+      "parts": [
+        "Popover",
+        "PopoverContent",
+        "PopoverDescription",
+        "PopoverHeader",
+        "PopoverTitle",
+        "PopoverTrigger"
+      ],
+      "helpers": []
+    },
+    "Progress": {
+      "componentType": "component",
+      "family": "Feedback & status",
+      "primitive": true,
+      "when": "Full-width scan/import progress. Compact circle → `ProgressRing`.",
+      "contract": "references/contracts/progress.md",
+      "parts": [
+        "Progress",
+        "ProgressIndicator",
+        "ProgressLabel",
+        "ProgressTrack",
+        "ProgressValue"
+      ],
+      "helpers": []
+    },
+    "ProgressRing": {
+      "componentType": "block",
+      "family": "Feedback & status",
+      "primitive": false,
+      "when": "One percent-done value in a tight space (card corner, table cell).",
+      "contract": "references/contracts/progress-ring.md"
+    },
+    "Questionnaire": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Structured ask-the-user blocks; you persist the answers.",
+      "contract": "references/contracts/questionnaire.md",
+      "parts": [
+        "Questionnaire",
+        "QuestionnaireActions",
+        "QuestionnaireChoice",
+        "QuestionnaireChoiceDescription",
+        "QuestionnaireChoices",
+        "QuestionnaireDescription",
+        "QuestionnaireError",
+        "QuestionnaireInput",
+        "QuestionnaireItem",
+        "QuestionnaireNext",
+        "QuestionnairePrevious",
+        "QuestionnaireProgress",
+        "QuestionnaireSkip",
+        "QuestionnaireSubmit",
+        "QuestionnaireTitle"
+      ],
+      "helpers": []
+    },
+    "RadarChart": {
+      "componentType": "block",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "Comparing an item across 4–8 dimensions (scores, coverage).",
+      "contract": "references/contracts/radar-chart.md"
+    },
+    "RadioGroup": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "2–5 mutually exclusive options. Many options → `Select`.",
+      "contract": "references/contracts/radio-group.md",
+      "parts": [
+        "RadioGroup",
+        "RadioGroupItem"
+      ],
+      "helpers": []
+    },
+    "Rating": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Feedback/score capture, 1–max.",
+      "contract": "references/contracts/rating.md"
+    },
+    "RelativeDatePicker": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Dashboard filters where “last 7 days” beats two calendars.",
+      "contract": "references/contracts/relative-date-picker.md"
+    },
+    "RequestInspector": {
+      "componentType": "block",
+      "family": "Discovery & inspect",
+      "primitive": false,
+      "when": "Debugging one API call: method, url, bodies. Multiple calls streaming → `LogViewer`.",
+      "contract": "references/contracts/request-inspector.md"
+    },
+    "Resizable": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "Master-detail or editor + preview inside the app body.",
+      "contract": "references/contracts/resizable.md",
+      "parts": [
+        "ResizableHandle",
+        "ResizablePanel",
+        "ResizablePanelGroup"
+      ],
+      "helpers": []
+    },
+    "RichTextEditor": {
+      "componentType": "product",
+      "family": "Rich text",
+      "primitive": false,
+      "when": "Notes/descriptions you store as **HTML**. Markdown → `MarkdownEditor`; code → `CodeEditor`. Sanitize server-side before rendering elsewhere.",
+      "contract": "references/contracts/rich-text-editor.md"
+    },
+    "RunTimeline": {
+      "componentType": "block",
+      "family": "Realtime",
+      "primitive": false,
+      "when": "CI/agent/job phases on a time axis. Plain ordered events → `Timeline`.",
+      "contract": "references/contracts/run-timeline.md"
+    },
+    "ScrollArea": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "A bounded panel (list in a card). Whole-page scroll → plain div.",
+      "contract": "references/contracts/scroll-area.md",
+      "parts": [
+        "ScrollArea",
+        "ScrollBar"
+      ],
+      "helpers": []
+    },
+    "Scrollspy": {
+      "componentType": "block",
+      "family": "Navigation",
+      "primitive": false,
+      "when": "Long settings/report page with jump links.",
+      "contract": "references/contracts/scrollspy.md"
+    },
+    "SearchInput": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Filter-as-you-type against `DataGrid`/lists — use `onDebouncedChange` for network calls.",
+      "contract": "references/contracts/search-input.md"
+    },
+    "Select": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Closed set of options (searchable/large → `Autocomplete` or `DataGrid` filter).",
+      "contract": "references/contracts/select.md",
+      "parts": [
+        "Select",
+        "SelectContent",
+        "SelectGroup",
+        "SelectItem",
+        "SelectLabel",
+        "SelectScrollDownButton",
+        "SelectScrollUpButton",
+        "SelectSeparator",
+        "SelectTrigger",
+        "SelectValue"
+      ],
+      "helpers": []
+    },
+    "Separator": {
+      "componentType": "component",
+      "family": "Layout & structure",
+      "primitive": true,
+      "when": "Grouping inside panels.",
+      "contract": "references/contracts/separator.md",
+      "parts": [
+        "Separator"
+      ],
+      "helpers": []
+    },
+    "SeverityChip": {
+      "componentType": "block",
+      "family": "Feedback & status",
+      "primitive": false,
+      "when": "P0–P4, blocker/critical columns. Run outcome → `StatusBadge`.",
+      "contract": "references/contracts/severity-chip.md"
+    },
+    "Sheet": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Detail/edit panel that keeps the list visible — the usual master-detail pattern.",
+      "contract": "references/contracts/sheet.md",
+      "parts": [
+        "Sheet",
+        "SheetClose",
+        "SheetContent",
+        "SheetDescription",
+        "SheetFooter",
+        "SheetHeader",
+        "SheetTitle",
+        "SheetTrigger"
+      ],
+      "helpers": []
+    },
+    "Sidebar": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Many sections in one app; `AppShell` already wires one for you.",
+      "contract": "references/contracts/sidebar.md",
+      "parts": [
+        "Sidebar",
+        "SidebarContent",
+        "SidebarFooter",
+        "SidebarGroup",
+        "SidebarGroupAction",
+        "SidebarGroupContent",
+        "SidebarGroupLabel",
+        "SidebarHeader",
+        "SidebarInput",
+        "SidebarInset",
+        "SidebarMenu",
+        "SidebarMenuAction",
+        "SidebarMenuBadge",
+        "SidebarMenuButton",
+        "SidebarMenuItem",
+        "SidebarMenuSkeleton",
+        "SidebarMenuSub",
+        "SidebarMenuSubButton",
+        "SidebarMenuSubItem",
+        "SidebarProvider",
+        "SidebarRail",
+        "SidebarSeparator",
+        "SidebarTrigger"
+      ],
+      "helpers": [
+        "useSidebar"
+      ]
+    },
+    "Skeleton": {
+      "componentType": "component",
+      "family": "Feedback & status",
+      "primitive": true,
+      "when": "First paint while `call()` is pending — match the real layout's size.",
+      "contract": "references/contracts/skeleton.md",
+      "parts": [
+        "Skeleton"
+      ],
+      "helpers": []
+    },
+    "Slider": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "One numeric value. Range → `SliderRange`.",
+      "contract": "references/contracts/slider.md",
+      "parts": [
+        "Slider"
+      ],
+      "helpers": []
+    },
+    "SliderRange": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "min/max numeric filters.",
+      "contract": "references/contracts/slider-range.md"
+    },
+    "SortableList": {
+      "componentType": "product",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "Priority queues / column order. Read-only ordered events → `Timeline`.",
+      "contract": "references/contracts/sortable-list.md"
+    },
+    "Sparkline": {
+      "componentType": "block",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "Trend inside a table row or KPI card.",
+      "contract": "references/contracts/sparkline.md"
+    },
+    "Spinner": {
+      "componentType": "component",
+      "family": "Feedback & status",
+      "primitive": true,
+      "when": "Inside a button while `call()` is pending. Known % → `Progress`.",
+      "contract": "references/contracts/spinner.md",
+      "parts": [
+        "Spinner"
+      ],
+      "helpers": []
+    },
+    "StackedBarChart": {
+      "componentType": "block",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "Comparing several series across categories (pass/fail per day). Single ratio → `DonutChart`; trend → `Sparkline`.",
+      "contract": "references/contracts/stacked-bar-chart.md"
+    },
+    "StatCard": {
+      "componentType": "block",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "Dashboard metric strip",
+      "contract": "references/contracts/stat-card.md"
+    },
+    "StatusBadge": {
+      "componentType": "block",
+      "family": "Feedback & status",
+      "primitive": false,
+      "when": "pass | fail | blocked | flaky | running | pending cells and chips",
+      "contract": "references/contracts/status-badge.md"
+    },
+    "Stepper": {
+      "componentType": "product",
+      "family": "Feedback & status",
+      "primitive": false,
+      "when": "Wizard/progress of an ordered process. Time axis → `RunTimeline`.",
+      "contract": "references/contracts/stepper.md"
+    },
+    "StepperItem": {
+      "componentType": "product",
+      "family": "Feedback & status",
+      "primitive": false,
+      "when": "As a child of `Stepper` only — status is `default | active | completed` (lowercase).",
+      "contract": "references/contracts/stepper-item.md"
+    },
+    "Switch": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Immediate on/off settings (submit-on-toggle).",
+      "contract": "references/contracts/switch.md",
+      "parts": [
+        "Switch"
+      ],
+      "helpers": []
+    },
+    "Table": {
+      "componentType": "component",
+      "family": "Data & tables",
+      "primitive": true,
+      "when": "Only when you need full control of cells. Otherwise use `DataGrid` (sorting/filter/paging/CSV built in).",
+      "contract": "references/contracts/table.md",
+      "parts": [
+        "Table",
+        "TableBody",
+        "TableCaption",
+        "TableCell",
+        "TableFooter",
+        "TableHead",
+        "TableHeader",
+        "TableRow"
+      ],
+      "helpers": []
+    },
+    "Tabs": {
+      "componentType": "component",
+      "family": "Navigation",
+      "primitive": true,
+      "when": "Board vs table, or settings sections. Navigation between routes/pages → keep it in your own state.",
+      "contract": "references/contracts/tabs.md",
+      "parts": [
+        "Tabs",
+        "TabsContent",
+        "TabsList",
+        "TabsTrigger"
+      ],
+      "helpers": [
+        "tabsListVariants"
+      ]
+    },
+    "TagInput": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Labels/owners where free values are allowed (`Transfer` when choosing from a fixed pool).",
+      "contract": "references/contracts/tag-input.md"
+    },
+    "Terminal": {
+      "componentType": "block",
+      "family": "Realtime",
+      "primitive": false,
+      "when": "Showing a command + its output verbatim. Timestamped levels/scrolling → `LogViewer`.",
+      "contract": "references/contracts/terminal.md"
+    },
+    "TestStepList": {
+      "componentType": "block",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "QA cases, checklists that get executed and graded.",
+      "contract": "references/contracts/test-step-list.md"
+    },
+    "Textarea": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Notes/prompts. Code → `CodeEditor`; markdown → `MarkdownEditor`.",
+      "contract": "references/contracts/textarea.md",
+      "parts": [
+        "Textarea"
+      ],
+      "helpers": []
+    },
+    "Timeline": {
+      "componentType": "product",
+      "family": "Realtime",
+      "primitive": false,
+      "when": "Statuses/history without durations. Durations → `RunTimeline`.",
+      "contract": "references/contracts/timeline.md"
+    },
+    "TimePicker": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Clock-only fields. `value` is a string, not a Date.",
+      "contract": "references/contracts/time-picker.md"
+    },
+    "TimeRangePicker": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Daily windows (maintenance 02:00–04:00).",
+      "contract": "references/contracts/time-range-picker.md"
+    },
+    "TimeWheel": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Inside a time picker where tapping a list beats typing. Prefer `TimePicker` for a normal field.",
+      "contract": "references/contracts/time-wheel.md"
+    },
+    "TimezoneSelect": {
+      "componentType": "composite",
+      "family": "Calendar & date",
+      "primitive": false,
+      "when": "Pair with `DateTimePicker` when data is UTC.",
+      "contract": "references/contracts/timezone-select.md"
+    },
+    "Toast": {
+      "componentType": "component",
+      "family": "Feedback & status",
+      "primitive": true,
+      "when": "Confirm/save failures. The host already mounts the provider — call `toast(...)`.",
+      "contract": "references/contracts/toast.md",
+      "parts": [
+        "Toast",
+        "ToastAction",
+        "ToastClose",
+        "ToastContent",
+        "ToastDescription",
+        "ToastPortal",
+        "ToastProvider",
+        "ToastTitle",
+        "ToastViewport",
+        "Toaster"
+      ],
+      "helpers": [
+        "createToastManager",
+        "toast",
+        "useToastManager"
+      ]
+    },
+    "Toggle": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Binary formatting switch (bold, filters on).",
+      "contract": "references/contracts/toggle.md",
+      "parts": [
+        "Toggle"
+      ],
+      "helpers": [
+        "toggleVariants"
+      ]
+    },
+    "ToggleGroup": {
+      "componentType": "component",
+      "family": "Form",
+      "primitive": true,
+      "when": "Multiple independent on/off buttons; exclusive selection → `Tabs`/`ButtonGroup`.",
+      "contract": "references/contracts/toggle-group.md",
+      "parts": [
+        "ToggleGroup",
+        "ToggleGroupItem"
+      ],
+      "helpers": []
+    },
+    "Tooltip": {
+      "componentType": "component",
+      "family": "Surface",
+      "primitive": true,
+      "when": "Explaining an icon-only button. Never put an action in it.",
+      "contract": "references/contracts/tooltip.md",
+      "parts": [
+        "Tooltip",
+        "TooltipContent",
+        "TooltipProvider",
+        "TooltipTrigger"
+      ],
+      "helpers": []
+    },
+    "Transfer": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Selecting many items from a known pool (assign users to a shift).",
+      "contract": "references/contracts/transfer.md"
+    },
+    "TreeView": {
+      "componentType": "product",
+      "family": "Data & tables",
+      "primitive": false,
+      "when": "Any hierarchy without file semantics. Files → `FileTree`.",
+      "contract": "references/contracts/tree-view.md"
+    },
+    "TrendCard": {
+      "componentType": "block",
+      "family": "Chart & data",
+      "primitive": false,
+      "when": "Metric + direction over time. Metric only → `StatCard`.",
+      "contract": "references/contracts/trend-card.md"
+    },
+    "UserPicker": {
+      "componentType": "composite",
+      "family": "Form",
+      "primitive": false,
+      "when": "Assignee/owner fields; you supply the user list.",
+      "contract": "references/contracts/user-picker.md"
+    }
+  }
 }

@@ -23,6 +23,13 @@ export type DatePickerProps = {
   className?: string
 }
 
+/**
+ * Single calendar date (day precision).
+ * @when Filtering or storing one day. With a clock → `DateTimePicker`.
+ * @example
+ * <DatePicker value={d} onChange={(v) => set(v)} />
+ * @family Calendar & date
+ */
 export function DatePicker({
   value,
   onChange,

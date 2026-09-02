@@ -4,6 +4,10 @@ import { cva } from "class-variance-authority"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { ChevronDownIcon } from "lucide-react"
 
+/**
+ * @family Navigation
+ * @when Not for mini-apps with one screen — use `Tabs` or `AppShell` sidebar.
+ */
 function NavigationMenu({
   align = "start",
   className,

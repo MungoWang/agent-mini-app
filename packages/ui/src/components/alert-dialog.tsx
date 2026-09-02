@@ -4,6 +4,13 @@ import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { Button } from "@monkey-mini-app/ui/components/button"
 
+/**
+ * Blocking confirm modal (no click-outside dismiss).
+ * @when Deleting/irreversible actions that must be answered.
+ * @example
+ * <AlertDialog open={ask} onOpenChange={setAsk}><AlertDialogContent><AlertDialogTitle>确定删除？</AlertDialogTitle><AlertDialogAction onClick={del}>删除</AlertDialogAction></AlertDialogContent></AlertDialog>
+ * @family Surface
+ */
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
 }

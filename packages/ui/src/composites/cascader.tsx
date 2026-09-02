@@ -4,6 +4,13 @@ import { NativeSelect, NativeSelectOption } from "@monkey-mini-app/ui/components
 
 export type CascaderNode = { value: string; label: string; children?: CascaderNode[] }
 
+/**
+ * Multi-level drill-down picker.
+ * @when Hierarchical codes (region → site → line). Flat tree → `TreeView`.
+ * @example
+ * <Cascader options={[{ label: "华东", value: "cn", children: [{ label: "上海", value: "sha" }] }]} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function Cascader({
   options,
   value = [],

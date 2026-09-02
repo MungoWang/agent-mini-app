@@ -12,6 +12,10 @@ import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { Button, buttonVariants } from "@monkey-mini-app/ui/components/button"
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 
+/**
+ * @family Calendar & date
+ * @when An inline calendar inside your own layout. As a field with input → `DatePicker`.
+ */
 function Calendar({
   className,
   classNames,

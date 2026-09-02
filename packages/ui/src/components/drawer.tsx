@@ -22,6 +22,10 @@ function useDrawer() {
   return context
 }
 
+/**
+ * @family Surface
+ * @when Mobile-ish bottom sheet on narrow panels. Desktop detail → `Sheet`.
+ */
 function Drawer({
   modal = true,
   showSwipeHandle = false,

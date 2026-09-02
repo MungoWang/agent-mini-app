@@ -1,5 +1,12 @@
 "use client"
 
+/**
+ * Swatch + hex colour input.
+ * @when Theme/label colour config. Never for secrets.
+ * @example
+ * <ColorPicker value={c} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function ColorPicker({
   value = "#111111",
   onChange,

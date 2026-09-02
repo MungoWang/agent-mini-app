@@ -1,0 +1,20 @@
+storage: ./registry/storage
+plugins: ./registry/plugins
+listen: 127.0.0.1:4873
+web:
+  enable: false
+publish:
+  allow_offline: true
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+packages:
+  "@monkey-mini-app/*":
+    access: $all
+    publish: $all
+    unpublish: $all
+  "**":
+    access: $all
+    publish: $authenticated
+    proxy: npmjs
+log: { type: stdout, format: pretty, level: warn }

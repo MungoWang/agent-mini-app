@@ -81,6 +81,13 @@ function Segment({
   )
 }
 
+/**
+ * Duration text field (e.g. `1h30m`) with minutes.
+ * @when Timeouts/estimates where you store minutes but type human units.
+ * @example
+ * <DurationInput value="45m" onChange={(v, min) => set(min)} />
+ * @family Calendar & date
+ */
 export function DurationInput({
   value,
   onChange,

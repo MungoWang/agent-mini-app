@@ -7,6 +7,13 @@ import { Badge } from "@monkey-mini-app/ui/components/badge"
 import { Input } from "@monkey-mini-app/ui/components/input"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
+/**
+ * Chip-style multi-value text input.
+ * @when Labels/owners where free values are allowed (`Transfer` when choosing from a fixed pool).
+ * @example
+ * <TagInput value={tags} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function TagInput({
   value = [],
   onChange,

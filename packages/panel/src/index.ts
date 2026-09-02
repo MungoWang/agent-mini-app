@@ -41,11 +41,15 @@ export {
   cssVars,
   PALETTES,
   parseThemeCss,
+  resolveMode,
   runnerThemeCss,
+  themeCssVars,
   themeLabelFromCss,
   tokensOf,
 } from "./themes.ts";
 export type {
+  AboutInfo,
+  AboutPackage,
   AppItem,
   BrowseKind,
   CardStyle,
@@ -60,5 +64,7 @@ export type {
   TabItem,
   TabKind,
   ThemeScope,
+  UpdateCheck,
+  UpdateCheckState,
 } from "./types.ts";
 export { LOCALE_IDS } from "./types.ts";

@@ -1,6 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@monkey-mini-app/ui/components/tabs"
 import { CodeBlock } from "@monkey-mini-app/ui/products/code-block"
 
+/**
+ * Side-by-side HTTP request/response panel.
+ * @when Debugging one API call: method, url, bodies. Multiple calls streaming → `LogViewer`.
+ * @example
+ * <RequestInspector method="POST" url="/api/x" response="{\"ok\":true}" />
+ * @family Discovery & inspect
+ */
 export function RequestInspector({
   method,
   url,

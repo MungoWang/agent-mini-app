@@ -7,6 +7,13 @@ import {
   InputGroupText,
 } from "@monkey-mini-app/ui/components/input-group"
 
+/**
+ * Amount input with grouping + currency prefix.
+ * @when Money fields; keeps the raw string out of your state.
+ * @example
+ * <CurrencyInput currency="CNY" onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function CurrencyInput({
   value,
   onChange,

@@ -192,6 +192,7 @@ function Column({
  * @when Issue/workflow boards
  * @example
  * <Kanban columns={cols} cards={cards} onCardsChange={setCards} onCardClick={open} />
+ * @family Data & tables
  */
 export function Kanban({
   columns,

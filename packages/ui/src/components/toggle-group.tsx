@@ -20,6 +20,10 @@ const ToggleGroupContext = React.createContext<
   orientation: "horizontal",
 })
 
+/**
+ * @family Form
+ * @when Multiple independent on/off buttons; exclusive selection → `Tabs`/`ButtonGroup`.
+ */
 function ToggleGroup({
   className,
   variant,

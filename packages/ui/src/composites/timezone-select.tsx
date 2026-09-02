@@ -141,6 +141,13 @@ function ZoneItem({
   )
 }
 
+/**
+ * IANA timezone dropdown.
+ * @when Pair with `DateTimePicker` when data is UTC.
+ * @example
+ * <TimezoneSelect value={tz} onChange={(v) => set(v)} />
+ * @family Calendar & date
+ */
 export function TimezoneSelect({
   value,
   onChange,

@@ -6,6 +6,10 @@ import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
+/**
+ * @family Navigation
+ * @when Row/canvas operations. Trigger-button actions → `DropdownMenu`.
+ */
 function ContextMenu({ ...props }: ContextMenuPrimitive.Root.Props) {
   return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />
 }

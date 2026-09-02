@@ -16,6 +16,10 @@ function MessageScrollerProvider(
   return <MessageScrollerPrimitive.Provider {...props} />
 }
 
+/**
+ * @family Realtime
+ * @when Streaming chat output. Logs by timestamp → `LogViewer`.
+ */
 function MessageScroller({
   className,
   ...props

@@ -1,0 +1,49 @@
+{
+  "$comment": "Functional taxonomy for the mini-app UI catalog. Vocabulary only — which component belongs to which family is declared per component in its JSDoc `@family` tag and read by scripts/gen/skill/index.mjs; scripts/check/skill.mjs fails on an unknown or missing family. Order here is the catalog order.",
+  "families": [
+    {
+      "name": "Layout & structure",
+      "blurb": "Shell / split / scroll containers and display atoms — they arrange, they don't interact."
+    },
+    {
+      "name": "Navigation",
+      "blurb": "Menus, sidebars, palettes, tabs, pagination, scroll-spy."
+    },
+    {
+      "name": "Surface",
+      "blurb": "Elevates content above the page: card, dialog, sheet, drawer, popover, tooltip, accordion."
+    },
+    {
+      "name": "Form",
+      "blurb": "Inputs, selects, toggles, buttons and actions — anything the user edits."
+    },
+    {
+      "name": "Data & tables",
+      "blurb": "Rows, grids, boards, trees, sortable lists and their filters."
+    },
+    {
+      "name": "Chart & data",
+      "blurb": "Stat / KPI cards, charts, gauges, sparklines, git graph."
+    },
+    {
+      "name": "Feedback & status",
+      "blurb": "Status/severity badges, progress, skeleton, spinner, alerts, empty states, toasts."
+    },
+    {
+      "name": "Calendar & date",
+      "blurb": "Calendars, date/time pickers and ranges, durations, timezones, scheduling views."
+    },
+    {
+      "name": "Realtime",
+      "blurb": "Live feeds, timelines, logs and consoles."
+    },
+    {
+      "name": "Rich text",
+      "blurb": "Markdown / rich-text render and edit, wiki markup."
+    },
+    {
+      "name": "Discovery & inspect",
+      "blurb": "Inspect, compare and browse artefacts: diff, JSON, code, requests, attachments."
+    }
+  ]
+}

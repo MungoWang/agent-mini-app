@@ -3,9 +3,11 @@
  * Assembles createHost(DshCapabilities, DshLifecycle, { config }).
  * Runtime does not invent host.json defaults — run the install script first.
  */
+import path from "node:path";
+
 import { createHost } from "@monkey-mini-app/host";
 
-import { type DshPluginConfig,loadPluginHostConfig } from "./apply-config.ts";
+import { type DshPluginConfig, loadPluginHostConfig } from "./apply-config.ts";
 import { DshCapabilities } from "./capabilities.ts";
 import type { DshCtx } from "./ctx.ts";
 import { DshLifecycle } from "./lifecycle.ts";
@@ -31,10 +33,19 @@ export { DshThemeResource } from "./theme-resource.ts";
 export async function apply(ctx: DshCtx, config: DshPluginConfig = {}): Promise<() => void> {
   const hostConfig = loadPluginHostConfig(config);
   const themes = new DshThemeResource(hostConfig.runtimeRoot);
-  const host = createHost(new DshCapabilities(ctx), new DshLifecycle(ctx), {
-    config: hostConfig,
-    themes,
-  });
+  const host = createHost(
+    new DshCapabilities(ctx),
+    new DshLifecycle(ctx, config.skillDest ? { skillDest: path.resolve(config.skillDest) } : {}),
+    {
+      config: hostConfig,
+      themes,
+      about: {
+        adapter: "dsh",
+        packageName,
+        env: process.env.NODE_ENV ?? "production",
+      },
+    },
+  );
   let port: number;
   try {
     ({ port } = await host.apply(ctx));

@@ -2,6 +2,13 @@
 
 import * as React from "react"
 
+/**
+ * Anchor nav that highlights the section in view.
+ * @when Long settings/report page with jump links.
+ * @example
+ * <Scrollspy sections={[{ id: "overview", label: "概览" }]} />
+ * @family Navigation
+ */
 export function Scrollspy({
   sections,
 }: {

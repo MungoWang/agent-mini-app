@@ -1,6 +1,13 @@
 import { ProgressRing } from "@monkey-mini-app/ui/blocks/progress-ring"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Arc gauge for one 0–100 metric.
+ * @when A single health/capacity number that needs a zone (SLO, disk). Series over time → `Sparkline`.
+ * @example
+ * <Gauge value={73} label="磁盘" />
+ * @family Chart & data
+ */
 export function Gauge({
   value,
   label,

@@ -10,6 +10,13 @@ import {
 } from "@monkey-mini-app/ui/components/input-group"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
+/**
+ * Search box with debounce.
+ * @when Filter-as-you-type against `DataGrid`/lists — use `onDebouncedChange` for network calls.
+ * @example
+ * <SearchInput onDebouncedChange={(q) => call("list", { q })} />
+ * @family Form
+ */
 export function SearchInput({
   value,
   onChange,

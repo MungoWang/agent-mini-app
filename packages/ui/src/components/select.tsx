@@ -6,6 +6,13 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
+/**
+ * Dropdown single-choice from a fixed list.
+ * @when Closed set of options (searchable/large → `Autocomplete` or `DataGrid` filter).
+ * @example
+ * <Select value={v} onValueChange={set}><SelectTrigger><SelectValue placeholder="选择" /></SelectTrigger><SelectContent><SelectItem value="a">A</SelectItem></SelectContent></Select>
+ * @family Form
+ */
 const Select = SelectPrimitive.Root
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {

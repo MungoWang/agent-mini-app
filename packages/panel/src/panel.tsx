@@ -39,11 +39,17 @@ function loadCustomPalettes(host: PanelHost): void {
 export function createMiniAppPanel(host: PanelHost, options?: CreateMiniAppPanelOptions): PanelInstance {
   const locale = resolvePanelLocale(options?.locale ?? host.locale);
   const i18n = createPanelI18n(locale);
+  const prev = getPanelState();
   resetPanelState({
     tabs: [{ id: "all", title: i18n.t("tabs.all"), kind: "all" }],
     capabilities: capabilitiesOf(host),
     locale,
     emptyText: host.emptyText,
+    theme: prev.theme,
+    palette: prev.palette,
+    dock: prev.dock,
+    cardStyle: prev.cardStyle,
+    visible: prev.visible,
   });
 
   let rootEl: HTMLElement | null = null;

@@ -9,6 +9,7 @@ import { cn } from "@monkey-mini-app/ui/lib/utils"
  * <AppShell sidebar={<nav />} header={<PageHeader title="Home" />}>
  *   {children}
  * </AppShell>
+ * @family Layout & structure
  */
 export function AppShell({
   sidebar,

@@ -32,6 +32,8 @@ const initial: PanelState = {
   cfgMsg: "",
   cfgVersion: 0,
   cfg: {},
+  about: null,
+  updateCheck: null,
   emptyText: undefined,
   capabilities: none,
   locale: "zh-CN",

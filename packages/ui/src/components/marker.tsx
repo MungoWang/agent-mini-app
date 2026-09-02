@@ -19,6 +19,10 @@ const markerVariants = cva(
   }
 )
 
+/**
+ * @family Layout & structure
+ * @when Small state markers inside a sentence or legend.
+ */
 function Marker({
   className,
   variant = "default",

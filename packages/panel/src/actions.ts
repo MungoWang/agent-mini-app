@@ -3,7 +3,7 @@ import type { PanelHost } from "./panel-host.ts";
 import { capabilitiesOf } from "./panel-host.ts";
 import { isHostUnreachable } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
-import { applyThemeTo, clampPalette, type CustomPaletteMap } from "./themes.ts";
+import { applyThemeTo, clampPalette, type CustomPaletteMap, resolveMode } from "./themes.ts";
 import type { AppItem, CardStyle, DockId, PanelActions, PanelState, TabItem } from "./types.ts";
 
 export function activeAppFrom(state: PanelState): AppItem | null {
@@ -73,6 +73,7 @@ export function createPanelActions(
       const s = getPanelState();
       const theme = next.theme ? String(next.theme) : s.theme;
       const palette = next.palette ? String(next.palette) : s.palette;
+      const resolved = resolveMode(theme);
       setPanelState({ theme, palette });
       const root = getRootEl();
       if (root) {
@@ -81,7 +82,8 @@ export function createPanelActions(
       if (scope === "app") {
         const app = activeAppFrom(getPanelState());
         if (app && host.appTheme) {
-          const nextTheme = { theme, palette };
+          // App themes are concrete light/dark — resolve system first.
+          const nextTheme = { theme: resolved, palette };
           host.appTheme.save(app.id, nextTheme).catch(() => {});
           const cur = getPanelState();
           setPanelState({
@@ -94,7 +96,14 @@ export function createPanelActions(
           });
         }
       } else {
-        host.persistTheme?.(theme, palette);
+        // host.json / iframe env get the resolved light|dark; localStorage keeps the preference
+        // (may be "system") so we rewrite it after persistTheme which stores the resolved mode.
+        host.persistTheme?.(resolved, palette);
+        try {
+          localStorage.setItem("mma-theme-mode", theme);
+        } catch {
+          /* ignore */
+        }
       }
       host.frame.syncEnv?.();
     },
@@ -115,7 +124,11 @@ export function createPanelActions(
     },
     getActiveApp: () => activeAppFrom(getPanelState()),
     toggleSettings: (open) => {
-      setPanelState({ settingsOpen: open, cfgMsg: open ? "" : getPanelState().cfgMsg });
+      setPanelState({
+        settingsOpen: open,
+        cfgMsg: open ? "" : getPanelState().cfgMsg,
+        updateCheck: open ? null : getPanelState().updateCheck,
+      });
       if (open && host.config) {
         host.config
           .load()
@@ -124,18 +137,69 @@ export function createPanelActions(
           })
           .catch(() => {});
       }
+      if (open && host.about) {
+        host.about
+          .load()
+          .then((about) => setPanelState({ about }))
+          .catch(() => setPanelState({ about: null }));
+      }
     },
     getCfg: () => getPanelState().cfg,
+    checkUpdates: () => {
+      if (!host.about) return;
+      setPanelState({
+        updateCheck: {
+          name: "",
+          current: "",
+          latest: null,
+          updateAvailable: false,
+          status: "loading",
+        },
+      });
+      host.about
+        .checkUpdates()
+        .then((check) => setPanelState({ updateCheck: { ...check, status: "done" } }))
+        .catch((err) =>
+          setPanelState({
+            updateCheck: {
+              name: "",
+              current: "",
+              latest: null,
+              updateAvailable: false,
+              status: "done",
+              error: errorMessage(err),
+            },
+          }),
+        );
+    },
     saveHostConfig: (form) => {
       if (!host.config) return;
       host.config
         .save(form)
         .then(() => {
+          const style = (form.cardStyle as CardStyle) || getPanelState().cardStyle;
+          const theme = form.theme || getPanelState().theme;
+          const palette = form.palette || getPanelState().palette;
           setPanelState({
             cfg: { ...form },
             cfgMsg: i18n.t("config.saved"),
             cfgVersion: getPanelState().cfgVersion + 1,
+            cardStyle: style,
+            theme,
+            palette,
           });
+          const root = getRootEl();
+          if (root) {
+            applyThemeTo(root, theme, palette, asCustomPalettes(getPanelState().customPalettes));
+            root.setAttribute("data-cardstyle", style);
+          }
+          host.persistTheme?.(theme, palette);
+          host.frame.syncEnv?.();
+          try {
+            localStorage.setItem("mma-card-style", style);
+          } catch {
+            /* ignore */
+          }
         })
         .catch((e) => {
           setPanelState({ cfgMsg: i18n.t("config.error", { message: errorMessage(e) }) });
@@ -251,7 +315,15 @@ export function createPanelActions(
           });
         });
     },
-    setCardStyle: (v: CardStyle) => setPanelState({ cardStyle: v }),
+    setCardStyle: (v: CardStyle) => {
+      setPanelState({ cardStyle: v });
+      getRootEl()?.setAttribute("data-cardstyle", v);
+      try {
+        localStorage.setItem("mma-card-style", v);
+      } catch {
+        /* ignore */
+      }
+    },
   };
 }
 

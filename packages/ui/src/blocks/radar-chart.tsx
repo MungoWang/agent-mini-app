@@ -10,6 +10,13 @@ import {
 } from "@monkey-mini-app/ui/components/chart"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Multi-axis radar chart.
+ * @when Comparing an item across 4–8 dimensions (scores, coverage).
+ * @example
+ * <RadarChart data={[{ label: "性能", value: 70 }]} />
+ * @family Chart & data
+ */
 export function RadarChart({
   data,
   config,

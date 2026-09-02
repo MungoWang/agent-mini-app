@@ -40,6 +40,13 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * Action button with variants and icon sizing.
+ * @when Every click target. `variant="destructive"` for delete, `size="icon*"` for icon-only (add aria-label).
+ * @example
+ * <Button variant="outline" size="sm" onClick={run}>刷新</Button>
+ * @family Form
+ */
 function Button({
   className,
   variant = "default",

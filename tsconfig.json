@@ -17,6 +17,7 @@
     "packages/panel/src/**/*.ts",
     "packages/panel/src/**/*.tsx",
     "packages/panel/tests/**/*.ts",
+    "packages/sdk/tests/**/*.ts",
     "packages/smoke-test/**/*.ts"
   ],
   "exclude": ["**/node_modules", "**/dist", "**/lib"]

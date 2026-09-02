@@ -7,6 +7,13 @@ import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
 export type DateTimeRange = { start?: Date; end?: Date }
 
+/**
+ * From/to moments, all-day toggle.
+ * @when Run windows, on-call shifts.
+ * @example
+ * <DateTimeRangePicker onChange={(r) => set(r)} />
+ * @family Calendar & date
+ */
 export function DateTimeRangePicker({
   value,
   onChange,

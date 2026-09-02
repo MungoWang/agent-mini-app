@@ -11,6 +11,7 @@ export type PageHeaderProps = {
  * @when Top of a page inside AppShell main
  * @example
  * <PageHeader title="QA Runs" description="Last 24h" actions={<Button>New</Button>} />
+ * @family Layout & structure
  */
 export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (

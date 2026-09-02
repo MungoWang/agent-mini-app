@@ -32,6 +32,13 @@ export type DateTimePickerProps = {
   className?: string
 }
 
+/**
+ * Date + time, optional timezone.
+ * @when Scheduling moments, not days.
+ * @example
+ * <DateTimePicker value={d} onChange={(v) => set(v)} />
+ * @family Calendar & date
+ */
 export function DateTimePicker({
   value,
   onChange,

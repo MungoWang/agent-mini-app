@@ -14,7 +14,7 @@ import { createMiniAppPanel, type PanelInstance } from "./panel.tsx";
 import type { PanelHost } from "./panel-host.ts";
 import { appFrameUrl,createRestPanelHost } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
-import { applyThemeTo } from "./themes.ts";
+import { applyThemeTo, type CustomPaletteMap, resolveMode, themeCssVars } from "./themes.ts";
 import type { CardStyle, DockId } from "./types.ts";
 
 export type HostShellOptions = {
@@ -63,7 +63,11 @@ function safeStorage(storage: HostShellOptions["storage"]): Pick<Storage, "getIt
   return null;
 }
 
-function readThemePrefs(storage: Pick<Storage, "getItem"> | null): { theme: string; palette: string } {
+function readThemePrefs(storage: Pick<Storage, "getItem"> | null): {
+  theme: string;
+  palette: string;
+  cardStyle: string;
+} {
   const get = (k: string): string | null => {
     try {
       return storage?.getItem(k) ?? null;
@@ -71,33 +75,72 @@ function readThemePrefs(storage: Pick<Storage, "getItem"> | null): { theme: stri
       return null;
     }
   };
-  return { theme: get("mma-theme-mode") || "light", palette: get("mma-palette") || "default" };
+  return {
+    theme: (() => {
+      const m = get("mma-theme-mode");
+      return m === "system" || m === "dark" || m === "light" ? m : "light";
+    })(),
+    palette: get("mma-palette") || "default",
+    cardStyle: get("mma-card-style") || "stamp",
+  };
 }
 
 export function createHostShell(opts: HostShellOptions): HostShellInstance {
   const storage = safeStorage(opts.storage);
   const themePrefs = readThemePrefs(storage);
+  let currentOrigin = opts.hostUrl.replace(/\/$/, "");
 
   const frame = createFrameController({
-    urlOf: (appId) => appFrameUrl(opts.hostUrl, appId, envFor(appId)),
+    urlOf: (appId) => appFrameUrl(currentOrigin, appId, envFor(appId)),
     envOf: (appId) => envFor(appId),
   });
 
-  function envFor(appId: string): { theme: string; palette: string; dock: string } {
+  function envFor(appId: string): { theme: string; palette: string; dock: string; vars: Record<string, string> } {
     const s = getPanelState();
     const app = s.apps.find((a) => a.id === appId);
-    return { theme: app?.theme?.theme || s.theme, palette: app?.theme?.palette || s.palette, dock: s.dock };
+    const theme = resolveMode(app?.theme?.theme || s.theme);
+    const palette = app?.theme?.palette || s.palette;
+    return {
+      theme,
+      palette,
+      dock: s.dock,
+      vars: themeCssVars(theme, palette, s.customPalettes as CustomPaletteMap),
+    };
+  }
+
+  async function migrateOrigin(next: string): Promise<void> {
+    const origin = next.replace(/\/$/, "");
+    for (let i = 0; i < 30; i++) {
+      try {
+        const res = await fetch(`${origin}/health`);
+        if (res.ok) break;
+      } catch {
+        /* rebind in flight */
+      }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    currentOrigin = origin;
+    try {
+      storage?.setItem("mma-host-url", origin);
+    } catch {
+      /* ignore */
+    }
+    opts.onHostChange?.(origin);
+    for (const id of [...frame.map.keys()]) frame.reload(id);
   }
 
   const host: PanelHost = createRestPanelHost({
     hostUrl: opts.hostUrl,
+    getHostUrl: () => currentOrigin,
     storage,
     cardStyle: opts.cardStyle,
     locale: (opts.locale as PanelHost["locale"]) ?? undefined,
     emptyText: opts.emptyText,
     onOpen: () => optOnOpen(),
     onClose: () => optOnClose(),
-    onHostChange: (next) => opts.onHostChange?.(next),
+    onHostChange: (next) => {
+      void migrateOrigin(next);
+    },
     frameController: {
       url: (appId) => frame.url(appId),
       // Lazy-bind the frames container (React may not have rendered #mma-frames yet).
@@ -157,7 +200,7 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
       containerEl.id = "mma-host";
       containerEl.setAttribute("data-ready", "1");
       containerEl.setAttribute("data-dock", getPanelState().dock);
-      containerEl.setAttribute("data-cardstyle", getPanelState().cardStyle);
+      containerEl.setAttribute("data-cardstyle", themePrefs.cardStyle);
       Object.assign(containerEl.style, {
         position: "fixed",
         top: "0",
@@ -174,9 +217,17 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
       const target = el ?? document.body;
       target.appendChild(containerEl);
 
-      setPanelState({ theme: themePrefs.theme, palette: themePrefs.palette, visible: true });
-      applyThemeTo(containerEl, themePrefs.theme, themePrefs.palette);
+      const cardStyle = (themePrefs.cardStyle as CardStyle) || "stamp";
+      setPanelState({
+        theme: themePrefs.theme,
+        palette: themePrefs.palette,
+        cardStyle,
+        visible: true,
+      });
       this.panel.mount(containerEl);
+      applyThemeTo(containerEl, themePrefs.theme, themePrefs.palette);
+      setPanelState({ theme: themePrefs.theme, palette: themePrefs.palette, cardStyle });
+      containerEl.setAttribute("data-cardstyle", cardStyle);
       // MiniAppPanel renders #mma-frames inside .mma-stage; bind it AFTER mount.
       const framesEl = containerEl.querySelector("#mma-frames");
       if (framesEl) frame.setContainer(framesEl as HTMLElement);

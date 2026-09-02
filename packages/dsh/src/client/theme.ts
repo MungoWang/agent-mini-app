@@ -30,14 +30,28 @@ export function dshIsDark(): boolean {
   return false;
 }
 
-export function readStoredMode(storage: Pick<Storage, "getItem"> | null): "light" | "dark" | null {
+export function readStoredMode(storage: Pick<Storage, "getItem"> | null): "light" | "dark" | "system" | null {
   if (!storage) return null;
   try {
     const m = storage.getItem("mma-theme-mode");
-    return m === "light" || m === "dark" ? m : null;
+    return m === "light" || m === "dark" || m === "system" ? m : null;
   } catch {
     return null;
   }
+}
+
+export function resolveStoredMode(mode: "light" | "dark" | "system" | null): "light" | "dark" {
+  if (mode === "system") {
+    try {
+      if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        return "dark";
+      }
+    } catch {
+      /* ignore */
+    }
+    return "light";
+  }
+  return mode === "dark" ? "dark" : "light";
 }
 
 export function readStoredPalette(storage: Pick<Storage, "getItem"> | null): string | null {

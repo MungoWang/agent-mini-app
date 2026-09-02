@@ -22,6 +22,12 @@ const buttonGroupVariants = cva(
   }
 )
 
+/**
+ * @family Form
+ * @when 2–5 mutually related actions (view switch, alignment). Tabs of content → `Tabs`.
+ * @example
+ * <ButtonGroup><Button variant="outline">List</Button><Button variant="outline">Board</Button></ButtonGroup>
+ */
 function ButtonGroup({
   className,
   orientation,

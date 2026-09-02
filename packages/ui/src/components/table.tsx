@@ -2,6 +2,13 @@ import * as React from "react"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Raw HTML table primitives.
+ * @when Only when you need full control of cells. Otherwise use `DataGrid` (sorting/filter/paging/CSV built in).
+ * @example
+ * <Table><TableHeader><TableRow><TableHead>列</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>v</TableCell></TableRow></TableBody></Table>
+ * @family Data & tables
+ */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div

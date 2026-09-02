@@ -11,6 +11,10 @@ import {
 } from "@monkey-mini-app/ui/components/input-group"
 import { ChevronDownIcon, XIcon, CheckIcon } from "lucide-react"
 
+/**
+ * @family Form
+ * @when When you need full control of the popover list. Simple suggestion box → `Autocomplete`.
+ */
 const Combobox = ComboboxPrimitive.Root
 
 function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {

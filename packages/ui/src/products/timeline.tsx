@@ -7,6 +7,13 @@ export type TimelineItem = {
   time?: string
 }
 
+/**
+ * Vertical ordered events.
+ * @when Statuses/history without durations. Durations → `RunTimeline`.
+ * @example
+ * <Timeline items={[{ id: "1", title: "已创建", time: "09:00" }]} />
+ * @family Realtime
+ */
 export function Timeline({ items }: { items: TimelineItem[] }) {
   return (
     <ol className="relative space-y-4 border-l pl-4" data-testid="timeline">

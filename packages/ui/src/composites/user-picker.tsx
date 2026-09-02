@@ -6,6 +6,13 @@ import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
 export type UserOption = { id: string; name: string }
 
+/**
+ * Pick a user from a list (avatar + name).
+ * @when Assignee/owner fields; you supply the user list.
+ * @example
+ * <UserPicker users={[{ id: "u1", name: "张三" }]} onChange={(id) => set(id)} />
+ * @family Form
+ */
 export function UserPicker({
   users,
   value,

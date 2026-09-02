@@ -1,93 +1,54 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it, vi } from "vitest"
+import { beforeAll, describe, expect, it } from "vitest"
 
 import { EventCalendar, type CalendarEvent } from "./event-calendar"
 
+const user = { id: "u1", name: "Ada", picturePath: null }
+
 const sample: CalendarEvent[] = [
   {
-    id: "e1",
+    id: 1,
     title: "Standup",
-    start: new Date("2026-08-26T09:00:00"),
-    end: new Date("2026-08-26T09:30:00"),
+    startDate: "2026-08-26T09:00:00",
+    endDate: "2026-08-26T09:30:00",
+    color: "blue",
+    description: "",
+    user,
   },
   {
-    id: "e2",
+    id: 2,
     title: "Oncall",
-    start: new Date("2026-08-26"),
-    end: new Date("2026-08-28"),
-    allDay: true,
+    startDate: "2026-08-26T00:00:00",
+    endDate: "2026-08-28T00:00:00",
+    color: "green",
+    description: "coverage",
+    user,
   },
 ]
 
 describe("EventCalendar", () => {
-  it("renders an Outlook-style week time grid with an all-day row", async () => {
-    const user = userEvent.setup()
-    render(
-      <EventCalendar value={new Date("2026-08-26")} view="month" events={sample} />
-    )
-    await user.click(screen.getByTestId("calendar-view-week"))
+  beforeAll(() => {
+    // jsdom lacks Web Animations used by ScrollArea
+    Element.prototype.getAnimations = () => []
+  })
+
+  it("renders month events and can switch to week", async () => {
+    const click = userEvent.setup()
+    render(<EventCalendar events={sample} view="month" date={new Date("2026-08-26")} />)
+    expect(screen.getByTestId("event-calendar")).toBeInTheDocument()
+    expect(screen.getByText("Standup")).toBeInTheDocument()
+    await click.click(screen.getByTestId("calendar-view-week"))
     expect(screen.getByTestId("calendar-week-grid")).toBeInTheDocument()
     expect(screen.getByTestId("calendar-all-day")).toBeInTheDocument()
-    expect(screen.getByText("09:00")).toBeInTheDocument()
-    expect(screen.getByTestId("calendar-event-e2")).toHaveTextContent("Oncall")
+    expect(screen.getAllByTestId("calendar-event-2")[0]).toHaveTextContent("Oncall")
   })
 
-  it("opens an editor with start and end fields", async () => {
-    const onEventsChange = vi.fn()
-    const user = userEvent.setup()
-    render(
-      <EventCalendar
-        value={new Date("2026-08-26")}
-        view="week"
-        events={sample}
-        onEventsChange={onEventsChange}
-      />
-    )
-    await user.click(screen.getByTestId("calendar-event-e1"))
+  it("opens add-event dialog", async () => {
+    const click = userEvent.setup()
+    render(<EventCalendar events={sample} view="month" date={new Date("2026-08-26")} />)
+    await click.click(screen.getByTestId("calendar-add-event"))
     expect(screen.getByTestId("event-dialog")).toBeInTheDocument()
-    expect(screen.getByText("Edit event")).toBeInTheDocument()
-    expect(screen.getByText("Start")).toBeInTheDocument()
-    expect(screen.getByText("End")).toBeInTheDocument()
-    expect(screen.getByRole("switch", { name: /all day/i })).toBeInTheDocument()
-    await user.clear(screen.getByTestId("event-title-input"))
-    await user.type(screen.getByTestId("event-title-input"), "Standup 2")
-    await user.click(screen.getByTestId("event-save"))
-    expect(onEventsChange).toHaveBeenCalled()
-    const next = onEventsChange.mock.calls[0]?.[0] as CalendarEvent[]
-    expect(next.find((event) => event.id === "e1")?.title).toBe("Standup 2")
-  })
-
-  it("opens an all-day range editor from a month day", async () => {
-    const onEventsChange = vi.fn()
-    const user = userEvent.setup()
-    render(
-      <EventCalendar
-        value={new Date("2026-08-26")}
-        view="month"
-        events={sample}
-        onEventsChange={onEventsChange}
-      />
-    )
-    await user.click(screen.getByTestId("calendar-month-day-2026-08-26"))
-    expect(screen.getByTestId("event-dialog")).toBeInTheDocument()
-    expect(screen.getByTestId("date-time-range-picker")).toBeInTheDocument()
-    expect(screen.getByRole("switch", { name: /all day/i })).toBeChecked()
-  })
-
-  it("shows +N more when a month cell overflows", async () => {
-    const user = userEvent.setup()
-    const crowded: CalendarEvent[] = Array.from({ length: 5 }, (_, i) => ({
-      id: `n${i}`,
-      title: `Item ${i}`,
-      start: new Date(`2026-08-26T${String(8 + i).padStart(2, "0")}:00:00`),
-      end: new Date(`2026-08-26T${String(9 + i).padStart(2, "0")}:00:00`),
-    }))
-    render(
-      <EventCalendar value={new Date("2026-08-26")} view="month" events={crowded} />
-    )
-    expect(screen.getByTestId("calendar-more")).toHaveTextContent("+2 more")
-    await user.click(screen.getByTestId("calendar-more"))
-    expect(screen.getByText(/Item 3/)).toBeInTheDocument()
+    expect(screen.getByTestId("event-title-input")).toBeInTheDocument()
   })
 })

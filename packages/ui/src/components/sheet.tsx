@@ -5,6 +5,13 @@ import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { Button } from "@monkey-mini-app/ui/components/button"
 import { XIcon } from "lucide-react"
 
+/**
+ * Slide-in side panel.
+ * @when Detail/edit panel that keeps the list visible — the usual master-detail pattern.
+ * @example
+ * <Sheet open={open} onOpenChange={setOpen}><SheetContent side="right"><SheetHeader><SheetTitle>详情</SheetTitle></SheetHeader>…</SheetContent></Sheet>
+ * @family Surface
+ */
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }

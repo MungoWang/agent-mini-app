@@ -2,6 +2,13 @@ import * as React from "react"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Multi-line text input.
+ * @when Notes/prompts. Code → `CodeEditor`; markdown → `MarkdownEditor`.
+ * @example
+ * <Textarea rows={4} value={v} onChange={(e) => set(e.target.value)} />
+ * @family Form
+ */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

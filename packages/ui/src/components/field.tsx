@@ -67,6 +67,12 @@ const fieldVariants = cva(
   }
 )
 
+/**
+ * @family Form
+ * @when Any form row that must read well and stay accessible.
+ * @example
+ * <Field><FieldLabel htmlFor="n">名称</FieldLabel><Input id="n" /><FieldDescription>显示在列表里</FieldDescription></Field>
+ */
 function Field({
   className,
   orientation = "vertical",

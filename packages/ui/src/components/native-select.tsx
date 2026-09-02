@@ -7,6 +7,10 @@ type NativeSelectProps = Omit<React.ComponentProps<"select">, "size"> & {
   size?: "sm" | "default"
 }
 
+/**
+ * @family Form
+ * @when Short option lists where a plain select is enough and `Select` is overkill.
+ */
 function NativeSelect({
   className,
   size = "default",

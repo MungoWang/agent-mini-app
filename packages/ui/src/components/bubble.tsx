@@ -42,6 +42,10 @@ const bubbleVariants = cva(
   }
 )
 
+/**
+ * @family Surface
+ * @when Conversational UI (assistant turns). Records/logs → `ActivityFeed` / `Message`.
+ */
 function Bubble({
   variant = "default",
   align = "start",

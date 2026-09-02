@@ -12,6 +12,13 @@ import {
 } from "@monkey-mini-app/ui/components/alert-dialog"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
+/**
+ * Controlled yes/no dialog with loading-safe confirm.
+ * @when Any destructive action. Needs a form inside → compose `Dialog` yourself.
+ * @example
+ * <ConfirmDialog open={open} title="删除这条？" onConfirm={remove} onOpenChange={setOpen} />
+ * @family Surface
+ */
 export function ConfirmDialog({
   open,
   onOpenChange,

@@ -4,6 +4,13 @@ import { Star } from "lucide-react"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Star rating.
+ * @when Feedback/score capture, 1–max.
+ * @example
+ * <Rating value={r} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function Rating({
   value = 0,
   onChange,

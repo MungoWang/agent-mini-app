@@ -1,5 +1,9 @@
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * @family Layout & structure
+ * @when Documenting ⌘K-style shortcuts in help panels.
+ */
 function Kbd({ className, ...props }: React.ComponentProps<"kbd">) {
   return (
     <kbd

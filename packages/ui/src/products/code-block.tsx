@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { useHtmlDark } from "@monkey-mini-app/ui/hooks/use-html-dark"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
 const aliases: Record<string, string> = {
@@ -15,6 +16,13 @@ const aliases: Record<string, string> = {
   txt: "text",
 }
 
+/**
+ * Static read-only code with highlighting (shiki via CDN).
+ * @when Showing a snippet/command. Editable → `CodeEditor`.
+ * @example
+ * <CodeBlock code="pnpm test" language="bash" />
+ * @family Discovery & inspect
+ */
 export function CodeBlock({
   code,
   language = "ts",
@@ -26,9 +34,7 @@ export function CodeBlock({
 }) {
   const [html, setHtml] = React.useState<string | null>(null)
   const lang = aliases[language.toLowerCase()] ?? language.toLowerCase()
-  const dark =
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark")
+  const dark = useHtmlDark()
 
   React.useEffect(() => {
     let cancelled = false
@@ -36,7 +42,12 @@ export function CodeBlock({
     // and only fetched when a CodeBlock is actually rendered.
     ;(async () => {
       try {
-        const { codeToHtml } = await import("https://esm.run/shiki@4.4.3")
+        const shiki = (await import("https://esm.sh/shiki@4.4.3")) as {
+          codeToHtml?: (code: string, opts: object) => Promise<string>
+          default?: { codeToHtml?: (code: string, opts: object) => Promise<string> }
+        }
+        const codeToHtml = shiki.codeToHtml ?? shiki.default?.codeToHtml
+        if (!codeToHtml) throw new Error("shiki.codeToHtml missing")
         let out: string
         try {
           out = await codeToHtml(code, {
@@ -50,8 +61,8 @@ export function CodeBlock({
           })
         }
         if (!cancelled) setHtml(out)
-      } catch {
-        // CDN unavailable / unsupported lang → keep the native <pre><code> fallback.
+      } catch (err) {
+        console.warn("[CodeBlock] shiki CDN failed", err)
       }
     })()
     return () => {

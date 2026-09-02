@@ -34,7 +34,7 @@ export function ThemePop() {
         onPointerDown={(e) => e.stopPropagation()}
       >
       <div className="mma-pop-seg">
-        {(["light", "dark"] as const).map((mode) => (
+        {(["system", "light", "dark"] as const).map((mode) => (
           <button
             key={mode}
             type="button"

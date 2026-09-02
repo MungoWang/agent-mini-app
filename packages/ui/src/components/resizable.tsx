@@ -4,6 +4,13 @@ import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Draggable split panes.
+ * @family Layout & structure
+ * @when Master-detail or editor + preview inside the app body.
+ * @example
+ * <ResizablePanelGroup direction="horizontal"><ResizablePanel>list</ResizablePanel><ResizableHandle /><ResizablePanel>detail</ResizablePanel></ResizablePanelGroup>
+ */
 function ResizablePanelGroup({
   className,
   ...props

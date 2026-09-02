@@ -250,6 +250,7 @@ function Blocks({
  * @when Jira description / comment body
  * @example
  * <JiraWiki classNames={{ heading: "text-base" }}>{`h2. Title\n* item`}</JiraWiki>
+ * @family Rich text
  */
 export function JiraWiki({
   children,

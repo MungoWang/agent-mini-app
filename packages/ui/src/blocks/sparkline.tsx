@@ -9,6 +9,13 @@ const config = {
   value: { label: "Value", color: "var(--chart-1)" },
 } satisfies ChartConfig
 
+/**
+ * Tiny inline trend line, no axes.
+ * @when Trend inside a table row or KPI card.
+ * @example
+ * <Sparkline data={[{ value: 3 }, { value: 9 }, { value: 6 }]} />
+ * @family Chart & data
+ */
 export function Sparkline({ data, className }: { data: { value: number }[]; className?: string }) {
   return (
     <ChartContainer config={config} className={cn("h-20 w-full", className)} data-testid="sparkline">

@@ -17,6 +17,12 @@ import {
 } from "@monkey-mini-app/ui/components/input-group"
 import { SearchIcon, CheckIcon } from "lucide-react"
 
+/**
+ * @family Navigation
+ * @when Jump between views/actions inside one app.
+ * @example
+ * <CommandDialog open={open} onOpenChange={setOpen}><CommandInput placeholder="跳转…" /><CommandList><CommandItem onSelect={go}>今日</CommandItem></CommandList></CommandDialog>
+ */
 function Command({
   className,
   ...props

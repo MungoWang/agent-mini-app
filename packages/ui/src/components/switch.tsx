@@ -4,6 +4,13 @@ import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Boolean toggle.
+ * @when Immediate on/off settings (submit-on-toggle).
+ * @example
+ * <Switch checked={on} onCheckedChange={set} />
+ * @family Form
+ */
 function Switch({
   className,
   size = "default",

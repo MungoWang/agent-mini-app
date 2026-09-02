@@ -4,6 +4,13 @@ import * as React from "react"
 
 import { Input } from "@monkey-mini-app/ui/components/input"
 
+/**
+ * Text input with filtered suggestions.
+ * @when Free text allowed but known values should be suggested. Strict pick-list → `Select`.
+ * @example
+ * <Autocomplete options={["main", "develop"]} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function Autocomplete({
   value,
   onChange,

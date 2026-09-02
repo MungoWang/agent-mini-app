@@ -56,6 +56,10 @@ const itemVariants = cva(
   }
 )
 
+/**
+ * @family Layout & structure
+ * @when A uniform list row when `DataGrid` is too heavy.
+ */
 function Item({
   className,
   variant = "default",

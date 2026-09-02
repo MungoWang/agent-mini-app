@@ -24,6 +24,10 @@ const attachmentVariants = cva(
   }
 )
 
+/**
+ * @family Discovery & inspect
+ * @when One selected file inside a form. A grid of many → `AttachmentGallery`.
+ */
 function Attachment({
   className,
   state = "done",

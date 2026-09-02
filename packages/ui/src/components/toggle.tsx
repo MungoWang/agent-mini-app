@@ -25,6 +25,10 @@ const toggleVariants = cva(
   }
 )
 
+/**
+ * @family Form
+ * @when Binary formatting switch (bold, filters on).
+ */
 function Toggle({
   className,
   variant = "default",

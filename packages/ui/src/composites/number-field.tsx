@@ -5,6 +5,13 @@ import { Input } from "@monkey-mini-app/ui/components/input"
 import { Minus, Plus } from "lucide-react"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
+/**
+ * Numeric input with min/max/step + steppers.
+ * @when Any number the user edits — keeps NaN out of your state.
+ * @example
+ * <NumberField min={0} max={100} value={n} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function NumberField({
   value = 0,
   onChange,

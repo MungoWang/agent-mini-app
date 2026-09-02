@@ -8,6 +8,10 @@ import { Button } from "@monkey-mini-app/ui/components/button"
 import { Input } from "@monkey-mini-app/ui/components/input"
 import { Textarea } from "@monkey-mini-app/ui/components/textarea"
 
+/**
+ * @family Form
+ * @when Search/url/amount fields with adornments; keep validation in `NumberField` etc.
+ */
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

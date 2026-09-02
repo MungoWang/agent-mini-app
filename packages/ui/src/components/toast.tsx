@@ -30,6 +30,13 @@ function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
   )
 }
 
+/**
+ * Transient notification (provider + viewport + `toast()`).
+ * @when Confirm/save failures. The host already mounts the provider — call `toast(...)`.
+ * @example
+ * toast({ title: "已保存", description: "2 条更新" })
+ * @family Feedback & status
+ */
 function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
   return (
     <ToastPrimitive.Root

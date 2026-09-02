@@ -147,6 +147,10 @@ function SidebarProvider({
   )
 }
 
+/**
+ * @family Navigation
+ * @when Many sections in one app; `AppShell` already wires one for you.
+ */
 function Sidebar({
   side = "left",
   variant = "sidebar",

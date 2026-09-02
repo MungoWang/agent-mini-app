@@ -5,6 +5,13 @@ import remarkGfm from "remark-gfm"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Render a markdown string.
+ * @when Model output, README-ish bodies. Children must be a string.
+ * @example
+ * <Markdown>{text}</Markdown>
+ * @family Rich text
+ */
 export function Markdown({
   children,
   className,

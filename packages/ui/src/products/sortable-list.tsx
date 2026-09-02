@@ -33,6 +33,13 @@ function Row({ item }: { item: SortableItem }) {
   )
 }
 
+/**
+ * Drag-to-reorder list.
+ * @when Priority queues / column order. Read-only ordered events → `Timeline`.
+ * @example
+ * <SortableList items={items} onChange={(next) => set(next)} />
+ * @family Data & tables
+ */
 export function SortableList({
   items,
   onChange,

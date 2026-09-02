@@ -16,6 +16,7 @@ export type StatCardProps = {
  * @when Dashboard metric strip
  * @example
  * <StatCard title="Pass rate" value="98%" delta="+1.2%" trend="up" />
+ * @family Chart & data
  */
 export function StatCard({ title, value, delta, trend = "flat", children }: StatCardProps) {
   return (

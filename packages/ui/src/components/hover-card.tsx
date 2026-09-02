@@ -2,6 +2,10 @@ import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * @family Surface
+ * @when Peek a user/issue without navigating. Needs a decision → `Dialog`.
+ */
 function HoverCard({ ...props }: PreviewCardPrimitive.Root.Props) {
   return <PreviewCardPrimitive.Root data-slot="hover-card" {...props} />
 }

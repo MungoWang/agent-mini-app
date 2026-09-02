@@ -1,46 +1,59 @@
-# 本地开发
+# Local development
 
-## 安装 / 更新 dsh 插件
+Day-to-day on the **platform** (host / panel / iframe): **`pnpm dev:host`** (Vite `:5174`, demo host `:17900`). No dsh involved.
+
+dsh is the current adapter; pi is not wired yet. You do not need dsh to change UI.
+
+## Link into local dsh web (dev machine)
 
 ```bash
-bash scripts/install-dsh-mini-app.sh
-dsh web --no-open          # http://127.0.0.1:3080 ；apps host :17880
+bash scripts/setup/install-dsh-plugin.sh
+dsh web --no-open # http://127.0.0.1:3080 ; apps host :17880
 ```
 
-脚本会：构建 `ui` + `dsh` bundle、path-link 进 dsh web profile、bootstrap `host.json`（若不存在）。
+This is **not** the user install path (users run `dsh plugin add @monkey-mini-app/dsh-mini-app`). The script builds then path-links repo packages into `~/.dsh/profiles/web`.
 
-仅重写配置：
+Rewrite config only:
 
 ```bash
-pnpm exec tsx scripts/mma-init.ts
+pnpm exec tsx scripts/setup/host-config.mts
 ```
 
-## 日常改码
+## Edit loop
 
 ```bash
-# 改 host / panel / dsh 源码后
+# after host / panel / dsh source changes
 pnpm --filter @monkey-mini-app/dsh-mini-app build
-# 重启 dsh web，浏览器硬刷新
+# restart dsh web, hard-refresh the browser
 
-# 改组件库
-node scripts/build-ui.mjs
-pnpm skill:gen   # 可选：刷新 UI skill 契约
+# UI kit / SDK
+node scripts/build/ui.mjs && node scripts/build/sdk.mjs
+pnpm skill # gen:skill + check:skill
 ```
 
-## 测试
+## Test
 
 ```bash
 pnpm lint
+pnpm skill
 pnpm test
 pnpm exec tsc -b
 ```
 
-## 文档
+Pre-publish install gate (real npm packages + real dsh web; slow; use `pnpm dev:host` daily):
 
-统一入口：[`docs/README.md`](./docs/README.md)。不要在仓库根另起长文。
+```bash
+pnpm dsh-host # :3088
+pnpm test:dsh
+pnpm publish:packages # runs test:dsh first; emergency --skip-e2e
+```
 
-## 常见问题
+## Docs
 
-1. **缺 host.json** — 跑 `install-dsh-mini-app.sh` 或 `mma-init.ts`。
-2. **主题刷新丢失** — 确认 apps host 已更新（`POST /api/host-config`）；硬刷新浏览器。
-3. **旧包名** — `dsh-plugin` / `host-core` / `panel-core` 已删除；见 tag `archive/pre-cutover-legacy-2026-08-29`。
+Index: [`docs/README.md`](./docs/README.md). Do not add long essays at the repo root.
+
+## FAQ
+
+1. **Missing host.json** — run `scripts/setup/install-dsh-plugin.sh` or `scripts/setup/host-config.mts`.
+2. **Theme lost on refresh** — confirm the apps host got `POST /api/host-config`; hard-refresh.
+3. **Old package names** — `dsh-plugin` / `host-core` / `panel-core` are gone; see tag `archive/pre-cutover-legacy-2026-08-29`.

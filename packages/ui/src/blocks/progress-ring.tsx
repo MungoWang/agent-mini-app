@@ -1,5 +1,12 @@
 import { cn } from "../lib/utils"
 
+/**
+ * Circular determinate progress.
+ * @when One percent-done value in a tight space (card corner, table cell).
+ * @example
+ * <ProgressRing value={45} size={56} />
+ * @family Feedback & status
+ */
 export function ProgressRing({
   value,
   size,

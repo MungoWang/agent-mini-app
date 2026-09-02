@@ -2,6 +2,10 @@ import { Slider as SliderPrimitive } from "@base-ui/react/slider"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * @family Form
+ * @when One numeric value. Range → `SliderRange`.
+ */
 function Slider({
   className,
   defaultValue,

@@ -10,6 +10,17 @@ import {
 } from "@monkey-mini-app/ui/components/chart"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Stacked bar chart over flat rows.
+ * @family Chart & data
+ * @when Comparing several series across categories (pass/fail per day). Single ratio → `DonutChart`; trend → `Sparkline`.
+ * @example
+ * <StackedBarChart
+ *   data={[{ label: "09-01", ok: 12, fail: 2 }]}
+ *   keys={["ok", "fail"]}
+ *   config={{ ok: { label: "通过", color: "var(--primary)" }, fail: { label: "失败", color: "var(--destructive)" } }}
+ * />
+ */
 export function StackedBarChart({
   data,
   config,

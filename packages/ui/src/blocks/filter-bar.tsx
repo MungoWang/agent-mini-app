@@ -8,6 +8,7 @@ import type { ReactNode } from "react"
  *   <DateRangePicker value={range} onChange={setRange} />
  *   <SearchInput value={q} onChange={setQ} />
  * </FilterBar>
+ * @family Data & tables
  */
 export function FilterBar({ children }: { children: ReactNode }) {
   return (

@@ -1,16 +1,31 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
+import { useHtmlDark } from "@monkey-mini-app/ui/hooks/use-html-dark"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
 type LangS = "js" | "ts" | "json" | "html" | "md"
 
+type EditorViewT = {
+  destroy(): void
+  dispatch(t: object): void
+  state: { doc: { toString(): string; length: number } }
+}
+
+function bare<T extends object>(m: T & { default?: T }): T {
+  return (m.default ?? m) as T
+}
+
 /**
- * Code editor. codemirror is heavy + rarely used, so it's loaded from a CDN on
- * demand. We render a native <textarea> first (immediately editable), then swap
- * to the real editor once codemirror has loaded. If the CDN is unavailable we
- * stay on the textarea (edit-anywhere still works).
+ * Vanilla CodeMirror 6 loaded on demand from `esm.sh` (not npm, not a React wrapper).
+ * Do not import `@codemirror/*` or `@uiw/react-codemirror` — the latter pulls a second React.
+ * Highlighting needs `@codemirror/language` + a theme; lang packages only provide the parser.
+ * If the CDN fails the host stays empty (no editor), rather than requiring a peer install.
+ * @when Editing config/scripts in-app. Do not `import @codemirror/*` or add it to package.json.
+ * @example
+ * <CodeEditor value={src} language="ts" onChange={(v) => set(v)} />
+ * @family Discovery & inspect
  */
 export function CodeEditor({
   value,
@@ -25,65 +40,141 @@ export function CodeEditor({
   height?: string
   className?: string
 }) {
-  const [cm, setCm] = useState<{ CodeMirror: any; langs: Record<string, any>; oneDark: any } | null>(null)
-  const dark = typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+  const hostRef = useRef<HTMLDivElement>(null)
+  const viewRef = useRef<EditorViewT | null>(null)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const valueRef = useRef(value)
+  valueRef.current = value
+  const [cm, setCm] = useState(false)
+  const dark = useHtmlDark()
 
   useEffect(() => {
+    if (!hostRef.current) return
     let cancelled = false
     ;(async () => {
       try {
-        const [cmi, js, json, html, md, theme] = await Promise.all([
-          import("https://esm.run/@uiw/react-codemirror@4.25.11"),
-          import("https://esm.run/@codemirror/lang-javascript@6.2.5"),
-          import("https://esm.run/@codemirror/lang-json@6.0.2"),
-          import("https://esm.run/@codemirror/lang-html@6.4.12"),
-          import("https://esm.run/@codemirror/lang-markdown@6.5.2"),
-          import("https://esm.run/@codemirror/theme-one-dark@6.1.3"),
+        const [viewMod, cmdMod, langMod, jsLang, jsonLang, htmlLang, mdLang, themeMod] = await Promise.all([
+          import("https://esm.sh/@codemirror/view@6"),
+          import("https://esm.sh/@codemirror/commands@6"),
+          import("https://esm.sh/@codemirror/language@6"),
+          import("https://esm.sh/@codemirror/lang-javascript@6"),
+          import("https://esm.sh/@codemirror/lang-json@6"),
+          import("https://esm.sh/@codemirror/lang-html@6"),
+          import("https://esm.sh/@codemirror/lang-markdown@6"),
+          import("https://esm.sh/@codemirror/theme-one-dark@6"),
         ])
-        if (cancelled) return
-        setCm({
-          CodeMirror: (cmi as any).default,
-          langs: {
-            js: js.javascript(),
-            ts: js.javascript({ typescript: true }),
-            json: json.json(),
-            html: html.html(),
-            md: md.markdown(),
+        if (cancelled || !hostRef.current) return
+        const viewNs = bare(
+          viewMod as { EditorView: unknown; lineNumbers: () => unknown; keymap: { of: (k: unknown) => unknown } },
+        )
+        const cmdNs = bare(
+          cmdMod as { defaultKeymap: unknown[]; history: () => unknown; historyKeymap: unknown[] },
+        )
+        const langNs = bare(
+          langMod as {
+            syntaxHighlighting: (s: unknown) => unknown
+            defaultHighlightStyle: unknown
           },
-          oneDark: theme.oneDark,
+        )
+        const EditorView = viewNs.EditorView as {
+          new (o: object): EditorViewT
+          updateListener: { of: (fn: (u: { docChanged: boolean }) => void) => unknown }
+          theme: (spec: Record<string, Record<string, string>>) => unknown
+          darkTheme: { of: (v: boolean) => unknown }
+        }
+        const pick = (m: unknown, name: string): ((o?: object) => unknown) => {
+          const n = bare(m as { default?: unknown }) as Record<string, unknown>
+          const fn = n[name] ?? (n.default as Record<string, unknown> | undefined)?.[name]
+          if (typeof fn !== "function") throw new Error(`lang ${name} missing`)
+          return fn as (o?: object) => unknown
+        }
+        const langs: Record<string, unknown> = {
+          js: pick(jsLang, "javascript")(),
+          ts: pick(jsLang, "javascript")({ typescript: true }),
+          json: pick(jsonLang, "json")(),
+          html: pick(htmlLang, "html")(),
+          md: pick(mdLang, "markdown")(),
+        }
+        const themeNs = bare(themeMod as { oneDark?: unknown; oneDarkHighlightStyle?: unknown })
+        const chrome = EditorView.theme({
+          "&": {
+            backgroundColor: "transparent",
+            color: "var(--foreground)",
+            height: "100%",
+          },
+          ".cm-scroller": { overflow: "auto" },
+          ".cm-content": { caretColor: "var(--foreground)" },
+          ".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--foreground)" },
+          ".cm-gutters": {
+            backgroundColor: "var(--muted)",
+            color: "var(--muted-foreground)",
+            border: "none",
+          },
+          ".cm-activeLine": { backgroundColor: "color-mix(in oklch, var(--muted) 55%, transparent)" },
+          ".cm-activeLineGutter": { backgroundColor: "var(--muted)" },
         })
-      } catch {
-        // CDN unavailable → stay on the native <textarea>.
+        const highlight = dark
+          ? (themeNs.oneDark ?? langNs.syntaxHighlighting(themeNs.oneDarkHighlightStyle ?? langNs.defaultHighlightStyle))
+          : langNs.syntaxHighlighting(langNs.defaultHighlightStyle)
+        const view = new EditorView({
+          parent: hostRef.current,
+          doc: valueRef.current,
+          extensions: [
+            viewNs.lineNumbers(),
+            cmdNs.history(),
+            langs[language] ?? langs.ts,
+            EditorView.darkTheme.of(dark),
+            highlight,
+            chrome,
+            viewNs.keymap.of([...(cmdNs.defaultKeymap ?? []), ...(cmdNs.historyKeymap ?? [])]),
+            EditorView.updateListener.of((u) => {
+              if (u.docChanged) onChangeRef.current?.(view.state.doc.toString())
+            }),
+          ],
+        })
+        viewRef.current = view
+        setCm(true)
+      } catch (err) {
+        console.warn("[CodeEditor] CodeMirror CDN failed", err)
       }
     })()
     return () => {
       cancelled = true
+      viewRef.current?.destroy()
+      viewRef.current = null
     }
-  }, [])
+  }, [language, dark])
 
-  if (!cm) {
-    return (
-      <textarea
-        data-testid="code-editor"
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        spellCheck={false}
-        className={cn("w-full resize-y overflow-auto rounded-xl border bg-card px-3 py-2 font-mono text-xs leading-6 outline-none", className)}
-        style={{ height }}
-      />
-    )
-  }
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    const cur = view.state.doc.toString()
+    if (value === cur) return
+    view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } })
+  }, [value])
 
-  const { CodeMirror, langs, oneDark } = cm
   return (
-    <div data-testid="code-editor" className={cn("overflow-hidden rounded-xl border", className)}>
-      <CodeMirror
-        value={value}
-        height={height}
-        theme={dark ? oneDark : "light"}
-        extensions={[langs[language] ?? langs.ts]}
-        onChange={(next: string) => onChange?.(next)}
-        basicSetup={{ lineNumbers: true }}
+    <div className={cn("overflow-hidden rounded-xl border border-border", className)}>
+      {!cm && (
+        <textarea
+          data-testid="code-editor"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          spellCheck={false}
+          className="w-full resize-y overflow-auto bg-transparent px-3 py-2 font-mono text-xs leading-6 outline-none"
+          style={{ height }}
+        />
+      )}
+      <div
+        ref={hostRef}
+        data-testid={cm ? "code-editor" : undefined}
+        className={cn(
+          "text-xs leading-6 [&_.cm-editor]:h-full [&_.cm-editor]:outline-none [&_.cm-scroller]:h-full",
+          !cm && "hidden",
+        )}
+        // Fixed height (not only minHeight) so CM's h-full resolves after async mount.
+        style={{ height: cm ? height : undefined, minHeight: cm ? height : 0 }}
       />
     </div>
   )

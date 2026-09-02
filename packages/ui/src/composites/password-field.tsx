@@ -11,6 +11,13 @@ import {
 } from "@monkey-mini-app/ui/components/input-group"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
+/**
+ * Secret input with reveal toggle.
+ * @when Typing a token/password into your own state. **Never** persist it to storage.
+ * @example
+ * <PasswordField value={p} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function PasswordField({
   value,
   onChange,

@@ -28,6 +28,13 @@ function Node({ label, value, depth }: { label?: string; value: unknown; depth: 
   )
 }
 
+/**
+ * Collapsible JSON tree.
+ * @when API responses/config. Plain text with wrapping → `CodeBlock`.
+ * @example
+ * <JsonViewer value={data} />
+ * @family Discovery & inspect
+ */
 export function JsonViewer({ value }: { value: unknown }) {
   return (
     <div data-testid="json-viewer" className="rounded-xl border bg-card p-3">

@@ -3,6 +3,13 @@ import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
+/**
+ * Vertically expanding sections.
+ * @when Collapsible groups in settings/details.
+ * @example
+ * <Accordion type="single"><AccordionItem value="s1"><AccordionTrigger>高级</AccordionTrigger><AccordionContent>…</AccordionContent></AccordionItem></Accordion>
+ * @family Surface
+ */
 function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
   return (
     <AccordionPrimitive.Root

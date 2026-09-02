@@ -7,6 +7,10 @@ import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 import { Button } from "@monkey-mini-app/ui/components/button"
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 
+/**
+ * @family Navigation
+ * @when Only when you page by hand; `DataGrid` does this itself.
+ */
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav

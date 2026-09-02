@@ -4,6 +4,13 @@ import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Linear determinate progress bar.
+ * @when Full-width scan/import progress. Compact circle → `ProgressRing`.
+ * @example
+ * <Progress value={scan.progress} />
+ * @family Feedback & status
+ */
 function Progress({
   className,
   children,

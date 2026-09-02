@@ -7,7 +7,12 @@
  * the same `PanelHost` by wrapping this. All data/HTTP logic lives here; the panel
  * never contains /api strings.
  */
-import type { Palette, PanelHost as PanelHostIF } from "./panel-host.ts";
+import type {
+  AboutInfo,
+  Palette,
+  PanelHost as PanelHostIF,
+  UpdateCheck,
+} from "./panel-host.ts";
 import type {
   AppItem,
   CardStyle,
@@ -88,6 +93,33 @@ function parseAppTheme(raw: unknown): AppItem["theme"] {
   const palette = typeof raw.palette === "string" ? raw.palette : "";
   if (!theme && !palette) return null;
   return { theme, palette };
+}
+
+export function parseAbout(raw: unknown): AboutInfo {
+  const rec = isRecord(raw) ? raw : {};
+  const packages: AboutInfo["packages"] = [];
+  if (Array.isArray(rec.packages)) {
+    for (const p of rec.packages) {
+      if (!isRecord(p) || typeof p.name !== "string" || typeof p.version !== "string") continue;
+      packages.push({ name: p.name, version: p.version });
+    }
+  }
+  return {
+    adapter: typeof rec.adapter === "string" ? rec.adapter : "host",
+    env: typeof rec.env === "string" ? rec.env : "unknown",
+    packages,
+  };
+}
+
+export function parseUpdateCheck(raw: unknown): UpdateCheck {
+  const rec = isRecord(raw) ? raw : {};
+  return {
+    name: typeof rec.name === "string" ? rec.name : "",
+    current: typeof rec.current === "string" ? rec.current : "",
+    latest: typeof rec.latest === "string" ? rec.latest : null,
+    updateAvailable: rec.updateAvailable === true,
+    error: typeof rec.error === "string" ? rec.error : undefined,
+  };
 }
 
 export function parseAppsResponse(raw: unknown): AppItem[] {
@@ -251,6 +283,10 @@ export function createRestPanelHost(opts: RestOptions): PanelHostIF {
         }
         opts.onConfigSaved?.(cfg);
       },
+    },
+    about: {
+      load: async () => parseAbout(await readJson(`${origin()}/api/about`)),
+      checkUpdates: async () => parseUpdateCheck(await readJson(`${origin()}/api/updates`)),
     },
     history: {
       list: async (appId) => parseCommitList(await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/history?limit=50`)),

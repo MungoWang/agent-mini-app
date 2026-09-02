@@ -1,3 +1,10 @@
+import type {
+  CustomPaletteMap,
+  FrameController,
+  FrameEnv,
+  PanelHost,
+  PanelInstance,
+} from "@monkey-mini-app/panel";
 import {
   appFrameUrl,
   applyThemeTo,
@@ -5,11 +12,10 @@ import {
   createMiniAppPanel,
   createRestPanelHost,
   defaultHideThemePop,
-  type FrameController,
   getPanelState,
-  type PanelHost,
-  type PanelInstance,
+  resolveMode,
   setPanelState,
+  themeCssVars,
 } from "@monkey-mini-app/panel";
 
 import { originFromHostPort, resolveAppsOrigin, writeStoredAppsOrigin } from "./apps-host.ts";
@@ -82,7 +88,9 @@ export class DshShell {
       emptyText: "还没有小程序。\n在对话里用 skill 生成，或把示例放到 runtime/apps/",
       onOpen: () => this.openPanel(),
       onClose: () => this.closePanel(),
-      onHostChange: (next) => this.migrateOrigin(next),
+      onHostChange: (next) => {
+        void this.migrateOrigin(next);
+      },
       onConfigSaved: (form) => this.afterConfigSaved(form),
       frameController: {
         url: (appId) => this.frames.url(appId),
@@ -100,14 +108,16 @@ export class DshShell {
     });
   }
 
-  private envFor(appId: string): { theme: string; palette: string; dock: string } {
+  private envFor(appId: string): FrameEnv {
     const s = getPanelState();
     const app = s.apps.find((a) => a.id === appId);
-    const t = app?.theme;
+    const theme = resolveMode(app?.theme?.theme || s.theme);
+    const palette = app?.theme?.palette || s.palette;
     return {
-      theme: t?.theme || s.theme,
-      palette: t?.palette || s.palette,
+      theme,
+      palette,
       dock: s.dock,
+      vars: themeCssVars(theme, palette, s.customPalettes as CustomPaletteMap),
     };
   }
 
@@ -146,11 +156,21 @@ export class DshShell {
     this.frames.postEnvAll();
   }
 
-  private migrateOrigin(next: string): void {
-    if (next === this.origin) return;
-    this.origin = next;
-    writeStoredAppsOrigin(safeStorage(), next);
-    this.frames.unmountAll();
+  private async migrateOrigin(next: string): Promise<void> {
+    const origin = next.replace(/\/$/, "");
+    if (origin === this.origin) return;
+    for (let i = 0; i < 30; i++) {
+      try {
+        const res = await fetch(`${origin}/health`);
+        if (res.ok) break;
+      } catch {
+        /* rebind in flight */
+      }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    this.origin = origin;
+    writeStoredAppsOrigin(safeStorage(), origin);
+    for (const id of [...this.frames.map.keys()]) this.frames.reload(id);
   }
 
   private afterConfigSaved(form: Record<string, string>): void {

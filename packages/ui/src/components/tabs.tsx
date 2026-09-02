@@ -5,6 +5,13 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Switch between views in one page.
+ * @when Board vs table, or settings sections. Navigation between routes/pages → keep it in your own state.
+ * @example
+ * <Tabs value={v} onValueChange={set}><TabsList><TabsTrigger value="a">A</TabsTrigger></TabsList><TabsContent value="a">…</TabsContent></Tabs>
+ * @family Navigation
+ */
 function Tabs({
   className,
   orientation = "horizontal",

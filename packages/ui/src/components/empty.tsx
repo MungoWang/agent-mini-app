@@ -2,6 +2,13 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Empty-state block: media + title + description + action.
+ * @when Any list/panel with no rows — pair media with an `Illu*`.
+ * @example
+ * <Empty><EmptyHeader><EmptyMedia variant="icon"><IlluEmpty /></EmptyMedia><EmptyTitle>还没有数据</EmptyTitle><EmptyDescription>点右上角添加</EmptyDescription></EmptyHeader></Empty>
+ * @family Feedback & status
+ */
 function Empty({
   className,
   title,

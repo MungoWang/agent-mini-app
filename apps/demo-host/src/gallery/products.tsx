@@ -1,7 +1,7 @@
 import * as React from "react"
 import { CodeBlock } from "@monkey-mini-app/ui/products/code-block"
 import { DiffViewer } from "@monkey-mini-app/ui/products/diff-viewer"
-import { EventCalendar, type CalendarEvent, type CalendarView } from "@monkey-mini-app/ui/products/event-calendar"
+import { EventCalendar, type CalendarEvent } from "@monkey-mini-app/ui/products/event-calendar"
 import { FileDropzone } from "@monkey-mini-app/ui/products/file-dropzone"
 import { Gantt } from "@monkey-mini-app/ui/products/gantt"
 import { JsonViewer } from "@monkey-mini-app/ui/products/json-viewer"
@@ -9,7 +9,7 @@ import { Kanban, type KanbanCard } from "@monkey-mini-app/ui/products/kanban"
 import { KanbanIssuePanel } from "@monkey-mini-app/ui/products/kanban-issue-panel"
 import { LogViewer } from "@monkey-mini-app/ui/products/log-viewer"
 import { SortableList, type SortableItem } from "@monkey-mini-app/ui/products/sortable-list"
-import { Stepper } from "@monkey-mini-app/ui/products/stepper"
+import { Stepper, StepperItem } from "@monkey-mini-app/ui/products/stepper"
 import { Timeline } from "@monkey-mini-app/ui/products/timeline"
 import { TreeView } from "@monkey-mini-app/ui/products/tree-view"
 import { Example } from "./section"
@@ -49,33 +49,43 @@ export function ProductExamples() {
     },
   ])
   const [issue, setIssue] = React.useState<KanbanCard | null>(null)
-  const [calView, setCalView] = React.useState<CalendarView>("month")
-  const [calDate, setCalDate] = React.useState(new Date("2026-08-26"))
+  const calUser = { id: "u1", name: "Ada", picturePath: null }
   const [events, setEvents] = React.useState<CalendarEvent[]>([
     {
-      id: "e1",
+      id: 1,
       title: "Release freeze",
-      start: new Date("2026-08-26T10:00:00"),
-      end: new Date("2026-08-26T11:30:00"),
+      startDate: "2026-08-26T10:00:00",
+      endDate: "2026-08-26T11:30:00",
+      color: "blue",
+      description: "",
+      user: calUser,
     },
     {
-      id: "e2",
+      id: 2,
       title: "QA sync",
-      start: new Date("2026-08-26T10:30:00"),
-      end: new Date("2026-08-26T11:00:00"),
+      startDate: "2026-08-26T10:30:00",
+      endDate: "2026-08-26T11:00:00",
+      color: "orange",
+      description: "",
+      user: calUser,
     },
     {
-      id: "e3",
+      id: 3,
       title: "Oncall",
-      start: new Date("2026-08-26"),
-      end: new Date("2026-08-28"),
-      allDay: true,
+      startDate: "2026-08-26T00:00:00",
+      endDate: "2026-08-28T00:00:00",
+      color: "green",
+      description: "coverage",
+      user: calUser,
     },
     {
-      id: "e4",
+      id: 4,
       title: "Design review",
-      start: new Date("2026-08-27T14:00:00"),
-      end: new Date("2026-08-27T15:00:00"),
+      startDate: "2026-08-27T14:00:00",
+      endDate: "2026-08-27T15:00:00",
+      color: "purple",
+      description: "",
+      user: calUser,
     },
   ])
 
@@ -83,25 +93,28 @@ export function ProductExamples() {
     <>
       <Example id="stepper" title="Stepper" hint="Vertical and horizontal">
         <div className="flex flex-col gap-6">
-          <Stepper
-            current={step}
-            onStepClick={setStep}
-            steps={[
-              { id: "1", title: "Draft", description: "Write the change" },
-              { id: "2", title: "Review", description: "QA sign-off" },
-              { id: "3", title: "Done", description: "Shipped" },
-            ]}
-          />
-          <Stepper
-            orientation="horizontal"
-            current={step}
-            onStepClick={setStep}
-            steps={[
-              { id: "1", title: "Draft" },
-              { id: "2", title: "Review" },
-              { id: "3", title: "Done" },
-            ]}
-          />
+          <Stepper>
+            <StepperItem
+              title="Draft"
+              description="Write the change"
+              status={step > 0 ? "completed" : "active"}
+            />
+            <StepperItem
+              title="Review"
+              description="QA sign-off"
+              status={step > 1 ? "completed" : step === 1 ? "active" : "default"}
+            />
+            <StepperItem
+              title="Done"
+              description="Shipped"
+              status={step >= 2 ? "active" : "default"}
+            />
+          </Stepper>
+          <Stepper orientation="horizontal">
+            <StepperItem title="Draft" status={step > 0 ? "completed" : "active"} />
+            <StepperItem title="Review" status={step > 1 ? "completed" : step === 1 ? "active" : "default"} />
+            <StepperItem title="Done" status={step >= 2 ? "active" : "default"} />
+          </Stepper>
         </div>
         <button type="button" className="mt-2 text-sm underline" onClick={() => setStep((s) => (s + 1) % 3)}>
           Next step
@@ -153,14 +166,7 @@ export function ProductExamples() {
       </Example>
       <Example id="calendar-gantt" title="EventCalendar / Gantt" hint="Drag days or hours to create · All day uses date range picker">
         <div className="flex flex-col gap-4">
-          <EventCalendar
-            value={calDate}
-            onValueChange={setCalDate}
-            view={calView}
-            onViewChange={setCalView}
-            events={events}
-            onEventsChange={setEvents}
-          />
+          <EventCalendar events={events} onEventsChange={setEvents} view="month" />
           <Gantt
             tasks={[
               {
@@ -191,7 +197,11 @@ export function ProductExamples() {
             code={`type Run = { id: string }\nexport const run: Run = { id: \"1\" }\n`}
           />
           <LogViewer
-            lines={Array.from({ length: 40 }, (_, i) => `[12:0${i % 10}] line ${i}`)}
+            entries={Array.from({ length: 40 }, (_, i) => ({
+              level: (["info", "warn", "error", "debug", "verbose"] as const)[i % 5],
+              message: `line ${i}`,
+              timestamp: new Date(2026, 0, 1, 12, 0, i % 60).toISOString(),
+            }))}
           />
         </div>
       </Example>

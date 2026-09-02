@@ -12,6 +12,10 @@ function MessageGroup({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * @family Surface
+ * @when Assistant/user turns. Timestamped log rows → `LogViewer`.
+ */
 function Message({
   className,
   align = "start",

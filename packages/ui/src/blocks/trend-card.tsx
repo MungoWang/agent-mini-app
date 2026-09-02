@@ -17,6 +17,13 @@ const chartConfig = {
   value: { label: "Value", color: "var(--chart-1)" },
 } satisfies ChartConfig
 
+/**
+ * KPI card with a trend series.
+ * @when Metric + direction over time. Metric only → `StatCard`.
+ * @example
+ * <TrendCard title="请求数" value="1.2k" trend="up" data={[{ value: 9 }, { value: 12 }]} />
+ * @family Chart & data
+ */
 export function TrendCard({
   title,
   value,

@@ -17,6 +17,7 @@ export type StatusKey = keyof typeof statusTone
  * @when pass | fail | blocked | flaky | running | pending cells and chips
  * @example
  * <StatusBadge status="pass" />
+ * @family Feedback & status
  */
 export function StatusBadge({
   status,

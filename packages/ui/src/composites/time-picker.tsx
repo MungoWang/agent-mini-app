@@ -26,6 +26,11 @@ function parseTime(value: string) {
   }
 }
 
+/**
+ * Column wheel for picking a time value.
+ * @family Calendar & date
+ * @when Inside a time picker where tapping a list beats typing. Prefer `TimePicker` for a normal field.
+ */
 export function TimeWheel({
   values,
   value,
@@ -140,7 +145,12 @@ export type TimePickerProps = {
   className?: string
 }
 
-/** `value` is `HH:mm` (24h). */
+/** `value` is `HH:mm` (24h).
+ * @when Clock-only fields. `value` is a string, not a Date.
+ * @example
+ * <TimePicker value="09:30" onChange={(v) => set(v)} />
+ * @family Calendar & date
+ */
 export function TimePicker({
   value = "",
   onChange,

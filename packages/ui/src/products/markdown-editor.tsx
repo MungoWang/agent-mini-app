@@ -1,5 +1,7 @@
 "use client"
 
+import * as React from "react"
+
 import { Button } from "@monkey-mini-app/ui/components/button"
 import { CodeEditor } from "@monkey-mini-app/ui/products/code-editor"
 import { Markdown } from "@monkey-mini-app/ui/products/markdown"
@@ -8,6 +10,13 @@ import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
 export type MarkdownEditorMode = "edit" | "split" | "preview"
 
+/**
+ * Markdown edit + preview toggle.
+ * @when Authoring md bodies. Read-only render → `Markdown`.
+ * @example
+ * <MarkdownEditor value={md} onChange={(v) => set(v)} />
+ * @family Rich text
+ */
 export function MarkdownEditor({
   value,
   onChange,
@@ -20,6 +29,12 @@ export function MarkdownEditor({
   onModeChange?: (mode: MarkdownEditorMode) => void
 }) {
   const t = useLabels("markdownEditor")
+  const [currentMode, setCurrentMode] = React.useState<MarkdownEditorMode>(mode)
+  React.useEffect(() => setCurrentMode(mode), [mode])
+  const setMode = (next: MarkdownEditorMode) => {
+    setCurrentMode(next)
+    onModeChange?.(next)
+  }
   return (
     <div data-testid="markdown-editor" className="overflow-hidden rounded-xl border bg-card">
       <div className="flex items-center gap-1 border-b p-1">
@@ -27,9 +42,9 @@ export function MarkdownEditor({
           <Button
             key={item}
             size="sm"
-            variant={mode === item ? "default" : "ghost"}
+            variant={currentMode === item ? "default" : "ghost"}
             data-testid={`markdown-mode-${item}`}
-            onClick={() => onModeChange?.(item)}
+            onClick={() => setMode(item)}
           >
             {t[item]}
           </Button>
@@ -38,11 +53,11 @@ export function MarkdownEditor({
       <div
         className={cn(
           "grid min-h-[280px]",
-          mode === "split" ? "md:grid-cols-2" : "grid-cols-1"
+          currentMode === "split" ? "md:grid-cols-2" : "grid-cols-1"
         )}
       >
-        {mode !== "preview" ? (
-          <div className={cn(mode === "split" && "border-b md:border-r md:border-b-0")}>
+        {currentMode !== "preview" ? (
+          <div className={cn(currentMode === "split" && "border-b md:border-r md:border-b-0")}>
             <CodeEditor
               value={value}
               onChange={onChange}
@@ -52,7 +67,7 @@ export function MarkdownEditor({
             />
           </div>
         ) : null}
-        {mode !== "edit" ? (
+        {currentMode !== "edit" ? (
           <div className="overflow-auto p-3" data-testid="markdown-preview">
             <Markdown>{value}</Markdown>
           </div>

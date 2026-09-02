@@ -1,3 +1,10 @@
+/**
+ * Label/value pairs, two columns.
+ * @when Detail/inspector panel of a selected row — the default “show one record” view.
+ * @example
+ * <DescriptionList items={[{ label: "状态", value: "运行中" }]} />
+ * @family Layout & structure
+ */
 export function DescriptionList({
   items,
 }: {

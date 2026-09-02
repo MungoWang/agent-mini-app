@@ -68,6 +68,9 @@ beforeEach(() => {
         headers: { "content-type": "application/json" },
       });
     }
+    if (url.includes("/health")) {
+      return new Response("ok", { status: 200 });
+    }
     return new Response("{}", { status: 404, headers: { "content-type": "application/json" } });
   }) as typeof fetch;
   window.localStorage.clear();
@@ -134,6 +137,29 @@ describe("DshShell", () => {
     const empty = new DshShell();
     empty.closePanel();
     empty.dispose();
+  });
+
+  it("waits for /health then migrates origin after hostPort save", async () => {
+    const shell = new DshShell();
+    await act(async () => {
+      shell.openPanel();
+    });
+    await act(async () => {
+      await shell.host.config?.save({
+        hostPort: "19191",
+        theme: "light",
+        palette: "default",
+        locale: "zh-CN",
+        chatLanguage: "zh-CN",
+      });
+    });
+    await vi.waitFor(() => {
+      expect(shell.origin).toBe("http://127.0.0.1:19191");
+    });
+    expect(window.localStorage.getItem("mma-apps-host")).toBe("http://127.0.0.1:19191");
+    await act(async () => {
+      shell.dispose();
+    });
   });
 
   it("persists theme through the panel host hook", async () => {

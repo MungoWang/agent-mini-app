@@ -14,6 +14,8 @@ import {
 
 export type DshPluginConfig = {
   runtimeRoot?: string;
+  /** Override skill install dir. Default: ~/.dsh/skills/monkey-mini-app. */
+  skillDest?: string;
 };
 
 function expandHome(p: string): string {

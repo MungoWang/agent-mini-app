@@ -17,6 +17,13 @@ function TooltipProvider({
   )
 }
 
+/**
+ * Hover/focus hint on an icon or truncated label.
+ * @when Explaining an icon-only button. Never put an action in it.
+ * @example
+ * <Tooltip><TooltipTrigger asChild><Button size="icon" aria-label="刷新"><Icon.RefreshCw /></Button></TooltipTrigger><TooltipContent>刷新</TooltipContent></Tooltip>
+ * @family Surface
+ */
 function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
 }

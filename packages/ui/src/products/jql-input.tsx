@@ -6,13 +6,12 @@ import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 export type JqlSuggestItem = { name: string; type?: string }
 
 /**
- * JQL query textbox. The full CodeMirror JQL editor (field/function completion)
- * depends on codemirror — which is optional/peer now. The default is an editable
- * native textarea (still fully usable); callers who want completion can swap in a
- * richer editor later.
+ * JQL query textbox. Native textarea by default (no CodeMirror npm/peer).
+ * Callers who want completion can swap in `CodeEditor` (CM6 from esm.sh).
  * @when Issue search / saved filters
  * @example
  * <JqlInput value={jql} onChange={setJql} />
+ * @family Form
  */
 export function JqlInput({
   value,

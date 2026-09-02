@@ -37,6 +37,13 @@ function useChart() {
   return context
 }
 
+/**
+ * Recharts container + theme CSS vars + tooltip/legend parts.
+ * @when Only when no `*Chart` block fits — then you own the series. Prefer `DonutChart` / `StackedBarChart` / `Sparkline` / `Gauge` / `RadarChart`.
+ * @example
+ * <ChartContainer config={cfg} className="h-40 w-full"><Bar data={rows} dataKey="v" /></ChartContainer>
+ * @family Chart & data
+ */
 function ChartContainer({
   id,
   className,

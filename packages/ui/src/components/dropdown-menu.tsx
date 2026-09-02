@@ -6,6 +6,13 @@ import { Menu as MenuPrimitive } from "@base-ui/react/menu"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
+/**
+ * Command menu on a trigger.
+ * @when Row `MoreHorizontal` actions. Free-form panel content → `Popover`.
+ * @example
+ * <DropdownMenu><DropdownMenuTrigger asChild><Button><Icon.MoreHorizontal /></Button></DropdownMenuTrigger><DropdownMenuContent><DropdownMenuItem onClick={edit}>编辑</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
+ * @family Navigation
+ */
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />
 }

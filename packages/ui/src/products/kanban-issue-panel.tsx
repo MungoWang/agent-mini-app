@@ -17,6 +17,13 @@ import { StatusBadge } from "@monkey-mini-app/ui/blocks/status-badge"
 import type { KanbanCard } from "@monkey-mini-app/ui/products/kanban"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
+/**
+ * Slide-over detail panel for a `Kanban` card.
+ * @when Board + click-to-edit issue. Pair with `Kanban`'s selected card.
+ * @example
+ * <KanbanIssuePanel card={card} open={open} onOpenChange={setOpen} />
+ * @family Surface
+ */
 export function KanbanIssuePanel({
   card,
   columnTitle,

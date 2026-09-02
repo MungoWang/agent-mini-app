@@ -22,6 +22,10 @@ import {
 } from "@monkey-mini-app/ui/components/dropdown-menu"
 import { CheckIcon } from "lucide-react"
 
+/**
+ * @family Navigation
+ * @when Rarely right for a panel-width mini-app — prefer `Tabs` / `DropdownMenu`.
+ */
 function Menubar({ className, ...props }: MenubarPrimitive.Props) {
   return (
     <MenubarPrimitive

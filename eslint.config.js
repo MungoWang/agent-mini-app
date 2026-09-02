@@ -3,6 +3,7 @@ import tseslint from "typescript-eslint";
 
 const mmaPackages = [
   "packages/host/**/*.{ts,tsx}",
+  "packages/sdk/**/*.{ts,tsx}",
   "packages/panel/**/*.{ts,tsx}",
   "packages/dsh/**/*.{ts,tsx}",
 ];

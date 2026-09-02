@@ -19,6 +19,23 @@ export type ThemeScope = "global" | "app";
 export type DockId = "fill" | "side";
 export type CardStyle = "stamp" | "etch" | "hero" | "list";
 
+export type AboutPackage = { name: string; version: string };
+export type AboutInfo = {
+  adapter: string;
+  env: string;
+  packages: AboutPackage[];
+};
+export type UpdateCheck = {
+  name: string;
+  current: string;
+  latest: string | null;
+  updateAvailable: boolean;
+  error?: string;
+};
+export type UpdateCheckState = UpdateCheck & {
+  status: "idle" | "loading" | "done";
+};
+
 export type CommitFile = {
   path: string;
   add?: number;
@@ -62,6 +79,7 @@ export type PanelActions = {
   toggleSettings: (open: boolean) => void;
   getCfg: () => Record<string, string>;
   saveHostConfig: (form: Record<string, string>) => void;
+  checkUpdates: () => void;
   toggleBrowse: (kind: string) => void;
   loadCommitDetail: (id: string) => void;
   loadTable: (name: string) => void;
@@ -96,6 +114,8 @@ export type PanelState = {
   cfgMsg: string;
   cfgVersion: number;
   cfg: Record<string, string>;
+  about: AboutInfo | null;
+  updateCheck: UpdateCheckState | null;
   emptyText: string | undefined;
   capabilities: PanelCapabilities;
   locale: LocaleId;

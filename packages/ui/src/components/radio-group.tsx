@@ -3,6 +3,10 @@ import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * @family Form
+ * @when 2–5 mutually exclusive options. Many options → `Select`.
+ */
 function RadioGroup({ className, ...props }: RadioGroupPrimitive.Props) {
   return (
     <RadioGroupPrimitive

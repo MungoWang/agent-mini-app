@@ -484,6 +484,21 @@ export function clampMode(value: unknown): ModeId {
   return value === "dark" ? "dark" : "light";
 }
 
+/** Resolve `system` via prefers-color-scheme; otherwise clamp to light/dark. */
+export function resolveMode(value: unknown): ModeId {
+  if (value === "system") {
+    try {
+      if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        return "dark";
+      }
+    } catch {
+      /* ignore */
+    }
+    return "light";
+  }
+  return clampMode(value);
+}
+
 export function tokensOf(palette: PaletteId, mode: ModeId): TokenSet {
   return TOKENS[clampPalette(palette)][clampMode(mode)];
 }
@@ -541,19 +556,16 @@ export function runnerThemeCss(): string {
 /** 把主题 token 应用到宿主元素（面板/容器）。custom = 宿主自定义主题表。 */
 export type CustomPaletteMap = Record<string, { label?: string; swatch?: string; tokens?: { light: TokenSet; dark: TokenSet } }>
 
-export function applyThemeTo(
-  el: HTMLElement,
+export function themeCssVars(
   theme: unknown,
   palette: unknown,
-  custom?: CustomPaletteMap
-): { theme: ModeId; palette: PaletteId } {
+  custom?: CustomPaletteMap,
+): Record<string, string> {
   const mode = clampMode(theme);
   const c = custom && palette ? custom[String(palette)] : undefined;
-  const pal = c ? (String(palette) as string) : clampPalette(palette as PaletteId);
+  const pal = c ? String(palette) : clampPalette(palette as PaletteId);
   const t = (c && c.tokens && c.tokens[mode]) || tokensOf(pal as PaletteId, mode);
-  el.setAttribute("data-theme", mode);
-  el.setAttribute("data-palette", pal);
-  const map: Record<string, string> = {
+  return {
     "--dsw-alias-bg": t.bg,
     "--dsw-alias-fg": t.fg,
     "--dsw-alias-surface": t.surface,
@@ -583,6 +595,23 @@ export function applyThemeTo(
     "--radius": t.radius,
     "--shadow": t.shadow,
   };
+}
+
+export function applyThemeTo(
+  el: HTMLElement,
+  theme: unknown,
+  palette: unknown,
+  custom?: CustomPaletteMap,
+): { theme: ModeId; palette: PaletteId } {
+  const mode = resolveMode(theme);
+  const c = custom && palette ? custom[String(palette)] : undefined;
+  const pal = c ? String(palette) : clampPalette(palette as PaletteId);
+  const t = (c && c.tokens && c.tokens[mode]) || tokensOf(pal as PaletteId, mode);
+  el.setAttribute("data-theme", mode);
+  if (theme === "system") el.setAttribute("data-theme-pref", "system");
+  else el.removeAttribute("data-theme-pref");
+  el.setAttribute("data-palette", pal);
+  const map = themeCssVars(mode, palette, custom);
   for (const k of Object.keys(map)) el.style.setProperty(k, map[k]);
   el.style.background = t.bg;
   el.style.color = t.fg;

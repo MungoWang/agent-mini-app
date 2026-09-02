@@ -19,6 +19,13 @@ const alertVariants = cva(
   }
 )
 
+/**
+ * Inline message block (info/warning/error).
+ * @when Explaining a failed state in place. Transient → `toast()`.
+ * @example
+ * <Alert variant="destructive"><AlertTitle>拉取失败</AlertTitle><AlertDescription>上游 502，已用缓存</AlertDescription></Alert>
+ * @family Feedback & status
+ */
 function Alert({
   className,
   variant,

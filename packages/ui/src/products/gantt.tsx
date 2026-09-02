@@ -9,6 +9,13 @@ export type GanttTask = {
   end: Date
 }
 
+/**
+ * Task bars on a date axis.
+ * @when Plans/schedules with start+end per row. Ordered events → `Timeline`.
+ * @example
+ * <Gantt tasks={[{ id: "t1", name: "联调", start: "2026-09-01", end: "2026-09-05" }]} />
+ * @family Calendar & date
+ */
 export function Gantt({ tasks }: { tasks: GanttTask[] }) {
   if (tasks.length === 0) {
     return <div data-testid="gantt" className="text-muted-foreground text-sm">No tasks</div>

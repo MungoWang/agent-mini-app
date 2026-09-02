@@ -4,6 +4,13 @@ import { Button } from "@monkey-mini-app/ui/components/button"
 
 export type TransferItem = { id: string; label: string }
 
+/**
+ * Two-panel move-between-lists picker.
+ * @when Selecting many items from a known pool (assign users to a shift).
+ * @example
+ * <Transfer items={[{ id: "u1", label: "张三" }]} onChange={(ids) => set(ids)} />
+ * @family Form
+ */
 export function Transfer({
   items,
   value = [],

@@ -5,6 +5,13 @@ import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 
 export type TimeRange = { start: string; end: string }
 
+/**
+ * From/to time of day.
+ * @when Daily windows (maintenance 02:00–04:00).
+ * @example
+ * <TimeRangePicker onChange={(r) => set(r)} />
+ * @family Calendar & date
+ */
 export function TimeRangePicker({
   value,
   onChange,

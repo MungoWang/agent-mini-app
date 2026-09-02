@@ -5,6 +5,10 @@ import { useRender } from "@base-ui/react/use-render"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 
+/**
+ * @family Navigation
+ * @when Deep mini-app views; usually one level is enough — prefer `Tabs`/`AppShell` nav.
+ */
 function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav

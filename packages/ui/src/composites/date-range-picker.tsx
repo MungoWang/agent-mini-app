@@ -41,6 +41,7 @@ function rangeLabel(value: DateRange, locale: Locale) {
  * @when Filters needing from/to calendar days
  * @example
  * <DateRangePicker value={range} onChange={setRange} />
+ * @family Calendar & date
  */
 export function DateRangePicker({
   value,

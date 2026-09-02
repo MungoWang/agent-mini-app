@@ -1,5 +1,9 @@
 import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible"
 
+/**
+ * @family Layout & structure
+ * @when A single disclosure (advanced options). Several stacked → `Accordion`.
+ */
 function Collapsible({ ...props }: CollapsiblePrimitive.Root.Props) {
   return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
 }

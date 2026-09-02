@@ -5,6 +5,13 @@ import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { Button } from "@monkey-mini-app/ui/components/button"
 import { XIcon } from "lucide-react"
 
+/**
+ * Modal overlay: Trigger + Content(+Header/Footer).
+ * @when Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`.
+ * @example
+ * <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button>编辑</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>标题</DialogTitle></DialogHeader>…<DialogFooter><Button onClick={save}>保存</Button></DialogFooter></DialogContent></Dialog>
+ * @family Surface
+ */
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }

@@ -10,7 +10,15 @@ import {
   InputGroupInput,
 } from "@monkey-mini-app/ui/components/input-group"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
+import { writeClipboard } from "@monkey-mini-app/ui/lib/clipboard"
 
+/**
+ * Inline text with a copy button.
+ * @when IDs, hashes, URLs, tokens the user pastes elsewhere.
+ * @example
+ * <Copyable value="i_1724918400" />
+ * @family Discovery & inspect
+ */
 export function Copyable({ value }: { value: string }) {
   const t = useLabels("copyable")
   const [copied, setCopied] = React.useState(false)
@@ -24,7 +32,7 @@ export function Copyable({ value }: { value: string }) {
           type="button"
           aria-label={t.copy}
           onClick={async () => {
-            await navigator.clipboard.writeText(value)
+            if (!(await writeClipboard(value))) return
             setCopied(true)
             window.setTimeout(() => setCopied(false), 1200)
           }}

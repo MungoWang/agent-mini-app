@@ -10,6 +10,13 @@ const tone: Record<string, string> = {
   local: "bg-muted text-muted-foreground",
 }
 
+/**
+ * Coloured pill for an environment name.
+ * @when prd / stg / dev markers in headers and tables.
+ * @example
+ * <EnvBadge env="production" />
+ * @family Feedback & status
+ */
 export function EnvBadge({ env }: { env: string }) {
   return (
     <Badge

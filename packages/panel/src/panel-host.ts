@@ -3,7 +3,17 @@
  * Optional fields hide the matching chrome (history / storage / settings / delete).
  */
 import type { TokenSet } from "./themes.ts";
-import type { AppItem, Commit, LocaleId, PanelCapabilities, StorageTable } from "./types.ts";
+import type {
+  AboutInfo,
+  AppItem,
+  Commit,
+  LocaleId,
+  PanelCapabilities,
+  StorageTable,
+  UpdateCheck,
+} from "./types.ts";
+
+export type { AboutInfo, AboutPackage, UpdateCheck } from "./types.ts";
 
 export type Palette = {
   id: string;
@@ -35,6 +45,11 @@ export interface PanelHost {
   config?: {
     load(): Promise<Record<string, string>>;
     save(cfg: Record<string, string>): Promise<void>;
+  };
+  /** Settings → About: adapter / env / package versions + update check. */
+  about?: {
+    load(): Promise<AboutInfo>;
+    checkUpdates(): Promise<UpdateCheck>;
   };
   history?: {
     list(appId: string): Promise<Commit[]>;

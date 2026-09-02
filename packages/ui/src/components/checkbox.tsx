@@ -5,6 +5,11 @@ import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { CheckIcon } from "lucide-react"
 
+/**
+ * Single boolean box.
+ * @when Multi-select rows / opt-in.
+ * @family Form
+ */
 function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
   return (
     <CheckboxPrimitive.Root

@@ -1,5 +1,9 @@
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * @family Layout & structure
+ * @when Keeping an image/video/embed from shifting the layout while loading.
+ */
 function AspectRatio({
   ratio,
   className,

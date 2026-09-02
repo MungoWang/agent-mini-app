@@ -3,6 +3,13 @@ import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Anchored floating panel.
+ * @when Small editor/filter anchored to a control. Menus of commands → `DropdownMenu`.
+ * @example
+ * <Popover><PopoverTrigger asChild><Button>筛选</Button></PopoverTrigger><PopoverContent>…</PopoverContent></Popover>
+ * @family Surface
+ */
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />
 }

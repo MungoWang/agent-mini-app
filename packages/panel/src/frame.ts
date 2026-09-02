@@ -6,7 +6,12 @@
  * `mma-set-env`), and shows a loading overlay. Host-agnostic: the container and
  * an `envOf(appId)` accessor are injected, so dsh and apps/react-host both use it.
  */
-export type FrameEnv = { theme: string; palette: string; dock: string };
+export type FrameEnv = {
+  theme: string;
+  palette: string;
+  dock: string;
+  vars?: Record<string, string>;
+};
 
 export type FrameRecord = { wrap: HTMLElement; iframe: HTMLIFrameElement };
 
@@ -85,7 +90,10 @@ export function createFrameController(opts: FrameControllerOptions): FrameContro
       if (!w) return;
       const env = envOf(appId);
       try {
-        w.postMessage({ type: "mma-set-env", theme: env.theme, palette: env.palette, dock: env.dock }, "*");
+        w.postMessage(
+          { type: "mma-set-env", theme: env.theme, palette: env.palette, dock: env.dock, vars: env.vars },
+          "*",
+        );
       } catch {
         /* ignore */
       }
@@ -100,7 +108,7 @@ export function createFrameController(opts: FrameControllerOptions): FrameContro
         const wrap = document.createElement("div");
         wrap.className = "mma-frame";
         wrap.setAttribute("data-app", appId);
-        wrap.innerHTML = `${loadingMarkup()}<iframe title="${escapeHtml(title || appId)}"></iframe>`;
+        wrap.innerHTML = `${loadingMarkup()}<iframe title="${escapeHtml(title || appId)}" allow="clipboard-write"></iframe>`;
         if (!container) return;
       container.appendChild(wrap);
         const iframe = wrap.querySelector("iframe");

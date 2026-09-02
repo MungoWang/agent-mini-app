@@ -8,6 +8,10 @@ import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 import { buttonVariants, type Button } from "@monkey-mini-app/ui/components/button"
 import { CheckIcon } from "lucide-react"
 
+/**
+ * @family Form
+ * @when Structured ask-the-user blocks; you persist the answers.
+ */
 function Questionnaire({
   className,
   ...props

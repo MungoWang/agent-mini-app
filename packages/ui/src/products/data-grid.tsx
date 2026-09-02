@@ -352,7 +352,8 @@ function GridToolbar<TData>({
  *   pageIndex={page}
  *   onPageIndexChange={setPage}
  * />
- * // “回到第 1 页”按钮：setPage(0)；结构性重载也可用 key 重挂
+ * // “back to page 1” button: setPage(0); for a structural reload you can also remount via key
+ * @family Data & tables
  */
 export function DataGrid<TData>({
   columns,

@@ -15,6 +15,7 @@ import {
  * @when Master-detail after row/card click
  * @example
  * <DetailPanel open={!!id} onOpenChange={() => setId(null)} title="Run #12">{body}</DetailPanel>
+ * @family Surface
  */
 export function DetailPanel({
   open,

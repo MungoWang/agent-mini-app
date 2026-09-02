@@ -45,6 +45,13 @@ function Node({
   )
 }
 
+/**
+ * Generic expandable node list.
+ * @when Any hierarchy without file semantics. Files → `FileTree`.
+ * @example
+ * <TreeView nodes={[{ id: "a", label: "华东" }]} />
+ * @family Data & tables
+ */
 export function TreeView({ nodes }: { nodes: TreeNode[] }) {
   return (
     <div data-testid="tree-view">

@@ -3,6 +3,13 @@ import { Input as InputPrimitive } from "@base-ui/react/input"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Single-line text input.
+ * @when Plain text. Numbers → `NumberField`; secrets → `PasswordField`; search → `SearchInput`.
+ * @example
+ * <Input value={v} onChange={(e) => set(e.target.value)} placeholder="名称" />
+ * @family Form
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive

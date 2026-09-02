@@ -13,6 +13,13 @@ import { cn } from "@monkey-mini-app/ui/lib/utils"
 
 export type Slice = { name: string; value: number; fill: string }
 
+/**
+ * Ring chart with centre label.
+ * @when Part-of-whole (≤6 slices): storage usage, status split. More categories → `StackedBarChart`.
+ * @example
+ * <DonutChart data={[{ label: "OK", value: 82, color: "var(--primary)" }]} center="82%" />
+ * @family Chart & data
+ */
 export function DonutChart({
   data,
   config,

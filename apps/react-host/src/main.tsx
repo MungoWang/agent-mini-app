@@ -5,6 +5,7 @@ import "@monkey-mini-app/ui/globals.css";
 // default port 17900). Override with VITE_HOST_URL, or with ?host=… in the URL.
 const hostUrl =
   new URLSearchParams(location.search).get("host") ||
+  window.localStorage.getItem("mma-host-url") ||
   (import.meta.env.VITE_HOST_URL as string | undefined) ||
   "http://127.0.0.1:17900";
 
@@ -14,7 +15,17 @@ const shell = createHostShell({
   cardStyle: "stamp",
   locale: "zh-CN",
   emptyText: "还没有小程序。\n用 monkey-mini-app skill 生成，或把示例放到 runtime/apps/",
-  onHostChange: (next) => console.log("[react-host] host →", next),
+  onHostChange: (next) => {
+    try {
+      window.localStorage.setItem("mma-host-url", next);
+    } catch {
+      /* ignore */
+    }
+    const u = new URL(location.href);
+    u.searchParams.set("host", next);
+    history.replaceState(null, "", u);
+    console.log("[react-host] host →", next);
+  },
 });
 
 // The shell creates a fixed #mma-host dock and mounts MiniAppPanel (with theme + frames).

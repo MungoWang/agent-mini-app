@@ -2,6 +2,10 @@ import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * @family Layout & structure
+ * @when A bounded panel (list in a card). Whole-page scroll → plain div.
+ */
 function ScrollArea({
   className,
   children,

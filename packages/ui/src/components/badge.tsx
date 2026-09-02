@@ -27,6 +27,13 @@ const badgeVariants = cva(
   }
 )
 
+/**
+ * Inline label chip.
+ * @when Static tags/counts. Status → `StatusBadge`, severity → `SeverityChip`.
+ * @example
+ * <Badge variant="secondary">草稿</Badge>
+ * @family Feedback & status
+ */
 function Badge({
   className,
   variant = "default",

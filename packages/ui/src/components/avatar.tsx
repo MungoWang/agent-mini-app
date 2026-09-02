@@ -3,6 +3,10 @@ import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * @family Layout & structure
+ * @when User initials/photo next to a name in rows, comments, pickers.
+ */
 function Avatar({
   className,
   size = "default",

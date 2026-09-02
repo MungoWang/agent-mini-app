@@ -2,6 +2,13 @@
 
 import { Slider } from "@monkey-mini-app/ui/components/slider"
 
+/**
+ * Two-thumb range slider.
+ * @when min/max numeric filters.
+ * @example
+ * <SliderRange min={0} max={100} value={[10, 40]} onChange={(v) => set(v)} />
+ * @family Form
+ */
 export function SliderRange({
   value = [20, 80],
   onChange,

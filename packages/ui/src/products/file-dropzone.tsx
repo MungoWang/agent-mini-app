@@ -6,6 +6,13 @@ import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { useLabels } from "@monkey-mini-app/ui/i18n/context"
 import { Attachment, AttachmentContent, AttachmentTitle } from "@monkey-mini-app/ui/components/attachment"
 
+/**
+ * Drag-drop + click file picker.
+ * @when Getting a local File into the app (then upload via `ctx.http` in the api layer).
+ * @example
+ * <FileDropzone onFiles={(fs) => set(fs)} />
+ * @family Form
+ */
 export function FileDropzone({
   files,
   onFiles,

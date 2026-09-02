@@ -1,7 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { diffLines } from "diff"
 
+import { useHtmlDark } from "@monkey-mini-app/ui/hooks/use-html-dark"
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
 type Row = {
@@ -10,6 +12,8 @@ type Row = {
   left?: number
   right?: number
 }
+
+type Token = { content: string; color?: string }
 
 function toRows(original: string, modified: string): Row[] {
   const parts = diffLines(original, modified)
@@ -38,6 +42,39 @@ function stats(rows: Row[]) {
   }
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
+
+function lineToHtml(tokens: Token[]): string {
+  return tokens
+    .map((t) =>
+      t.color
+        ? `<span style="color:${escapeHtml(t.color)}">${escapeHtml(t.content)}</span>`
+        : escapeHtml(t.content),
+    )
+    .join("")
+}
+
+function langFromFile(name?: string): string {
+  const ext = name?.split(".").pop()?.toLowerCase()
+  const map: Record<string, string> = {
+    ts: "ts",
+    tsx: "tsx",
+    js: "js",
+    jsx: "jsx",
+    json: "json",
+    html: "html",
+    md: "md",
+    css: "css",
+  }
+  return (ext && map[ext]) || "ts"
+}
+
 function Gutter({ n }: { n?: number }) {
   return (
     <span className="w-8 shrink-0 pr-2 text-right text-[11px] text-muted-foreground/70 select-none">
@@ -49,9 +86,11 @@ function Gutter({ n }: { n?: number }) {
 function Line({
   row,
   side,
+  html,
 }: {
   row: Row
   side?: "left" | "right"
+  html?: string
 }) {
   const hidden =
     (side === "left" && row.type === "add") ||
@@ -62,33 +101,90 @@ function Line({
       className={cn(
         "flex px-2",
         hidden && "bg-muted/40",
-        !hidden && row.type === "add" && "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
-        !hidden && row.type === "del" && "bg-destructive/10 text-destructive"
+        !hidden && row.type === "add" && "bg-emerald-500/15",
+        !hidden && row.type === "del" && "bg-destructive/10",
+        !html && !hidden && row.type === "add" && "text-emerald-800 dark:text-emerald-300",
+        !html && !hidden && row.type === "del" && "text-destructive",
       )}
     >
       {side !== "right" ? <Gutter n={hidden ? undefined : row.left} /> : null}
       {side !== "left" ? <Gutter n={hidden ? undefined : row.right} /> : null}
       <span className="w-4 shrink-0 select-none">{hidden ? " " : mark}</span>
-      <span className="min-w-0 flex-1 whitespace-pre-wrap break-all">
-        {hidden ? "" : row.text}
-      </span>
+      {hidden ? (
+        <span className="min-w-0 flex-1" />
+      ) : html ? (
+        <span
+          className="min-w-0 flex-1 whitespace-pre-wrap break-all"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      ) : (
+        <span className="min-w-0 flex-1 whitespace-pre-wrap break-all">{row.text}</span>
+      )}
     </div>
   )
 }
 
+/**
+ * Unified or split diff view.
+ * @when Comparing two versions of text. Pass `original` + `modified` strings.
+ * @example
+ * <DiffViewer original={a} modified={b} language="ts" mode="split" />
+ * @family Discovery & inspect
+ */
 export function DiffViewer({
   original,
   modified,
   mode = "unified",
   fileName,
+  language,
 }: {
   original: string
   modified: string
   mode?: "unified" | "split"
   fileName?: string
+  language?: string
 }) {
   const rows = toRows(original, modified)
   const { added, removed } = stats(rows)
+  const lang = language ?? langFromFile(fileName)
+  const [hi, setHi] = useState<{ orig: string[]; mod: string[] } | null>(null)
+  const dark = useHtmlDark()
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const shiki = (await import("https://esm.sh/shiki@4.4.3")) as {
+          codeToTokens?: (code: string, opts: object) => Promise<{ tokens: Token[][] }>
+          default?: { codeToTokens?: (code: string, opts: object) => Promise<{ tokens: Token[][] }> }
+        }
+        const codeToTokens = shiki.codeToTokens ?? shiki.default?.codeToTokens
+        if (!codeToTokens) throw new Error("shiki.codeToTokens missing")
+        const theme = dark ? "github-dark" : "github-light"
+        const [a, b] = await Promise.all([
+          codeToTokens(original, { lang, theme }),
+          codeToTokens(modified, { lang, theme }),
+        ])
+        if (cancelled) return
+        setHi({
+          orig: a.tokens.map(lineToHtml),
+          mod: b.tokens.map(lineToHtml),
+        })
+      } catch (err) {
+        console.warn("[DiffViewer] shiki CDN failed", err)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [original, modified, lang, dark])
+
+  function htmlFor(row: Row): string | undefined {
+    if (!hi) return undefined
+    if (row.type === "del") return hi.orig[(row.left ?? 1) - 1]
+    if (row.type === "add") return hi.mod[(row.right ?? 1) - 1]
+    return hi.orig[(row.left ?? 1) - 1] ?? hi.mod[(row.right ?? 1) - 1]
+  }
 
   return (
     <div
@@ -108,19 +204,19 @@ export function DiffViewer({
         <div className="grid max-h-[28rem] grid-cols-2 overflow-auto">
           <div className="border-r">
             {rows.map((row, index) => (
-              <Line key={`l${index}`} row={row} side="left" />
+              <Line key={`l${index}`} row={row} side="left" html={htmlFor(row)} />
             ))}
           </div>
           <div>
             {rows.map((row, index) => (
-              <Line key={`r${index}`} row={row} side="right" />
+              <Line key={`r${index}`} row={row} side="right" html={htmlFor(row)} />
             ))}
           </div>
         </div>
       ) : (
         <div className="max-h-[28rem] overflow-auto">
           {rows.map((row, index) => (
-            <Line key={index} row={row} />
+            <Line key={index} row={row} html={htmlFor(row)} />
           ))}
         </div>
       )}

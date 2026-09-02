@@ -14,6 +14,13 @@ const tone = {
 
 export type Severity = keyof typeof tone
 
+/**
+ * Chip for severity/blocker level.
+ * @when P0–P4, blocker/critical columns. Run outcome → `StatusBadge`.
+ * @example
+ * <SeverityChip severity="critical" />
+ * @family Feedback & status
+ */
 export function SeverityChip({ severity }: { severity: Severity | string }) {
   return (
     <Badge

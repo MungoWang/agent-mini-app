@@ -2,6 +2,11 @@ import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
 
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 
+/**
+ * Horizontal/vertical rule.
+ * @when Grouping inside panels.
+ * @family Layout & structure
+ */
 function Separator({
   className,
   orientation = "horizontal",
