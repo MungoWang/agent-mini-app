@@ -10,11 +10,10 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": [],
-    "baseUrl": "../..",
     "paths": {
-      "@monkey-mini-app/api": ["packages/api/src/index.ts"],
-      "@monkey-mini-app/ui": ["packages/ui/src/index.ts"],
-      "@monkey-mini-app/ui/*": ["packages/ui/src/*"]
+      "@monkey-mini-app/api": ["../../packages/api/src/index.ts"],
+      "@monkey-mini-app/ui": ["../../packages/ui/src/index.ts"],
+      "@monkey-mini-app/ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": ["templates/**/*.ts", "templates/**/*.tsx", "types/**/*.d.ts"]
