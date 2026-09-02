@@ -36,5 +36,3 @@ export function useApp() {
   return { call };
 }
 
-/** @deprecated Use `useApp`. Kept so existing mini-apps keep compiling. */
-export const useDashboardApi = useApp;

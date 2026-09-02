@@ -1,0 +1,9 @@
+{
+  "id": "com.example.insights",
+  "name": "今日摘要",
+  "description": "公开头条 + 模型整理成三条要点",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "theme": { "followsHost": true },
+  "acronym": "ZY"
+}

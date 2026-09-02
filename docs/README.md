@@ -1,40 +1,34 @@
 # Docs index
 
-**LLM / agent 入口。** 写文档前先读本节纪律；实现契约以 skill + 下列 live 目录为准。
+**LLM / agent entry.** Read these rules before writing docs. Implementation contracts live in the skill + the live dirs below.
 
-## 能写哪
+## Where to write
 
-| 目录 | 用途 | 何时写 |
-|------|------|--------|
-| [`architecture/`](./architecture/) | 现行架构（短、可执行） | 改分层 / 接缝 / 安装路径 |
-| [`contracts/`](./contracts/) | 长期行为契约 | 改 `ctx.agent`、文件工具等对外协议 |
-| [`rfcs/`](./rfcs/) | 未落地调研 | 新想法、端口方案；落地后提炼进上两栏 |
-| [`archive/`](./archive/) | 历史只读 | **不要往这里叠新设计** |
-| [`assets/`](./assets/) | 预览图 / HTML / CSS 样例 | 非契约物料 |
+| Dir | For | When |
+|-----|-----|------|
+| [`architecture/`](./architecture/) | Live architecture (short, executable) | Layer / seam / install-path changes |
+| [`contracts/`](./contracts/) | Long-lived behavior | `ctx.agent`, file tools, other public protocol |
+| [`rfcs/`](./rfcs/) | Unshipped research | New ideas, host ports; fold into the two columns above after landing |
+| [`archive/`](./archive/) | History, read-only | **Do not stack new design here** |
+| [`assets/`](./assets/) | Previews / HTML / CSS samples | Non-contract material |
 
-## 禁止
+## Do not
 
-1. 在仓库根或 `docs/` 根新建长文（本 `README.md` 除外）。
-2. 把实现细节复制进多份 md；skill 权威源：`packages/dsh/skills/monkey-mini-app/`。
-3. 引用 `archive/**` 当作「当前该怎么做」。
-4. 再引入已删除的旧包名当作 live 路径：`host-core` / `panel-core` / `dsh-plugin`（仅存在于 git tag `archive/pre-cutover-legacy-2026-08-29`）。
+1. Add long essays at repo root or `docs/` root (this `README.md` excepted).
+2. Copy implementation detail into many markdown files; skill source of truth: `skills/monkey-mini-app/`.
+3. Treat `archive/**` as “how we do it now”.
+4. Use deleted package names as live paths: `host-core` / `panel-core` / `dsh-plugin` (git tag `archive/pre-cutover-legacy-2026-08-29` only).
 
-## Live 文档
+## Live docs
 
-- [architecture/overview.md](./architecture/overview.md) — 现行包面与组合根
-- [contracts/agent.md](./contracts/agent.md) — `ctx.agent` / one-shot
-- [contracts/file-tools.md](./contracts/file-tools.md) — mini_app 文件工具
-- [rfcs/pi-extension-port.md](./rfcs/pi-extension-port.md) — PI 宿主调研（未实现）
+- [architecture/overview.md](./architecture/overview.md) — platform packages and composition root (dsh is an adapter)
+- [contracts/inapp-agent.md](./contracts/inapp-agent.md) — `ctx.agent` / one-shot
+- [contracts/file-tools.md](./contracts/file-tools.md) — mini_app file tools
+- [contracts/skill-sync.md](./contracts/skill-sync.md) — how the skill is generated, the `@family`/`componentType` taxonomy, prop-provenance rule, and what `pnpm check:skill` blocks
+- [rfcs/pi-extension-port.md](./rfcs/pi-extension-port.md) — next host (pi / pi-web), **not implemented**
+- [rfcs/authoring-protocol.md](./rfcs/authoring-protocol.md) — **landed**: one author package (`@monkey-mini-app/sdk`), `defineApp`, `ui`/`api`/`shared` import bounds
+- [rfcs/scripts-layout.md](./rfcs/scripts-layout.md) — **proposal**: `scripts/` by lifecycle stage, naming rules, `check/scripts` gate
 
-## 本地开发
+## Local development
 
-见仓库根 [`LOCAL.md`](../LOCAL.md) 与 [`AGENTS.md`](../AGENTS.md)。
-
-## 历史快照
-
-旧三包（`host-core` / `panel-core` / `dsh-plugin`）与旧文档全文：
-
-```bash
-git show archive/pre-cutover-legacy-2026-08-29:packages/host-core/package.json
-# 或浏览 docs/archive/
-```
+[`LOCAL.md`](../LOCAL.md) and [`AGENTS.md`](../AGENTS.md). Repo automation: [`scripts/README.md`](../scripts/README.md).

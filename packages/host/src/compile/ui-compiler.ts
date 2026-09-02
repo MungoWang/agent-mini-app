@@ -1,8 +1,11 @@
 /**
  * Host-side per-app UI bundling with esbuild (native, wasm fallback).
  *
- * @monkey-mini-app/ui dist is resolved via node and tree-shaken per app.
- * esbuild-wasm / esbuild stay runtime dependencies (node API spawns a binary).
+ * Iframe platform:
+ *   /mma/runtime.js — React (complete, not curated)
+ *   /mma/sdk.js     — UI kit + useApp (react is external to runtime.js)
+ * App compile only bundles the mini-app's own ui.tsx + ui/** + shared/**;
+ * relative imports are bounds-checked to stay inside the app dir.
  */
 import * as fs from "node:fs";
 import { createRequire } from "node:module";
@@ -17,6 +20,17 @@ import type { LocaleId } from "../types.ts";
 
 const requireFromHere = createRequire(import.meta.url);
 
+export const RUNTIME_HREF = "/mma/runtime.js";
+export const SDK_HREF = "/mma/sdk.js";
+
+const RUNTIME_SPECIFIER = /^(react|react-dom)(\/.*)?$/;
+/**
+ * Author-facing SDK specifier. Exactly one — `@monkeyagent/host` and
+ * `@monkey-mini-app/ui` used to be aliased here too and are gone (hard cut):
+ * mini-apps import `@monkey-mini-app/sdk`, nothing else.
+ */
+const SDK_SPECIFIER = /^(lucide-react|@monkey-mini-app\/sdk)(\/.*)?$/;
+
 export type UiBuildFile = { name: string; contents: Uint8Array };
 
 export type UiCompileOptions = {
@@ -29,71 +43,104 @@ type EsbuildLike = {
 };
 
 let uiDistDir: string | null = null;
+let sdkDistDir: string | null = null;
 let esbuildReady: Promise<EsbuildLike> | null = null;
 
-function distLooksValid(dir: string): boolean {
-  return fs.existsSync(path.join(dir, "index.js"));
+function uiDistLooksValid(dir: string): boolean {
+  return fs.existsSync(path.join(dir, "index.js")) && fs.existsSync(path.join(dir, "globals.css"));
 }
 
-/**
- * Locate @monkey-mini-app/ui dist.
- * When host is bundled into dsh/lib, `import.meta.url` is the plugin bundle —
- * resolve from several bases + monorepo-relative fallbacks.
- */
-export function resolveUiDistDir(): string {
-  if (uiDistDir) return uiDistDir;
+function sdkFileLooksValid(dir: string): boolean {
+  return fs.existsSync(path.join(dir, "sdk.js")) && fs.existsSync(path.join(dir, "runtime.js"));
+}
 
+function resolvePkgDist(
+  pkg: string,
+  distRel: string,
+  looksValid: (dir: string) => boolean,
+): string | null {
   const tryResolve = (fromFile: string): string | null => {
     try {
       const req = createRequire(fromFile);
-      const pkgJson = req.resolve("@monkey-mini-app/ui/package.json");
-      const dir = path.join(path.dirname(pkgJson), "dist");
-      return distLooksValid(dir) ? dir : null;
+      const pkgJson = req.resolve(`${pkg}/package.json`);
+      const dir = path.join(path.dirname(pkgJson), distRel);
+      return looksValid(dir) ? dir : null;
     } catch {
       return null;
     }
   };
+  return tryResolve(path.join(path.dirname(fileURLToPath(import.meta.url)), "ui-compiler.ts"))
+    ?? tryResolve(import.meta.url);
+}
 
-  const candidates: Array<string | null> = [
-    tryResolve(path.join(path.dirname(fileURLToPath(import.meta.url)), "ui-compiler.ts")),
-    tryResolve(import.meta.url),
-    // bundled as packages/dsh/lib/index.js → walk up to repo packages/ui/dist
-    (() => {
-      const here = path.dirname(fileURLToPath(import.meta.url));
-      const guesses = [
-        path.resolve(here, "../../../ui/dist"),
-        path.resolve(here, "../../ui/dist"),
-        path.resolve(here, "../../../../packages/ui/dist"),
-      ];
-      for (const g of guesses) {
-        if (distLooksValid(g)) return g;
-      }
-      return null;
-    })(),
+/**
+ * Locate @monkey-mini-app/ui dist (stylesheet + fonts).
+ * When host is bundled into dsh/lib, `import.meta.url` is the plugin bundle.
+ */
+export function resolveUiDistDir(): string {
+  if (uiDistDir) return uiDistDir;
+
+  const fromPkg = resolvePkgDist("@monkey-mini-app/ui", "dist", uiDistLooksValid);
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const guesses = [
+    fromPkg,
+    path.resolve(here, "../../../ui/dist"),
+    path.resolve(here, "../../ui/dist"),
+    path.resolve(here, "../../../../packages/ui/dist"),
   ];
-
-  for (const dir of candidates) {
-    if (dir) {
+  for (const dir of guesses) {
+    if (dir && uiDistLooksValid(dir)) {
       uiDistDir = dir;
       return dir;
     }
   }
-
-  // last resort: require from this module (works when running host from source)
   try {
     const pkgJson = requireFromHere.resolve("@monkey-mini-app/ui/package.json");
     const dir = path.join(path.dirname(pkgJson), "dist");
-    if (distLooksValid(dir)) {
+    if (uiDistLooksValid(dir)) {
       uiDistDir = dir;
       return dir;
     }
   } catch {
     /* fall through */
   }
-
   throw new HostError(
     "UI_DIST_MISSING",
-    "@monkey-mini-app/ui dist not found — run: node scripts/build-ui.mjs && ensure @monkey-mini-app/ui is a dependency of the running plugin",
+    "@monkey-mini-app/ui dist not found — run: node scripts/build/ui.mjs && ensure @monkey-mini-app/ui is a dependency of the running plugin",
+  );
+}
+
+/** Locate @monkey-mini-app/sdk dist/sdk.js (iframe environment). */
+export function resolveSdkDistDir(): string {
+  if (sdkDistDir) return sdkDistDir;
+
+  const fromPkg = resolvePkgDist("@monkey-mini-app/sdk", "dist", sdkFileLooksValid);
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const guesses = [
+    fromPkg,
+    path.resolve(here, "../../../sdk/dist"),
+    path.resolve(here, "../../sdk/dist"),
+    path.resolve(here, "../../../../packages/sdk/dist"),
+  ];
+  for (const dir of guesses) {
+    if (dir && sdkFileLooksValid(dir)) {
+      sdkDistDir = dir;
+      return dir;
+    }
+  }
+  try {
+    const pkgJson = requireFromHere.resolve("@monkey-mini-app/sdk/package.json");
+    const dir = path.join(path.dirname(pkgJson), "dist");
+    if (sdkFileLooksValid(dir)) {
+      sdkDistDir = dir;
+      return dir;
+    }
+  } catch {
+    /* fall through */
+  }
+  throw new HostError(
+    "SDK_DIST_MISSING",
+    "@monkey-mini-app/sdk dist/sdk.js not found — run: node scripts/build/ui.mjs && node scripts/build/sdk.mjs",
   );
 }
 
@@ -140,8 +187,24 @@ function findUiEntry(appDir: string): string {
   throw new HostError("MISSING_UI_ENTRY", "missing ui entry (ui.tsx / App.tsx)");
 }
 
-function makeUiPlugin(distDir: string, appId: string): Plugin {
-  const req = createRequire(path.join(distDir, "index.js"));
+/** Trees a mini-app UI may not import (backend-only code). */
+const UI_FORBIDDEN_TREE = /^api(\/|$)/;
+
+/**
+ * esbuild hands us realpath'd paths, so a macOS tmpdir (`/var/…` → `/private/var/…`)
+ * would make a naive `path.relative` see an escape where there is none. Compare
+ * canonical directories on both sides.
+ */
+function realDir(dir: string): string {
+  try {
+    return fs.realpathSync(dir);
+  } catch {
+    return path.resolve(dir);
+  }
+}
+
+function makeUiPlugin(appDir: string): Plugin {
+  const root = realDir(appDir);
   return {
     name: "monkey-mini-app-ui",
     setup(build) {
@@ -152,58 +215,46 @@ function makeUiPlugin(distDir: string, appId: string): Plugin {
       build.onLoad({ filter: /.*/, namespace: "mma-forbidden" }, () => ({
         errors: [
           {
-            text: "UI cannot import main.api.ts; use useDashboardApi() from @monkeyagent/host",
+            text: "UI cannot import main.api.ts; use useApp() from @monkey-mini-app/sdk",
           },
         ],
       }));
-      build.onResolve({ filter: /^@monkey-mini-app\/ui$/ }, () => ({
-        path: path.join(distDir, "index.js"),
-      }));
-      // The ui package's src files import each other via @monkey-mini-app/ui/<subpath>.
-      // Those resolve through the package.json exports to ./dist/src/<subpath> (no extension),
-      // which Node/esbuild don't append extensions for in a hoisted install. Resolve them
-      // explicitly against distDir/src so it works in dev, npm and anywhere.
-      build.onResolve({ filter: /^@monkey-mini-app\/ui\// }, (args) => {
-        const rel = args.path.slice("@monkey-mini-app/ui/".length);
-        for (const ext of [".tsx", ".ts", ".jsx", ".js"]) {
-          const c = path.join(distDir, "src", rel + ext);
-          if (fs.existsSync(c)) return { path: c };
+      // Relative imports: stay inside the app dir, and keep out of api/**.
+      // Bare specifiers never reach here (RUNTIME/SDK hooks, else unresolvable).
+      build.onResolve({ filter: /^\.\.?\// }, (args) => {
+        const fromDir = realDir(args.resolveDir || appDir);
+        const rel = path
+          .relative(root, path.resolve(fromDir, args.path))
+          .split(path.sep)
+          .join("/");
+        if (rel === "" || rel === ".." || rel.startsWith("../") || path.isAbsolute(rel)) {
+          const importer = args.importer ? path.basename(args.importer) : "the UI entry";
+          return {
+            errors: [
+              {
+                text: `UI import escapes the app dir: "${args.path}" (imported from ${importer})`,
+              },
+            ],
+          };
         }
-        for (const idx of ["index.tsx", "index.ts", "index.js"]) {
-          const c = path.join(distDir, "src", rel, idx);
-          if (fs.existsSync(c)) return { path: c };
+        if (UI_FORBIDDEN_TREE.test(rel)) {
+          return {
+            errors: [
+              {
+                text: `UI cannot import api/**: "${args.path}" — shared code belongs in shared/**`,
+              },
+            ],
+          };
         }
-        return { errors: [{ text: `could not resolve @monkey-mini-app/ui subpath: ${args.path}` }] };
+        return undefined;
       });
-      build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
-        try {
-          return { path: req.resolve(args.path) };
-        } catch {
-          return { path: args.path, external: true };
-        }
-      });
-      build.onResolve({ filter: /^@monkeyagent\/host$/ }, () => ({
-        namespace: "mma-host",
-        path: "useDashboardApi",
+      build.onResolve({ filter: RUNTIME_SPECIFIER }, () => ({
+        path: RUNTIME_HREF,
+        external: true,
       }));
-      build.onLoad({ filter: /.*/, namespace: "mma-host" }, () => ({
-        contents: `
-import { useCallback } from "react";
-const __MMA_APP_ID = ${JSON.stringify(appId)};
-export function useDashboardApi() {
-  const call = useCallback(async (m, a) => {
-    const j = await fetch("/api/call", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ appId: __MMA_APP_ID, method: m, args: a || {} }),
-    }).then((r) => r.json());
-    if (!j.ok) throw new Error(j.error || "call failed");
-    return j.value;
-  }, []);
-  return { call };
-}
-`,
-        loader: "js",
+      build.onResolve({ filter: SDK_SPECIFIER }, () => ({
+        path: SDK_HREF,
+        external: true,
       }));
     },
   };
@@ -222,7 +273,7 @@ function walkMtime(dir: string, bump: (fp: string) => void): void {
   }
 }
 
-/** Bundles a mini-app ui.tsx into self-contained ESM (entry.js + chunks). */
+/** Bundles a mini-app ui.tsx into ESM that imports the host SDK. */
 export class UiCompiler {
   private readonly buildCache = new Map<string, { sig: string; files: UiBuildFile[] }>();
 
@@ -257,13 +308,14 @@ export class UiCompiler {
       /* corrupted cache → rebuild */
     }
 
-    const distDir = resolveUiDistDir();
+    resolveSdkDistDir();
     const esbuild = await getEsbuild();
     const entry = findUiEntry(appDir);
     const uiRel = path.basename(entry);
+    const appId = JSON.stringify(appIdOf(appDir));
     const wrapper = `
 import { createRoot } from "react-dom/client";
-import { UiProvider } from "@monkey-mini-app/ui";
+import { AppRuntime, UiProvider } from "@monkey-mini-app/sdk";
 import Ui from "./${uiRel}";
 const rootEl = document.getElementById("root");
 if (rootEl) {
@@ -271,7 +323,11 @@ if (rootEl) {
   rootEl.removeAttribute("role");
   rootEl.removeAttribute("aria-label");
   rootEl.replaceChildren();
-  createRoot(rootEl).render(<UiProvider locale=${JSON.stringify(locale)}><Ui /></UiProvider>);
+  createRoot(rootEl).render(
+    <AppRuntime appId={${appId}}>
+      <UiProvider locale=${JSON.stringify(locale)}><Ui /></UiProvider>
+    </AppRuntime>
+  );
 }
 `;
     let res: BuildResult;
@@ -289,7 +345,7 @@ if (rootEl) {
         write: false,
         platform: "browser",
         target: "es2020",
-        plugins: [makeUiPlugin(distDir, appIdOf(appDir))],
+        plugins: [makeUiPlugin(appDir)],
         loader: { ".tsx": "tsx", ".ts": "ts" },
         jsx: "automatic",
         define: { "process.env.NODE_ENV": '"production"' },
@@ -351,11 +407,14 @@ if (rootEl) {
       /* no extras */
     }
     try {
-      walkMtime(resolveUiDistDir(), (fp) => {
-        if (/\.(tsx?|jsx?|mjs|cjs|js|css|json)$/.test(path.basename(fp))) {
-          bump(fp);
-        }
-      });
+      const sdkDir = resolveSdkDistDir();
+      bump(path.join(sdkDir, "sdk.js"));
+      bump(path.join(sdkDir, "runtime.js"));
+    } catch {
+      /* sdk dist unavailable */
+    }
+    try {
+      bump(path.join(resolveUiDistDir(), "globals.css"));
     } catch {
       /* ui dist unavailable */
     }

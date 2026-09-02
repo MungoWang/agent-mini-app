@@ -12,7 +12,14 @@ import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
 import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
 import { asAppId } from "../brand.ts";
 import type { AppCssCompiler } from "../compile/app-css.ts";
-import { resolveUiDistDir, type UiBuildFile, type UiCompiler } from "../compile/ui-compiler.ts";
+import {
+  resolveSdkDistDir,
+  resolveUiDistDir,
+  RUNTIME_HREF,
+  SDK_HREF,
+  type UiBuildFile,
+  type UiCompiler,
+} from "../compile/ui-compiler.ts";
 import { writeHostConfig } from "../config/write.ts";
 import { HostError } from "../errors.ts";
 import { formatSse, type HostEventBus } from "../events/host-events.ts";
@@ -490,6 +497,30 @@ export class HttpGateway {
         return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
       } catch (cause) {
         return c.text(`ui.css missing: ${errorMessage(cause)}`, 500);
+      }
+    });
+
+    app.get(RUNTIME_HREF, (c) => {
+      try {
+        const buf = fs.readFileSync(path.join(resolveSdkDistDir(), "runtime.js"));
+        return c.body(buf, 200, {
+          "Content-Type": "application/javascript; charset=utf-8",
+          "Cache-Control": "no-cache",
+        });
+      } catch (cause) {
+        return c.text(`runtime.js missing: ${errorMessage(cause)}`, 500);
+      }
+    });
+
+    app.get(SDK_HREF, (c) => {
+      try {
+        const buf = fs.readFileSync(path.join(resolveSdkDistDir(), "sdk.js"));
+        return c.body(buf, 200, {
+          "Content-Type": "application/javascript; charset=utf-8",
+          "Cache-Control": "no-cache",
+        });
+      } catch (cause) {
+        return c.text(`sdk.js missing: ${errorMessage(cause)}`, 500);
       }
     });
 

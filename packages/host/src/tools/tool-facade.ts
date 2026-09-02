@@ -141,7 +141,7 @@ export class ToolFacade {
       {
         name: "mini_app_register",
         description:
-          "Create a mini-app scaffold under runtime/apps/<appId>/. Prefer this for NEW apps (requires manifest.json). For edits to an existing app, use mini_app_read + mini_app_edit (or mini_app_write). files keys are relative paths (manifest.json, ui.tsx, main.api.ts, lib/..., components/...). No .. or absolute paths.",
+          "Create a mini-app scaffold under runtime/apps/<appId>/. Prefer this for NEW apps (requires manifest.json). For edits to an existing app, use mini_app_read + mini_app_edit (or mini_app_write). files keys are relative paths (manifest.json, ui.tsx, main.api.ts, ui/..., api/..., shared/...). No .. or absolute paths.",
         inputSchema: {
           type: "object",
           properties: {
@@ -151,7 +151,7 @@ export class ToolFacade {
               // dsh-tools requires boolean additionalProperties (not a nested schema).
               additionalProperties: true,
               description:
-                "Relative path → UTF-8 source text (string values). Example keys: manifest.json, ui.tsx, main.api.ts, lib/parse.ts, components/Card.tsx",
+                "Relative path → UTF-8 source text (string values). Example keys: manifest.json, ui.tsx, main.api.ts, ui/Card.tsx, api/parse.ts, shared/format.ts",
             },
           },
           required: ["appId", "files"],
@@ -176,7 +176,7 @@ export class ToolFacade {
           type: "object",
           properties: {
             appId: APP_ID_SCHEMA,
-            path: { type: "string", description: "Relative path e.g. ui.tsx, main.api.ts, lib/x.ts" },
+            path: { type: "string", description: "Relative path e.g. ui.tsx, main.api.ts, shared/format.ts" },
             startLine: {
               type: "number",
               description: "1-indexed start line (inclusive). Omit with endLine for full file.",

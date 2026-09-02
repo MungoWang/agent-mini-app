@@ -1,57 +1,59 @@
 # @monkey-mini-app/dsh-mini-app
 
-给 [DeepSeek Harness](https://github.com/deepseek-ai) 加一条 **「小程序」跑道**：让模型可以在对话里直接创建、运行、打开一个个小的 React 应用（`manifest.json` + `ui.tsx` + `main.api.ts`），它们以独立窗口的形式停在侧栏。
+dsh **adapter** for the [monkey-mini-app](https://github.com/MungoWang/monkey-mini-app) platform: a「小程序」rail on [DeepSeek Harness](https://github.com/deepseek-ai) web so a model can create, run, and pin React mini-apps (`manifest.json` + `ui.tsx` + `main.api.ts`) in the sidebar.
+
+The platform itself is host-agnostic (`createHost`). This package is one host, not the product.
 
 ![home](./assets/home.png)
-*安装后侧栏多出「小程序」入口。*
+*After install, the sidebar gains a「小程序」entry.*
 
-## 它能做什么
+## What it does
 
-- 模型（或你）用一行 `mini_app_register` 就能**秒建一个 mini-app**，Host 在本机把它跑起来。
-- 侧栏「小程序」面板是个**应用画廊**：打开、切换、钉到侧边、设置主题。
-- 每个 mini-app 有独立的 `ui.tsx`（UI）+ `main.api.ts`（`ctx.llm`/`ctx.http`/`ctx.bash`/`ctx.agent`/`ctx.storage`…）。
-- 打包即用：一个 dsh 插件就带齐 Host（AppsManager / git / Hono / UI 编译 / tools）+ React 面板 + 生成 skill。
+- One `mini_app_register` and the host runs a mini-app on this machine.
+- Sidebar gallery: open, switch, dock, theme.
+- Each app has `ui.tsx` + `main.api.ts` (`ctx.llm` / `http` / `bash` / `agent` / `storage` …).
+- One plugin ships the platform (AppsManager / git / Hono / UI compile / tools) + React panel + authoring skill.
 
 ![apps](./assets/apps-list.png)
-*小程序画廊（5 个示例 app）。*
+*Gallery.*
 
 ![demo](./assets/demo-app.png)
-*打开一个 mini-app（能力实验室：LLM / Agent / 工具 / 网络 / 命令）。*
+*An open mini-app (LLM / agent / tools / net / shell).*
 
 ![side](./assets/sidebar-mode.png)
-*mini-app 钉到侧栏（待办）：对话在左、应用在右。*
+*Docked (Todo): chat left, app right.*
 
 ![complex](./assets/complex-demo-app.png)
-*复杂 mini-app（AI 热点雷达：多源聚合 + LLM 分析 + 图表）。*
+*A denser mini-app (multi-source + LLM + charts).*
 
-## 安装
+## Install
 
 ```bash
 dsh plugin --profile web add @monkey-mini-app/dsh-mini-app
 ```
 
-然后打开 dsh web：
+Then:
 
 ```bash
-dsh web --no-open   # http://127.0.0.1:3080 ；apps host 默认 :17880
+dsh web --no-open   # http://127.0.0.1:3080 ; apps host default :17880
 ```
 
-首次启动会自动初始化运行时配置（写出完整 `host.json`），侧栏即出现「小程序」入口。
+First start bootstraps a full `host.json`. The「小程序」entry appears in the sidebar.
 
-## 使用
+## Use
 
-1. **打开**：侧栏点「小程序」→ 打开任一 app。
-2. **生成**：让模型「做一个 xxx 小程序」，模型会按内置 skill 生成 `manifest.json` + `ui.tsx` + `main.api.ts`（模板在 `skills/monkey-mini-app/templates/`）。
-3. **调用**：mini-app 的 `main.api.ts` 用 `defineDashboard({ api })` 暴露方法；`ui.tsx` 用 `useDashboardApi()` 的 `call(method, args)` 调它们。
-4. **调试**：`mini_app_call` 冒烟、`mini_app_reload` 重编译、`mini_app_open` 打开。
+1. **Open**: sidebar「小程序」→ any app.
+2. **Generate**: ask the model to build an app; it follows the bundled skill (`skills/monkey-mini-app/templates/`).
+3. **Call**: `defineApp({ api })` in `main.api.ts`; `useApp()` `call(method, args)` in `ui.tsx` — both imported from `@monkey-mini-app/sdk`.
+4. **Debug**: `mini_app_call`, `mini_app_reload`, `mini_app_open`.
 
-## UI 组件库：参考而非规范
+## UI kit: convenience, not a spec
 
-`@monkey-mini-app/ui` 提供现成组件（表格 / 表单 / 图表 / 弹窗 / 编辑器…），**是用来省事的，不是强制**。合适的场景直接用；需要独特视觉或自由发挥时，**用原生元素 + Tailwind classes 自行实现**也行（可混用）。详见 skill。
+`@monkey-mini-app/ui` (via the SDK) is optional. Mix with native elements + Tailwind. See the skill.
 
-## 技术备注
+## Notes
 
-- **插件入口**：导出 `apply(ctx, config?)`（Cordis）、常量 `name="monkey-mini-app"`、`inject=["tools"]`，以及 `DshCapabilities` / `DshLifecycle` / `DshThemeResource`。
-- **client**：`@monkey-mini-app/dsh-mini-app/client` 导出 `FooterButton` / `createMiniAppPanel` / `appFrameUrl` / `appsOrigin`。
-- **deps**：`@monkey-mini-app/host` / `panel` / `ui` 为运行时 `require`（external，不打进去），发布后仍从 npm 解析。
-- **运行时配置**：首启自动 bootstrap 写完整 `host.json`（缺才建）；`host.json` 已存在但损坏仍 fail loud。
+- **Plugin entry**: `apply(ctx, config?)` (Cordis), `name="monkey-mini-app"`, `inject=["tools"]`, plus `DshCapabilities` / `DshLifecycle` / `DshThemeResource`.
+- **client**: `@monkey-mini-app/dsh-mini-app/client` exports `FooterButton` / `createMiniAppPanel` / `appFrameUrl` / `appsOrigin`.
+- **deps**: `@monkey-mini-app/host` / `panel` / `ui` are runtime `require` (external). After publish they resolve from npm.
+- **config**: missing `host.json` is bootstrapped; present-but-corrupt still fails loud.

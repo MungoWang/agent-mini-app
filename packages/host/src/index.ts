@@ -1,5 +1,17 @@
 export const packageName = "@monkey-mini-app/host";
 
+export type {
+  AboutInfo,
+  AboutPackage,
+  HostAboutMeta,
+  UpdateCheck,
+} from "./about.ts";
+export {
+  checkPackageUpdate,
+  fetchNpmLatest,
+  isUpdateAvailable,
+  resolveAboutInfo,
+} from "./about.ts";
 export type { AgentCwdContext, AgentCwdInput } from "./agent-cwd.ts";
 export { isAgentCwdType, resolveAgentCwd } from "./agent-cwd.ts";
 export type {
@@ -17,10 +29,10 @@ export type {
   AfterMutateOptions,
   AfterMutateResult,
   AppContext,
+  AppDef,
   AppItem,
+  AppMethod,
   AppStorage,
-  DashboardDef,
-  DashboardMethod,
   ReloadResult,
 } from "./apps/apps-manager.ts";
 export { AppsManager } from "./apps/apps-manager.ts";
@@ -44,9 +56,16 @@ export {
 export type { BoundHostCapabilities, HostCapabilities } from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
 export type { UiBuildFile, UiCompileOptions } from "./compile/ui-compiler.ts";
-export { resolveUiDistDir,UiCompiler } from "./compile/ui-compiler.ts";
+export {
+  resolveSdkDistDir,
+  resolveUiDistDir,
+  RUNTIME_HREF,
+  SDK_HREF,
+  UiCompiler,
+} from "./compile/ui-compiler.ts";
 export { bootstrapHostConfig } from "./config/bootstrap.ts";
 export { DEFAULT_HOST_CONFIG_SEED } from "./config/defaults.ts";
+export { ensureHostConfig } from "./config/ensure.ts";
 export { loadHostConfig } from "./config/load.ts";
 export { parseHostConfig } from "./config/parse.ts";
 export { writeHostConfig } from "./config/write.ts";

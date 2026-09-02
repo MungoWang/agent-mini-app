@@ -1,0 +1,140 @@
+/**
+ * Backend authoring contract for mini-apps (`main.api.ts`).
+ *
+ * The host does **not** bundle the React SDK into the backend — when it loads
+ * `main.api.ts` it injects `defineApp` itself. Import from `@monkey-mini-app/sdk`
+ * for editor help and type-checking; the object you get at runtime comes from
+ * the host (it validates `name` / `description` / `api`).
+ *
+ * Human-readable contract: skill `references/ctx.md`.
+ */
+
+/** File-backed key/value store scoped to one mini-app (`storage/*.json`). */
+export type AppStorage = {
+  /** Stored JSON — shape is yours; the host hands back whatever was written. */
+  get(key: string): Promise<any>;
+  set(key: string, value: unknown): Promise<void>;
+  delete(key: string): Promise<void>;
+  clear(): Promise<void>;
+  /** Row-per-key view backed by `storage/<name>.json`. */
+  table(name: string): AppStorage;
+};
+
+/** `ctx.http` request shape (either positional fields or `url` + opts). */
+export type AppHttpRequest = {
+  url: string;
+  method?: string;
+  headers?: Record<string, string>;
+  query?: Record<string, string | number | boolean | null | undefined>;
+  body?: unknown;
+  timeout?: number;
+  signal?: AbortSignal;
+};
+
+/** `ctx.http` result — always this shape, never a platform `Response`. */
+export type AppHttpResponse = {
+  ok: boolean;
+  status: number;
+  headers: Record<string, string>;
+  text: string;
+  /** Parsed body when the response was JSON, else `null`. */
+  json: any;
+};
+
+/** Options shared by `ctx.llm` and `ctx.agent`. */
+export type AppModelOptions = {
+  provider?: string;
+  model?: string;
+  system?: string;
+  schema?: unknown;
+  maxTokens?: number;
+  signal?: AbortSignal;
+};
+
+/** Why a turn ended — kept loose so hosts can add kinds without breaking apps. */
+export type AppAgentTurnEndReason = {
+  kind: string;
+  error?: unknown;
+  reason?: unknown;
+};
+
+/** One `ctx.agent` progress event (observation only — the return stays a string). */
+export type AppAgentEvent =
+  | { type: "status"; status: "running" | "idle" }
+  | { type: "text-delta"; text: string }
+  | { type: "tool"; phase: "start" | "end"; name: string; args?: unknown; result?: unknown }
+  | { type: "turn"; phase: "start"; turn: number }
+  | { type: "turn"; phase: "end"; turn: number; reason?: AppAgentTurnEndReason }
+  | { type: "error"; message: string }
+  | { type: "done"; text: string };
+
+/** `ctx.agent` options (adds the multi-step knobs on top of the shared ones). */
+export type AppAgentOptions = AppModelOptions & {
+  maxIterations?: number;
+  onEvent?: (event: AppAgentEvent) => void;
+  cwdType?: "app" | "process" | "temp" | "custom";
+  cwd?: string;
+};
+
+/** First argument of every `api` method. */
+export type AppCtx = {
+  /** Reverse-DNS id of the running mini-app. */
+  appId: string;
+  /** Absolute `runtime/apps/<appId>` directory. */
+  appDir: string;
+  storage: AppStorage;
+  state: Record<string, unknown>;
+  credentials: Record<string, string>;
+  log(...args: unknown[]): void;
+  push(method: string, params?: unknown): void;
+  mcp(name: string, args?: Record<string, unknown>): Promise<any>;
+  /** Tool result as a **string** (the host serialises tool output). */
+  tool(name: string, args?: Record<string, unknown>): Promise<any>;
+  listTools(): unknown[];
+  /** Model completion as a **string**. */
+  llm(prompt: string, opts?: AppModelOptions): Promise<string>;
+  /** Multi-step agent run as a **string**. */
+  agent(goal: string, opts?: AppAgentOptions): Promise<string>;
+  bash(command: string): Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  http(url: string | AppHttpRequest, opts?: Omit<AppHttpRequest, "url">): Promise<AppHttpResponse>;
+  system: { metrics(): Promise<any> };
+  config: Record<string, unknown>;
+  /** Cancel signal for the current call — long jobs must honour it. */
+  signal?: AbortSignal;
+};
+
+/**
+ * One backend method. `args` is whatever `call(method, args)` sent from the UI
+ * (a plain object) — validate it, it is untrusted input.
+ */
+export type AppApiMethod = (ctx: AppCtx, args: any) => unknown | Promise<unknown>;
+
+/** What `defineApp` takes — the whole `main.api.ts` contract. */
+export type AppDefinition = {
+  name: string;
+  description: string;
+  api: Record<string, AppApiMethod>;
+  state?: Record<string, unknown>;
+};
+
+/**
+ * Declare the mini-app backend. Keys of `api` are exactly the `method` strings
+ * the UI may `call()`.
+ *
+ * ```ts
+ * import { defineApp } from "@monkey-mini-app/sdk";
+ *
+ * export default defineApp({
+ *   name: "名称",
+ *   description: "一句话",
+ *   api: {
+ *     async list(ctx) {
+ *       return (await ctx.storage.get("items")) ?? [];
+ *     },
+ *   },
+ * });
+ * ```
+ */
+export function defineApp<T extends AppDefinition>(def: T): T {
+  return def;
+}

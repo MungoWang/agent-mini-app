@@ -4,6 +4,25 @@ import { afterEach, describe, expect, it } from "vitest";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// jsdom ships no IntersectionObserver; Settings.tsx uses one to lazily mount the
+// workbench tab. Stub it so the test exercises the real code path.
+type ObserverEntry = {
+  isIntersecting: boolean;
+  intersectionRatio: number;
+  target: Element;
+};
+class IntersectionObserverStub {
+  constructor(private readonly cb: (entries: ObserverEntry[]) => void) {}
+  observe(el: Element): void {
+    // Behave like an element scrolled into view.
+    this.cb([{ isIntersecting: true, intersectionRatio: 1, target: el }]);
+  }
+  unobserve(): void {}
+  disconnect(): void {}
+}
+globalThis.IntersectionObserver ??=
+  IntersectionObserverStub as unknown as typeof globalThis.IntersectionObserver;
+
 import {
   createMiniAppPanel,
   type PanelInstance,

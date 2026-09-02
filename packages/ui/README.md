@@ -1,9 +1,12 @@
 # @monkey-mini-app/ui
 
-`react` component library for mini-apps. **It's a reference / convenience, not a spec** —
+`react` component library. **It's a reference / convenience, not a spec** —
 use it to save reimplementing common components (tables, forms, charts, dialogs, editors),
 but you're free to build custom UI with raw HTML elements + Tailwind classes instead
-(and the two mix freely). It's the **only** UI **package** a mini-app may import.
+(and the two mix freely).
+
+Mini-apps import it **through `@monkey-mini-app/sdk`**, not this package directly.
+Demo-host / Storybook may import `@monkey-mini-app/ui` as a normal React library.
 
 ## Install
 
@@ -40,13 +43,16 @@ survive so light/dark + palettes keep working.
 ## Build & contract
 
 ```bash
-node scripts/build-ui.mjs   # → dist (flat named re-exports + compiled globals.css)
-pnpm skill:gen              # sync the component contract into the ui skill
+node scripts/build/ui.mjs   # → dist (flat named re-exports + compiled globals.css)
+pnpm gen:skill              # sync the component contract into the ui skill
 ```
 
 Constraints:
 
 - The dist `index.js` must stay a **flat named re-export** (the ui-compiler only
   understands these). Rebuild after changing export names.
-- Mini-apps may only import `react`, `@monkey-mini-app/ui`, `@monkey-agent/host` and
-  relative `./lib`. No other npm packages (there is no `node_modules` in a runtime app).
+- Mini-apps import `@monkey-mini-app/sdk` only (plus `react`), plus in-app relative paths: `ui/` · `api/` · `shared/`. This package is re-exported through the SDK — never imported directly by an app.
+- Heavy editors are **on-demand CDN**, not npm peers: `CodeEditor` → CodeMirror 6
+  (`esm.sh`), `CodeBlock` / `DiffViewer` → shiki (`esm.sh`), `RichTextEditor` →
+  tiptap (`esm.run`). Do not add `@codemirror/*` / `shiki` / `@tiptap/*` to
+  `peerDependencies`. Never load a second React from the CDN.

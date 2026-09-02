@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { startHost, readTemplate, templateId } from "./fixture.ts";
 
-const api = `import { defineDashboard } from "@monkeyagent/dashboard";
-export default defineDashboard({ name: "P", description: "p", api: { ping: async (_c, a) => ({ ok: true, args: a }) } });
+const api = `import { defineApp } from "@monkey-mini-app/sdk";
+export default defineApp({ name: "P", description: "p", api: { ping: async (_c, a) => ({ ok: true, args: a }) } });
 `;
-const ui = `import { Icon } from "@monkey-mini-app/ui";
+const ui = `import { Icon } from "@monkey-mini-app/sdk";
 export default function Ui(){ return <div className="p-4"><Icon.Check size={16} />hi</div>; }
 `;
 const manifest = JSON.stringify({ id: "com.smoke.http", name: "HTTP", version: "1.0.0", entry: "ui.tsx" });
@@ -45,11 +45,19 @@ describe("S2 · real HTTP socket end-to-end", () => {
       expect(html).toContain("/api/app/\" + encodeURIComponent(APP_ID) + \"/ui/entry.js");
       // the app shell loads its per-app stylesheet (shared base + app utilities)
       expect(html).toContain('href = "/api/app/" + encodeURIComponent(APP_ID) + "/ui.css"');
+      expect(html).toContain("/mma/runtime.js");
+      expect(html).toContain("/mma/sdk.js");
+      expect(html).toContain("importmap");
 
-      // /api/app/:id/ui/entry.js compiles
+      // instance bundle is small and imports the shared platform files
       const entry = await (await fetch(`${origin}/api/app/com.smoke.http/ui/entry.js`)).text();
       expect(entry.startsWith('{"error"')).toBe(false);
-      expect(entry.length).toBeGreaterThan(2000);
+      expect(entry).toContain("/mma/runtime.js");
+      expect(entry).toContain("/mma/sdk.js");
+      const runtime = await (await fetch(`${origin}/mma/runtime.js`)).text();
+      expect(runtime).toContain("useState");
+      const sdk = await (await fetch(`${origin}/mma/sdk.js`)).text();
+      expect(sdk).toContain("useApp");
 
       // per-app stylesheet carries the theme tokens + the app's own utility classes
       const appCss = await (await fetch(`${origin}/api/app/com.smoke.http/ui.css`)).text();

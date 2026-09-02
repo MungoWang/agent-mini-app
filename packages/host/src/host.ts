@@ -20,8 +20,9 @@ export class Host {
     private readonly http: HttpGateway,
   ) {}
 
+  /** Live listen port — follows HttpGateway across hostPort rebinds. */
   get port(): number {
-    return this.boundPort;
+    return this.http.port || this.boundPort;
   }
 
   async apply(ctx?: unknown): Promise<{ port: number }> {
@@ -34,8 +35,8 @@ export class Host {
 
   async start(): Promise<{ port: number }> {
     this.active = true;
-    if (this.boundPort > 0) {
-      return { port: this.boundPort };
+    if (this.port > 0) {
+      return { port: this.port };
     }
     try {
       this.boundPort = await this.http.listen(this.config.hostPort);
@@ -49,12 +50,12 @@ export class Host {
         { cause },
       );
     }
-    this.lifecycle.onHostPortChanged?.(this.boundPort);
-    return { port: this.boundPort };
+    this.lifecycle.onHostPortChanged?.(this.port);
+    return { port: this.port };
   }
 
   async stop(): Promise<void> {
-    if (!this.active && this.boundPort === 0 && !this.attached) {
+    if (!this.active && this.port === 0 && !this.attached) {
       return;
     }
     this.active = false;

@@ -1,3 +1,5 @@
+import { RUNTIME_HREF, SDK_HREF } from "../compile/ui-compiler.ts";
+
 /** Iframe entry HTML for a compiled mini-app UI bundle. */
 export function appRunnerHtml(appId: string, themeCss = ""): string {
   const safe = JSON.stringify(appId);
@@ -22,6 +24,43 @@ export function appRunnerHtml(appId: string, themeCss = ""): string {
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>${title}</title>
+<script type="importmap">${JSON.stringify({
+    imports: {
+      react: RUNTIME_HREF,
+      "react/jsx-runtime": RUNTIME_HREF,
+      "react/jsx-dev-runtime": RUNTIME_HREF,
+      "react-dom": RUNTIME_HREF,
+      "react-dom/client": RUNTIME_HREF,
+    },
+  })}</script>
+<script>
+(function () {
+  function apply(mode, pal, dock, vars) {
+    var el = document.documentElement;
+    if (mode) el.classList.toggle("dark", mode === "dark");
+    if (pal) {
+      el.setAttribute("data-palette", pal);
+      if (pal === "default") el.removeAttribute("data-theme");
+      else el.setAttribute("data-theme", pal);
+    }
+    if (dock) el.setAttribute("data-dock", dock);
+    if (vars && typeof vars === "object") {
+      for (var k in vars) {
+        if (Object.prototype.hasOwnProperty.call(vars, k) && typeof vars[k] === "string") {
+          el.style.setProperty(k, vars[k]);
+        }
+      }
+    }
+  }
+  var q = new URLSearchParams(location.search);
+  apply(q.get("theme") || "light", q.get("palette") || "default", q.get("dock") || "fill");
+  window.addEventListener("message", function (ev) {
+    var d = ev.data;
+    if (!d || d.type !== "mma-set-env") return;
+    apply(d.theme, d.palette, d.dock, d.vars);
+  });
+})();
+</script>
 <style>
   ${themeBlock}html,body,#root{margin:0;height:100%;background:var(--background,#fff);color:var(--foreground,#111);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);}
   .err{padding:24px;color:#b91c1c;white-space:pre-wrap;}
@@ -54,37 +93,23 @@ export function appRunnerHtml(appId: string, themeCss = ""): string {
 </div>
 <script type="module">
 const APP_ID = ${safe};
-(() => {
-  const q = new URLSearchParams(location.search);
-  const th = q.get("theme") || "light";
-  const pal = q.get("palette") || "default";
-  const dock = q.get("dock") || "fill";
-  document.documentElement.setAttribute("data-theme", th);
-  document.documentElement.classList.toggle("dark", th === "dark");
-  document.documentElement.setAttribute("data-palette", pal);
-  document.documentElement.setAttribute("data-dock", dock);
-  window.addEventListener("message", (ev) => {
-    const d = ev.data;
-    if (!d || d.type !== "mma-set-env") return;
-    if (d.theme) {
-      document.documentElement.setAttribute("data-theme", d.theme);
-      document.documentElement.classList.toggle("dark", d.theme === "dark");
-    }
-    if (d.palette) document.documentElement.setAttribute("data-palette", d.palette);
-    if (d.dock) document.documentElement.setAttribute("data-dock", d.dock);
-  });
-})();
-// Per-app stylesheet: shared base (theme + components) + the app's own utilities.
-// Shared base (theme tokens + shadcn + repo utilities) first, then the app's own utilities
-// (responsive / arbitrary / app-only classes) compiled into the app's stylesheet.
-const baseCss = document.createElement("link");
-baseCss.rel = "stylesheet";
-baseCss.href = "/ui.css";
-document.head.appendChild(baseCss);
+// App utilities first, then shared /ui.css. Both sheets use @layer theme/base/utilities;
+// same-layer rules in the later sheet win — /ui.css must come last so Geist/--border
+// override Tailwind's default theme that the per-app sheet also emits.
+for (const href of [${JSON.stringify(RUNTIME_HREF)}, ${JSON.stringify(SDK_HREF)}]) {
+  const preload = document.createElement("link");
+  preload.rel = "modulepreload";
+  preload.href = href;
+  document.head.appendChild(preload);
+}
 const cssLink = document.createElement("link");
 cssLink.rel = "stylesheet";
 cssLink.href = "/api/app/" + encodeURIComponent(APP_ID) + "/ui.css";
 document.head.appendChild(cssLink);
+const baseCss = document.createElement("link");
+baseCss.rel = "stylesheet";
+baseCss.href = "/ui.css";
+document.head.appendChild(baseCss);
 try {
   await import("/api/app/" + encodeURIComponent(APP_ID) + "/ui/entry.js");
 } catch (e) {

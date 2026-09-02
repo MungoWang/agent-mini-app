@@ -1,6 +1,9 @@
 /**
- * Mini-app authoring SDK: product API only (components + useApp).
- * React hooks come from `react` — the host maps that to the shared runtime.
+ * Mini-app authoring SDK — the **only** package a mini-app imports.
+ * UI: hooks come from `react`; `useApp` + the component kit from here.
+ * Backend (`main.api.ts`): `defineApp` here is the author-facing contract;
+ * the host injects the runtime version when it loads the file.
  */
-export { AppRuntime, useApp, useDashboardApi } from "./use-app.ts";
+export * from "./app.ts";
+export { AppRuntime, useApp } from "./use-app.ts";
 export * from "@monkey-mini-app/ui";

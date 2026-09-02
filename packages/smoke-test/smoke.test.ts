@@ -36,8 +36,8 @@ describe("smoke: createHost register → call → tools", () => {
         entry: "ui.tsx",
       }),
       "ui.tsx": "export default function Ui(){ return <div>ok</div>; }",
-      "main.api.ts": `import { defineDashboard } from "@monkeyagent/dashboard";
-export default defineDashboard({
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
+export default defineApp({
   name: "Smoke",
   description: "smoke",
   api: {

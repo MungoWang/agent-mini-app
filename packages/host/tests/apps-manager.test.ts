@@ -32,9 +32,9 @@ function boot(caps: HostCapabilities = {}): {
   return { root, config, paths, git, apps };
 }
 
-function dashboardSource(body: string): string {
-  return `import { defineDashboard } from "@monkeyagent/dashboard";
-export default defineDashboard({
+function appSource(body: string): string {
+  return `import { defineApp } from "@monkey-mini-app/sdk";
+export default defineApp({
   name: "Fixture",
   description: "fixture app",
   api: {
@@ -91,7 +91,7 @@ describe("AppsManager", () => {
         acronym: "TD",
       }),
       "ui.tsx": "export default function Ui() { return null }",
-      "main.api.ts": dashboardSource("ping: async (_ctx, args) => ({ ok: true, args }),"),
+      "main.api.ts": appSource("ping: async (_ctx, args) => ({ ok: true, args }),"),
     });
     expect(app.id).toBe("com.example.todo");
     expect(app.name).toBe("Todo");
@@ -147,7 +147,7 @@ describe("AppsManager", () => {
         version: "1.0.0",
         entry: "ui.tsx",
       }),
-      "main.api.ts": dashboardSource(`
+      "main.api.ts": appSource(`
         ping: async (ctx, args) => ({ ok: true, args, port: ctx.config.hostPort }),
         bash: async (ctx, args) => ctx.bash(String((args as { cmd: string }).cmd)),
         talk: async (ctx, args) => ctx.llm(String((args as { p: string }).p)),
@@ -188,7 +188,7 @@ describe("AppsManager", () => {
           version: "1.0.0",
           entry: "ui.tsx",
         }),
-        "main.api.ts": dashboardSource(`
+        "main.api.ts": appSource(`
           metrics: async (ctx) => ctx.system.metrics(),
           net: async (ctx) => ctx.http("https://example.com/ping"),
         `),
@@ -202,7 +202,7 @@ describe("AppsManager", () => {
     }
   });
 
-  it("compiles TypeScript in main.api and relative lib imports", async () => {
+  it("compiles TypeScript in main.api and relative helper imports", async () => {
     const { apps } = boot();
     await apps.register("com.example.ts", {
       "manifest.json": JSON.stringify({
@@ -212,9 +212,9 @@ describe("AppsManager", () => {
         entry: "ui.tsx",
       }),
       "lib/math.ts": "export function double(n: number): number { return n * 2; }\n",
-      "main.api.ts": `import { defineDashboard } from "@monkeyagent/dashboard";
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
 import { double } from "./lib/math";
-export default defineDashboard({
+export default defineApp({
   name: "TS",
   description: "typed",
   api: {
@@ -228,6 +228,71 @@ export default defineDashboard({
     await expect(apps.call("com.example.ts", "run", { n: 4 })).resolves.toEqual({ n: 8 });
   });
 
+  it("accepts any in-app relative subfolder (folder names are convention, not allowlist)", async () => {
+    const { apps } = boot();
+    await apps.register("com.example.tree", {
+      "manifest.json": JSON.stringify({
+        id: "com.example.tree",
+        name: "Tree",
+        version: "1.0.0",
+        entry: "ui.tsx",
+      }),
+      "utils/triple.ts": "export const triple = (n: number): number => n * 3;\n",
+      "api/wrap.ts": "import { triple } from \"../utils/triple\";\nexport const wrap = (n: number) => `=${triple(n)}`;\n",
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
+import { wrap } from "./api/wrap";
+export default defineApp({
+  name: "Tree",
+  description: "folders",
+  api: { run: async (_ctx, args: { n: number }) => wrap(args.n) },
+});
+`,
+    });
+    await expect(apps.call("com.example.tree", "run", { n: 3 })).resolves.toBe("=9");
+  });
+
+  it("rejects backend imports from the UI-only tree (ui/**)", async () => {
+    const { apps } = boot();
+    await apps.register("com.example.uitree", {
+      "manifest.json": JSON.stringify({
+        id: "com.example.uitree",
+        name: "UiTree",
+        version: "1.0.0",
+        entry: "ui.tsx",
+      }),
+      "ui/label.ts": "export const label = \"hello\";\n",
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
+import { label } from "./ui/label";
+export default defineApp({
+  name: "UiTree",
+  description: "crosses the line",
+  api: { ping: async () => label },
+});
+`,
+    });
+    await expect(apps.call("com.example.uitree", "ping", {})).rejects.toThrow(/ui\/\*\* is UI-only/);
+  });
+
+  it("rejects the removed virtual dashboard module", async () => {
+    const { apps } = boot();
+    await apps.register("com.example.legacy", {
+      "manifest.json": JSON.stringify({
+        id: "com.example.legacy",
+        name: "Legacy",
+        version: "1.0.0",
+        entry: "ui.tsx",
+      }),
+      "main.api.ts": `import { defineDashboard } from "@monkeyagent/dashboard";
+export default defineDashboard({
+  name: "Legacy",
+  description: "pre-unification",
+  api: { ping: async () => 1 },
+});
+`,
+    });
+    await expect(apps.call("com.example.legacy", "ping", {})).rejects.toThrow(/@monkeyagent\/dashboard/);
+  });
+
   it("rejects backend npm imports and unknown methods", async () => {
     const { apps } = boot();
     await apps.register("com.example.bad", {
@@ -238,8 +303,8 @@ export default defineDashboard({
         entry: "ui.tsx",
       }),
       "main.api.ts": `import fs from "node:fs";
-import { defineDashboard } from "@monkeyagent/dashboard";
-export default defineDashboard({
+import { defineApp } from "@monkey-mini-app/sdk";
+export default defineApp({
   name: "Bad",
   description: "nope",
   api: { ping: async () => fs.existsSync(".") },
@@ -254,7 +319,7 @@ export default defineDashboard({
         version: "1.0.0",
         entry: "ui.tsx",
       }),
-      "main.api.ts": dashboardSource("ping: async () => 1,"),
+      "main.api.ts": appSource("ping: async () => 1,"),
     });
     await expect(apps.call("com.example.ok", "missing", {})).rejects.toThrow(HostError);
   });
@@ -268,7 +333,7 @@ export default defineDashboard({
         version: "1.0.0",
         entry: "ui.tsx",
       }),
-      "main.api.ts": dashboardSource("talk: async (ctx) => ctx.llm('hi'),"),
+      "main.api.ts": appSource("talk: async (ctx) => ctx.llm('hi'),"),
     });
     await expect(apps.call("com.example.caps", "talk", {})).rejects.toThrow(/llm/);
   });
@@ -282,7 +347,7 @@ export default defineDashboard({
         version: "1.0.0",
         entry: "ui.tsx",
       }),
-      "main.api.ts": dashboardSource("ping: async () => 1,"),
+      "main.api.ts": appSource("ping: async () => 1,"),
     });
     await apps.remove("com.example.gone");
     expect(await apps.list()).toEqual([]);

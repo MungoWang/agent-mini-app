@@ -8,6 +8,9 @@ describe("appRunnerHtml", () => {
     expect(html).toContain("<title>a&amp;b&lt;&quot;&#39;&gt;</title>");
     expect(html).toContain("const APP_ID = ");
     expect(html).toContain("/ui.css");
+    expect(html).toContain("/mma/runtime.js");
+    expect(html).toContain("/mma/sdk.js");
+    expect(html).toContain("importmap");
     expect(html).toContain("mma-set-env");
   });
 

@@ -13,7 +13,7 @@ function tool(services: { tools: { definitions(): ToolDefinition[] } }, name: st
 const files = {
   "manifest.json": JSON.stringify({ id: "com.smoke.tool", name: "Tool", version: "1.0.0", entry: "ui.tsx" }),
   "ui.tsx": `export default function Ui(){ return <div>v1</div>; }`,
-  "main.api.ts": `import { defineDashboard } from "@monkeyagent/dashboard";\nexport default defineDashboard({ name: "T", description: "t", api: { ping: async () => ({ ok: true }) } });\n`,
+  "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";\nexport default defineApp({ name: "T", description: "t", api: { ping: async () => ({ ok: true }) } });\n`,
 };
 
 describe("S3 · model-view tool loop (mini_app_*)", () => {

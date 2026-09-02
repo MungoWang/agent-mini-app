@@ -13,7 +13,8 @@ import {
 
 function skillRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  return path.join(here, "..", "dsh", "skills", "monkey-mini-app");
+  // Canonical skill: `packages/<adapter>/skills/**` exists only during prepack.
+  return path.join(here, "..", "..", "skills", "monkey-mini-app");
 }
 
 function readTemplateFiles(name: string): Record<string, string> {

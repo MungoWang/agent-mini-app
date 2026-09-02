@@ -36,8 +36,8 @@ function boot(): {
   return { config, paths, git, apps, tools, events };
 }
 
-const pingApi = `import { defineDashboard } from "@monkeyagent/dashboard";
-export default defineDashboard({
+const pingApi = `import { defineApp } from "@monkey-mini-app/sdk";
+export default defineApp({
   name: "Ping",
   description: "ping",
   api: { ping: async (_ctx, args) => ({ ok: true, args }) },

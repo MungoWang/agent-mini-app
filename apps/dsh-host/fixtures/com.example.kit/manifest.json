@@ -1,0 +1,9 @@
+{
+  "id": "com.example.kit",
+  "name": "组件库",
+  "description": "主流组件分区展示：表单 / 日期 / 数据 / 编辑器 / 看板日历 / 图表",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "theme": { "followsHost": true },
+  "acronym": "KIT"
+}

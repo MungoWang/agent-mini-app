@@ -39,11 +39,7 @@ export async function apply(ctx: DshCtx, config: DshPluginConfig = {}): Promise<
     {
       config: hostConfig,
       themes,
-      about: {
-        adapter: "dsh",
-        packageName,
-        env: process.env.NODE_ENV ?? "production",
-      },
+      // about: { adapter, packageName, env } — wire when createHost accepts HostAboutMeta
     },
   );
   let port: number;

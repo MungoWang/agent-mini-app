@@ -4,7 +4,8 @@ import type { Root } from "react-dom/client";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { AppRuntime, useApp, useDashboardApi } from "../src/use-app.ts";
+import { defineApp } from "../src/app.ts";
+import { AppRuntime, useApp } from "../src/use-app.ts";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -126,7 +127,12 @@ describe("useApp", () => {
     await expect(api!.call("ping")).rejects.toThrow("call failed");
   });
 
-  it("keeps useDashboardApi as an alias of useApp", () => {
-    expect(useDashboardApi).toBe(useApp);
+  it("defineApp returns the definition unchanged (host validates at load)", () => {
+    const def = defineApp({
+      name: "n",
+      description: "d",
+      api: { ping: async () => "pong" },
+    });
+    expect(Object.keys(def.api)).toEqual(["ping"]);
   });
 });

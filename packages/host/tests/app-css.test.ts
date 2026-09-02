@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { bootstrapHostConfig, createHost, type HostServices } from "@monkey-mini-app/host";
 
-const api = `import { defineDashboard } from "@monkeyagent/dashboard";
-export default defineDashboard({ name: "P", description: "p", api: { ping: async () => ({ ok: true }) } });
+const api = `import { defineApp } from "@monkey-mini-app/sdk";
+export default defineApp({ name: "P", description: "p", api: { ping: async () => ({ ok: true }) } });
 `;
 
 const ui = `export default function Ui() {

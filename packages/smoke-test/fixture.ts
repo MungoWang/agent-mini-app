@@ -7,7 +7,7 @@ import { bootstrapHostConfig, createHost, type HostServices, type Host } from "@
 export type TemplateFiles = Record<string, string>;
 
 export function templateDir(name: string): string {
-  return path.join("packages/dsh/skills/monkey-mini-app/templates", name);
+  return path.join("skills/monkey-mini-app/templates", name);
 }
 
 export function readTemplate(name: string): TemplateFiles {

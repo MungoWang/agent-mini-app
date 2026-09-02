@@ -30,8 +30,8 @@ function fakeCapabilities(): HostCapabilities {
   };
 }
 
-const pingApi = `import { defineDashboard } from "@monkeyagent/dashboard";
-export default defineDashboard({
+const pingApi = `import { defineApp } from "@monkey-mini-app/sdk";
+export default defineApp({
   name: "Ping",
   description: "ping",
   api: { ping: async (_ctx, args) => ({ pong: true, args }) },
@@ -214,6 +214,8 @@ describe("HttpGateway", () => {
     expect(html).toContain('const APP_ID = "com.example.todo"');
     expect(html).toContain('import("/api/app/" + encodeURIComponent(APP_ID) + "/ui/entry.js")');
     expect(html).toContain("/ui.css");
+    expect(html).toContain("/mma/runtime.js");
+    expect(html).toContain("/mma/sdk.js");
   });
 
   it("GET /app/:appId injects ThemeResource.runnerCss", async () => {
@@ -250,8 +252,24 @@ describe("HttpGateway", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toMatch(/javascript/);
     const js = await res.text();
-    expect(js.length).toBeGreaterThan(100);
+    expect(js.length).toBeGreaterThan(20);
     expect(js).toContain("hello-mini-app");
+    expect(js).toContain("/mma/runtime.js");
+    expect(js).toContain("/mma/sdk.js");
+  });
+
+  it("GET /mma/runtime.js and /mma/sdk.js serve the platform files", async () => {
+    await startHost();
+    const runtime = await fetch(`${origin()}/mma/runtime.js`);
+    expect(runtime.status).toBe(200);
+    const runtimeJs = await runtime.text();
+    expect(runtimeJs).toContain("useState");
+    expect(runtimeJs).toContain("createRoot");
+    const sdk = await fetch(`${origin()}/mma/sdk.js`);
+    expect(sdk.status).toBe(200);
+    const sdkJs = await sdk.text();
+    expect(sdkJs).toContain("useApp");
+    expect(sdkJs).toContain("/mma/runtime.js");
   });
 
   it("GET /ui.css serves the ui dist stylesheet", async () => {
@@ -374,4 +392,42 @@ describe("HttpGateway", () => {
     expect(body.error).toMatch(/not found/i);
     expect(invoke).not.toHaveBeenCalled();
   });
+
+  it("rebounds HTTP when hostPort changes", async () => {
+    await startHost();
+    const oldPort = host!.port;
+    const { createServer } = await import("node:net");
+    const free = await new Promise<number>((resolve, reject) => {
+      const probe = createServer();
+      probe.once("error", reject);
+      probe.listen(0, "127.0.0.1", () => {
+        const addr = probe.address();
+        const p = typeof addr === "object" && addr ? addr.port : 0;
+        probe.close((err) => (err ? reject(err) : resolve(p)));
+      });
+    });
+    const res = await fetch(`http://127.0.0.1:${oldPort}/api/host-config`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ hostPort: free }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { ok: boolean; hostPort: number };
+    expect(body.hostPort).toBe(free);
+    let up = false;
+    for (let i = 0; i < 25; i++) {
+      try {
+        const health = await fetch(`http://127.0.0.1:${free}/health`);
+        if (health.ok) {
+          up = true;
+          break;
+        }
+      } catch {
+        /* rebind in flight */
+      }
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    expect(up).toBe(true);
+    expect(host!.port).toBe(free);
+  }, 15_000);
 });

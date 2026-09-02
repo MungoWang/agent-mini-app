@@ -1,98 +1,120 @@
 # AGENTS.md
 
-本仓库给 **Grok CLI / 其他 coding agent** 用。
+For **Grok CLI / other coding agents**.
 
-1. 先读 **[`docs/README.md`](docs/README.md)**（文档纪律 + 索引）。
-2. 改码看下表；生成 mini-app 看 skill：`packages/dsh/skills/monkey-mini-app/`。
+The **product is the mini-app platform** (`host` / `panel` / `sdk`). dsh is the shipped host adapter; pi is not implemented (`docs/rfcs/pi-extension-port.md`). Do not write dsh as the only product.
 
-网页 Grok 沙箱 ≠ 本机仓库。在本机目录改文件，改完 `pnpm --filter @monkey-mini-app/dsh-mini-app build`，重启 dsh web，硬刷新浏览器。
+1. Read **[`docs/README.md`](docs/README.md)** first (doc rules + index).
+2. Code map below; generating mini-apps: skill `skills/monkey-mini-app/` (platform; adapters copy on pack).
 
-## 文档纪律（必守）
+Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit files here → `pnpm --filter @monkey-mini-app/dsh-mini-app build` → restart dsh web → hard-refresh.
 
-- 架构 → `docs/architecture/`；契约 → `docs/contracts/`；未落地调研 → `docs/rfcs/`。
-- **禁止**在仓库根或 `docs/` 根新建长文（仅 `docs/README.md` 例外）。
-- `docs/archive/**` 只读，不作实现依据。
-- Skill 实现契约以 `packages/dsh/skills/monkey-mini-app/` 为唯一源。
+## Doc rules
 
-## 改哪里
+- **Language: developer-facing text is English by default.** Applies to `docs/**`, `README.md`, code comments, JSDoc, commit/PR text, and the skill (`skills/monkey-mini-app/**`).
+ - **Keep the two languages apart by audience, not by file type:** *instructions* (what a reader/agent must do) are always English; *sample product copy* (strings a mini-app renders — template `ui.tsx` labels, `manifest.name`, error text shown to the end user) follows the host locale and stays Chinese in the samples.
+ - Customer-facing `README.md` may have a `README.zh.md` twin. **When you change one, change the other in the same commit** — an out-of-date translation is a bug, not a TODO.
+ - Personal / working notes (`TODO.md`, `LOCAL.md`, scratch RFCs) may stay Chinese if that is faster for the author; anything published or read by agents should be English.
+- Architecture → `docs/architecture/`; contracts → `docs/contracts/`; unshipped research → `docs/rfcs/`.
+- **Do not** add long essays at repo root or `docs/` root (`docs/README.md` excepted).
+- `docs/archive/**` is read-only; not an implementation source.
+- Skill contract source of truth: `skills/monkey-mini-app/` (not an npm package; `scripts/gen/skill/copy.mjs` copies into adapters on pack).
+- `references/catalog.md` + `references/contracts/**` are **generated** — never hand-edit; add JSDoc `@when` / `@example` on the component instead, then `pnpm gen:skill`. `pnpm check:skill` fails on legacy UI specifiers, invented `ctx.*` / `mini_app_*` names, inherited-prop dumps, and broken tables.
 
-| 目标 | 文件 |
+## Where to edit
+
+| Goal | Path |
 |------|------|
-| host 能力（AppsManager / Git / Hono / UI 编译 / tools） | `packages/host/src/` |
-| 纯 React 面板（PanelHost） | `packages/panel/src/` |
-| dsh 插件 + client + skills | `packages/dsh/`（npm：`@monkey-mini-app/dsh-mini-app`） |
-| 生成 app 的说明书 | `packages/dsh/skills/monkey-mini-app/` |
-| UI 组件库 | `packages/ui/` → `node scripts/build-ui.mjs` |
-| 组件库 skill 契约 | `scripts/generate-skill.mjs` → `pnpm skill:gen` |
-| demo gallery | `apps/demo-host/`（`:5173`） |
-| 安装到 dsh web profile | `scripts/install-dsh-mini-app.sh` |
-| 现行架构说明 | `docs/architecture/overview.md` |
+| Platform host (AppsManager / Git / Hono / UI compile / tools) | `packages/host/src/` |
+| Platform panel (`PanelHost`, host-agnostic) | `packages/panel/src/` |
+| Mini-app author SDK | `packages/sdk/` → `node scripts/build/sdk.mjs` |
+| UI kit | `packages/ui/` → `node scripts/build/ui.mjs` |
+| dsh adapter (plugin + client + skills) | `packages/dsh/` (npm: `@monkey-mini-app/dsh-mini-app`) |
+| Mini-app authoring skill (platform) | `skills/monkey-mini-app/` |
+| UI skill contracts (generated) | `scripts/gen/skill/` → `pnpm gen:skill`; gate `scripts/check/skill.mjs` → `pnpm check:skill` (see `scripts/README.md`) |
+| Host-free demo | `pnpm dev:host`; gallery `apps/demo-host/` |
+| dsh path-link on a dev machine | `scripts/setup/install-dsh-plugin.sh` |
+| pi adapter | **not implemented**; `docs/rfcs/pi-extension-port.md` |
+| Live architecture | `docs/architecture/overview.md` |
 
-`packages/dsh/lib/` 是 tsup 产物（gitignore）。
+`packages/dsh/lib/` is tsup output (gitignored).
 
-## 架构要点
+## Architecture
 
-- 组合根：`createHost(DshCapabilities, DshLifecycle, { config }).apply(ctx)`。
-- 接缝名：`HostCapabilities` / `HostLifecycle` / `PanelHost`（不要再加 `Adapter` 主接缝）。
-- `HostCapabilities.*(callCtx, …)`；`bindCapsToContext` → 作者 `ctx.*`；opts 不 merge。
-- 路径只经 `WorkspacePaths`；业务代码禁止硬编码 `~/.monkey-mini-app`。
-- 配置：插件首启自动 `bootstrapHostConfig` 写完整 `host.json`（缺才建）；host.json 已存在但损坏仍 fail loud。
-- git：产品代码 `isomorphic-git`（`packages/host/src/git/`），禁止 `child_process` git CLI。
-- UI：host esbuild 打单文件 ESM；iframe 内不编译。
-- 旧包已删；快照 tag：`archive/pre-cutover-legacy-2026-08-29`。
+- Composition root: `createHost(capabilities, lifecycle, { config }).apply(ctx)`. dsh passes `DshCapabilities` / `DshLifecycle`; a new host implements its own. Do not leak dsh types into `host` / `panel` / `sdk`.
+- Seam names: `HostCapabilities` / `HostLifecycle` / `PanelHost` (do not add an `Adapter` primary seam).
+- `HostCapabilities.*(callCtx, …)`; `bindCapsToContext` → author `ctx.*`; opts are not merged.
+- Paths only via `WorkspacePaths`; product code must not hardcode `~/.monkey-mini-app`.
+- Config: first plugin boot `bootstrapHostConfig` writes a full `host.json` if missing; a present-but-corrupt file fails loud.
+- git: `isomorphic-git` in `packages/host/src/git/`; no `child_process` git CLI.
+- UI: host compiles instance `ui.tsx` to ESM; `react` → `/mma/runtime.js`, SDK → `/mma/sdk.js`. No compile inside the iframe.
+- Old packages deleted; snapshot tag: `archive/pre-cutover-legacy-2026-08-29`.
 
-## 硬约束（违反即坏 app）
+## Hard constraints (broken apps if violated)
 
-1. UI 只许 `import`：`react(-dom)` / `lucide-react` / `@monkey-mini-app/ui` / `@monkeyagent/host` / 相对 `./lib`。**禁止** `main.api.ts`、以及其它 npm 包（app 目录在 `~/.monkey-mini-app/runtime/apps/<id>`，无 node_modules；ui-compiler 只特判这些 + 相对路径）。调用接口只用 `useDashboardApi()` → `{ call(method, args) }`。
-   - 图标：`import { Icon } from "@monkey-mini-app/ui"` 后 `<Icon.HelpCircle />`（去掉了直接 import lucide —— 一律从 ui 拿，命名空间）。
-   - 插图：`@monkey-mini-app/ui` 导出 `IlluXxx` 空状态场景（unDraw 源，免费/MIT；`scripts/vendor-undraw.mjs` 已把固定调色板 token 化：accent→`--primary`、灰阶→`--muted`/`--card`等），勿硬编码 hex；强调色由 `--primary-svg-color: var(--primary)` 控制。
-2. `call` 的 method 必须是 `defineDashboard({ api })` 的键。
-3. 后端可 `import "./lib/..."`，不可 npm / Node 内置。网：`ctx.http`；本机：`ctx.bash`；模型：`ctx.llm`。
-4. `compileAppSource` 用 sucrase，禁止正则全局剥 `: type`。UI 编译在 `packages/host/src/compile/ui-compiler.ts`。
-5. `ctx.llm` 走 dsh `llm.stream({ provider, model, messages })`。
-6. `ctx.http` → `{ ok, status, headers, text, json }`；`ctx.bash` → `{ stdout, stderr, exitCode }`；`ctx.llm` / `ctx.tool` → **string**。MCP args 禁止 `{ input: "..." }`。
-7. iframe 必须撑满高度；`#root.boot` 只用于加载插画，React mount 前清掉。
-8. 小程序入口与「设置」同一套折叠 class；点入口用 `data-mma-open` 事件委托。
-9. 组件库 dist `index.js` 须为扁平具名 re-export；改导出名后重跑 `node scripts/build-ui.mjs`。
-10. esbuild-wasm 不可打包的依赖必须 external（dsh `tsup.config.ts` 已配）。
-11. 运行时不发明 `host.json` 缺省字段；插件首启对**缺失**文件自动 bootstrap 写完整 `host.json`；对**已存在但损坏**的文件 fail loud（不静默覆盖）。
+1. A mini-app imports **exactly one** platform package: `@monkey-mini-app/sdk` (plus `react` in the UI). UI may not import `main.api.ts`, `api/**`, or any other npm package. Hooks from `react`; components and `useApp()` → `{ call(method, args) }` from the SDK. Compiler: `react` → `/mma/runtime.js`, SDK → `/mma/sdk.js`; relative imports that leave the app dir fail. Legacy specifiers (`@monkeyagent/host`, `@monkey-mini-app/ui`, `useDashboardApi`) are **removed** — no aliases.
+ - Icons: `import { Icon } from "@monkey-mini-app/sdk"` then `<Icon.HelpCircle />`.
+ - Illustrations: `IlluXxx` from the SDK (unDraw, MIT; `scripts/gen/illustrations.mjs` tokenizes accent→`--primary`, greys→`--muted`/`--card`). No hard-coded hex. Accent via `--primary-svg-color: var(--primary)`.
+2. `call` methods must be keys of `defineApp({ api })`.
+3. Backend `main.api.ts` imports `defineApp` from `@monkey-mini-app/sdk` (the host injects the runtime copy — nothing React is loaded) + relative paths inside the app dir; no npm / Node builtins / `ui/**`. Layout: `ui/` UI-only · `api/` backend-only · `shared/` pure-isomorphic (enforced both ways). Net: `ctx.http`; machine: `ctx.bash`; model: `ctx.llm`.
+4. `compileAppSource` uses sucrase; no regex global strip of `: type`. UI compile: `packages/host/src/compile/ui-compiler.ts`.
+5. `ctx.llm` goes through `HostCapabilities.llm`; only the dsh adapter uses `llm.stream({ provider, model, messages })`. Do not hardcode dsh in `host`.
+6. `ctx.http` → `{ ok, status, headers, text, json }`; `ctx.bash` → `{ stdout, stderr, exitCode }`; `ctx.llm` / `ctx.tool` → **string**. MCP args must not be `{ input: "..." }`.
+7. iframe must fill height; `#root.boot` is load art only — clear it before React mount.
+8. Mini-app entry shares collapse classes with Settings; open via `data-mma-open` event delegation.
+9. UI kit dist `index.js` must be a flat named re-export; after rename re-run `node scripts/build/ui.mjs` then `node scripts/build/sdk.mjs`.
+10. Deps esbuild-wasm cannot bundle must be external (dsh adapter `tsup.config.ts`; other hosts the same).
+11. Runtime does not invent missing `host.json` fields; first boot bootstraps a **missing** file; a **present-but-corrupt** file fails loud.
+12. Heavy editors load from CDN on demand (`esm.sh`), **not** npm peers: `CodeEditor` → CodeMirror 6; `CodeBlock` / `DiffViewer` → shiki. `RichTextEditor` is local contentEditable (no TipTap/CDN). Do not `import` CM/shiki packages in mini-apps; do not load a second React (`@uiw/react-codemirror` `+esm`). On CDN failure CM/shiki degrade (textarea / no highlight) — users must not `pnpm add` them.
 
-## 代码风格（eslint，可 autofix）
+## UI kit i18n (required for new/changed components)
 
-`packages/host|panel|dsh` 统一：
+`packages/ui` chrome strings (toolbar labels, empty states, aria-labels, relative time) **must** go through `useLabels("…")` + keys in `packages/ui/src/i18n/en.ts` **and** `zh.ts`. Do not hardcode user-facing English in products/blocks/composites.
 
-- 双引号 + 分号
-- `import type { … }` 与值 import 分开（`consistent-type-imports`）
-- import 分组排序（`node:` → 外部包 → `@monkey-*` → 相对路径）
+- Add both `en` and `zh` in the same change; `UiMessages` is inferred from `en`.
+- Prefer `useDateLocale()` for `toLocaleDateString` / `toLocaleTimeString` instead of hardcoded `"en-US"`.
+- Technical tokens may stay English (log level abbreviations `ERR`/`WRN`, env keys, commit hashes).
+- When porting third-party UI, strip their hardcoded chrome and rewire to `useLabels` before merging.
+- After adding keys: rebuild is not enough for authors — keep skill contracts via `pnpm gen:skill` when public props change.
+
+## Style (eslint, autofix)
+
+`packages/host|sdk|panel|dsh`:
+
+- Double quotes + semicolons
+- `import type { … }` split from value imports
+- Import groups: `node:` → externals → `@monkey-*` → relative
 
 ```bash
-pnpm lint:fix   # 自动修引号 / 分号 / import
+pnpm lint:fix
 pnpm lint
 ```
 
-## 开发 vs 发布（哪些脚本什么时候跑）
+## Dev vs publish
 
-**开发时跑（不进发布链路）**：`pnpm test` / `test:coverage` / `lint` / `lint:fix` / `typecheck` / `build` / `build:ui` / `skill:gen` / `smoke`。`scripts/vendor-undraw.mjs`（重下插图）只在改插图源时手动跑，**绝不进发布**。
+**Dev (not in the publish pipeline):** `pnpm test` / `test:coverage` / `lint` / `lint:fix` / `typecheck` / `build` / `build:ui` / `gen:skill` / `smoke`. `scripts/gen/illustrations.mjs` only when changing illustration sources — **never in publish**.
 
-**发布时跑（已 hook 到 npm 生命周期，不用记）**：
-- `pnpm publish`（根私有，只作编排）= `publish:prep`（`build:ui` → `skill:gen` → `build`）+ `pnpm -r publish`（按依赖拓扑序：ui 先于 dsh）。
-- 单包也得对：`@monkey-mini-app/ui` 的 `prepack` 已 build-ui；`@monkey-mini-app/dsh-mini-app` 的 `prepublishOnly` 会先 build ui、再 `skill:gen` 同步 skill 文档、再 tsup 打 lib —— 因为 `skills/` 是发布内容，ui 组件变了必须同步。
-- `@monkey-mini-app/host` 无 build（`exports` 直指源 TS，消费方打包器转译），无需 hook。
+**Publish:**
+- `pnpm publish:packages` (`scripts/release/publish.mts`): `pnpm test:dsh` first (Verdaccio + real dsh web), then npm publish ui → sdk → host → panel → dsh. Emergency skip: `--skip-e2e`.
+- Package hooks: ui `prepack` → build-ui; sdk `prepack` → runtime/sdk.js; host `prepack` → tsup `dist/`; dsh `prepublishOnly` → ui+sdk + `gen:skill` + tsup (**no** `prepare`; `dsh plugin add` does not compile on the user machine).
 
-## 交付门禁
+## Gates
+
+Repo automation lives under `scripts/` by lifecycle stage — see [`scripts/README.md`](scripts/README.md).
+
 
 ```bash
 pnpm lint
+pnpm skill           # gen:skill + check:skill
 pnpm test
 pnpm test:coverage   # host/panel/dsh lines ≥85%
 pnpm exec tsc -b
 pnpm --filter @monkey-mini-app/dsh-mini-app build
 ```
 
-`tsc -b` 覆盖 `src` **和** `tests`（根 `tsconfig.json` + 各包 `tsconfig.json` 的 `include` 都含 `tests`，host/panel 的 `rootDir` 已改为 `.`）。
-**禁止**再往 exclude 里塞 `**/*.test.ts`：测试文件一旦不属于任何 tsconfig，编辑器会退回 inferred project（默认非 strict）单独检查，结果就是「IDE 飘红、门禁全绿」两边对不上。报「类型全绿」前先确认跑的是根 `pnpm exec tsc -b`。
+`tsc -b` includes `src` **and** `tests`. **Do not** put `**/*.test.ts` in exclude: orphan tests fall into an inferred (non-strict) project — IDE red, CI green. Before claiming types are clean, run root `pnpm exec tsc -b`.
 
-## 验证
+## Verify
 
 ```bash
 node --check packages/dsh/lib/index.js
@@ -100,10 +122,10 @@ node --check packages/dsh/lib/client.js
 curl -s http://127.0.0.1:17880/api/apps
 ```
 
-打开「小程序」：列表、打开 Todo、侧栏折叠、钉到右侧、内容不被裁成一条缝。
+Open `小程序` (the mini-app panel): list, open Todo, collapse rail, dock right, content not a slit.
 
-## 生成新 mini app
+## New mini-app
 
-按 skill 写 `manifest.json` + `ui.tsx` + `main.api.ts`（+ `lib/`）。组件从 `@monkey-mini-app/ui` import，`useDashboardApi` 从 `@monkeyagent/host` import。样例：skill `templates/`。
+Follow the skill: `manifest.json` + `ui.tsx` + `main.api.ts` (+ `ui/` `api/` `shared/`). Both sides import `@monkey-mini-app/sdk` (`useApp` / `defineApp`, components). Samples: skill `templates/`.
 
-改协议时同步 `docs/contracts/` 与 skill。
+When changing protocol, update `docs/contracts/` and the skill.

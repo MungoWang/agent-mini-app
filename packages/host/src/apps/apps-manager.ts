@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import os from "node:os";
@@ -66,31 +67,32 @@ export type AppContext = {
   http(url: string | HttpRequest, opts?: Omit<HttpRequest, "url">): Promise<HttpResponse>;
   system: { metrics(): Promise<Record<string, unknown>> };
   config: Record<string, unknown>;
-  /** Cancel signal for the current dashboard API call. */
+  /** Cancel signal for the current app API call. */
   signal?: AbortSignal;
 };
 
-export type DashboardMethod = (ctx: AppContext, args: unknown) => unknown | Promise<unknown>;
+export type AppMethod = (ctx: AppContext, args: unknown) => unknown | Promise<unknown>;
 
-export type DashboardDef = {
+export type AppDef = {
   name: string;
   description: string;
-  api: Record<string, DashboardMethod>;
+  api: Record<string, AppMethod>;
   state?: Record<string, unknown>;
 };
 
-type CachedDashboard = { mtime: number; def: DashboardDef; ctx: AppContext };
+type CachedApp = { mtime: number; def: AppDef; ctx: AppContext };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function defineDashboard(def: DashboardDef): DashboardDef {
+/** Runtime twin of the SDK's `defineApp` — this one actually validates. */
+function defineApp(def: AppDef): AppDef {
   if (!def.name || !def.description) {
-    throw new HostError("INVALID_DASHBOARD", "defineDashboard requires name and description");
+    throw new HostError("INVALID_APP", "defineApp requires name and description");
   }
   if (!def.api || typeof def.api !== "object") {
-    throw new HostError("INVALID_DASHBOARD", "defineDashboard.api must be an object");
+    throw new HostError("INVALID_APP", "defineApp.api must be an object");
   }
   return def;
 }
@@ -145,6 +147,20 @@ function makeFileStorage(appDir: string, fileName: string): AppStorage {
   };
 }
 
+/**
+ * `ui/**` is the UI-only tree. Backend code that reaches into it drags React
+ * into a Node-side module graph — move the logic to `shared/**` instead.
+ */
+function assertBackendTree(appDir: string, abs: string, spec: string): void {
+  const rel = path.relative(path.resolve(appDir), abs).split(path.sep).join("/");
+  if (rel === "ui" || rel.startsWith("ui/")) {
+    throw new HostError(
+      "BACKEND_IMPORT",
+      `backend cannot import '${spec}': ui/** is UI-only — put shared logic in shared/**`,
+    );
+  }
+}
+
 function resolveAppModule(fromFile: string, spec: string, appDir: string): string {
   const root = path.resolve(appDir);
   const base = spec.startsWith(".")
@@ -179,21 +195,21 @@ type CjsModule = { exports: unknown };
 type CjsRequire = (spec: string) => unknown;
 type CompiledFactory = (module: CjsModule, exports: unknown, require: CjsRequire) => unknown;
 
-function asDashboardDef(value: unknown): DashboardDef {
+function asAppDef(value: unknown): AppDef {
   const exported = isRecord(value) && "default" in value ? value.default : value;
   if (!isRecord(exported)) {
-    throw new HostError("INVALID_DASHBOARD", "main.api must export a dashboard");
+    throw new HostError("INVALID_APP", "main.api must export defineApp({ name, description, api })");
   }
   if (typeof exported.name !== "string" || typeof exported.description !== "string") {
-    throw new HostError("INVALID_DASHBOARD", "dashboard requires name and description");
+    throw new HostError("INVALID_APP", "app requires name and description");
   }
   if (!isRecord(exported.api)) {
-    throw new HostError("INVALID_DASHBOARD", "dashboard.api must be an object");
+    throw new HostError("INVALID_APP", "app.api must be an object");
   }
-  const api: Record<string, DashboardMethod> = {};
+  const api: Record<string, AppMethod> = {};
   for (const [key, fn] of Object.entries(exported.api)) {
     if (typeof fn === "function") {
-      api[key] = fn as DashboardMethod;
+      api[key] = fn as AppMethod;
     }
   }
   const state = isRecord(exported.state) ? exported.state : undefined;
@@ -226,7 +242,7 @@ export type ReloadResult = {
 
 /** Loads, registers, and executes mini-apps under WorkspacePaths.appsDir(). */
 export class AppsManager {
-  private readonly dashboardCache = new Map<string, CachedDashboard>();
+  private readonly appCache = new Map<string, CachedApp>();
   private uiCompiler: UiCompiler | null = null;
 
   constructor(
@@ -482,10 +498,10 @@ export class AppsManager {
     await rm(dir, { recursive: true, force: true });
   }
 
-  load(appId: string): { def: DashboardDef; ctx: AppContext } {
+  load(appId: string): { def: AppDef; ctx: AppContext } {
     const dir = this.dirOf(appId);
-    const mtime = this.dashboardMtime(dir);
-    const hit = this.dashboardCache.get(dir);
+    const mtime = this.appMtime(dir);
+    const hit = this.appCache.get(dir);
     if (hit && hit.mtime === mtime) {
       return hit;
     }
@@ -493,7 +509,7 @@ export class AppsManager {
     const storage = makeFileStorage(dir, "main.storage.json");
     const ctx = this.buildCtx(storage, def, asAppId(appId));
     const rec = { mtime, def, ctx };
-    this.dashboardCache.set(dir, rec);
+    this.appCache.set(dir, rec);
     return rec;
   }
 
@@ -514,7 +530,7 @@ export class AppsManager {
   }
 
   invalidate(appDir: string): void {
-    this.dashboardCache.delete(appDir);
+    this.appCache.delete(appDir);
     this.uiCompiler?.invalidate(appDir);
   }
 
@@ -544,7 +560,7 @@ export class AppsManager {
     };
   }
 
-  private dashboardMtime(appDir: string): number {
+  private appMtime(appDir: string): number {
     let max = 0;
     const bump = (p: string): void => {
       try {
@@ -557,20 +573,28 @@ export class AppsManager {
     bump(path.join(appDir, "manifest.json"));
     bump(path.join(appDir, "main.api.ts"));
     bump(path.join(appDir, "main.api.js"));
-    try {
-      const lib = path.join(appDir, "lib");
-      for (const n of readdirSync(lib)) {
-        if (n.endsWith(".ts") || n.endsWith(".js")) {
-          bump(path.join(lib, n));
-        }
+    // Any helper tree (api/, shared/, …) must invalidate the cache too.
+    const walk = (dir: string): void => {
+      let entries: Dirent[];
+      try {
+        entries = readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return;
       }
-    } catch {
-      /* no lib */
-    }
+      for (const e of entries) {
+        if (e.name === ".git" || e.name === "storage" || e.name === ".ui-build" || e.name === "node_modules") {
+          continue;
+        }
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) walk(full);
+        else if (/\.[cm]?[jt]sx?$/.test(e.name)) bump(full);
+      }
+    };
+    walk(appDir);
     return max;
   }
 
-  private loadMainApi(appDir: string): DashboardDef {
+  private loadMainApi(appDir: string): AppDef {
     const loaded = new Map<string, unknown>();
     const fp = path.join(appDir, "main.api.ts");
     const fpJs = path.join(appDir, "main.api.js");
@@ -579,7 +603,7 @@ export class AppsManager {
       throw new HostError("MISSING_MAIN_API", "missing main.api.ts");
     }
     const exported = this.loadAppFile(srcPath, appDir, loaded);
-    return asDashboardDef(exported);
+    return asAppDef(exported);
   }
 
   private loadAppFile(file: string, appDir: string, loaded: Map<string, unknown>): unknown {
@@ -591,17 +615,18 @@ export class AppsManager {
     loaded.set(file, mod.exports);
     const src = compileAppSource(readFileSync(file, "utf8"));
     const req: CjsRequire = (spec: string): unknown => {
-      if (spec === "@monkeyagent/dashboard") {
-        return { defineDashboard, default: defineDashboard };
+      if (spec === "@monkey-mini-app/sdk") {
+        return { defineApp, default: defineApp };
       }
-      if (spec.startsWith(".") || spec.startsWith("lib/") || spec.startsWith("components/")) {
-        const next = resolveAppModule(file, spec, appDir);
-        return this.loadAppFile(next, appDir, loaded);
+      if (!spec.startsWith(".")) {
+        throw new HostError(
+          "BACKEND_IMPORT",
+          `backend cannot import '${spec}'. Backend may import @monkey-mini-app/sdk and relative paths inside the app dir`,
+        );
       }
-      throw new HostError(
-        "BACKEND_IMPORT",
-        `backend cannot import '${spec}'. Only @monkeyagent/dashboard and relative ./lib ./components`,
-      );
+      const next = resolveAppModule(file, spec, appDir);
+      assertBackendTree(appDir, next, spec);
+      return this.loadAppFile(next, appDir, loaded);
     };
     const fn = new Function(
       "module",
@@ -615,7 +640,7 @@ export class AppsManager {
     return value;
   }
 
-  private buildCtx(storage: AppStorage, def: DashboardDef, appId: AppId): AppContext {
+  private buildCtx(storage: AppStorage, def: AppDef, appId: AppId): AppContext {
     const caps = this.capabilities;
     const appDir = this.paths.appDir(appId);
     const box: { signal?: AbortSignal } = {};

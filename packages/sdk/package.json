@@ -1,7 +1,7 @@
 {
   "name": "@monkey-mini-app/sdk",
   "version": "0.1.0",
-  "description": "Mini-app authoring SDK: React hooks, UI kit, and useApp()",
+  "description": "Mini-app authoring SDK: UI kit + useApp() for ui.tsx, defineApp() contract for main.api.ts",
   "type": "module",
   "private": false,
   "main": "./dist/sdk.js",
