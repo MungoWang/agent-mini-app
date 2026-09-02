@@ -15,7 +15,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+// this file lives at scripts/gen/skill/copy.mjs → three levels up to the repo root
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const src = path.join(root, "skills", "monkey-mini-app");
 const action = process.argv[2] === "clean" ? "clean" : "copy";
 const adapter = action === "clean" ? process.argv[3] || "dsh" : process.argv[2] || "dsh";
