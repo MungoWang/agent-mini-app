@@ -6,7 +6,7 @@ Accessible field label.
 
 **when** Always bind `htmlFor` — bare text labels are not accessible.
 
-`import { Label } from "@monkey-mini-app/sdk"`
+`import { Label } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/label.tsx` · family: Form · type: component · primitive
 

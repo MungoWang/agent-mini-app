@@ -6,7 +6,7 @@ Ring chart with centre label.
 
 **when** Part-of-whole (≤6 slices): storage usage, status split. More categories → `StackedBarChart`.
 
-`import { DonutChart, ChartConfig, Slice } from "@monkey-mini-app/sdk"`
+`import { DonutChart, ChartConfig, Slice } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/donut-chart.tsx` · family: Chart & data · type: block
 

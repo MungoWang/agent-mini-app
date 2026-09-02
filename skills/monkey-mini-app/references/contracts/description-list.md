@@ -6,7 +6,7 @@ Label/value pairs, two columns.
 
 **when** Detail/inspector panel of a selected row — the default “show one record” view.
 
-`import { DescriptionList } from "@monkey-mini-app/sdk"`
+`import { DescriptionList } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/description-list.tsx` · family: Layout & structure · type: block
 

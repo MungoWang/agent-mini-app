@@ -5,7 +5,7 @@ use it to save reimplementing common components (tables, forms, charts, dialogs,
 but you're free to build custom UI with raw HTML elements + Tailwind classes instead
 (and the two mix freely).
 
-Mini-apps import it **through `@monkey-mini-app/sdk`**, not this package directly.
+Mini-apps import it **through `@monkey-mini-app/ui`**, not this package directly.
 Demo-host / Storybook may import `@monkey-mini-app/ui` as a normal React library.
 
 ## Install
@@ -51,7 +51,7 @@ Constraints:
 
 - The dist `index.js` must stay a **flat named re-export** (the ui-compiler only
   understands these). Rebuild after changing export names.
-- Mini-apps import `@monkey-mini-app/sdk` only (plus `react`), plus in-app relative paths: `ui/` · `api/` · `shared/`. This package is re-exported through the SDK — never imported directly by an app.
+- Mini-apps import `@monkey-mini-app/ui` only (plus `react`), plus in-app relative paths: `ui/` · `api/` · `shared/`. This package is re-exported through the SDK — never imported directly by an app.
 - Heavy editors are **on-demand CDN**, not npm peers: `CodeEditor` → CodeMirror 6
   (`esm.sh`), `CodeBlock` / `DiffViewer` → shiki (`esm.sh`), `RichTextEditor` →
   tiptap (`esm.run`). Do not add `@codemirror/*` / `shiki` / `@tiptap/*` to

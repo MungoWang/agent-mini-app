@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Message, MessageAvatar, MessageContent, MessageFooter, MessageGroup, MessageHeader } from "@monkey-mini-app/sdk"`
+`import { Message, MessageAvatar, MessageContent, MessageFooter, MessageGroup, MessageHeader } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/message.tsx` · family: Surface · type: component · primitive
 

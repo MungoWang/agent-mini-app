@@ -6,7 +6,7 @@ Duration text field (e.g. `1h30m`) with minutes.
 
 **when** Timeouts/estimates where you store minutes but type human units.
 
-`import { DurationInput } from "@monkey-mini-app/sdk"`
+`import { DurationInput } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/duration-input.tsx` · family: Calendar & date · type: composite
 

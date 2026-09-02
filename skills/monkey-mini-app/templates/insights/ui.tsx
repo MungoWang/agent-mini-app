@@ -14,7 +14,7 @@ import {
   PageHeader,
   Progress,
   useApp,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 type Digest = { headline: string; bullets: string[] };
 type Item = { title: string; link?: string };

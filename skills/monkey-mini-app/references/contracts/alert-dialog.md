@@ -8,7 +8,7 @@ Blocking confirm modal (no click-outside dismiss).
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogMedia, AlertDialogOverlay, AlertDialogPortal, AlertDialogTitle, AlertDialogTrigger } from "@monkey-mini-app/sdk"`
+`import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogMedia, AlertDialogOverlay, AlertDialogPortal, AlertDialogTitle, AlertDialogTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/alert-dialog.tsx` · family: Surface · type: component · primitive
 

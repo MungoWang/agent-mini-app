@@ -6,7 +6,7 @@ Numeric input with min/max/step + steppers.
 
 **when** Any number the user edits — keeps NaN out of your state.
 
-`import { NumberField } from "@monkey-mini-app/sdk"`
+`import { NumberField } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/number-field.tsx` · family: Form · type: composite
 

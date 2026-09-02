@@ -6,7 +6,7 @@ JQL query textbox. Native textarea by default (no CodeMirror npm/peer). Callers 
 
 **when** Issue search / saved filters
 
-`import { JqlInput, JqlSuggestItem } from "@monkey-mini-app/sdk"`
+`import { JqlInput, JqlSuggestItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/jql-input.tsx` · family: Form · type: product
 

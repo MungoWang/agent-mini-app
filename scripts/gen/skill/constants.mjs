@@ -22,11 +22,10 @@ export const SKIP_FILES = new Set([
 ])
 
 /**
- * The one specifier mini-app authors may use — in ui.tsx **and** main.api.ts.
- * The pre-unification names (`@monkeyagent/*`, `@monkey-mini-app/ui`,
- * `defineDashboard`) are gone from the host too, so never teach them here.
+ * Specifier generated into UI component contracts (ui.tsx authors).
+ * Backend authors use `@monkey-mini-app/api` (not emitted into UI contracts).
  */
-export const AUTHOR_IMPORT = "@monkey-mini-app/sdk"
+export const AUTHOR_IMPORT = "@monkey-mini-app/ui"
 
 /** Types we never expand (stdlib / react noise). */
 export const SKIP_TYPE_NAMES = new Set([

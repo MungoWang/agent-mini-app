@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from "@monkey-mini-app/sdk"`
+`import { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/button-group.tsx` · family: Form · type: component · primitive
 

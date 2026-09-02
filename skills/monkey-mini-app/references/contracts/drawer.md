@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerPortal, DrawerSwipeHandle, DrawerTitle, DrawerTrigger } from "@monkey-mini-app/sdk"`
+`import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerPortal, DrawerSwipeHandle, DrawerTitle, DrawerTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/drawer.tsx` · family: Surface · type: component · primitive
 

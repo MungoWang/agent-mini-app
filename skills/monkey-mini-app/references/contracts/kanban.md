@@ -6,7 +6,7 @@ DnD board: columns + cards. Move cards across columns via drag.
 
 **when** Issue/workflow boards
 
-`import { Kanban, KanbanComment, KanbanCard, KanbanColumn } from "@monkey-mini-app/sdk"`
+`import { Kanban, KanbanComment, KanbanCard, KanbanColumn } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/kanban.tsx` · family: Data & tables · type: product
 

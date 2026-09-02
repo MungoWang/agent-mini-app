@@ -6,7 +6,7 @@ Lightweight rich-text editor (contentEditable + toolbar), same idea as `react-si
 
 **when** Notes/descriptions you store as **HTML**. Markdown → `MarkdownEditor`; code → `CodeEditor`. Sanitize server-side before rendering elsewhere.
 
-`import { RichTextEditor } from "@monkey-mini-app/sdk"`
+`import { RichTextEditor } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/rich-text-editor.tsx` · family: Rich text · type: product
 

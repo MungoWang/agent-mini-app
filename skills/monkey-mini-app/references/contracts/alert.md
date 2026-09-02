@@ -8,7 +8,7 @@ Inline message block (info/warning/error).
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Alert, AlertAction, AlertDescription, AlertTitle } from "@monkey-mini-app/sdk"`
+`import { Alert, AlertAction, AlertDescription, AlertTitle } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/alert.tsx` · family: Feedback & status · type: component · primitive
 

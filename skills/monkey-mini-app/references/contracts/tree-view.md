@@ -6,7 +6,7 @@ Generic expandable node list.
 
 **when** Any hierarchy without file semantics. Files → `FileTree`.
 
-`import { TreeView, TreeNode } from "@monkey-mini-app/sdk"`
+`import { TreeView, TreeNode } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/tree-view.tsx` · family: Data & tables · type: product
 

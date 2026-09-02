@@ -10,7 +10,7 @@ import {
   Icon,
   PageHeader,
   useApp,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 type Ping = { appId: string; theme: string; now: number };
 

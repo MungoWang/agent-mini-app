@@ -8,7 +8,7 @@ Empty-state block: media + title + description + action.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@monkey-mini-app/sdk"`
+`import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/empty.tsx` · family: Feedback & status · type: component · primitive
 

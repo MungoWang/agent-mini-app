@@ -6,7 +6,7 @@ KPI card with a trend series.
 
 **when** Metric + direction over time. Metric only → `StatCard`.
 
-`import { TrendCard, TrendPoint } from "@monkey-mini-app/sdk"`
+`import { TrendCard, TrendPoint } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/trend-card.tsx` · family: Chart & data · type: block
 

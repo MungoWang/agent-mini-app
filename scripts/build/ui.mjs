@@ -55,6 +55,7 @@ function listComponentFiles() {
     "i18n/en",
     "i18n/zh",
     "hooks/use-mobile",
+    "sdk/use-app",
   ];
   for (const rel of extra) {
     const relTsx = rel + ".tsx";

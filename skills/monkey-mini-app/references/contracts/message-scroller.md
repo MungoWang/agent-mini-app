@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { MessageScroller, MessageScrollerButton, MessageScrollerContent, MessageScrollerItem, MessageScrollerProvider, MessageScrollerViewport } from "@monkey-mini-app/sdk"`
+`import { MessageScroller, MessageScrollerButton, MessageScrollerContent, MessageScrollerItem, MessageScrollerProvider, MessageScrollerViewport } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/message-scroller.tsx` · family: Realtime · type: component · primitive
 

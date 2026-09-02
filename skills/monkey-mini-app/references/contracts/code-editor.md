@@ -6,7 +6,7 @@ Vanilla CodeMirror 6 loaded on demand from `esm.sh` (not npm, not a React wrappe
 
 **when** Editing config/scripts in-app. Do not `import @codemirror/*` or add it to package.json.
 
-`import { CodeEditor, LangS } from "@monkey-mini-app/sdk"`
+`import { CodeEditor, LangS } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/code-editor.tsx` · family: Discovery & inspect · type: product
 

@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Kbd, KbdGroup } from "@monkey-mini-app/sdk"`
+`import { Kbd, KbdGroup } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/kbd.tsx` · family: Layout & structure · type: component · primitive
 

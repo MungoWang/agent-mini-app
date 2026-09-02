@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { ToggleGroup, ToggleGroupItem } from "@monkey-mini-app/sdk"`
+`import { ToggleGroup, ToggleGroupItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/toggle-group.tsx` · family: Form · type: component · primitive
 

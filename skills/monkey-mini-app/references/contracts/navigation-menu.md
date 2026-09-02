@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuPositioner, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@monkey-mini-app/sdk"`
+`import { NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuPositioner, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/navigation-menu.tsx` · family: Navigation · type: component · primitive
 

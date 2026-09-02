@@ -30,7 +30,7 @@ function fakeCapabilities(): HostCapabilities {
   };
 }
 
-const pingApi = `import { defineApp } from "@monkey-mini-app/sdk";
+const pingApi = `import { defineApp } from "@monkey-mini-app/api";
 export default defineApp({
   name: "Ping",
   description: "ping",

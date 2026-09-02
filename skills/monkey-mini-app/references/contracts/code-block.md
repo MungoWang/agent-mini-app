@@ -6,7 +6,7 @@ Static read-only code with highlighting (shiki via CDN).
 
 **when** Showing a snippet/command. Editable → `CodeEditor`.
 
-`import { CodeBlock } from "@monkey-mini-app/sdk"`
+`import { CodeBlock } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/code-block.tsx` · family: Discovery & inspect · type: product
 

@@ -12,7 +12,7 @@ Agent shells (dsh today, pi later) are adapters.
 
 **Agent-native authoring.** A skill + `mini_app_*` tools + an in-SDK UI kit so a model
 can scaffold a high-quality app (`manifest.json` + `ui.tsx` + `main.api.ts`) without
-inventing a stack. Icons, tables, charts, editors are already in `@monkey-mini-app/sdk`.
+inventing a stack. Icons, tables, charts, editors are already in `@monkey-mini-app/ui`.
 
 **Mini-apps are the unit of work — and they can call the model back.** Each app is a
 small, reloadable program. `main.api.ts` gets a host `ctx`, not a toy sandbox:
@@ -42,7 +42,7 @@ the shipped adapter; pi / pi-web is next ([RFC](docs/rfcs/pi-extension-port.md))
 
 ```tsx
 // ui.tsx
-import { Button, useApp } from "@monkey-mini-app/sdk";
+import { Button, useApp } from "@monkey-mini-app/ui";
 
 export default function Ui() {
   const { call } = useApp();
@@ -52,7 +52,7 @@ export default function Ui() {
 
 ```ts
 // main.api.ts
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 export default defineApp({
   name: "Ping",
@@ -61,7 +61,7 @@ export default defineApp({
 });
 ```
 
-Both sides import exactly one package: `@monkey-mini-app/sdk` (plus `react` in the UI).
+UI imports `@monkey-mini-app/ui` (+ `react`); backend imports `@monkey-mini-app/api`.
 Helper code lives in `ui/` (UI only), `api/` (backend only) or `shared/` (pure, both);
 relative imports may not leave the app directory.
 Skill (authoring contract): `skills/monkey-mini-app/`.

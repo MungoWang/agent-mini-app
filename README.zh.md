@@ -9,7 +9,7 @@
 
 ## 为什么做这个
 
-**Agent 原生创作。** skill + `mini_app_*` 工具 + SDK 里的 UI 套件，让模型不用自造技术栈就能搭出高质量 app（`manifest.json` + `ui.tsx` + `main.api.ts`）。图标、表格、图表、编辑器已在 `@monkey-mini-app/sdk`。
+**Agent 原生创作。** skill + `mini_app_*` 工具 + SDK 里的 UI 套件，让模型不用自造技术栈就能搭出高质量 app（`manifest.json` + `ui.tsx` + `main.api.ts`）。图标、表格、图表、编辑器已在 `@monkey-mini-app/ui`。
 
 **小程序是工作单元——而且能回调模型。** 每个 app 都是可热重载的小程序。`main.api.ts` 拿到的是宿主 `ctx`，不是玩具沙箱：
 
@@ -23,7 +23,7 @@
 
 **统一管理面板。** 画廊、打开/钉住/侧栏、主题、历史、存储、重载。每个宿主同一套 chrome。
 
-**宿主无关。** `createHost(capabilities, lifecycle)` + `PanelHost`。dsh web 是已发布的 adapter；pi / pi-web 是下一个（[RFC](docs/rfcs/pi-extension-port.md)）。`host` / `panel` / `sdk` 不依赖 dsh。
+**宿主无关。** `createHost(capabilities, lifecycle)` + `PanelHost`。dsh web 是已发布的 adapter；pi / pi-web 是下一个（[RFC](docs/rfcs/pi-extension-port.md)）。`host` / `panel` / `ui` / `api` 不依赖 dsh。
 
 ![apps](docs/assets/apps-list.png)
 *dsh adapter 里的画廊——实现接缝的任何宿主都能跑同一批 app。*
@@ -35,7 +35,7 @@
 
 ```tsx
 // ui.tsx
-import { Button, useApp } from "@monkey-mini-app/sdk";
+import { Button, useApp } from "@monkey-mini-app/ui";
 
 export default function Ui() {
   const { call } = useApp();
@@ -45,7 +45,7 @@ export default function Ui() {
 
 ```ts
 // main.api.ts
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 export default defineApp({
   name: "Ping",
@@ -54,7 +54,7 @@ export default defineApp({
 });
 ```
 
-前后端只 import 一个包：`@monkey-mini-app/sdk`（UI 额外可用 `react`）。
+UI import `@monkey-mini-app/ui`（+ `react`）；后端 import `@monkey-mini-app/api`。
 辅助代码放 `ui/`（仅 UI）、`api/`（仅后端）、`shared/`（同构纯净，两边都行）；
 相对路径不得跳出 app 目录。
 创作 skill：`skills/monkey-mini-app/`。
@@ -84,7 +84,8 @@ dsh web --no-open # :3080 · apps host :17880
 |----|------|
 | `host` | 平台：apps、git、HTTP、编译、`mini_app_*`、`ctx.*` |
 | `panel` | 管理面板（`PanelHost`） |
-| `sdk` | 小程序 ABI；iframe `/mma/runtime.js` + `/mma/sdk.js` |
+| `ui` | 小程序 UI 作者包 + iframe `/mma/runtime.js` + `/mma/sdk.js` |
+| `api` | 小程序后端 `defineApp` 合同（host 注入） |
 | `ui` | 组件库（打进 SDK） |
 | `dsh` | dsh adapter（插件 + skill） |
 

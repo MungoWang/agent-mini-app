@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@monkey-mini-app/sdk"`
+`import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/pagination.tsx` · family: Navigation · type: component · primitive
 

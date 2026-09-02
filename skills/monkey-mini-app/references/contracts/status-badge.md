@@ -6,7 +6,7 @@ Toned badge for run/test status.
 
 **when** pass | fail | blocked | flaky | running | pending cells and chips
 
-`import { StatusBadge } from "@monkey-mini-app/sdk"`
+`import { StatusBadge } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/status-badge.tsx` · family: Feedback & status · type: block
 

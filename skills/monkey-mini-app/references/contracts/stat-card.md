@@ -6,7 +6,7 @@ KPI card: title, value, optional delta/trend.
 
 **when** Dashboard metric strip
 
-`import { StatCard } from "@monkey-mini-app/sdk"`
+`import { StatCard } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/stat-card.tsx` · family: Chart & data · type: block
 

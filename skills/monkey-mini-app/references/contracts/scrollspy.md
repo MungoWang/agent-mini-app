@@ -6,7 +6,7 @@ Anchor nav that highlights the section in view.
 
 **when** Long settings/report page with jump links.
 
-`import { Scrollspy } from "@monkey-mini-app/sdk"`
+`import { Scrollspy } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/scrollspy.tsx` · family: Navigation · type: block
 

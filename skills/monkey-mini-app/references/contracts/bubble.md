@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Bubble, BubbleContent, BubbleGroup, BubbleReactions } from "@monkey-mini-app/sdk"`
+`import { Bubble, BubbleContent, BubbleGroup, BubbleReactions } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/bubble.tsx` · family: Surface · type: component · primitive
 

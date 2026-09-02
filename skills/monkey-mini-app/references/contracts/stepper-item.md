@@ -6,7 +6,7 @@ One step inside `Stepper` (title, description, status).
 
 **when** As a child of `Stepper` only — status is `default | active | completed` (lowercase).
 
-`import { StepperItem, StepStatus, StepperProps } from "@monkey-mini-app/sdk"`
+`import { StepperItem, StepStatus, StepperProps } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/stepper.tsx` · family: Feedback & status · type: product
 

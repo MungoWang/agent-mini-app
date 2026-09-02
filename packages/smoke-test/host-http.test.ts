@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { startHost, readTemplate, templateId } from "./fixture.ts";
 
-const api = `import { defineApp } from "@monkey-mini-app/sdk";
+const api = `import { defineApp } from "@monkey-mini-app/api";
 export default defineApp({ name: "P", description: "p", api: { ping: async (_c, a) => ({ ok: true, args: a }) } });
 `;
-const ui = `import { Icon } from "@monkey-mini-app/sdk";
+const ui = `import { Icon } from "@monkey-mini-app/ui";
 export default function Ui(){ return <div className="p-4"><Icon.Check size={16} />hi</div>; }
 `;
 const manifest = JSON.stringify({ id: "com.smoke.http", name: "HTTP", version: "1.0.0", entry: "ui.tsx" });

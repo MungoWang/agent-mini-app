@@ -36,7 +36,7 @@ describe("smoke: createHost register → call → tools", () => {
         entry: "ui.tsx",
       }),
       "ui.tsx": "export default function Ui(){ return <div>ok</div>; }",
-      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/api";
 export default defineApp({
   name: "Smoke",
   description: "smoke",

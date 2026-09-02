@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 import { type FeedItem, SAMPLE_ITEMS } from "./shared/sample";
 

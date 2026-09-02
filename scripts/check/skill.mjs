@@ -5,13 +5,13 @@
  * Every rule here exists because the doc set had already drifted in a way that
  * makes an agent generate broken mini-apps (see docs/contracts/skill-sync.md):
  *
- * 1. author specifiers — mini-apps import react + @monkey-mini-app/sdk + relative paths only
+ * 1. author specifiers — UI: react + @monkey-mini-app/ui; backend: @monkey-mini-app/api; + relative paths
  * 2. tool names — a `mini_app_*` the skill names must exist
  * 3. `ctx.*` surface — must be a real key of AppContext
- * 3b. ctx mirror — packages/sdk AppCtx must declare exactly the host's ctx keys
+ * 3b. ctx mirror — packages/api AppCtx must declare exactly the host's ctx keys
  *     (the backend gets `defineApp` injected by the host but takes its *types*
  *     from the SDK, so the two lists must not drift)
- * 4. generated contracts — size cap, sdk import, no orphan/missing doc
+ * 4. generated contracts — size cap, ui import, no orphan/missing doc
  * 4b. taxonomy — every component declares a `@family` from
  * packages/ui/catalog-families.json, and catalog.md is grouped by it
  * 5. markdown tables — a merged row silently deletes two nav entries
@@ -68,14 +68,12 @@ const allFiles = [...mdFiles, ...sourceFiles]
 
 /* ------------------------------------------------- 1. author import specifiers */
 
-// The author-facing contract is exactly one package: `@monkey-mini-app/sdk` (UI kit +
-// useApp + defineApp). The pre-unification names below no longer resolve at all — the
-// host dropped the aliases and the injector — so teaching them in the skill corpus would
-// generate apps that fail to load. docs/contracts/skill-sync.md.
+// Two author packages: `@monkey-mini-app/ui` (UI) and `@monkey-mini-app/api` (backend).
+// Pre-unification names no longer resolve — teaching them would generate broken apps.
 const BANNED_SPECIFIERS = [
  "@monkeyagent/dashboard",
  "@monkeyagent/host",
- "@monkey-mini-app/ui",
+ "@monkey-mini-app/sdk",
  "defineDashboard",
  "useDashboardApi",
 ]
@@ -88,7 +86,7 @@ for (const file of allFiles) {
  fail(
  "author-specifier",
  file,
- `line ${i + 1}: says "${banned}" — mini-apps import react / @monkey-mini-app/sdk / in-app relative paths only`
+ `line ${i + 1}: says "${banned}" — UI: @monkey-mini-app/ui; backend: @monkey-mini-app/api; + in-app relative paths`
 )
  }
  }
@@ -169,17 +167,17 @@ const ctxKeys = realCtxKeys()
 
 /* --- 3b. the SDK's author-facing mirror must match the host surface exactly. ---
  * The backend never loads the React bundle, so `defineApp` comes from the host while
- * the *types* come from packages/sdk/src/app.ts. Two lists that drift are worse than
+ * the *types* come from packages/api/src/index.ts. Two lists that drift are worse than
  * none, so the sets have to be identical (rule name: ctx-mirror).
  */
 {
- const sdkApp = path.join(root, "packages/sdk/src/app.ts")
+ const sdkApp = path.join(root, "packages/api/src/index.ts")
  const mirrored = typeLiteralKeys(sdkApp, "AppCtx")
  if (!mirrored || !mirrored.size) {
  fail("ctx-mirror", sdkApp, "AppCtx type literal not found — update check/skill.mjs")
  } else {
  for (const k of ctxKeys) {
- if (!mirrored.has(k)) fail("ctx-mirror", sdkApp, `ctx.${k} exists in the host but not in the SDK's AppCtx`)
+ if (!mirrored.has(k)) fail("ctx-mirror", sdkApp, `ctx.${k} exists in the host but not in the API package's AppCtx`)
  }
  for (const k of mirrored) {
  if (!ctxKeys.has(k)) fail("ctx-mirror", sdkApp, `AppCtx declares ctx.${k}, which the host does not provide`)
@@ -216,8 +214,8 @@ for (const file of walk(contractsDir, (f) => f.endsWith(".md"))) {
 )
  }
  const text = fs.readFileSync(file, "utf8")
- if (!text.includes("@monkey-mini-app/sdk")) {
- fail("contract-import", file, 'no `@monkey-mini-app/sdk` import line')
+ if (!text.includes("@monkey-mini-app/ui")) {
+ fail("contract-import", file, 'no `@monkey-mini-app/ui` import line')
  }
  // Our own components legitimately declare callbacks (onRowClick, onCardsChange),
  // so name matching would be wrong. Real inherited noise is React's own vocabulary:

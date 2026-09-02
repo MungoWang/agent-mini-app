@@ -8,7 +8,7 @@ Draggable split panes.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@monkey-mini-app/sdk"`
+`import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/resizable.tsx` · family: Layout & structure · type: component · primitive
 

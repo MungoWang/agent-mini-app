@@ -6,7 +6,7 @@ Preset ranges (today / last 7 days) → a concrete date range.
 
 **when** Dashboard filters where “last 7 days” beats two calendars.
 
-`import { RelativeDatePicker, RelativePreset } from "@monkey-mini-app/sdk"`
+`import { RelativeDatePicker, RelativePreset } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/relative-date-picker.tsx` · family: Calendar & date · type: composite
 

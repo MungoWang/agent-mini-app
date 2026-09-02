@@ -42,6 +42,7 @@ const repoPkgs = {
   "@monkey-mini-app/host": path.join(repoRoot, "packages", "host"),
   "@monkey-mini-app/panel": path.join(repoRoot, "packages", "panel"),
   "@monkey-mini-app/ui": path.join(repoRoot, "packages", "ui"),
+  "@monkey-mini-app/api": path.join(repoRoot, "packages", "api"),
 } as const;
 
 if (mode === "debug") {
@@ -59,10 +60,10 @@ writeFileSync(pkgFile, JSON.stringify(pkg, null, 2) + "\n");
 // pnpm-workspace.yaml: include the repo packages only in debug so workspace:*/link deps
 // resolve locally; in prod leave them out (npm versions used).
 let ws = existsSync(wsFile) ? readFileSync(wsFile, "utf8") : "packages:\n  - .\n";
-for (const name of ["@monkey-mini-app/dsh-mini-app", "@monkey-mini-app/host", "@monkey-mini-app/panel", "@monkey-mini-app/ui"]) {
+for (const name of ["@monkey-mini-app/dsh-mini-app", "@monkey-mini-app/host", "@monkey-mini-app/panel", "@monkey-mini-app/ui", "@monkey-mini-app/api"]) {
   void name;
 }
-const repoWorkspaceLines = ["packages/panel", "packages/host", "packages/ui"].map((p) =>
+const repoWorkspaceLines = ["packages/panel", "packages/host", "packages/ui", "packages/api"].map((p) =>
   path.join(repoRoot, p),
 );
 const hasRepo = (line: string) => repoWorkspaceLines.some((p) => line.trim().includes(p));

@@ -6,7 +6,7 @@ Unified or split diff view.
 
 **when** Comparing two versions of text. Pass `original` + `modified` strings.
 
-`import { DiffViewer } from "@monkey-mini-app/sdk"`
+`import { DiffViewer } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/diff-viewer.tsx` · family: Discovery & inspect · type: product
 

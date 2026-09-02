@@ -8,7 +8,7 @@ Modal overlay: Trigger + Content(+Header/Footer).
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@monkey-mini-app/sdk"`
+`import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/dialog.tsx` · family: Surface · type: component · primitive
 

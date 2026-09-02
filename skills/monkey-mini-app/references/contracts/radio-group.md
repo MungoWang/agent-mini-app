@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { RadioGroup, RadioGroupItem } from "@monkey-mini-app/sdk"`
+`import { RadioGroup, RadioGroupItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/radio-group.tsx` · family: Form · type: component · primitive
 

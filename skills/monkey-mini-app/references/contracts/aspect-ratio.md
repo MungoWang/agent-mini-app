@@ -4,7 +4,7 @@
 
 **when** Keeping an image/video/embed from shifting the layout while loading.
 
-`import { AspectRatio } from "@monkey-mini-app/sdk"`
+`import { AspectRatio } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/aspect-ratio.tsx` · family: Layout & structure · type: component · primitive
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@monkey-mini-app/sdk";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@monkey-mini-app/ui";
 
 export function Group({
   title,

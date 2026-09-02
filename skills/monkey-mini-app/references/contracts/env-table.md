@@ -6,7 +6,7 @@ Read-only env var table with masked values and copy.
 
 **when** Settings / deploy preview / secrets display
 
-`import { EnvTable, Environment, EnvVariable } from "@monkey-mini-app/sdk"`
+`import { EnvTable, Environment, EnvVariable } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/env-table.tsx` · family: Data & tables · type: block
 

@@ -9,7 +9,7 @@
 | `packages/host` | `@monkey-mini-app/host` | AppsManager / GitHistory / Hono / UiCompiler / ToolFacade / config |
 | `packages/panel` | `@monkey-mini-app/panel` | Host-agnostic React panel (`PanelHost` seam; no `/api`) |
 | `packages/dsh` | `@monkey-mini-app/dsh-mini-app` | dsh adapter: capabilities + lifecycle + client + skills |
-| `packages/sdk` | `@monkey-mini-app/sdk` | Author package: `useApp` + UI kit re-export + `defineApp` types |
+| `packages/sdk` | `@monkey-mini-app/ui` | Author package: `useApp` + UI kit re-export + `defineApp` types |
 | `packages/ui` | `@monkey-mini-app/ui` | Component kit (bundled into the SDK / iframe) |
 | `packages/smoke-test` | — | Integration / sample smoke tests |
 
@@ -25,15 +25,15 @@ dsh supplies capabilities/lifecycle; another host implements its own. Do not lea
 
 ## Author surface
 
-- UI: `import { useApp, Button, … } from "@monkey-mini-app/sdk"` (+ `react`)
-- Backend: `import { defineApp } from "@monkey-mini-app/sdk"` (host injects the runtime `defineApp`)
+- UI: `import { useApp, Button, … } from "@monkey-mini-app/ui"` (+ `react`)
+- Backend: `import { defineApp } from "@monkey-mini-app/ui"` (host injects the runtime `defineApp`)
 - Layout trees: `ui/**` (UI only), `api/**` (backend only), `shared/**` (isomorphic pure)
 - Skill: `skills/monkey-mini-app/`
 
 ## Iframe platform
 
 - `/mma/runtime.js` — React
-- `/mma/sdk.js` — SDK (UI kit + `useApp`)
+- `/mma/sdk.js` — UI package bundle (kit + `useApp`)
 - App UI is compiled by the host; the iframe does not compile.
 
 ## Further reading

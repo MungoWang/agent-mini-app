@@ -4,7 +4,7 @@
 
 **when** Binary formatting switch (bold, filters on).
 
-`import { Toggle, toggleVariants } from "@monkey-mini-app/sdk"`
+`import { Toggle, toggleVariants } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/toggle.tsx` · family: Form · type: component · primitive
 

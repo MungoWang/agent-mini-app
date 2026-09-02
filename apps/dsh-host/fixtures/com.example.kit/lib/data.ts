@@ -1,4 +1,4 @@
-import type { CalendarEvent, KanbanCard, SortableItem, TreeNode } from "@monkey-mini-app/sdk";
+import type { CalendarEvent, KanbanCard, SortableItem, TreeNode } from "@monkey-mini-app/ui";
 
 export type SectionId =
   | "overview"

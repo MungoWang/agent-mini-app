@@ -8,7 +8,7 @@ Transient notification (provider + viewport + `toast()`).
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Toast, ToastAction, ToastClose, ToastContent, ToastDescription, ToastPortal, ToastProvider, ToastTitle, ToastViewport, Toaster, createToastManager, toast, useToastManager } from "@monkey-mini-app/sdk"`
+`import { Toast, ToastAction, ToastClose, ToastContent, ToastDescription, ToastPortal, ToastProvider, ToastTitle, ToastViewport, Toaster, createToastManager, toast, useToastManager } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/toast.tsx` · family: Feedback & status · type: component · primitive
 

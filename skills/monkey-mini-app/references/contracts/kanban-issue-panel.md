@@ -6,7 +6,7 @@ Slide-over detail panel for a `Kanban` card.
 
 **when** Board + click-to-edit issue. Pair with `Kanban`'s selected card.
 
-`import { KanbanIssuePanel, KanbanCard, KanbanComment } from "@monkey-mini-app/sdk"`
+`import { KanbanIssuePanel, KanbanCard, KanbanComment } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/kanban-issue-panel.tsx` · family: Surface · type: product
 

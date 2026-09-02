@@ -44,7 +44,7 @@ First start bootstraps a full `host.json`. The「小程序」entry appears in th
 
 1. **Open**: sidebar「小程序」→ any app.
 2. **Generate**: ask the model to build an app; it follows the bundled skill (`skills/monkey-mini-app/templates/`).
-3. **Call**: `defineApp({ api })` in `main.api.ts`; `useApp()` `call(method, args)` in `ui.tsx` — both imported from `@monkey-mini-app/sdk`.
+3. **Call**: `defineApp({ api })` in `main.api.ts`; `useApp()` `call(method, args)` in `ui.tsx` — both imported from `@monkey-mini-app/ui`.
 4. **Debug**: `mini_app_call`, `mini_app_reload`, `mini_app_open`.
 
 ## UI kit: convenience, not a spec

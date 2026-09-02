@@ -4,7 +4,7 @@
 
 **when** One numeric value. Range → `SliderRange`.
 
-`import { Slider } from "@monkey-mini-app/sdk"`
+`import { Slider } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/slider.tsx` · family: Form · type: component · primitive
 

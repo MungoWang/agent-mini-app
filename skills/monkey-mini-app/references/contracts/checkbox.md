@@ -6,7 +6,7 @@ Single boolean box.
 
 **when** Multi-select rows / opt-in.
 
-`import { Checkbox } from "@monkey-mini-app/sdk"`
+`import { Checkbox } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/checkbox.tsx` · family: Form · type: component · primitive
 

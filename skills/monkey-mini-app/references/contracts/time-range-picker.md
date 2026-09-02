@@ -6,7 +6,7 @@ From/to time of day.
 
 **when** Daily windows (maintenance 02:00–04:00).
 
-`import { TimeRangePicker, TimeRange } from "@monkey-mini-app/sdk"`
+`import { TimeRangePicker, TimeRange } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/time-range-picker.tsx` · family: Calendar & date · type: composite
 

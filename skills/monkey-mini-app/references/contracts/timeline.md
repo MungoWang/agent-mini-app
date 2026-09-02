@@ -6,7 +6,7 @@ Vertical ordered events.
 
 **when** Statuses/history without durations. Durations → `RunTimeline`.
 
-`import { Timeline, TimelineItem } from "@monkey-mini-app/sdk"`
+`import { Timeline, TimelineItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/timeline.tsx` · family: Realtime · type: product
 

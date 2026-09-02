@@ -4,7 +4,7 @@
 
 **when** Inside a button while `call()` is pending. Known % → `Progress`.
 
-`import { Spinner } from "@monkey-mini-app/sdk"`
+`import { Spinner } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/spinner.tsx` · family: Feedback & status · type: component · primitive
 

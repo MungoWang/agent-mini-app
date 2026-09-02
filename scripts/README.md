@@ -29,7 +29,7 @@ No file sits directly under `scripts/`. If you are about to add one, pick a stag
 | Path | Run as | Writes | Side effects |
 |---|---|---|---|
 | `build/ui.mjs` | `pnpm build:ui` (also ui `prepack`) | `packages/ui/dist/**` | repo build output |
-| `build/sdk.mjs` | `pnpm build:sdk` (also sdk `prepack`) | `packages/sdk/dist/{runtime,sdk}.js` | repo build output + one network fetch |
+| `build/sdk.mjs` | `pnpm build:sdk (iframe → ui/dist)` (also sdk `prepack`) | `packages/ui (iframe) / packages/api/dist/{runtime,sdk}.js` | repo build output + one network fetch |
 | `gen/skill/index.mjs` | `pnpm gen:skill` | `skills/.../references/**`, `packages/ui/ai/catalog.json` | repo tracked files |
 | `gen/skill/copy.mjs` | dsh `prepack` / `postpack` | `packages/<adapter>/skills/monkey-mini-app/` | packing scratch copy |
 | `gen/illustrations.mjs` | manual — only when changing illustrations | `packages/ui/src/lib/illustrations.tsx` | repo tracked source |
@@ -54,7 +54,7 @@ Canonical form is **`verb:object`**:
 | `pnpm check:skill` | skill ↔ code gate |
 | `pnpm check:templates` | type-check skill templates |
 | `pnpm skill` | gen then check |
-| `pnpm build:ui` / `build:sdk` | package dist |
+| `pnpm build:ui` / `build:sdk (iframe → ui/dist)` | package dist |
 | `pnpm dev:host` | Vite + demo host |
 | `pnpm dev:dsh-debug` / `dev:dsh-prod` | path-link vs published dsh profile |
 | `pnpm publish:packages` | e2e then npm publish |

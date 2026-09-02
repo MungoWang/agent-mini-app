@@ -6,7 +6,7 @@ Date + time, optional timezone.
 
 **when** Scheduling moments, not days.
 
-`import { DateTimePicker } from "@monkey-mini-app/sdk"`
+`import { DateTimePicker } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/date-time-picker.tsx` · family: Calendar & date · type: composite
 

@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText, InputGroupTextarea } from "@monkey-mini-app/sdk"`
+`import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText, InputGroupTextarea } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/input-group.tsx` · family: Form · type: component · primitive
 

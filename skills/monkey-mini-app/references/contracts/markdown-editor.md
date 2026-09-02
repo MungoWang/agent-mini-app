@@ -6,7 +6,7 @@ Markdown edit + preview toggle.
 
 **when** Authoring md bodies. Read-only render → `Markdown`.
 
-`import { MarkdownEditor, MarkdownEditorMode } from "@monkey-mini-app/sdk"`
+`import { MarkdownEditor, MarkdownEditorMode } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/markdown-editor.tsx` · family: Rich text · type: product
 

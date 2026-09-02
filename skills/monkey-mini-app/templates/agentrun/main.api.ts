@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 // ⭐ key: ctx.agent is the entry point for "have the model do one multi-step job"; it returns the final string.
 //         Progress events are observed via onEvent (status/tool/turn/text-delta/done), written into storage for the UI to poll.

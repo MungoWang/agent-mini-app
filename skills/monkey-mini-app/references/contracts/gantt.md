@@ -6,7 +6,7 @@ Task bars on a date axis.
 
 **when** Plans/schedules with start+end per row. Ordered events → `Timeline`.
 
-`import { Gantt, GanttTask } from "@monkey-mini-app/sdk"`
+`import { Gantt, GanttTask } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/gantt.tsx` · family: Calendar & date · type: product
 

@@ -6,7 +6,7 @@
 
 **when** Clock-only fields. `value` is a string, not a Date.
 
-`import { TimePicker } from "@monkey-mini-app/sdk"`
+`import { TimePicker } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/time-picker.tsx` · family: Calendar & date · type: composite
 

@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 export default defineApp({
   name: "骨架示例",

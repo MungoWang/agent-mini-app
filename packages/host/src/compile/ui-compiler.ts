@@ -3,7 +3,7 @@
  *
  * Iframe platform:
  *   /mma/runtime.js — React (complete, not curated)
- *   /mma/sdk.js     — UI kit + useApp (react is external to runtime.js)
+ *   /mma/sdk.js     — @monkey-mini-app/ui kit + useApp (react external → runtime.js)
  * App compile only bundles the mini-app's own ui.tsx + ui/** + shared/**;
  * relative imports are bounds-checked to stay inside the app dir.
  */
@@ -25,11 +25,9 @@ export const SDK_HREF = "/mma/sdk.js";
 
 const RUNTIME_SPECIFIER = /^(react|react-dom)(\/.*)?$/;
 /**
- * Author-facing SDK specifier. Exactly one — `@monkeyagent/host` and
- * `@monkey-mini-app/ui` used to be aliased here too and are gone (hard cut):
- * mini-apps import `@monkey-mini-app/sdk`, nothing else.
+ * Author-facing UI package. Backend uses `@monkey-mini-app/api` (injected, not here).
  */
-const SDK_SPECIFIER = /^(lucide-react|@monkey-mini-app\/sdk)(\/.*)?$/;
+const SDK_SPECIFIER = /^(lucide-react|@monkey-mini-app\/ui)(\/.*)?$/;
 
 export type UiBuildFile = { name: string; contents: Uint8Array };
 
@@ -110,17 +108,20 @@ export function resolveUiDistDir(): string {
   );
 }
 
-/** Locate @monkey-mini-app/sdk dist/sdk.js (iframe environment). */
+/**
+ * Locate the iframe bundles (runtime.js + sdk.js). They ship inside
+ * `@monkey-mini-app/ui` dist after `pnpm build:ui && pnpm build:sdk`.
+ */
 export function resolveSdkDistDir(): string {
   if (sdkDistDir) return sdkDistDir;
 
-  const fromPkg = resolvePkgDist("@monkey-mini-app/sdk", "dist", sdkFileLooksValid);
+  const fromPkg = resolvePkgDist("@monkey-mini-app/ui", "dist", sdkFileLooksValid);
   const here = path.dirname(fileURLToPath(import.meta.url));
   const guesses = [
     fromPkg,
-    path.resolve(here, "../../../sdk/dist"),
-    path.resolve(here, "../../sdk/dist"),
-    path.resolve(here, "../../../../packages/sdk/dist"),
+    path.resolve(here, "../../../ui/dist"),
+    path.resolve(here, "../../ui/dist"),
+    path.resolve(here, "../../../../packages/ui/dist"),
   ];
   for (const dir of guesses) {
     if (dir && sdkFileLooksValid(dir)) {
@@ -129,7 +130,7 @@ export function resolveSdkDistDir(): string {
     }
   }
   try {
-    const pkgJson = requireFromHere.resolve("@monkey-mini-app/sdk/package.json");
+    const pkgJson = requireFromHere.resolve("@monkey-mini-app/ui/package.json");
     const dir = path.join(path.dirname(pkgJson), "dist");
     if (sdkFileLooksValid(dir)) {
       sdkDistDir = dir;
@@ -140,7 +141,7 @@ export function resolveSdkDistDir(): string {
   }
   throw new HostError(
     "SDK_DIST_MISSING",
-    "@monkey-mini-app/sdk dist/sdk.js not found — run: node scripts/build/ui.mjs && node scripts/build/sdk.mjs",
+    "@monkey-mini-app/ui dist missing runtime.js/sdk.js — run: pnpm build:ui && pnpm build:sdk",
   );
 }
 
@@ -215,7 +216,7 @@ function makeUiPlugin(appDir: string): Plugin {
       build.onLoad({ filter: /.*/, namespace: "mma-forbidden" }, () => ({
         errors: [
           {
-            text: "UI cannot import main.api.ts; use useApp() from @monkey-mini-app/sdk",
+            text: "UI cannot import main.api.ts; use useApp() from @monkey-mini-app/ui",
           },
         ],
       }));
@@ -315,7 +316,7 @@ export class UiCompiler {
     const appId = JSON.stringify(appIdOf(appDir));
     const wrapper = `
 import { createRoot } from "react-dom/client";
-import { AppRuntime, UiProvider } from "@monkey-mini-app/sdk";
+import { AppRuntime, UiProvider } from "@monkey-mini-app/ui";
 import Ui from "./${uiRel}";
 const rootEl = document.getElementById("root");
 if (rootEl) {

@@ -65,7 +65,7 @@ More symptoms → [references/troubleshoot.md](references/troubleshoot.md).
 
 ## Protocol
 
-**One package for both sides:** `@monkey-mini-app/sdk`. Nothing else resolves in a mini-app — the UI compiler externalises only `react` and the SDK, and the backend loader injects `defineApp` for the same specifier. Any other bare import is a compile error by design.
+**Two author packages:** `@monkey-mini-app/ui` (UI: `useApp` + components) and `@monkey-mini-app/api` (backend: `defineApp`, host-injected). The UI compiler externalises `react` + the UI package; the backend loader injects `defineApp` only. Any other bare import is a compile error by design.
 
 **Layout** (enforced, not cosmetic):
 
@@ -79,10 +79,10 @@ shared/    → both — pure code only: no React, no DOM, no ctx, no Node
 A trivial app needs none of the three folders. Relative imports may use any subfolder name, but must stay inside the app dir.
 
 - UI may **not** `import` `main.api.ts`
-- UI: `const { call } = useApp()` — you own loading/error state; `useApp` comes from `@monkey-mini-app/sdk` (never implement your own)
-- Backend: `export default defineApp({ name, description, api })` (`name` **and** `description` are required; import `defineApp` from the same SDK — the host injects the runtime copy, nothing React gets loaded)
+- UI: `const { call } = useApp()` — you own loading/error state; `useApp` comes from `@monkey-mini-app/ui` (never implement your own)
+- Backend: `export default defineApp({ name, description, api })` (`name` **and** `description` are required; import `defineApp` from `@monkey-mini-app/api` — the host injects the runtime copy, nothing React gets loaded)
 - `call("foo")` must be a key of `api.foo`
-- Backend imports: `@monkey-mini-app/sdk` + relative paths inside the app dir (no npm, no Node builtins)
+- Backend imports: `@monkey-mini-app/api` + relative paths inside the app dir (no npm, no Node builtins)
 - Fetching: `ctx.http(url)` / `ctx.http(url, { method, headers, query, body, timeout })`; put parsing in `api/`
 - Machine commands only via `ctx.bash` (`{ stdout, stderr, exitCode }`)
 - **Model**: `ctx.llm(prompt, opts?)` / `ctx.agent(goal, opts?)` → **string**. Shared opts: `provider?` `model?` `system?` `schema?` `maxTokens?` `signal?`; `agent` adds `onEvent?` `maxIterations?` `cwdType?` `cwd?`. Structured JSON → [llm-json.md](references/llm-json.md); full signatures and event shapes → [ctx.md](references/ctx.md)
@@ -90,13 +90,13 @@ A trivial app needs none of the three folders. Relative imports may use any subf
 - Copy is for the end user; card titles speak business (`「今日摘要」` / "Today's digest"), never `ctx.bash` or `storage/*.json`
 - **Long jobs run sampled only**, must honour `ctx.signal`, and expose `scanStatus`/`progress` — see [ctx.md](references/ctx.md)
 
-## UI (`@monkey-mini-app/sdk`)
+## UI (`@monkey-mini-app/ui`)
 
 **The component library is a convenience, not a mandate.** It exists so you stop rebuilding wheels — use it where it fits, but never contort a design to use it. Free-form UI is expected:
 
 - **Decide first**: is there a component for this that actually fits? **Yes → use it** (fewer tokens, consistent look). **No, or the design needs its own visual/interaction, or the user asked for free play → build it from native elements (`div`/`span`/`button`/`input`/`table`/`svg`…) + Tailwind classes.** Do not bend the design to fit the library.
 - **Mixing is normal**: library components for the skeleton (cards / page header / dialogs), native + Tailwind for the distinctive parts.
-- **Boundary of free play**: native elements and Tailwind are unlimited, but `ui.tsx` may only import `react`, `@monkey-mini-app/sdk` and in-app relative paths — never `api/**`, never `../` out of the app dir, never another npm package. Hooks from `react`; components and `useApp` from the SDK.
+- **Boundary of free play**: native elements and Tailwind are unlimited, but `ui.tsx` may only import `react`, `@monkey-mini-app/ui` and in-app relative paths — never `api/**`, never `../` out of the app dir, never another npm package. Hooks from `react`; components and `useApp` from the SDK.
 - **Not your job**: the theme provider and the app runtime are wrapped by the host; there is no `Stack`/`Text` layout component — use Tailwind classes.
 - Component props list **only their own API**: `className`, `style`, `onClick`, `aria-*` are never repeated (every component takes them). Conversely, **never guess the part names of a compound component** (`Dialog` + `DialogTrigger` + `DialogContent`, not `<Dialog title>`) — read its contract.
 
@@ -104,7 +104,7 @@ The snippet below is a common shape, **not the only shape** — complex or bespo
 
 ```tsx
 import { useState } from "react";
-import { useApp, Button, Input, Card, CardContent, CardHeader, CardTitle } from "@monkey-mini-app/sdk";
+import { useApp, Button, Input, Card, CardContent, CardHeader, CardTitle } from "@monkey-mini-app/ui";
 
 export default function Ui() {
   const { call } = useApp();
@@ -123,7 +123,7 @@ export default function Ui() {
 ```
 
 - **Layout is Tailwind** (`flex flex-col gap-3 p-4 grid md:grid-cols-3 w-full space-y-4`)
-- **Icons**: `import { Icon } from "@monkey-mini-app/sdk"`, then `Icon.HelpCircle` (any lucide name works); **curated subset + when to use** → **[references/icons.md](references/icons.md)** (don't page through a thousand names)
+- **Icons**: `import { Icon } from "@monkey-mini-app/ui"`, then `Icon.HelpCircle` (any lucide name works); **curated subset + when to use** → **[references/icons.md](references/icons.md)** (don't page through a thousand names)
 - **Empty-state illustrations** — exactly these 10, the names are not guessable: `IlluEmpty` `IlluNoData` `IlluSearch` `IlluLoading` `IlluServerStatus` `IlluAccessDenied` `IlluPageNotFound` `IlluDataProcessing` `IlluBugFixing` `IlluCodeReview`
 - Component index (props + types + examples) → **[references/catalog.md](references/catalog.md)** and **[references/contracts/](references/contracts/)** (generated; after changing a component run `pnpm gen:skill`)
 - The SDK already bundles React / lucide / recharts — **never** import those yourself
@@ -166,7 +166,7 @@ Product strings (`name`, `description`, every label the user sees) follow the **
 `main.api.ts`:
 
 ```ts
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 async function loadItems(ctx) {
   const items = await ctx.storage.get("items");

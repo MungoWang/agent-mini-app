@@ -35,7 +35,7 @@ export type HostAboutMeta = {
 const PLATFORM_PACKAGES = [
   "@monkey-mini-app/host",
   "@monkey-mini-app/panel",
-  "@monkey-mini-app/sdk",
+  "@monkey-mini-app/api",
   "@monkey-mini-app/ui",
 ] as const;
 

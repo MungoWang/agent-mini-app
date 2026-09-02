@@ -6,7 +6,7 @@ Virtualized streaming log viewer with level colors, search, and auto-scroll.
 
 **when** Streaming / CLI-style log output
 
-`import { LogViewer, LogLevel, LogEntry } from "@monkey-mini-app/sdk"`
+`import { LogViewer, LogLevel, LogEntry } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/log-viewer.tsx` · family: Realtime · type: product
 

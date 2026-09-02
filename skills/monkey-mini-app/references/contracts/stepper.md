@@ -6,7 +6,7 @@ Numbered steps with status; children are `StepperItem`.
 
 **when** Wizard/progress of an ordered process. Time axis → `RunTimeline`.
 
-`import { Stepper, StepStatus, StepperItemProps } from "@monkey-mini-app/sdk"`
+`import { Stepper, StepStatus, StepperItemProps } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/stepper.tsx` · family: Feedback & status · type: product
 

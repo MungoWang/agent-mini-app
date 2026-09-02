@@ -19,10 +19,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const ORDER = ["ui", "sdk", "host", "panel", "dsh"];
+const ORDER = ["ui", "api", "host", "panel", "dsh"];
 const PKG_DIR: Record<string, string> = {
   "@monkey-mini-app/ui": "ui",
-  "@monkey-mini-app/sdk": "sdk",
+  "@monkey-mini-app/api": "api",
   "@monkey-mini-app/host": "host",
   "@monkey-mini-app/panel": "panel",
   "@monkey-mini-app/dsh-mini-app": "dsh",

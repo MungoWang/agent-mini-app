@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { bootstrapHostConfig, createHost, type HostServices } from "@monkey-mini-app/host";
 
-const api = `import { defineApp } from "@monkey-mini-app/sdk";
+const api = `import { defineApp } from "@monkey-mini-app/api";
 export default defineApp({ name: "P", description: "p", api: { ping: async () => ({ ok: true }) } });
 `;
 

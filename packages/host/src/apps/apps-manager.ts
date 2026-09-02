@@ -615,13 +615,24 @@ export class AppsManager {
     loaded.set(file, mod.exports);
     const src = compileAppSource(readFileSync(file, "utf8"));
     const req: CjsRequire = (spec: string): unknown => {
-      if (spec === "@monkey-mini-app/sdk") {
-        return { defineApp, default: defineApp };
+      if (spec === "@monkey-mini-app/api") {
+        // Proxy: any name other than defineApp fails immediately (no silent undefined).
+        const surface: Record<string, unknown> = { defineApp, default: defineApp };
+        return new Proxy(surface, {
+          get(target, prop, receiver) {
+            if (typeof prop === "symbol") return Reflect.get(target, prop, receiver);
+            if (prop in target) return target[prop];
+            throw new HostError(
+              "BACKEND_IMPORT",
+              `backend cannot import '${String(prop)}' from @monkey-mini-app/api — only defineApp (UI components live in @monkey-mini-app/ui)`,
+            );
+          },
+        });
       }
       if (!spec.startsWith(".")) {
         throw new HostError(
           "BACKEND_IMPORT",
-          `backend cannot import '${spec}'. Backend may import @monkey-mini-app/sdk and relative paths inside the app dir`,
+          `backend cannot import '${spec}'. Backend may import @monkey-mini-app/api and relative paths inside the app dir`,
         );
       }
       const next = resolveAppModule(file, spec, appDir);

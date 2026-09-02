@@ -36,7 +36,7 @@ describe("UiCompiler", () => {
   it("compiles instance code against /mma/sdk.js and does not inline react-is", async () => {
     const { compiler, appDir } = makeApp(`
 import { useState } from "react";
-import { Card } from "@monkey-mini-app/sdk";
+import { Card } from "@monkey-mini-app/ui";
 export default function Ui() {
   const [n] = useState(1);
   return <Card>hello-sdk {n}</Card>;
@@ -53,7 +53,7 @@ export default function Ui() {
   it("compiles in-app relative imports from ui/ and shared/", async () => {
     const { compiler, appDir } = makeApp(
       `
-import { Card } from "@monkey-mini-app/sdk";
+import { Card } from "@monkey-mini-app/ui";
 import { Label } from "./ui/Label";
 import { tag } from "./shared/tag";
 export default function Ui() {
@@ -86,8 +86,10 @@ export default function Ui() {
     await expect(compiler.compile(appDir, { locale: "zh-CN" })).rejects.toThrow(/cannot import api/);
   });
 
-  it("no longer resolves the pre-unification specifiers", async () => {
-    for (const spec of ["@monkeyagent/host", "@monkey-mini-app/ui"]) {
+  it("no longer resolves the pre-unification / wrong-side specifiers", async () => {
+    // UI may only externalise @monkey-mini-app/ui (+ react/lucide). sdk is gone;
+    // api is backend-only and must not resolve in the UI compile.
+    for (const spec of ["@monkeyagent/host", "@monkey-mini-app/sdk", "@monkey-mini-app/api"]) {
       const { compiler, appDir } = makeApp(
         `import { Card } from "${spec}";\nexport default function Ui() { return <Card />; }\n`,
       );

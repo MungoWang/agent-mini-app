@@ -6,7 +6,7 @@ Star rating.
 
 **when** Feedback/score capture, 1–max.
 
-`import { Rating } from "@monkey-mini-app/sdk"`
+`import { Rating } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/rating.tsx` · family: Form · type: composite
 

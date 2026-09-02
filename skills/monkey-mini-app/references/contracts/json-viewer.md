@@ -6,7 +6,7 @@ Collapsible JSON tree.
 
 **when** API responses/config. Plain text with wrapping → `CodeBlock`.
 
-`import { JsonViewer } from "@monkey-mini-app/sdk"`
+`import { JsonViewer } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/json-viewer.tsx` · family: Discovery & inspect · type: product
 

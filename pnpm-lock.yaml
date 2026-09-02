@@ -206,6 +206,15 @@ importers:
         specifier: ^7
         version: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(tsx@4.23.12)(yaml@2.9.0)
 
+  packages/api:
+    devDependencies:
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      typescript:
+        specifier: ~5.9.2
+        version: 5.9.3
+
   packages/dsh:
     dependencies:
       '@deepseek-ai/dsh-llm':
@@ -281,6 +290,9 @@ importers:
       '@hono/node-server':
         specifier: ^2.1.1
         version: 2.1.1(hono@4.13.5)
+      '@monkey-mini-app/api':
+        specifier: workspace:^
+        version: link:../api
       '@monkey-mini-app/ui':
         specifier: ^0.1.0
         version: 0.1.1(@babel/runtime@7.29.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.9)(@date-fns/tz@1.5.0)(@tiptap/core@3.30.4(@tiptap/pm@3.30.4))(@tiptap/extensions@3.30.4(@tiptap/core@3.30.4(@tiptap/pm@3.30.4))(@tiptap/pm@3.30.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(codemirror@6.0.2)(react-dom@19.2.8(react@19.2.8))(react-is@18.3.1)(react@19.2.8)(typescript@5.9.3)
@@ -346,31 +358,6 @@ importers:
       typescript:
         specifier: ~5.7.3
         version: 5.7.3
-
-  packages/sdk:
-    dependencies:
-      '@monkey-mini-app/ui':
-        specifier: ^0.1.1
-        version: 0.1.1(@babel/runtime@7.29.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.9)(@date-fns/tz@1.5.0)(@tiptap/core@3.30.4(@tiptap/pm@3.30.4))(@tiptap/extensions@3.30.4(@tiptap/core@3.30.4(@tiptap/pm@3.30.4))(@tiptap/pm@3.30.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(codemirror@6.0.2)(react-dom@19.2.8(react@19.2.8))(react-is@18.3.1)(react@19.2.8)(typescript@5.9.3)
-      react:
-        specifier: ^19.2.6
-        version: 19.2.8
-      react-dom:
-        specifier: ^19.2.6
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@types/react':
-        specifier: ^19
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: ^19
-        version: 19.2.5(@types/react@19.2.18)
-      esbuild:
-        specifier: ^0.28.2
-        version: 0.28.2
-      typescript:
-        specifier: ~5.9.2
-        version: 5.9.3
 
   packages/smoke-test:
     dependencies:

@@ -33,7 +33,7 @@ function boot(caps: HostCapabilities = {}): {
 }
 
 function appSource(body: string): string {
-  return `import { defineApp } from "@monkey-mini-app/sdk";
+  return `import { defineApp } from "@monkey-mini-app/api";
 export default defineApp({
   name: "Fixture",
   description: "fixture app",
@@ -212,7 +212,7 @@ describe("AppsManager", () => {
         entry: "ui.tsx",
       }),
       "lib/math.ts": "export function double(n: number): number { return n * 2; }\n",
-      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/api";
 import { double } from "./lib/math";
 export default defineApp({
   name: "TS",
@@ -239,7 +239,7 @@ export default defineApp({
       }),
       "utils/triple.ts": "export const triple = (n: number): number => n * 3;\n",
       "api/wrap.ts": "import { triple } from \"../utils/triple\";\nexport const wrap = (n: number) => `=${triple(n)}`;\n",
-      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/api";
 import { wrap } from "./api/wrap";
 export default defineApp({
   name: "Tree",
@@ -261,7 +261,7 @@ export default defineApp({
         entry: "ui.tsx",
       }),
       "ui/label.ts": "export const label = \"hello\";\n",
-      "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";
+      "main.api.ts": `import { defineApp } from "@monkey-mini-app/api";
 import { label } from "./ui/label";
 export default defineApp({
   name: "UiTree",
@@ -303,7 +303,7 @@ export default defineDashboard({
         entry: "ui.tsx",
       }),
       "main.api.ts": `import fs from "node:fs";
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 export default defineApp({
   name: "Bad",
   description: "nope",

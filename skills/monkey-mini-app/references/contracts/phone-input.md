@@ -6,7 +6,7 @@ Phone number input with formatting.
 
 **when** CN/mobile numbers.
 
-`import { PhoneInput } from "@monkey-mini-app/sdk"`
+`import { PhoneInput } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/phone-input.tsx` · family: Form · type: composite
 

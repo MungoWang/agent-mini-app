@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from "@monkey-mini-app/sdk"`
+`import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/native-select.tsx` · family: Form · type: component · primitive
 

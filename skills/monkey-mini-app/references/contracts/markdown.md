@@ -6,7 +6,7 @@ Render a markdown string.
 
 **when** Model output, README-ish bodies. Children must be a string.
 
-`import { Markdown } from "@monkey-mini-app/sdk"`
+`import { Markdown } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/markdown.tsx` · family: Rich text · type: product
 

@@ -2,7 +2,7 @@
 
 # Mini-app UI catalog
 
-Import components, `useApp`, `Icon` and `Illu*` from `@monkey-mini-app/sdk` — the only UI specifier allowed in `ui.tsx` (besides `react` and relative `./lib`).
+Import components, `useApp`, `Icon` and `Illu*` from `@monkey-mini-app/ui` — the only UI specifier allowed in `ui.tsx` (besides `react` and relative `./lib`).
 The host wraps the iframe with the theme provider + CSS; do not add a Provider yourself.
 Open `contracts/<slug>.md` for **props + parts** + examples.
 

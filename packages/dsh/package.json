@@ -32,7 +32,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "node ../../scripts/gen/skill/copy.mjs dsh",
     "postpack": "node ../../scripts/gen/skill/copy.mjs clean dsh",
-    "prepublishOnly": "pnpm --filter @monkey-mini-app/ui build && pnpm --filter @monkey-mini-app/sdk build && node ../../scripts/gen/skill/index.mjs && rm -rf lib && tsup"
+    "prepublishOnly": "pnpm --filter @monkey-mini-app/ui build && pnpm --filter @monkey-mini-app/api build && node ../../scripts/gen/skill/index.mjs && rm -rf lib && tsup"
   },
   "dsh": {
     "bundle": {

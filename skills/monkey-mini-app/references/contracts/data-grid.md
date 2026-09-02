@@ -6,7 +6,7 @@ Product table: sort, column filter popover, global search, pagination.
 
 **when** Any list/table of rows — prefer over raw Table*
 
-`import { DataGrid, SearchVariant, DataGridColumnMeta, DataGridFeatures } from "@monkey-mini-app/sdk"`
+`import { DataGrid, SearchVariant, DataGridColumnMeta, DataGridFeatures } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/data-grid.tsx` · family: Data & tables · type: product
 

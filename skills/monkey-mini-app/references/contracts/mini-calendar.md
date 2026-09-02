@@ -6,7 +6,7 @@ Compact month grid, day cell only.
 
 **when** Inside a popover or sidebar. Full page with events → `EventCalendar`.
 
-`import { MiniCalendar } from "@monkey-mini-app/sdk"`
+`import { MiniCalendar } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/mini-calendar.tsx` · family: Calendar & date · type: composite
 

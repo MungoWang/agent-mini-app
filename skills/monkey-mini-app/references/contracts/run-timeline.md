@@ -6,7 +6,7 @@ Timeline of run phases with duration + status.
 
 **when** CI/agent/job phases on a time axis. Plain ordered events → `Timeline`.
 
-`import { RunTimeline, TimelineItem } from "@monkey-mini-app/sdk"`
+`import { RunTimeline, TimelineItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/run-timeline.tsx` · family: Realtime · type: block
 

@@ -7,8 +7,8 @@
     "build": "pnpm -r run build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage packages/host/tests packages/panel/tests packages/dsh/tests",
-    "lint": "eslint packages/host packages/sdk packages/panel packages/dsh",
-    "lint:fix": "eslint packages/host packages/sdk packages/panel packages/dsh --fix",
+    "lint": "eslint packages/host packages/api packages/panel packages/dsh",
+    "lint:fix": "eslint packages/host packages/api packages/panel packages/dsh --fix",
     "typecheck": "tsc -b --pretty false",
     "smoke": "vitest run packages/smoke-test",
     "build:ui": "node scripts/build/ui.mjs",
@@ -22,9 +22,10 @@
     "dev:dsh-prod": "tsx scripts/dev/dsh-switch.mts prod",
     "dsh-host": "pnpm --filter @monkey-mini-app/dsh-host start",
     "test:dsh": "pnpm --filter @monkey-mini-app/dsh-host test:e2e",
-    "publish:prep": "pnpm build:ui && pnpm build:sdk && pnpm skill && pnpm --filter @monkey-mini-app/dsh-mini-app build",
+    "publish:prep": "pnpm build:ui && pnpm build:sdk && pnpm build:api && pnpm skill && pnpm --filter @monkey-mini-app/dsh-mini-app build",
     "publish": "pnpm publish:prep && pnpm -r publish",
-    "publish:packages": "tsx scripts/release/publish.mts"
+    "publish:packages": "tsx scripts/release/publish.mts",
+    "build:api": "node scripts/build/api.mjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

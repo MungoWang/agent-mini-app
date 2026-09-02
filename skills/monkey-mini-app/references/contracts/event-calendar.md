@@ -6,7 +6,7 @@ Full calendar (day / week / month / year / agenda). Event shape matches yassir-j
 
 **when** Scheduling, on-call, release windows
 
-`import { EventCalendar, TCalendarView, IUser, TEventColor } from "@monkey-mini-app/sdk"`
+`import { EventCalendar, TCalendarView, IUser, TEventColor } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/event-calendar.tsx` · family: Calendar & date · type: product
 

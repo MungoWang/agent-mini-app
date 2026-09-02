@@ -1,9 +1,9 @@
 # Icons
 
-`import { Icon } from "@monkey-mini-app/sdk"` — a single `Icon` namespace (lucide). `Icon.<Name>` accepts **any lucide React component name** (PascalCase). Below is a **curated subset**, grouped by purpose with a one-line note on when to reach for it; anything not listed still works by lucide's naming rule (`Icon.IconName`).
+`import { Icon } from "@monkey-mini-app/ui"` — a single `Icon` namespace (lucide). `Icon.<Name>` accepts **any lucide React component name** (PascalCase). Below is a **curated subset**, grouped by purpose with a one-line note on when to reach for it; anything not listed still works by lucide's naming rule (`Icon.IconName`).
 
 ```tsx
-import { Icon } from "@monkey-mini-app/sdk";
+import { Icon } from "@monkey-mini-app/ui";
 <Icon.Search size={16} strokeWidth={2} />
 ```
 
@@ -95,7 +95,7 @@ Icon-only buttons must carry an accessible name: `<Button size="icon" aria-label
 **Exactly these 10 names** (unDraw sources, tokenised so they follow `--primary` / `--muted`). Unlike lucide, these cannot be guessed — if a name is not in this list, fall back to an `Icon` plus text.
 
 ```tsx
-import { IlluEmpty } from "@monkey-mini-app/sdk";
+import { IlluEmpty } from "@monkey-mini-app/ui";
 <IlluEmpty className="mx-auto w-40" />
 ```
 

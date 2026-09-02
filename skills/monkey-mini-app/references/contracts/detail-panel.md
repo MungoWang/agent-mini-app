@@ -6,7 +6,7 @@ Right-side inspector Sheet for a selected row/entity.
 
 **when** Master-detail after row/card click
 
-`import { DetailPanel } from "@monkey-mini-app/sdk"`
+`import { DetailPanel } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/detail-panel.tsx` · family: Surface · type: block
 

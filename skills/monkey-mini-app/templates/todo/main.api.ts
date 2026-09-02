@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 type TodoItem = { id: string; title: string; done: boolean; createdAt: number };
 type Filter = "all" | "active" | "done";

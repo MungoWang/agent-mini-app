@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
   useApp,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 type Snapshot = {
   hostname?: string;

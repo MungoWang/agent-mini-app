@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { HoverCard, HoverCardContent, HoverCardTrigger } from "@monkey-mini-app/sdk"`
+`import { HoverCard, HoverCardContent, HoverCardTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/hover-card.tsx` · family: Surface · type: component · primitive
 

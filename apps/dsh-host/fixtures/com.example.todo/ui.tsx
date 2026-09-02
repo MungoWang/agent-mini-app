@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
   useApp,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 type Filter = "all" | "active" | "done";
 type TodoItem = { id: string; title: string; done: boolean; createdAt: number };

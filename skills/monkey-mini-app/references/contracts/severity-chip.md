@@ -6,7 +6,7 @@ Chip for severity/blocker level.
 
 **when** P0–P4, blocker/critical columns. Run outcome → `StatusBadge`.
 
-`import { SeverityChip } from "@monkey-mini-app/sdk"`
+`import { SeverityChip } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/severity-chip.tsx` · family: Feedback & status · type: block
 

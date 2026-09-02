@@ -6,7 +6,7 @@ Expandable file/dir tree (icons built in).
 
 **when** Repo/zip contents where selection matters. Plain nested list → `TreeView`.
 
-`import { FileTree, TreeNode } from "@monkey-mini-app/sdk"`
+`import { FileTree, TreeNode } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/file-tree.tsx` · family: Data & tables · type: block
 

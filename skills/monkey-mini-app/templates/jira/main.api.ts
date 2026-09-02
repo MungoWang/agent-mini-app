@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 // ⭐ key: the "key" field of list/kanban items matters — drag & update both locate by it (remember the idKey="key" pitfall).
 //         Jira simulation: change status/assignee/priority, add comments, AI worklog.

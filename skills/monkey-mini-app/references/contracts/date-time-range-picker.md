@@ -6,7 +6,7 @@ From/to moments, all-day toggle.
 
 **when** Run windows, on-call shifts.
 
-`import { DateTimeRangePicker, DateTimeRange } from "@monkey-mini-app/sdk"`
+`import { DateTimeRangePicker, DateTimeRange } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/date-time-range-picker.tsx` · family: Calendar & date · type: composite
 

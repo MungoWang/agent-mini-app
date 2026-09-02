@@ -6,7 +6,7 @@ Controlled yes/no dialog with loading-safe confirm.
 
 **when** Any destructive action. Needs a form inside → compose `Dialog` yourself.
 
-`import { ConfirmDialog } from "@monkey-mini-app/sdk"`
+`import { ConfirmDialog } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/confirm-dialog.tsx` · family: Surface · type: composite
 

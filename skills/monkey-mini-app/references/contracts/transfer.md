@@ -6,7 +6,7 @@ Two-panel move-between-lists picker.
 
 **when** Selecting many items from a known pool (assign users to a shift).
 
-`import { Transfer, TransferItem } from "@monkey-mini-app/sdk"`
+`import { Transfer, TransferItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/transfer.tsx` · family: Form · type: composite
 

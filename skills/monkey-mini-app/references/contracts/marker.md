@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Marker, MarkerContent, MarkerIcon, markerVariants } from "@monkey-mini-app/sdk"`
+`import { Marker, MarkerContent, MarkerIcon, markerVariants } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/marker.tsx` · family: Layout & structure · type: component · primitive
 

@@ -6,7 +6,7 @@ Inline text with a copy button.
 
 **when** IDs, hashes, URLs, tokens the user pastes elsewhere.
 
-`import { Copyable } from "@monkey-mini-app/sdk"`
+`import { Copyable } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/copyable.tsx` · family: Discovery & inspect · type: composite
 

@@ -8,7 +8,7 @@ Anchored floating panel.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@monkey-mini-app/sdk"`
+`import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/popover.tsx` · family: Surface · type: component · primitive
 

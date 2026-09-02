@@ -73,7 +73,7 @@ import {
   type KanbanCard,
   type RelativePreset,
   type SortableItem,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 import {
   CAL_EVENTS,

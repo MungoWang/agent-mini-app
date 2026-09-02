@@ -8,7 +8,7 @@ Slide-in side panel.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@monkey-mini-app/sdk"`
+`import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/sheet.tsx` · family: Surface · type: component · primitive
 

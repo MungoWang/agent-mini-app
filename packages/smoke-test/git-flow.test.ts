@@ -5,7 +5,7 @@ import { startHost } from "./fixture.ts";
 const files = {
   "manifest.json": JSON.stringify({ id: "com.smoke.git", name: "Git", version: "1.0.0", entry: "ui.tsx" }),
   "ui.tsx": `export default function Ui(){ return <div>v1</div>; }`,
-  "main.api.ts": `import { defineApp } from "@monkey-mini-app/sdk";\nexport default defineApp({ name: "G", description: "g", api: { ping: async () => ({ ok: true }) } });\n`,
+  "main.api.ts": `import { defineApp } from "@monkey-mini-app/api";\nexport default defineApp({ name: "G", description: "g", api: { ping: async () => ({ ok: true }) } });\n`,
 };
 
 describe("S4 · real git journey → history route (提交历史面板)", () => {

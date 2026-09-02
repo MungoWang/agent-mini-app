@@ -6,7 +6,7 @@ Arc gauge for one 0–100 metric.
 
 **when** A single health/capacity number that needs a zone (SLO, disk). Series over time → `Sparkline`.
 
-`import { Gauge } from "@monkey-mini-app/sdk"`
+`import { Gauge } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/gauge.tsx` · family: Chart & data · type: block
 

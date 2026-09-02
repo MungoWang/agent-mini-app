@@ -6,7 +6,7 @@ Popover date range with month/year chrome.
 
 **when** Filters needing from/to calendar days
 
-`import { DateRangePicker } from "@monkey-mini-app/sdk"`
+`import { DateRangePicker } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/date-range-picker.tsx` · family: Calendar & date · type: composite
 

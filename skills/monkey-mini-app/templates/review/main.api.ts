@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 // ⭐ key: StatusBadge / health components only recognize lowercase status words (pass|fail|blocked|flaky|running|pending),
 //         never uppercase like "PASS"/"FAIL" — they'd fall back to the default pending gray and every color would be wrong.

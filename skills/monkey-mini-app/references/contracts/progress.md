@@ -8,7 +8,7 @@ Linear determinate progress bar.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Progress, ProgressIndicator, ProgressLabel, ProgressTrack, ProgressValue } from "@monkey-mini-app/sdk"`
+`import { Progress, ProgressIndicator, ProgressLabel, ProgressTrack, ProgressValue } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/progress.tsx` · family: Feedback & status · type: component · primitive
 

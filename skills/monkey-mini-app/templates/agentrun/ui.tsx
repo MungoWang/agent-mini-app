@@ -16,7 +16,7 @@ import {
   Stepper,
   StepperItem,
   useApp,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 type Step = { phase: string; name?: string; turn?: number; text?: string; at: number };
 type Run = { goal: string; status: string; steps: Step[]; result: string; startedAt: number };

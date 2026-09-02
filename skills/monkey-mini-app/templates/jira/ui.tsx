@@ -40,7 +40,7 @@ import {
   TabsTrigger,
   Textarea,
   useApp,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 type Issue = {
   key: string;

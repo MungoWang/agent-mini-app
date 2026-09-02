@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { cn, useApp } from "@monkey-mini-app/sdk";
+import { cn, useApp } from "@monkey-mini-app/ui";
 
 import { SECTIONS, type SectionId } from "./lib/data";
 import {

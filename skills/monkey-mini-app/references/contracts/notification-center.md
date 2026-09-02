@@ -6,7 +6,7 @@ Grouped notification list with unread state.
 
 **when** Inbox/alert panel. Audit log (read-only, with time) → `ActivityFeed`.
 
-`import { NotificationCenter, NotificationItem } from "@monkey-mini-app/sdk"`
+`import { NotificationCenter, NotificationItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/notification-center.tsx` · family: Feedback & status · type: block
 

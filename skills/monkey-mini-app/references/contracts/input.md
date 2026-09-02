@@ -6,7 +6,7 @@ Single-line text input.
 
 **when** Plain text. Numbers → `NumberField`; secrets → `PasswordField`; search → `SearchInput`.
 
-`import { Input } from "@monkey-mini-app/sdk"`
+`import { Input } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/input.tsx` · family: Form · type: component · primitive
 

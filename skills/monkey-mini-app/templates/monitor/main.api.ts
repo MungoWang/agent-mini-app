@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 // ⭐ key: the host already exposes OS basics via ctx.system.metrics() (memory/CPU/load/uptime are all there),
 //         so don't recompute them with bash. Use ctx.bash only for what the host lacks: ps (processes), df (disk).

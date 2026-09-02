@@ -6,7 +6,7 @@ Multi-axis radar chart.
 
 **when** Comparing an item across 4–8 dimensions (scores, coverage).
 
-`import { RadarChart, ChartConfig } from "@monkey-mini-app/sdk"`
+`import { RadarChart, ChartConfig } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/radar-chart.tsx` · family: Chart & data · type: block
 

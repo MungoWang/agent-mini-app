@@ -50,10 +50,10 @@ Effect: `env-table.md` went from 332 prop rows (5 real, with `String.prototype` 
 
 | Rule | What it prevents |
 |---|---|
-| `author-specifier` | The skill teaching a removed author specifier / API name (pre-unification `@monkeyagent/*`, the library package alias, `defineDashboard`, `useDashboardApi`) — the contract is `react` + `@monkey-mini-app/sdk` + in-app relative paths, with `defineApp` on the backend |
+| `author-specifier` | The skill teaching a removed author specifier / API name (pre-unification `@monkeyagent/*`, the library package alias, `defineDashboard`, `useDashboardApi`) — the contract is UI `@monkey-mini-app/ui` + backend `@monkey-mini-app/api` + in-app relative paths |
 | `tool-name` / `tool-coverage` | Documenting a `mini_app_*` tool that does not exist; or a real tool never being mentioned |
 | `ctx-member` | Documenting `ctx.x` that is not a key of `AppContext` (this is how `ctx.llm.stream` and `onMount` used to survive) |
-| `ctx-mirror` | The SDK's author-facing `AppCtx` drifting from the host's `AppContext` — the backend takes its **types** from `@monkey-mini-app/sdk` but its runtime `defineApp` from the host injection, so the two key sets must be identical |
+| `ctx-mirror` | The SDK's author-facing `AppCtx` drifting from the host's `AppContext` — the backend takes its **types** from `@monkey-mini-app/ui` / `@monkey-mini-app/api` but its runtime `defineApp` from the host injection, so the two key sets must be identical |
 | `contract-size` / `contract-noise` / `contract-import` / `contract-when` | Inherited-prop dumps, legacy specifiers, missing `@when` |
 | `taxonomy` / `taxonomy-empty` | Missing/unknown family, catalog grouping disagreeing with the registry |
 | `md-table` | Merged table rows (one such row silently deleted two navigation entries) |
@@ -80,7 +80,7 @@ internals are reported as a note.
 | Symptom then | Now |
 |---|---|
 | `env-table.md` 332 prop rows, `String.prototype` members marked required | 3 rows + one inherited-base line; 72% of all prop rows were noise → 0 |
-| 75/75 contracts plus `loader.md`, `icons.md`, `templates/README.md` taught the legacy specifier | everything teaches `@monkey-mini-app/sdk`; `author-specifier` blocks regressions |
+| 75/75 contracts plus `loader.md`, `icons.md`, `templates/README.md` taught the legacy specifier | everything teaches `@monkey-mini-app/ui`; `author-specifier` blocks regressions |
 | `ctx.md` documented `onMount` / `onUnmount`, which do not exist; `troubleshoot.md` told you to call `ctx.llm.stream` | rewritten against the real `AppContext`; `ctx-member` gate |
 | L1 primitives (55 files) had zero documentation — props and part names were guesswork | 58 L1 contracts (parts + own props + skeleton), catalog grouped by family |
 | `when` coverage 18/75 | 133/133 components have `@when` (`contract-when` = 0 warnings) |

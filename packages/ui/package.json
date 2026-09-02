@@ -9,9 +9,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:dist": "node ../../scripts/build/ui.mjs",
-    "build": "node ../../scripts/build/ui.mjs",
-    "prepack": "node ../../scripts/build/ui.mjs",
-    "gen:skill": "node ../../scripts/gen/skill/index.mjs"
+    "build": "node ../../scripts/build/ui.mjs && node ../../scripts/build/sdk.mjs",
+    "prepack": "node ../../scripts/build/ui.mjs && node ../../scripts/build/sdk.mjs",
+    "gen:skill": "node ../../scripts/gen/skill/index.mjs",
+    "build:iframe": "node ../../scripts/build/sdk.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -96,5 +97,6 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "description": "Mini-app UI kit + useApp(); iframe bundles runtime.js/sdk.js live in dist/"
 }

@@ -26,7 +26,7 @@ Match the **literal message** you got. `mini_app_reload` prefixes each `errors[]
 | `main.api must export defineApp({ name, description, api })` | Missing `export default defineApp({...})` | Add the default export |
 | `defineApp requires name and description` | One of them is missing | Provide both |
 | `defineApp.api must be an object` | `api` written as a function or array | `api: { async list(ctx) {…} }` |
-| `backend cannot import '<spec>'. Backend may import @monkey-mini-app/sdk and relative paths inside the app dir` | Backend imported an npm package or a Node builtin | Backend: `@monkey-mini-app/sdk` (`defineApp`) + relative paths only |
+| `backend cannot import '<spec>'. Backend may import @monkey-mini-app/api and relative paths inside the app dir` | Backend imported an npm package or a Node builtin | Backend: `@monkey-mini-app/api` (`defineApp`) + relative paths only |
 | `backend cannot import '<spec>': ui/** is UI-only` | Backend reached into the UI tree | Move the shared logic to `shared/**` |
 | `backend import escapes app dir: <spec>` | Backend imported `../` past the app root | Keep every import inside the app dir |
 | `unsafe relative path: <rel>` | Path contained `..` or was absolute | `mini_app_*` `path` values are app-relative |
@@ -37,11 +37,11 @@ Match the **literal message** you got. `mini_app_reload` prefixes each `errors[]
 
 | Message | Root cause | Fix |
 |---|---|---|
-| `UI cannot import main.api.ts; use useApp() from @monkey-mini-app/sdk` | UI imported the backend | Go through `call(method, args)` |
+| `UI cannot import main.api.ts; use useApp() from @monkey-mini-app/ui` | UI imported the backend | Go through `call(method, args)` |
 | `UI cannot import api/**: "<spec>"` | UI reached into the backend tree | Move the shared logic to `shared/**` |
 | `UI import escapes the app dir: "<spec>"` | `../` pointed at a sibling app or outside | Keep every import inside the app dir |
 | `missing ui entry (ui.tsx / App.tsx)` | `manifest.entry` points at a file that isn't there | Match `entry` to the real file |
-| `Failed to resolve import "<pkg>"` | Imported an npm package the app directory does not have | UI: `react` / `@monkey-mini-app/sdk` / in-app relative paths. React, lucide and recharts already ship inside the SDK |
+| `Failed to resolve import "<pkg>"` | Imported an npm package the app directory does not have | UI: `react` / `@monkey-mini-app/ui` / in-app relative paths. React, lucide and recharts already ship inside the SDK |
 
 ## It compiles but looks wrong
 

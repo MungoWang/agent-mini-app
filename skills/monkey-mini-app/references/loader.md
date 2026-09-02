@@ -26,7 +26,7 @@ DOM, no `ctx`, no Node builtins.
 
 ## Backend (`main.api.ts`, `api/**`, `shared/**`)
 
-- `import { defineApp } from "@monkey-mini-app/sdk"` — the **same package as the UI**; the host injects the runtime `defineApp` when it loads the file, so nothing React-ish is pulled into the backend
+- `import { defineApp } from "@monkey-mini-app/api"`; the host injects the runtime `defineApp` when it loads the file, so nothing React-ish is pulled into the backend
 - `import { parseFeed } from "./api/feed"`, `import { SAMPLE } from "./shared/sample"` — any relative path inside the app dir; subfolder names beyond the convention above are up to you
 - TypeScript freely (sucrase: parameter types, `{ title: string }`, `catch (e: any)` all fine)
 - `export default defineApp(...)`
@@ -34,15 +34,12 @@ DOM, no `ctx`, no Node builtins.
 
 ## Frontend (`ui.tsx`, `ui/**`, `shared/**`)
 
-- `import { useApp, Button, DataGrid, ... } from "@monkey-mini-app/sdk"` — components, `useApp`, `Icon`, `Illu*` all come from here (icon/chart/editor dependencies are already inside; never add an npm import)
+- `import { useApp, Button, DataGrid, ... } from "@monkey-mini-app/ui"` — components, `useApp`, `Icon`, `Illu*` all come from here (icon/chart/editor dependencies are already inside; never add an npm import)
 - `import { useState } from "react"` — React 19, injected by the host
 - `import { fmt } from "./shared/format"` — app-relative, bundled with the UI
 - Layout via Tailwind classes (`flex flex-col gap-3`, …)
 
-One specifier for both sides: `@monkey-mini-app/sdk`. The host knows nothing else — the
-old library-package / virtual-module names from before the namespace unification were
-removed along with their compiler aliases and the injector, so an app that still uses them
-fails to compile. Rewrite them; do not work around them.
+UI: `@monkey-mini-app/ui`. Backend: `@monkey-mini-app/api`. Nothing else resolves — pre-unification names fail to compile. Rewrite them; do not work around them.
 
 ## Forbidden (compile error — do not work around it)
 

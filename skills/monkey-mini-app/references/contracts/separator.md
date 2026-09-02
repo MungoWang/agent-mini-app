@@ -6,7 +6,7 @@ Horizontal/vertical rule.
 
 **when** Grouping inside panels.
 
-`import { Separator } from "@monkey-mini-app/sdk"`
+`import { Separator } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/separator.tsx` · family: Layout & structure · type: component · primitive
 

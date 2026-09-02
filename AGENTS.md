@@ -52,11 +52,11 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 
 ## Hard constraints (broken apps if violated)
 
-1. A mini-app imports **exactly one** platform package: `@monkey-mini-app/sdk` (plus `react` in the UI). UI may not import `main.api.ts`, `api/**`, or any other npm package. Hooks from `react`; components and `useApp()` → `{ call(method, args) }` from the SDK. Compiler: `react` → `/mma/runtime.js`, SDK → `/mma/sdk.js`; relative imports that leave the app dir fail. Legacy specifiers (`@monkeyagent/host`, `@monkey-mini-app/ui`, `useDashboardApi`) are **removed** — no aliases.
- - Icons: `import { Icon } from "@monkey-mini-app/sdk"` then `<Icon.HelpCircle />`.
+1. UI imports `@monkey-mini-app/ui` (+ `react`); backend imports `@monkey-mini-app/api` (`defineApp`). UI may not import `main.api.ts`, `api/**`, or any other npm package. Hooks from `react`; components and `useApp()` from the UI package. Compiler: `react` → `/mma/runtime.js`, UI kit → `/mma/sdk.js`; relative imports that leave the app dir fail. Legacy `@monkey-mini-app/ui` / `@monkeyagent/*` are **removed**.
+ - Icons: `import { Icon } from "@monkey-mini-app/ui"` then `<Icon.HelpCircle />`.
  - Illustrations: `IlluXxx` from the SDK (unDraw, MIT; `scripts/gen/illustrations.mjs` tokenizes accent→`--primary`, greys→`--muted`/`--card`). No hard-coded hex. Accent via `--primary-svg-color: var(--primary)`.
 2. `call` methods must be keys of `defineApp({ api })`.
-3. Backend `main.api.ts` imports `defineApp` from `@monkey-mini-app/sdk` (the host injects the runtime copy — nothing React is loaded) + relative paths inside the app dir; no npm / Node builtins / `ui/**`. Layout: `ui/` UI-only · `api/` backend-only · `shared/` pure-isomorphic (enforced both ways). Net: `ctx.http`; machine: `ctx.bash`; model: `ctx.llm`.
+3. Backend `main.api.ts` imports `defineApp` from `@monkey-mini-app/api` (the host injects the runtime copy — nothing React is loaded) + relative paths inside the app dir; no npm / Node builtins / `ui/**`. Layout: `ui/` UI-only · `api/` backend-only · `shared/` pure-isomorphic (enforced both ways). Net: `ctx.http`; machine: `ctx.bash`; model: `ctx.llm`.
 4. `compileAppSource` uses sucrase; no regex global strip of `: type`. UI compile: `packages/host/src/compile/ui-compiler.ts`.
 5. `ctx.llm` goes through `HostCapabilities.llm`; only the dsh adapter uses `llm.stream({ provider, model, messages })`. Do not hardcode dsh in `host`.
 6. `ctx.http` → `{ ok, status, headers, text, json }`; `ctx.bash` → `{ stdout, stderr, exitCode }`; `ctx.llm` / `ctx.tool` → **string**. MCP args must not be `{ input: "..." }`.
@@ -126,6 +126,6 @@ Open `小程序` (the mini-app panel): list, open Todo, collapse rail, dock righ
 
 ## New mini-app
 
-Follow the skill: `manifest.json` + `ui.tsx` + `main.api.ts` (+ `ui/` `api/` `shared/`). Both sides import `@monkey-mini-app/sdk` (`useApp` / `defineApp`, components). Samples: skill `templates/`.
+Follow the skill: `manifest.json` + `ui.tsx` + `main.api.ts` (+ `ui/` `api/` `shared/`). UI: `@monkey-mini-app/ui`; backend: `@monkey-mini-app/api`. Samples: skill `templates/`.
 
 When changing protocol, update `docs/contracts/` and the skill.

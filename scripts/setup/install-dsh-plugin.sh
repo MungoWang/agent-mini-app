@@ -34,7 +34,7 @@ fi
 
 echo "[install] building @monkey-mini-app/ui dist..."
 (cd "$ROOT" && node scripts/build/ui.mjs)
-echo "[install] building @monkey-mini-app/sdk dist..."
+echo "[install] building @monkey-mini-app/api dist..."
 (cd "$ROOT" && node scripts/build/sdk.mjs)
 echo "[install] building lib/ from src (tsup)..."
 (cd "$PLUGIN" && rm -rf lib && pnpm exec tsup)
@@ -102,7 +102,7 @@ echo "[install] linking workspace packages + plugin into $PROFILE_DIR"
   cd "$PROFILE_DIR"
   pnpm remove -w @monkey-mini-app/dsh-plugin @monkey-mini-app/dsh-monkey-mini-app dsh-plugin >/dev/null 2>&1 || true
   pnpm add -w "@monkey-mini-app/ui@workspace:*" >/dev/null 2>&1 || true
-  pnpm add -w "@monkey-mini-app/sdk@workspace:*" >/dev/null 2>&1 || true
+  pnpm add -w "@monkey-mini-app/api@workspace:*" >/dev/null 2>&1 || true
   pnpm add -w "@monkey-mini-app/host@workspace:*" >/dev/null 2>&1 || true
   pnpm add -w "@monkey-mini-app/panel@workspace:*" >/dev/null 2>&1 || true
   pnpm add -w "$PLUGIN"

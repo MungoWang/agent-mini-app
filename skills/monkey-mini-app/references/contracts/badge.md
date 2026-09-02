@@ -6,7 +6,7 @@ Inline label chip.
 
 **when** Static tags/counts. Status → `StatusBadge`, severity → `SeverityChip`.
 
-`import { Badge, badgeVariants } from "@monkey-mini-app/sdk"`
+`import { Badge, badgeVariants } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/badge.tsx` · family: Feedback & status · type: component · primitive
 

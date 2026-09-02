@@ -8,7 +8,7 @@ Raw HTML table primitives.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@monkey-mini-app/sdk"`
+`import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/table.tsx` · family: Data & tables · type: component · primitive
 

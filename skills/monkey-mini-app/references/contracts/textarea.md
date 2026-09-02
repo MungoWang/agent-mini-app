@@ -6,7 +6,7 @@ Multi-line text input.
 
 **when** Notes/prompts. Code → `CodeEditor`; markdown → `MarkdownEditor`.
 
-`import { Textarea } from "@monkey-mini-app/sdk"`
+`import { Textarea } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/textarea.tsx` · family: Form · type: component · primitive
 

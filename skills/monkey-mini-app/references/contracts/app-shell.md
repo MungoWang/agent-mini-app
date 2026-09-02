@@ -6,7 +6,7 @@ App frame: optional sidebar + header + main.
 
 **when** Root layout for a mini-app page
 
-`import { AppShell } from "@monkey-mini-app/sdk"`
+`import { AppShell } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/app-shell.tsx` · family: Layout & structure · type: block
 

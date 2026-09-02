@@ -6,7 +6,7 @@ Single calendar date (day precision).
 
 **when** Filtering or storing one day. With a clock → `DateTimePicker`.
 
-`import { DatePicker } from "@monkey-mini-app/sdk"`
+`import { DatePicker } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/date-picker.tsx` · family: Calendar & date · type: composite
 

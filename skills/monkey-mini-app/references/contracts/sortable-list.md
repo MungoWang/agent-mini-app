@@ -6,7 +6,7 @@ Drag-to-reorder list.
 
 **when** Priority queues / column order. Read-only ordered events → `Timeline`.
 
-`import { SortableList, SortableItem } from "@monkey-mini-app/sdk"`
+`import { SortableList, SortableItem } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/sortable-list.tsx` · family: Data & tables · type: product
 

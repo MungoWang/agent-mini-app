@@ -1,13 +1,9 @@
 /**
  * Type-check every skill template (`skills/monkey-mini-app/templates/**`).
  *
- * Templates import exactly one platform package — `@monkey-mini-app/sdk` — for both
- * sides (`useApp` + components in `ui.tsx`, `defineApp` in `main.api.ts`). Nothing is
- * virtual anymore: the SDK's real sources provide the types, so this script only maps
- * the workspace packages to source and runs `tsc` with a throwaway config under
- * `packages/dsh/.tpl-check/` (deleted in `finally`). Only diagnostics **inside the
- * templates** fail the gate — `packages/ui` internals (CDN `https://esm.sh/*` imports
- * by design) belong to their own build project and are reported as a note.
+ * Templates import `@monkey-mini-app/ui` (ui.tsx) and `@monkey-mini-app/api` (main.api.ts).
+ * Maps both to monorepo sources and runs `tsc` under packages/dsh/.tpl-check/ (deleted
+ * in `finally`). Only diagnostics **inside the templates** fail the gate.
  *
  * Usage: `pnpm check:templates`
  *
@@ -25,7 +21,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".
 const tplDir = path.join(root, "skills/monkey-mini-app/templates");
 const dshDir = path.join(root, "packages/dsh");
 const uiSrc = path.join(root, "packages/ui/src");
-const sdkSrc = path.join(root, "packages/sdk/src");
+const apiSrc = path.join(root, "packages/api/src");
 
 // Live inside the monorepo so tsc can resolve react + ui's deps via node_modules,
 // but under a dot-dir that the script always deletes (finally).
@@ -58,10 +54,10 @@ try {
       types: [],
       baseUrl: ".",
       paths: {
-        "@monkey-mini-app/sdk": [path.join(sdkSrc, "index.ts")],
-        "@monkey-mini-app/sdk/*": [path.join(sdkSrc, "*")],
         "@monkey-mini-app/ui": [path.join(uiSrc, "index.ts")],
         "@monkey-mini-app/ui/*": [path.join(uiSrc, "*")],
+        "@monkey-mini-app/api": [path.join(apiSrc, "index.ts")],
+        "@monkey-mini-app/api/*": [path.join(apiSrc, "*")],
       },
     },
     include: [

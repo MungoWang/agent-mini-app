@@ -6,7 +6,7 @@
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@monkey-mini-app/sdk"`
+`import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/collapsible.tsx` · family: Layout & structure · type: component · primitive
 

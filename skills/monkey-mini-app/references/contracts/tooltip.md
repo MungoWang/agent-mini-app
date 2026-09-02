@@ -8,7 +8,7 @@ Hover/focus hint on an icon or truncated label.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@monkey-mini-app/sdk"`
+`import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/tooltip.tsx` · family: Surface · type: component · primitive
 

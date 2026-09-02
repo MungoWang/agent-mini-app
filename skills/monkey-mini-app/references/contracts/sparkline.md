@@ -6,7 +6,7 @@ Tiny inline trend line, no axes.
 
 **when** Trend inside a table row or KPI card.
 
-`import { Sparkline } from "@monkey-mini-app/sdk"`
+`import { Sparkline } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/sparkline.tsx` · family: Chart & data · type: block
 

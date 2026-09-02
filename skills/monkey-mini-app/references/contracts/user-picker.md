@@ -6,7 +6,7 @@ Pick a user from a list (avatar + name).
 
 **when** Assignee/owner fields; you supply the user list.
 
-`import { UserPicker, UserOption } from "@monkey-mini-app/sdk"`
+`import { UserPicker, UserOption } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/user-picker.tsx` · family: Form · type: composite
 

@@ -6,7 +6,7 @@ Pulse placeholder block.
 
 **when** First paint while `call()` is pending — match the real layout's size.
 
-`import { Skeleton } from "@monkey-mini-app/sdk"`
+`import { Skeleton } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/skeleton.tsx` · family: Feedback & status · type: component · primitive
 

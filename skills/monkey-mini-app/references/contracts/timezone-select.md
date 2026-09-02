@@ -6,7 +6,7 @@ IANA timezone dropdown.
 
 **when** Pair with `DateTimePicker` when data is UTC.
 
-`import { TimezoneSelect, ZoneInfo } from "@monkey-mini-app/sdk"`
+`import { TimezoneSelect, ZoneInfo } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/composites/timezone-select.tsx` · family: Calendar & date · type: composite
 

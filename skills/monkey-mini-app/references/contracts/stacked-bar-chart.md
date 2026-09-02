@@ -6,7 +6,7 @@ Stacked bar chart over flat rows.
 
 **when** Comparing several series across categories (pass/fail per day). Single ratio → `DonutChart`; trend → `Sparkline`.
 
-`import { StackedBarChart, ChartConfig } from "@monkey-mini-app/sdk"`
+`import { StackedBarChart, ChartConfig } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/blocks/bar-chart.tsx` · family: Chart & data · type: block
 

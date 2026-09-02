@@ -19,7 +19,7 @@ import {
   PageHeader,
   StatusBadge,
   useApp,
-} from "@monkey-mini-app/sdk";
+} from "@monkey-mini-app/ui";
 
 type LogLevel = "info" | "warn" | "error" | "debug" | "verbose";
 type LogLine = { level: LogLevel; text: string };

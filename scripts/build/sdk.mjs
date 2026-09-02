@@ -1,18 +1,15 @@
 #!/usr/bin/env node
 /**
- * Build the iframe platform:
- *   dist/runtime.js — complete React ESM (vendored from esm.sh, then bundled)
- *   dist/sdk.js     — UI kit + useApp; react* is external → /mma/runtime.js
+ * Build the iframe platform into packages/ui/dist:
+ *   runtime.js — complete React ESM (vendored from esm.sh, then bundled)
+ *   sdk.js     — UI kit + useApp; react* is external → /mma/runtime.js
+ *   (served as /mma/runtime.js and /mma/sdk.js — href names kept for stability)
  *
- * We do not convert CJS ourselves and we do not list React APIs.
- * esm.sh already emits named ESM exports (memo, useLayoutEffect, …).
+ * Requires packages/ui/dist/index.js (run build:ui first). Needs network once per version.
  *
- * Requires packages/ui/dist (run build-ui.mjs first). Needs network once per version.
-
- * Inputs:       packages/ui/dist (run build:ui first), packages/sdk/src, esm.sh over the network
- * Writes:       packages/sdk/dist/{runtime.js,sdk.js}
- * Side effects: repo build output + one network fetch per React version
- * Run as:       pnpm build:sdk — also `prepack` of @monkey-mini-app/sdk
+ * Inputs:       packages/ui/dist (flat kit), packages/ui/src, esm.sh
+ * Writes:       packages/ui/dist/{runtime.js,sdk.js}
+ * Run as:       pnpm build:sdk — also part of @monkey-mini-app/ui prepack
  */
 import fs from "node:fs";
 import { createRequire } from "node:module";
@@ -21,15 +18,15 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..", "..");
-const sdkRoot = path.join(root, "packages/sdk");
-const uiDist = path.join(root, "packages/ui/dist");
-const distDir = path.join(sdkRoot, "dist");
+const uiRoot = path.join(root, "packages/ui");
+const uiDist = path.join(uiRoot, "dist");
+const distDir = uiDist; // iframe bundles live next to the kit flat export
 const vendorDir = path.join(distDir, ".esm");
 const RUNTIME_HREF = "/mma/runtime.js";
 const ESM_ORIGIN = "https://esm.sh";
 
 function reactVersion() {
-  const req = createRequire(path.join(sdkRoot, "package.json"));
+  const req = createRequire(path.join(uiRoot, "package.json"));
   return req("react/package.json").version;
 }
 
@@ -200,9 +197,9 @@ async function buildRuntime(esbuild, ver) {
 async function buildSdk(esbuild) {
   const outfile = path.join(distDir, "sdk.js");
   await esbuild.build({
-    entryPoints: [path.join(sdkRoot, "src/index.ts")],
+    entryPoints: [path.join(uiDist, "index.js")],
     outfile,
-    absWorkingDir: sdkRoot,
+    absWorkingDir: uiRoot,
     bundle: true,
     format: "esm",
     platform: "browser",

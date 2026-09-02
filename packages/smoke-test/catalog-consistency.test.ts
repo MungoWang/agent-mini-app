@@ -60,7 +60,7 @@ describe("S6 · skill artifacts stay in sync with the UI lib", () => {
 
   it("documents the Icon namespace + Illu illustrations reachable from the SDK", () => {
     const iconRef = readFileSync(path.join(skill, "references", "icons.md"), "utf8");
-    expect(iconRef).toContain('import { Icon } from "@monkey-mini-app/sdk"');
+    expect(iconRef).toContain('import { Icon } from "@monkey-mini-app/ui"');
     expect(iconRef).toContain("lucide");
     // Illu* names are not guessable — the full set must be listed
     const illos = [...iconRef.matchAll(/`Illu([A-Za-z]+)`/g)].map((m) => `Illu${m[1]}`);

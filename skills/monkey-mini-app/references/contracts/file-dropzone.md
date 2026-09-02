@@ -6,7 +6,7 @@ Drag-drop + click file picker.
 
 **when** Getting a local File into the app (then upload via `ctx.http` in the api layer).
 
-`import { FileDropzone } from "@monkey-mini-app/sdk"`
+`import { FileDropzone } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/products/file-dropzone.tsx` · family: Form · type: product
 

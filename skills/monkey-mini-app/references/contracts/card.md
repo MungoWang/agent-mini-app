@@ -8,7 +8,7 @@ Surface with header/content/footer.
 
 Compound: compose the parts below — **do not invent part names**.
 
-`import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@monkey-mini-app/sdk"`
+`import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@monkey-mini-app/ui"`
 
 `packages/ui/src/components/card.tsx` · family: Surface · type: component · primitive
 

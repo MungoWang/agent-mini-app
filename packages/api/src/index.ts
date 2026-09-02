@@ -1,8 +1,8 @@
 /**
  * Backend authoring contract for mini-apps (`main.api.ts`).
  *
- * The host does **not** bundle the React SDK into the backend — when it loads
- * `main.api.ts` it injects `defineApp` itself. Import from `@monkey-mini-app/sdk`
+ * The host does **not** load this package into the backend process — when it
+ * loads `main.api.ts` it injects `defineApp`. Import from `@monkey-mini-app/api`
  * for editor help and type-checking; the object you get at runtime comes from
  * the host (it validates `name` / `description` / `api`).
  *
@@ -122,7 +122,7 @@ export type AppDefinition = {
  * the UI may `call()`.
  *
  * ```ts
- * import { defineApp } from "@monkey-mini-app/sdk";
+ * import { defineApp } from "@monkey-mini-app/api";
  *
  * export default defineApp({
  *   name: "名称",

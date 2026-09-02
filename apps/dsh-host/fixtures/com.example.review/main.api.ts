@@ -1,4 +1,4 @@
-import { defineApp } from "@monkey-mini-app/sdk";
+import { defineApp } from "@monkey-mini-app/api";
 
 // ⭐ 关键：StatusBadge / health 类组件认的都是小写状态词（pass|fail|blocked|flaky|running|pending），
 //         不要用 "PASS"/"FAIL" 之类大写 —— 会落到默认 pending 灰色、颜色全错。
