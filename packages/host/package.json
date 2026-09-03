@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
-    "@monkey-mini-app/ui": "^0.1.0",
+    "@monkey-mini-app/ui": "workspace:*",
     "diff": "^9.0.0",
     "esbuild": "^0.28.2",
     "esbuild-wasm": "^0.25.12",

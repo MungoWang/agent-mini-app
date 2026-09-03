@@ -7,6 +7,7 @@ import { GitHistory } from "./git/git-history.ts";
 import { HttpGateway } from "./http/http-gateway.ts";
 import { WorkspacePaths } from "./paths/workspace-paths.ts";
 import { ToolFacade } from "./tools/tool-facade.ts";
+import type { HostAboutMeta } from "./about.ts";
 import type { HostCapabilities } from "./capabilities.ts";
 import { Host } from "./host.ts";
 import type { HostLifecycle, HostServices } from "./lifecycle.ts";
@@ -21,6 +22,8 @@ export function createHost(
     config: HostConfig;
     /** Theme resource port — shell implements; host only consumes the interface. */
     themes?: ThemeResource;
+    /** Adapter identity for GET /api/about (+ /api/updates) in the panel Settings. */
+    about?: HostAboutMeta;
   },
 ): Host {
   const config = parseHostConfig(options.config);
@@ -43,6 +46,7 @@ export function createHost(
     themes,
     events,
     (port) => lifecycle.onHostPortChanged?.(port),
+    options.about ?? { adapter: "host" },
   );
   const services: HostServices = { apps, git, tools, paths, config };
   return new Host(capabilities, lifecycle, paths, config, services, http);

@@ -7,6 +7,12 @@ import { getRequestListener } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
+import {
+  checkPackageUpdate,
+  type HostAboutMeta,
+  resolveAboutInfo,
+  type UpdateCheck,
+} from "../about.ts";
 import { readAppTheme, writeAppTheme } from "../apps/app-theme.ts";
 import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
 import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
@@ -26,7 +32,13 @@ import { formatSse, type HostEventBus } from "../events/host-events.ts";
 import type { GitHistory } from "../git/git-history.ts";
 import { WorkspacePaths } from "../paths/workspace-paths.ts";
 import { EMPTY_THEME_RESOURCE, type ThemeResource } from "../theme-resource.ts";
-import { type HostConfig, LOCALE_IDS, type LocaleId, THEME_IDS, type ThemeId } from "../types.ts";
+import {
+  type HostConfig,
+  LOCALE_IDS,
+  type LocaleId,
+  THEME_PREF_IDS,
+  type ThemePref,
+} from "../types.ts";
 import { appRunnerHtml } from "./app-runner-html.ts";
 
 /** Resolve a @fontsource-variable/geist font file (walk up from the ui dist). */
@@ -106,9 +118,11 @@ function probePort(port: number): Promise<void> {
 }
 
 function mergeHostConfigPatch(cur: HostConfig, body: Record<string, unknown>): HostConfig {
+  // `system` is a storable preference — clamping it here is what used to make
+  // "follow system" revert to a concrete light/dark after a reload.
   const theme =
-    typeof body.theme === "string" && (THEME_IDS as readonly string[]).includes(body.theme)
-      ? (body.theme as ThemeId)
+    typeof body.theme === "string" && (THEME_PREF_IDS as readonly string[]).includes(body.theme)
+      ? (body.theme as ThemePref)
       : cur.theme;
   const palette =
     typeof body.palette === "string" && body.palette.trim().length > 0
@@ -169,6 +183,7 @@ export class HttpGateway {
     private readonly themes: ThemeResource = EMPTY_THEME_RESOURCE,
     private readonly events?: HostEventBus,
     private readonly onHostPortChanged?: (port: number) => void,
+    private readonly about: HostAboutMeta = { adapter: "host" },
   ) {
     this.app = this.buildApp();
   }
@@ -266,6 +281,26 @@ export class HttpGateway {
     app.get("/api/host-config", (c) =>
       c.json({ ok: true, ...publicHostConfig(this.config, this.boundPort) }),
     );
+
+    app.get("/api/about", (c) => c.json({ ok: true, ...resolveAboutInfo(this.about) }));
+
+    // One UpdateCheck for the adapter package (what the panel's "check for updates" shows).
+    app.get("/api/updates", async (c) => {
+      const info = resolveAboutInfo(this.about);
+      const target = this.about.packageName
+        ? info.packages.find((pkg) => pkg.name === this.about.packageName)
+        : undefined;
+      const empty: UpdateCheck = {
+        name: this.about.packageName ?? "",
+        current: "",
+        latest: null,
+        updateAvailable: false,
+      };
+      if (!target) {
+        return c.json({ ok: true, ...empty });
+      }
+      return c.json({ ok: true, ...(await checkPackageUpdate(target.name, target.version)) });
+    });
 
     app.post("/api/host-config", async (c) => {
       let body: unknown;

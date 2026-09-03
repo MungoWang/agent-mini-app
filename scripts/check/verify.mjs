@@ -32,6 +32,9 @@ const STEPS = [
     args: ["exec", "tsc", "-p", "skills/monkey-mini-app", "--pretty", "false"],
   },
   { name: "test", cmd: "pnpm", args: ["test"] },
+  // dsh's dts build reads @monkey-mini-app/{host,panel} **dist** types, so those must
+  // be rebuilt first — publishing gets this for free from per-package prepack ordering.
+  { name: "build host + panel", cmd: "pnpm", args: ["--filter", "@monkey-mini-app/host", "--filter", "@monkey-mini-app/panel", "build"] },
   {
     name: "dsh build",
     cmd: "pnpm",
