@@ -1,17 +1,21 @@
-import { ArrowUpRight, Bell, Music2, Sparkles, TrendingUp } from "lucide-react"
-import { Badge } from "@monkey-mini-app/ui/components/badge"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { StyleHeader, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title Liquid Glass
+ * @scenario Marketing/landing surfaces or a media-style side panel where depth and blur carry the hierarchy; costs readability at small sizes, so not for dense data screens.
+ */
+import { Badge, Button, Icon } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader } from "./shared";
 
 /**
- * Glassmorphism · 炫彩玻璃
- * Dribbble 流行的高级感：炫彩渐变背景 + 磨砂玻璃卡片（backdrop-blur）+
- * 大圆角 + 光斑层次 + 白字。年轻、设计感、情绪价值。
+ * Glassmorphism
+ * The trendy premium look: vivid gradient backdrop + frosted cards (backdrop-blur),
+ * large radius, layered light blooms, white type. Young, design-led, high perceived value.
  */
 
 /**
- * 液态玻璃：强 blur + 半透明白分层 + 顶部高光带（反射）+ 内高光边（inset）。
- * 水感来自玻璃自身，不需要彩色背景衬托。
+ * Liquid glass: heavy blur + translucent white layers + top highlight band (reflection) + inset edge light.
+ * The wet look comes from the glass itself, so the backdrop can stay neutral.
  */
 const GLASS =
   "relative overflow-hidden backdrop-blur-2xl rounded-3xl border border-white/50 bg-white/40 " +
@@ -20,7 +24,7 @@ const GLASS =
   "dark:shadow-[0_16px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.12)] " +
   "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-1/4 " +
   "before:bg-linear-to-b before:from-white/[0.14] before:to-transparent " +
-  "dark:before:from-white/[0.06]"
+  "dark:before:from-white/[0.06]";
 
 export function GlassParadigm() {
   return (
@@ -47,7 +51,7 @@ export function GlassParadigm() {
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2 text-foreground/90">
               <span className="flex size-8 items-center justify-center rounded-xl border border-border bg-primary/10 backdrop-blur">
-                <Sparkles className="size-4" />
+                <Icon.Sparkles className="size-4" />
               </span>
               <span className="font-semibold tracking-tight">Aurora</span>
             </div>
@@ -56,7 +60,7 @@ export function GlassParadigm() {
                 type="button"
                 className="relative flex size-9 items-center justify-center rounded-full border border-border/70 bg-card/55 backdrop-blur transition-colors hover:bg-muted/60"
               >
-                <Bell className="size-4 text-foreground" />
+                <Icon.Bell className="size-4 text-foreground" />
                 <span className="bg-rose-400 absolute right-1.5 top-1.5 size-1.5 rounded-full" />
               </button>
               <span className="bg-muted text-muted-foreground flex size-9 items-center justify-center rounded-full text-sm font-semibold">
@@ -83,13 +87,13 @@ export function GlassParadigm() {
                     size="sm"
                     className="border-border bg-primary/10 text-foreground backdrop-blur hover:bg-primary/15"
                   >
-                    <Music2 className="size-3.5" /> 播放精选
+                    <Icon.Music2 className="size-3.5" /> 播放精选
                   </Button>
                   <Button
                     size="sm"
                     
                   >
-                    查看灵感 <ArrowUpRight className="size-3.5" />
+                    查看灵感 <Icon.ArrowUpRight className="size-3.5" />
                   </Button>
                 </div>
               </div>
@@ -112,7 +116,7 @@ export function GlassParadigm() {
                   <div className="mt-2 flex items-baseline gap-2">
                     <span className="text-2xl font-semibold text-foreground tabular-nums">{m.value}</span>
                     <span className="flex items-center gap-0.5 text-xs font-medium text-emerald-300">
-                      <TrendingUp className="size-3" /> {m.trend}
+                      <Icon.TrendingUp className="size-3" /> {m.trend}
                     </span>
                   </div>
                 </div>
@@ -165,5 +169,5 @@ export function GlassParadigm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

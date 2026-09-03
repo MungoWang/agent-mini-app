@@ -1,22 +1,17 @@
-import * as React from "react"
-import {
-  CheckCircle2,
-  Circle,
-  Cloud,
-  GitBranch,
-  Globe,
-  Loader2,
-  Rocket,
-  TerminalSquare,
-} from "lucide-react"
-import { Badge } from "@monkey-mini-app/ui/components/badge"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { Progress } from "@monkey-mini-app/ui/components/progress"
-import { StyleHeader, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title Ops console
+ * @scenario Incident/CI dashboards: status-first rows, gauges and sparklines up top, everything readable at a glance under time pressure.
+ */
+import * as React from "react";
+
+import { Badge, Button, Icon, Progress } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader } from "./shared";
 
 /**
- * Cyberpunk 科技后台（Web3 / AI 数据平台）。
- * 深蓝黑底 + 霓虹发光（青/蓝/橙）+ 弱边框、区块靠明暗深浅划分。
+ * Cyberpunk admin console (Web3 / AI data platform).
+ * Deep blue-black ground + neon glow (cyan/blue/orange); regions split by luminance, not borders.
  */
 
 type Repo = { name: string; branch: string; status: "idle" | "queued" | "building" | "done" }
@@ -26,68 +21,68 @@ const INITIAL_REPOS: Repo[] = [
   { name: "auth-service", branch: "fix/session", status: "idle" },
   { name: "web-frontend", branch: "feat/dashboard-v2", status: "idle" },
   { name: "worker-queue", branch: "main", status: "idle" },
-]
+];
 
-const PIPELINE = ["Checkout", "Install", "Test", "Build", "Deploy"]
+const PIPELINE = ["Checkout", "Install", "Test", "Build", "Deploy"];
 
-/** 区块：深灰蓝，靠明暗划分，无实边框 */
-const BLOCK = "rounded-lg bg-white/40 backdrop-blur-2xl border border-white/50 dark:bg-white/[0.03] dark:backdrop-blur-none dark:border-transparent"
+/** Region: dark slate-blue, separated by luminance, no hard border */
+const BLOCK = "rounded-lg bg-white/40 backdrop-blur-2xl border border-white/50 dark:bg-white/[0.03] dark:backdrop-blur-none dark:border-transparent";
 
-/** 霓虹发光 shadow */
-const NEON_CYAN = "0 0 10px rgba(34,211,238,0.55), 0 0 22px rgba(34,211,238,0.2)"
-const NEON_EMERALD = "0 0 10px rgba(52,211,153,0.5), 0 0 20px rgba(52,211,153,0.18)"
-const NEON_AMBER = "0 0 10px rgba(251,191,36,0.45), 0 0 20px rgba(251,191,36,0.15)"
+/** Neon glow shadow */
+const NEON_CYAN = "0 0 10px rgba(34,211,238,0.55), 0 0 22px rgba(34,211,238,0.2)";
+const NEON_EMERALD = "0 0 10px rgba(52,211,153,0.5), 0 0 20px rgba(52,211,153,0.18)";
+const NEON_AMBER = "0 0 10px rgba(251,191,36,0.45), 0 0 20px rgba(251,191,36,0.15)";
 
 export function OpsParadigm() {
-  const [, force] = React.useState(0)
+  const [, force] = React.useState(0);
   React.useEffect(() => {
-    const mo = new MutationObserver(() => force((n) => n + 1))
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
-    return () => mo.disconnect()
-  }, [])
-  const [repos, setRepos] = React.useState<Repo[]>(INITIAL_REPOS)
-  const [selected, setSelected] = React.useState<Set<string>>(new Set(["api-gateway", "web-frontend"]))
-  const [pipeline, setPipeline] = React.useState<number>(-1)
+    const mo = new MutationObserver(() => force((n) => n + 1));
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
+  const [repos, setRepos] = React.useState<Repo[]>(INITIAL_REPOS);
+  const [selected, setSelected] = React.useState<Set<string>>(new Set(["api-gateway", "web-frontend"]));
+  const [pipeline, setPipeline] = React.useState<number>(-1);
 
   const toggleSelect = (name: string) =>
     setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(name)) next.delete(name)
-      else next.add(name)
-      return next
-    })
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
 
   const deploySelected = () => {
-    const queue = [...selected]
-    setRepos((prev) => prev.map((r) => (selected.has(r.name) ? { ...r, status: "queued" } : r)))
-    let i = 0
+    const queue = [...selected];
+    setRepos((prev) => prev.map((r) => (selected.has(r.name) ? { ...r, status: "queued" } : r)));
+    let i = 0;
     const tick = () => {
-      if (i >= queue.length) return
-      const name = queue[i]
-      setRepos((prev) => prev.map((r) => (r.name === name ? { ...r, status: "building" } : r)))
+      if (i >= queue.length) return;
+      const name = queue[i];
+      setRepos((prev) => prev.map((r) => (r.name === name ? { ...r, status: "building" } : r)));
       setTimeout(() => {
-        setRepos((prev) => prev.map((r) => (r.name === name ? { ...r, status: "done" } : r)))
-        i++
-        setTimeout(tick, 700)
-      }, 900)
-    }
-    tick()
-  }
+        setRepos((prev) => prev.map((r) => (r.name === name ? { ...r, status: "done" } : r)));
+        i++;
+        setTimeout(tick, 700);
+      }, 900);
+    };
+    tick();
+  };
 
   const runPipeline = () => {
-    setPipeline(0)
+    setPipeline(0);
     const interval = setInterval(() => {
       setPipeline((prev) => {
         if (prev >= PIPELINE.length - 1) {
-          clearInterval(interval)
-          return -1
+          clearInterval(interval);
+          return -1;
         }
-        return prev + 1
-      })
-    }, 800)
-  }
+        return prev + 1;
+      });
+    }, 800);
+  };
 
-  const building = repos.some((r) => r.status === "building" || r.status === "queued")
+  const building = repos.some((r) => r.status === "building" || r.status === "queued");
 
   return (
     <div>
@@ -147,7 +142,7 @@ export function OpsParadigm() {
                 onClick={runPipeline}
                 disabled={pipeline >= 0}
               >
-                <TerminalSquare className="size-3.5" />
+                <Icon.TerminalSquare className="size-3.5" />
                 {pipeline >= 0 ? "Pipeline 运行中…" : "跑一次 Pipeline"}
               </Button>
               <Button
@@ -157,7 +152,7 @@ export function OpsParadigm() {
                 onClick={deploySelected}
                 disabled={!selected.size || building}
               >
-                <Rocket className="size-3.5" />
+                <Icon.Rocket className="size-3.5" />
                 {building ? "部署中…" : "一键部署"}
               </Button>
             </div>
@@ -188,9 +183,9 @@ export function OpsParadigm() {
                         style={i === pipeline ? { boxShadow: NEON_CYAN } : undefined}
                       >
                         {i < pipeline ? (
-                          <CheckCircle2 className="size-3" />
+                          <Icon.CheckCircle2 className="size-3" />
                         ) : i === pipeline ? (
-                          <Loader2 className="size-3 animate-spin" />
+                          <Icon.Loader2 className="size-3 animate-spin" />
                         ) : null}
                         {stage}
                       </span>
@@ -233,16 +228,16 @@ export function OpsParadigm() {
                           : "border-slate-300 hover:border-cyan-500/60 dark:border-white/25 dark:hover:border-cyan-300/60")
                       }
                     >
-                      {selected.has(repo.name) ? <CheckCircle2 className="size-3" /> : null}
+                      {selected.has(repo.name) ? <Icon.CheckCircle2 className="size-3" /> : null}
                     </button>
                     <span className="truncate font-mono text-[13px] font-medium text-slate-700/90 dark:text-white/90">{repo.name}</span>
                     <span className="text-slate-700/40 dark:text-white/40 hidden items-center gap-1 truncate font-mono text-[10px] md:inline-flex">
-                      <GitBranch className="size-3 shrink-0" />
+                      <Icon.GitBranch className="size-3 shrink-0" />
                       <span className="truncate">{repo.branch}</span>
                     </span>
                   </div>
                   <span className="text-slate-700/40 dark:text-white/40 hidden text-xs sm:block">
-                    <Globe className="mr-1 inline size-3" />
+                    <Icon.Globe className="mr-1 inline size-3" />
                     ap-east
                   </span>
                   <span className="text-slate-700/40 dark:text-white/40 hidden text-xs tabular-nums sm:block">
@@ -256,7 +251,7 @@ export function OpsParadigm() {
                       </span>
                     ) : repo.status === "building" ? (
                       <span className="flex items-center gap-1.5 text-[11px] font-medium text-cyan-700 dark:text-cyan-300">
-                        <Loader2 className="size-3.5 animate-spin" /> 构建中
+                        <Icon.Loader2 className="size-3.5 animate-spin" /> 构建中
                       </span>
                     ) : repo.status === "queued" ? (
                       <span className="text-amber-700 dark:text-amber-300 text-[11px] font-medium" style={{ textShadow: NEON_AMBER }}>
@@ -282,7 +277,7 @@ export function OpsParadigm() {
                           )
                         }
                       >
-                        <Cloud className="size-3" /> 单独部署
+                        <Icon.Cloud className="size-3" /> 单独部署
                       </Button>
                     )}
                   </div>
@@ -310,11 +305,11 @@ export function OpsParadigm() {
                     <div className="flex items-center gap-2.5 rounded-md px-1 py-1 text-[13px] transition-colors hover:bg-white/50 dark:bg-white/[0.04]">
                       {item.warn ? (
                         <span className="text-amber-700 dark:text-amber-300" style={{ textShadow: NEON_AMBER }}>
-                          <Circle className="size-3.5" />
+                          <Icon.Circle className="size-3.5" />
                         </span>
                       ) : (
                         <span className="text-emerald-600 dark:text-emerald-300">
-                          <CheckCircle2 className="size-3.5" />
+                          <Icon.CheckCircle2 className="size-3.5" />
                         </span>
                       )}
                       <span className="font-mono text-slate-700/80 dark:text-white/80">{item.t}</span>
@@ -328,5 +323,5 @@ export function OpsParadigm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

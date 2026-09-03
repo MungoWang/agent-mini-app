@@ -344,7 +344,7 @@ if (fs.existsSync(registryFile)) {
  let checked = 0
  for (const file of walk(examplesDir, (f) => f.endsWith(".tsx"))) {
  const rel = path.relative(examplesDir, file).split(path.sep).join("/")
- if (rel.startsWith("shared/")) continue
+ if (rel.startsWith("shared/") || rel === "paradigms/shared.tsx") continue
  checked++
  const text = fs.readFileSync(file, "utf8")
  const head = /^\/\*\*([\s\S]*?)\*\//.exec(text)

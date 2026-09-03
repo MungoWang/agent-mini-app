@@ -1,22 +1,29 @@
-import * as React from "react"
-import { Circle, CircleDot, Play, TerminalSquare, Zap } from "lucide-react"
-import { StyleHeader, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title Terminal monospace
+ * @scenario Ops/developer surfaces: log tail, CLI-ish console, status board read by engineers; monospace + tight rows, colour only for state.
+ */
+import * as React from "react";
+
+import { Icon } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader } from "./shared";
 
 /**
- * Terminal Mono · 终端等宽
- * 强制暗色局部 + 等宽字体 + 状态灯 + 紧凑有序。
- * 参照：Linear / GitHub Actions 的终端感。
+ * Terminal Mono
+ * Forced dark surfaces + monospace + status lamps + tight, ordered rows.
+ * Reference: the Linear / GitHub Actions terminal feel.
  */
-const TERM_BG = "oklch(0.16 0.02 265)"
-const TERM_BG_LIGHT = "oklch(0.975 0.005 265)"
+const TERM_BG = "oklch(0.16 0.02 265)";
+const TERM_BG_LIGHT = "oklch(0.975 0.005 265)";
 
 export function TerminalParadigm() {
-  const [, force] = React.useState(0)
+  const [, force] = React.useState(0);
   React.useEffect(() => {
-    const mo = new MutationObserver(() => force((n) => n + 1))
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
-    return () => mo.disconnect()
-  }, [])
+    const mo = new MutationObserver(() => force((n) => n + 1));
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
   return (
     <div>
       <StyleHeader
@@ -46,9 +53,9 @@ export function TerminalParadigm() {
                   <div className="flex items-center gap-3 py-0.5">
                     <span className={"shrink-0 " + line.c}>
                       {line.s === "run" ? (
-                        <Play className="size-3 fill-current" />
+                        <Icon.Play className="size-3 fill-current" />
                       ) : (
-                        <CircleDot className="size-3" />
+                        <Icon.CircleDot className="size-3" />
                       )}
                     </span>
                     <span className="text-slate-700/85 dark:text-white/85">{line.t}</span>
@@ -78,7 +85,7 @@ export function TerminalParadigm() {
                 <div key={name} className="flex items-center justify-between py-1.5 text-[13px]">
                   <span className="text-slate-700/70 dark:text-white/70">{name}</span>
                   <span className={"flex items-center gap-1.5 " + color}>
-                    <Circle className="size-2 fill-current" />
+                    <Icon.Circle className="size-2 fill-current" />
                     {status}
                   </span>
                 </div>
@@ -94,7 +101,7 @@ export function TerminalParadigm() {
             <Reveal delay={240}>
               <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4" style={{ background: document.documentElement.classList.contains("dark") ? TERM_BG : TERM_BG_LIGHT }}>
                 <div className="text-slate-700/40 dark:text-white/40 mb-2 flex items-center gap-1.5 text-xs uppercase">
-                  <TerminalSquare className="size-3.5" /> quick
+                  <Icon.TerminalSquare className="size-3.5" /> quick
                 </div>
                 <div className="text-slate-700/70 dark:text-white/70 text-[13px] leading-6">
                   <span className="text-slate-700/35 dark:text-white/35">$</span> rollback --tag v2.3.1
@@ -103,7 +110,7 @@ export function TerminalParadigm() {
                   <span className="text-slate-700/35 dark:text-white/35">$</span> tail --app worker
                 </div>
                 <div className="mt-2 flex items-center gap-2 text-slate-700/45 dark:text-slate-500 dark:text-white/45 text-xs">
-                  <Zap className="size-3 text-amber-600 dark:text-amber-300" />
+                  <Icon.Zap className="size-3 text-amber-600 dark:text-amber-300" />
                   tab 补全可用
                 </div>
               </div>
@@ -112,5 +119,5 @@ export function TerminalParadigm() {
         </Reveal>
       </div>
     </div>
-  )
+  );
 }

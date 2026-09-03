@@ -1,14 +1,18 @@
-import { ArrowUpRight, Quote } from "lucide-react"
-import { Badge } from "@monkey-mini-app/ui/components/badge"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { StyleHeader, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title Editorial typography
+ * @scenario Long-form content inside an app — release notes, help, runbook posts — driven by type scale and measure, not cards.
+ */
+import { Badge, Button, Icon } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader } from "./shared";
 
 /**
- * Editorial · 编辑排版
- * 衬线大标题 + 黑白灰 + 单一强调色 + 编号目录 + 细分隔线。
- * 参照：杂志目录 / 出版站（适合内容、精选、知识库首页）。
+ * Editorial
+ * Serif display headings + greyscale + one accent + numbered index + hairline rules.
+ * Reference: magazine contents / publishing site — content, digests, knowledge home.
  */
-const SERIF = "font-serif tracking-tight"
+const SERIF = "font-serif tracking-tight";
 
 export function EditorialParadigm() {
   return (
@@ -52,14 +56,14 @@ export function EditorialParadigm() {
           </p>
           <div className="mt-5 flex items-center gap-4">
             <Button size="sm" variant="outline" className="rounded-full">
-              阅读全文 <ArrowUpRight className="size-3.5" />
+              阅读全文 <Icon.ArrowUpRight className="size-3.5" />
             </Button>
             <span className="text-muted-foreground text-xs">6 min read</span>
           </div>
 
           {/* 引文块 */}
           <blockquote className="relative mt-8 max-w-xl border-l-2 border-primary pl-5">
-            <Quote className="text-primary/30 absolute -top-1 left-0 size-5" />
+            <Icon.Quote className="text-primary/30 absolute -top-1 left-0 size-5" />
             <p className={SERIF + " text-lg leading-relaxed italic"}>
               好界面不是被看见的，而是被忘记的。
             </p>
@@ -115,5 +119,5 @@ export function EditorialParadigm() {
         </div>
       </Reveal>
     </div>
-  )
+  );
 }

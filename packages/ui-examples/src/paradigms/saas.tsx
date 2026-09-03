@@ -1,35 +1,18 @@
-import {
-  ArrowUpRight,
-  Bell,
-  Calendar,
-  ChevronRight,
-  CircleCheck,
-  Flame,
-  Inbox,
-  Search,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react"
-import { Badge } from "@monkey-mini-app/ui/components/badge"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@monkey-mini-app/ui/components/card"
-import { Tabs, TabsList, TabsTrigger } from "@monkey-mini-app/ui/components/tabs"
-import { Progress } from "@monkey-mini-app/ui/components/progress"
-import { Sparkline } from "@monkey-mini-app/ui/blocks/sparkline"
-import { StyleHeader, useCountUp, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title SaaS dashboard
+ * @scenario Conventional app landing dashboard — stat cards, tabs, progress, sparkline — the safe default when no specific paradigm fits.
+ */
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Icon, Progress, Sparkline, Tabs, TabsList, TabsTrigger } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader, useCountUp } from "./shared";
 
 /* ------------------------------------------------------------------ */
-/* 范式 demo 的私有动效/工具（demo 内联；正式组件化后再进组件库）        */
+/* Motion/helpers private to the paradigm demos (inlined here; promote to the kit later) */
 /* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
-/* 范式一：Dashboard（hero + KPI strip + 主副栏）                      */
+/* Paradigm 1: dashboard (hero + KPI strip + main/side columns)                            */
 /* ------------------------------------------------------------------ */
 
 function StatCardFancy({
@@ -45,7 +28,7 @@ function StatCardFancy({
   data: number[]
   delay: number
 }) {
-  const n = useCountUp(value)
+  const n = useCountUp(value);
   return (
     <Reveal delay={delay}>
       <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
@@ -59,7 +42,7 @@ function StatCardFancy({
             </div>
             <div className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
               <span className="inline-flex items-center gap-0.5 font-medium text-emerald-500">
-                <TrendingUp className="size-3" />
+                <Icon.TrendingUp className="size-3" />
                 {delta}
               </span>
             </div>
@@ -70,7 +53,7 @@ function StatCardFancy({
         </CardContent>
       </Card>
     </Reveal>
-  )
+  );
 }
 
 function DashboardParadigm() {
@@ -91,7 +74,7 @@ function DashboardParadigm() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-xl">
               <div className="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-                <Sparkles className="size-3.5" />
+                <Icon.Sparkles className="size-3.5" />
                 Monday · Aug 26
               </div>
               <h2 className="bg-linear-to-r from-foreground via-foreground to-primary bg-clip-text text-3xl font-semibold tracking-tight text-transparent">
@@ -103,11 +86,11 @@ function DashboardParadigm() {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">
-                <Calendar className="size-3.5" />
+                <Icon.Calendar className="size-3.5" />
                 近 7 天
               </Button>
               <Button size="sm">
-                <Bell className="size-3.5" />
+                <Icon.Bell className="size-3.5" />
                 订阅报告
               </Button>
             </div>
@@ -132,7 +115,7 @@ function DashboardParadigm() {
                   <CardDescription>访问 → 注册 → 首购，逐层收敛</CardDescription>
                 </div>
                 <Badge variant="outline" className="gap-1">
-                  <Flame className="size-3 text-primary" />
+                  <Icon.Flame className="size-3 text-primary" />
                   实时
                 </Badge>
               </CardHeader>
@@ -170,9 +153,9 @@ function DashboardParadigm() {
               </CardHeader>
               <CardContent className="space-y-1">
                 {[
-                  { name: "Ada · 完成订单", time: "12s", icon: CircleCheck },
-                  { name: "Ben · 新注册", time: "26s", icon: Inbox },
-                  { name: "Cici · 升级 Pro", time: "41s", icon: ArrowUpRight },
+                  { name: "Ada · 完成订单", time: "12s", icon: Icon.CircleCheck },
+                  { name: "Ben · 新注册", time: "26s", icon: Icon.Inbox },
+                  { name: "Cici · 升级 Pro", time: "41s", icon: Icon.ArrowUpRight },
                 ].map((item, i) => (
                   <Reveal key={item.name} delay={320 + i * 80}>
                     <div className="hover:bg-muted/50 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors">
@@ -190,11 +173,11 @@ function DashboardParadigm() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
-/* 范式二：简报（今日要点 + 进度 + 时间线）                            */
+/* Paradigm 2: briefing (today's highlights + progress + timeline)                          */
 /* ------------------------------------------------------------------ */
 
 function BriefParadigm() {
@@ -291,11 +274,11 @@ function BriefParadigm() {
         </Card>
       </Reveal>
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
-/* 范式三：工作台（tabs + 分组列表 + 空状态提示）                      */
+/* Paradigm 3: workspace (tabs + grouped lists + empty state)                               */
 /* ------------------------------------------------------------------ */
 
 function WorkbenchParadigm() {
@@ -314,11 +297,11 @@ function WorkbenchParadigm() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="text-muted-foreground">
-              <Search className="size-3.5" />
+              <Icon.Search className="size-3.5" />
               搜索
             </Button>
             <Button size="sm">
-              <Sparkles className="size-3.5" />
+              <Icon.Sparkles className="size-3.5" />
               新建
             </Button>
           </div>
@@ -349,7 +332,7 @@ function WorkbenchParadigm() {
                 ))}
                 {col.items.length < 3 ? (
                   <div className="text-muted-foreground/60 flex items-center gap-1.5 px-1 py-2 text-xs">
-                    <ChevronRight className="size-3" />
+                    <Icon.ChevronRight className="size-3" />
                     查看全部
                   </div>
                 ) : null}
@@ -359,7 +342,7 @@ function WorkbenchParadigm() {
         </div>
       </div>
     </Reveal>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -378,5 +361,5 @@ export function SaasParadigms() {
         <WorkbenchParadigm />
       </div>
     </div>
-  )
+  );
 }

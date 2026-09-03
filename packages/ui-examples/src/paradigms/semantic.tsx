@@ -1,23 +1,18 @@
-import * as React from "react"
-import {
-  CheckCircle2,
-  Circle,
-  GitBranch,
-  MoreHorizontal,
-  Play,
-  Plus,
-  Rocket,
-  XCircle,
-} from "lucide-react"
-import { Badge } from "@monkey-mini-app/ui/components/badge"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { Progress } from "@monkey-mini-app/ui/components/progress"
-import { StyleHeader, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title Semantic palette demo
+ * @scenario Same layout recoloured purely through theme tokens — proof that an app never needs hardcoded colours to change identity.
+ */
+import * as React from "react";
+
+import { Badge, Button, Icon, Progress } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader } from "./shared";
 
 /**
- * Semantic Palette · 语义色板
- * 黑白灰为底 + 彩色只表达状态（蓝=进行/绿=完成/橙=风险/紫=评审）。
- * 完整可操作：任务勾选、branch 标记、测试用例执行、卡片部署。
+ * Semantic Palette
+ * Greyscale base + colour only as meaning (blue=running, green=done, orange=risk, purple=review).
+ * Fully interactive: tick tasks, mark branches, run test cases, deploy a card.
  */
 
 const STATUS = {
@@ -26,7 +21,7 @@ const STATUS = {
   review: "bg-violet-500/12 text-violet-600 dark:text-violet-400",
   done: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
   risk: "bg-amber-500/12 text-amber-600 dark:text-amber-400",
-} as const
+} as const;
 
 type Task = {
   key: string
@@ -43,7 +38,7 @@ const TAG_BAR: Record<Task["tag"], string> = {
   doing: "border-l-sky-500",
   review: "border-l-violet-500",
   done: "border-l-emerald-500",
-}
+};
 
 function TaskCard({
   task,
@@ -54,7 +49,7 @@ function TaskCard({
   onToggle: () => void
   onDeploy: () => void
 }) {
-  const done = task.tag === "done"
+  const done = task.tag === "done";
   return (
     <div
       className={
@@ -68,26 +63,26 @@ function TaskCard({
             type="button"
             aria-label="toggle done"
             onClick={(e) => {
-              e.stopPropagation()
-              onToggle()
+              e.stopPropagation();
+              onToggle();
             }}
           >
             {done ? (
-              <CheckCircle2 className="text-emerald-500 size-4" />
+              <Icon.CheckCircle2 className="text-emerald-500 size-4" />
             ) : (
-              <Circle className="text-muted-foreground/50 size-4" />
+              <Icon.Circle className="text-muted-foreground/50 size-4" />
             )}
           </button>
           {task.key}
         </span>
-        <MoreHorizontal className="text-muted-foreground/40 size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+        <Icon.MoreHorizontal className="text-muted-foreground/40 size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
       <div className={"text-[13px] leading-snug font-medium " + (done ? "text-muted-foreground line-through" : "")}>
         {task.title}
       </div>
       {task.branch ? (
         <div className="bg-muted text-muted-foreground mt-2 inline-flex max-w-full items-center gap-1 truncate rounded px-1.5 py-0.5 font-mono text-[10px]">
-          <GitBranch className="size-3 shrink-0" />
+          <Icon.GitBranch className="size-3 shrink-0" />
           <span className="truncate">{task.branch}</span>
         </div>
       ) : null}
@@ -103,7 +98,7 @@ function TaskCard({
               </Button>
             ) : (
               <Button size="icon-xs" variant="ghost" className="text-emerald-500 h-5 gap-0.5 px-1 text-[10px]">
-                <Rocket className="size-3" /> 已部署
+                <Icon.Rocket className="size-3" /> 已部署
               </Button>
             )
           ) : task.tag === "done" ? (
@@ -112,11 +107,11 @@ function TaskCard({
               variant="ghost"
               className="text-muted-foreground h-5 gap-0.5 px-1 text-[10px] opacity-0 transition-opacity group-hover:opacity-100"
               onClick={(e) => {
-                e.stopPropagation()
-                onDeploy()
+                e.stopPropagation();
+                onDeploy();
               }}
             >
-              <Rocket className="size-3" /> 部署
+              <Icon.Rocket className="size-3" /> 部署
             </Button>
           ) : null}
           <span className="text-muted-foreground/50 text-[10px] tabular-nums">{task.points}pt</span>
@@ -126,23 +121,23 @@ function TaskCard({
         </span>
       </div>
     </div>
-  )
+  );
 }
 
-/* 测试用例：可执行 */
+/* Test cases: runnable */
 function TestCaseRow({ id, name, onRun }: { id: string; name: string; onRun: () => void }) {
-  const [state, setState] = React.useState<"idle" | "run" | "pass" | "fail">("idle")
+  const [state, setState] = React.useState<"idle" | "run" | "pass" | "fail">("idle");
   return (
     <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40">
       <span className="text-muted-foreground/60 w-14 shrink-0 font-mono text-[11px]">{id}</span>
       <span className="min-w-0 flex-1 truncate text-[13px]">{name}</span>
       {state === "pass" ? (
         <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-500">
-          <CheckCircle2 className="size-3.5" /> 通过
+          <Icon.CheckCircle2 className="size-3.5" /> 通过
         </span>
       ) : state === "fail" ? (
         <span className="flex items-center gap-1 text-[11px] font-medium text-rose-500">
-          <XCircle className="size-3.5" /> 失败
+          <Icon.XCircle className="size-3.5" /> 失败
         </span>
       ) : state === "run" ? (
         <span className="text-sky-500 h-3 w-3 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
@@ -152,16 +147,16 @@ function TestCaseRow({ id, name, onRun }: { id: string; name: string; onRun: () 
           variant="ghost"
           className="text-muted-foreground h-6 gap-1 px-1.5 text-[11px] opacity-0 transition-opacity group-hover:opacity-100"
           onClick={() => {
-            setState("run")
-            onRun()
-            setTimeout(() => setState(Math.random() > 0.3 ? "pass" : "fail"), 900)
+            setState("run");
+            onRun();
+            setTimeout(() => setState(Math.random() > 0.3 ? "pass" : "fail"), 900);
           }}
         >
-          <Play className="size-3" /> 执行
+          <Icon.Play className="size-3" /> 执行
         </Button>
       )}
     </div>
-  )
+  );
 }
 
 export function SemanticParadigm() {
@@ -172,24 +167,24 @@ export function SemanticParadigm() {
     { key: "RADAR-40", title: "Reveal 组件 API 评审", tag: "review", assignee: "Ben", points: 3, branch: "feat/reveal" },
     { key: "RADAR-35", title: "CountUp 数字滚动", tag: "done", assignee: "Ada", points: 2 },
     { key: "RADAR-36", title: "PageHero 渐变标题", tag: "done", assignee: "Cici", points: 5, branch: "feat/hero" },
-  ])
-  const [sprint, setSprint] = React.useState(true)
+  ]);
+  const [sprint, setSprint] = React.useState(true);
 
   const toggleTask = (key: string) =>
     setTasks((prev) =>
       prev.map((t) =>
         t.key === key ? { ...t, tag: t.tag === "done" ? "doing" : "done" } : t
       )
-    )
+    );
   const deployTask = (key: string) => {
-    setTasks((prev) => prev.map((t) => (t.key === key ? { ...t, deploy: "running" } : t)))
+    setTasks((prev) => prev.map((t) => (t.key === key ? { ...t, deploy: "running" } : t)));
     setTimeout(
       () => setTasks((prev) => prev.map((t) => (t.key === key ? { ...t, deploy: "done" } : t))),
       1800
-    )
-  }
+    );
+  };
 
-  const doneCount = tasks.filter((t) => t.tag === "done").length
+  const doneCount = tasks.filter((t) => t.tag === "done").length;
 
   return (
     <div>
@@ -242,7 +237,7 @@ export function SemanticParadigm() {
               {sprint ? "结束 Sprint" : "重新开启"}
             </Button>
             <Button size="sm">
-              <Plus className="size-3.5" /> 新建任务
+              <Icon.Plus className="size-3.5" /> 新建任务
             </Button>
           </div>
         </div>
@@ -326,5 +321,5 @@ export function SemanticParadigm() {
         </Reveal>
       </div>
     </div>
-  )
+  );
 }

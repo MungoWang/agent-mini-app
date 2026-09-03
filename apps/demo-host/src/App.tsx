@@ -19,8 +19,6 @@ import {
   OverlayExamples,
   PrimitiveExamples,
   ProductExamples,
-} from "@monkey-mini-app/ui-examples"
-import {
   SaasParadigms,
   MinimalParadigm,
   TerminalParadigm,
@@ -30,7 +28,7 @@ import {
   DeskParadigm,
   OpsParadigm,
   GlassParadigm,
-} from "./gallery/paradigms/index"
+} from "@monkey-mini-app/ui-examples"
 import { useTheme, type Palette } from "./components/theme-provider"
 
 const sectionIds = [

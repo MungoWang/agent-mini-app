@@ -1,14 +1,21 @@
-import * as React from "react"
-import { Activity, Cpu, Gauge, Radio } from "lucide-react"
-import { useCountUp, StyleHeader, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title Dark data console
+ * @scenario Monitoring/KPI walls watched in low light; high-contrast numbers on near-black with restrained accent for anomalies.
+ */
+import * as React from "react";
+
+import { Icon } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader, useCountUp } from "./shared";
 
 /**
- * Dark Data · 暗夜数据
- * 强制暗色 + 荧光强调（emerald/cyan）+ 细网格 + 大数字。
- * 参照：金融大盘 / 监控大屏（适合数字密集但要有秩序）。
+ * Dark Data
+ * Forced dark theme + neon accents (emerald/cyan) + fine grid + oversized numerals.
+ * Reference: trading tape / monitoring wall — dense numbers that still read in order.
  */
-const GRID_LINE = "rgba(160,210,255,0.05)"
-const PANEL_LINE = "rgba(160,210,255,0.08)"
+const GRID_LINE = "rgba(160,210,255,0.05)";
+const PANEL_LINE = "rgba(160,210,255,0.08)";
 
 function Metric({
   label,
@@ -25,7 +32,7 @@ function Metric({
   delay: number
   dark: boolean
 }) {
-  const n = useCountUp(value, 1200)
+  const n = useCountUp(value, 1200);
   return (
     <Reveal delay={delay}>
       <div
@@ -45,19 +52,19 @@ function Metric({
         </div>
       </div>
     </Reveal>
-  )
+  );
 }
 
 export function DarkDataParadigm() {
   const [dark, setDark] = React.useState<boolean>(() =>
     typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-  )
+  );
   React.useEffect(() => {
-    const update = () => setDark(document.documentElement.classList.contains("dark"))
-    const mo = new MutationObserver(update)
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
-    return () => mo.disconnect()
-  }, [])
+    const update = () => setDark(document.documentElement.classList.contains("dark"));
+    const mo = new MutationObserver(update);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
 
   return (
     <div>
@@ -70,8 +77,8 @@ export function DarkDataParadigm() {
       <div
         className="relative overflow-hidden rounded-2xl p-6"
         style={{
-          // light = 流光迷雾流体渐变（冷灰#F5F7F8 + 薄荷绿 + 淡粉紫，缓慢晕染）
-          // dark = 深青蓝大屏
+          // light = drifting fluid gradient (cool grey #F5F7F8 + mint + pale violet, slow bleed)
+          // dark = deep teal-blue wall display
           background: dark
             ? "linear-gradient(130deg, oklch(0.12 0.03 195) 0%, oklch(0.145 0.038 212) 48%, oklch(0.105 0.026 183) 100%)"
             : "linear-gradient(120deg, #E2D5F3 0%, #D4F2E7 32%, #FEEAD2 62%, #E8DCF5 82%, #D8F2E9 100%)",
@@ -88,7 +95,7 @@ export function DarkDataParadigm() {
             0%, 100% { background-position: 0% 0%; }
             50% { background-position: 100% 45%; }
           }
-          /* 烟雾变形：多关键帧 + skew 扭曲 + 大幅缩放（真·变形流动） */
+          /* smoke warp: multi-keyframe + skew distortion + heavy scale (real drifting motion) */
           @keyframes mma-mist-a {
             0% { transform: translate3d(-70px, -20px, 0) scale(1) skewX(0deg) skewY(0deg); opacity: 0.4; }
             30% { transform: translate3d(20px, 50px, 0) scale(1.5) skewX(-10deg) skewY(4deg); opacity: 0.95; }
@@ -220,7 +227,7 @@ export function DarkDataParadigm() {
                     <Reveal key={name} delay={320 + i * 70}>
                       <div className="flex items-center justify-between text-sm">
                         <span className="flex items-center gap-1.5 text-[#12263B]/80 dark:text-white/75">
-                          <Radio className="size-3 text-[#12263B]/45 dark:text-white/30" />
+                          <Icon.Radio className="size-3 text-[#12263B]/45 dark:text-white/30" />
                           {name}
                         </span>
                         <span className={"tabular-nums " + color}>{pct}</span>
@@ -230,13 +237,13 @@ export function DarkDataParadigm() {
                 </div>
                 <div className="mt-auto flex items-center gap-3 border-t pt-3" style={{ borderColor: dark ? GRID_LINE : "rgba(15,23,42,0.05)" }}>
                   <span className="flex items-center gap-1 text-[#16324a]/70 font-mono text-xs dark:text-white/50">
-                    <Cpu className="size-3.5" /> 24 core
+                    <Icon.Cpu className="size-3.5" /> 24 core
                   </span>
                   <span className="flex items-center gap-1 text-[#16324a]/70 font-mono text-xs dark:text-white/50">
-                    <Gauge className="size-3.5" /> 62%
+                    <Icon.Gauge className="size-3.5" /> 62%
                   </span>
                   <span className="ml-auto text-[#12263B]/45 dark:text-white/30 font-mono text-xs">
-                    <Activity className="size-3.5" />
+                    <Icon.Activity className="size-3.5" />
                   </span>
                 </div>
               </div>
@@ -245,5 +252,5 @@ export function DarkDataParadigm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

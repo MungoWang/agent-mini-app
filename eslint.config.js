@@ -26,12 +26,8 @@ const monkeyMiniAppStringRule = [
 export default tseslint.config(
   {
     // ui-examples must stay mini-app-portable: bare UI package + react + in-package relatives only.
-    files: [
-      "packages/ui-examples/src/areas/**/*.{ts,tsx}",
-      "packages/ui-examples/src/components/**/*.{ts,tsx}",
-      "packages/ui-examples/src/shared/**/*.{ts,tsx}",
-      "packages/ui-examples/src/index.ts",
-    ],
+    // the whole package: anything here must survive being copied into a mini-app
+    files: ["packages/ui-examples/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",

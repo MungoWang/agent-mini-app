@@ -61,6 +61,7 @@ function main() {
  skillRef,
  examples,
  sharedRoot: path.join(exRoot, "src/shared"),
+ examplesRoot: exRoot,
  subjectSlugs: new Set(subjects.keys()),
  })
  // resolve each record's examples through its slug

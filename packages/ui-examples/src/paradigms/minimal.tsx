@@ -1,12 +1,16 @@
-import { ArrowRight, Check, ChevronRight } from "lucide-react"
-import { Badge } from "@monkey-mini-app/ui/components/badge"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { StyleHeader, Reveal } from "./shared"
+/**
+ * @group paradigms
+ * @title Minimal whitespace
+ * @scenario Single-focus screens — a settings page, an onboarding step, one primary action — where chrome would compete with the content.
+ */
+import { Badge, Button, Icon } from "@monkey-mini-app/ui";
+
+import { Reveal,StyleHeader } from "./shared";
 
 /**
- * Minimal Whitespace · 极简留白
- * 大字号细字重 + 大量留白 + 少边框（行内 hover 高亮代替卡片）。
- * 参照：Apple / Notion 内容页。
+ * Minimal Whitespace
+ * Large type, light weight, generous whitespace, few borders (row hover instead of cards).
+ * Reference: Apple / Notion content pages.
  */
 export function MinimalParadigm() {
   return (
@@ -32,7 +36,7 @@ export function MinimalParadigm() {
             </p>
             <div className="mt-6 flex items-center gap-3">
               <Button size="lg" className="rounded-full px-6">
-                开始体验 <ArrowRight className="size-4" />
+                开始体验 <Icon.ArrowRight className="size-4" />
               </Button>
               <Button size="lg" variant="ghost" className="text-muted-foreground rounded-full">
                 查看更新
@@ -44,9 +48,9 @@ export function MinimalParadigm() {
           <div className="mt-14 border-t" />
           <div className="mt-8 space-y-1">
             {[
-              { title: "智能归档", desc: "自动识别 30 天未动的项目", icon: Check },
-              { title: "聚焦模式", desc: "隐藏全部次要信息，只留当前任务", icon: Check },
-              { title: "周回顾", desc: "每周日 20:00 推送一份简短总结", icon: Check },
+              { title: "智能归档", desc: "自动识别 30 天未动的项目", icon: Icon.Check },
+              { title: "聚焦模式", desc: "隐藏全部次要信息，只留当前任务", icon: Icon.Check },
+              { title: "周回顾", desc: "每周日 20:00 推送一份简短总结", icon: Icon.Check },
             ].map((item, i) => (
               <Reveal key={item.title} delay={80 + i * 60}>
                 <button
@@ -60,7 +64,7 @@ export function MinimalParadigm() {
                     <span className="block text-sm font-medium">{item.title}</span>
                     <span className="text-muted-foreground block text-xs">{item.desc}</span>
                   </span>
-                  <ChevronRight className="text-muted-foreground/50 size-4 transition-transform group-hover:translate-x-0.5" />
+                  <Icon.ChevronRight className="text-muted-foreground/50 size-4 transition-transform group-hover:translate-x-0.5" />
                 </button>
               </Reveal>
             ))}
@@ -105,7 +109,7 @@ export function MinimalParadigm() {
                       (item.done ? "border-primary bg-primary text-primary-foreground" : "border-border")
                     }
                   >
-                    {item.done ? <Check className="size-3" /> : null}
+                    {item.done ? <Icon.Check className="size-3" /> : null}
                   </span>
                   <span className={item.done ? "text-muted-foreground flex-1 line-through" : "flex-1"}>
                     {item.t}
@@ -124,5 +128,5 @@ export function MinimalParadigm() {
         </div>
       </div>
     </div>
-  )
+  );
 }
