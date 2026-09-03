@@ -5,14 +5,6 @@
  */
 import { Scrollspy } from "@monkey-mini-app/ui";
 
-const trend = [
-  { label: "Mon", value: 12 },
-  { label: "Tue", value: 18 },
-  { label: "Wed", value: 9 },
-  { label: "Thu", value: 22 },
-  { label: "Fri", value: 16 },
-];
-
 export default function Scrollspy01Example() {
   return (
     <>

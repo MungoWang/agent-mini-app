@@ -14,15 +14,9 @@ import {
   PaginationPrevious,
 } from "@monkey-mini-app/ui";
 
-const [open, setOpen] = React.useState(false);
-
-const [pressed, setPressed] = React.useState(false);
-
-const [align, setAlign] = React.useState("left");
-
-const [page, setPage] = React.useState(1);
-
 export default function Pagination01Example() {
+  const [page, setPage] = React.useState(1);
+
   return (
     <>
       <Pagination>

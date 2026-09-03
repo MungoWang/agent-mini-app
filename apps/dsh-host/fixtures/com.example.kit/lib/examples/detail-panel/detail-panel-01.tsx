@@ -7,9 +7,9 @@ import * as React from "react";
 
 import { Button, DetailPanel } from "@monkey-mini-app/ui";
 
-const [open, setOpen] = React.useState(false);
-
 export default function DetailPanel01Example() {
+  const [open, setOpen] = React.useState(false);
+
   return (
     <>
       <Button onClick={() => setOpen(true)}>Open inspector</Button>

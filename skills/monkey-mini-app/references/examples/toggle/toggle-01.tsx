@@ -7,15 +7,9 @@ import * as React from "react";
 
 import { Toggle } from "@monkey-mini-app/ui";
 
-const [open, setOpen] = React.useState(false);
-
-const [pressed, setPressed] = React.useState(false);
-
-const [align, setAlign] = React.useState("left");
-
-const [page, setPage] = React.useState(1);
-
 export default function Toggle01Example() {
+  const [pressed, setPressed] = React.useState(false);
+
   return (
     <>
       <Toggle pressed={pressed} onPressedChange={setPressed}>

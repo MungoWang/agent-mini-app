@@ -369,6 +369,42 @@ if (fs.existsSync(registryFile)) {
  }
 }
 
+/* ----------------------------------- 4e. examples must not call hooks at module scope */
+
+// A `useState` outside a component compiles, type-checks and then throws at render
+// ("Cannot read properties of null (reading 'useState')"). Splitting the gallery into
+// example files once did exactly that, so the shape is asserted here instead.
+{
+ const exSrc = path.join(root, "packages/ui-examples/src")
+ if (fs.existsSync(exSrc)) {
+ const isHookName = (txt) => /(^|\.)use[A-Z]/.test(txt)
+ for (const file of walk(exSrc, (f) => /\.tsx?$/.test(f) && !f.endsWith(".d.ts"))) {
+ const base = path.basename(file)
+ if (base === "index.tsx" || base === "index.ts" || base === "example.tsx") continue
+ const src = fs.readFileSync(file, "utf8")
+ const sfile = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+ // only top-level statements matter: anything nested in a function is legal
+ for (const st of sfile.statements) {
+ if (ts.isFunctionDeclaration(st) || ts.isImportDeclaration(st) || ts.isExportDeclaration(st)) continue
+ let bad = null
+ const scan = (n) => {
+ if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression) === false && ts.isIdentifier(n.expression) && isHookName(n.expression.text)) bad = n.expression.text
+ if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression) && isHookName(n.expression.name.text)) bad = n.expression.getText()
+ if (!bad) ts.forEachChild(n, scan)
+ }
+ scan(st)
+ if (bad) {
+ fail(
+ "example-hooks",
+ file,
+ `${base ? "" : ""}"${bad}()" is called at module scope — hooks belong inside the example component (it throws at render)`,
+ )
+ }
+ }
+ }
+ }
+}
+
 /* ------------------------------------------- 4c. annotation hygiene in ui source */
 
 // Two stacked JSDoc blocks silently hide everything in the first one: TypeScript

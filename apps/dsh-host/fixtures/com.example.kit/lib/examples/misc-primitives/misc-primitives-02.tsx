@@ -20,15 +20,9 @@ import {
   TabsTrigger,
 } from "@monkey-mini-app/ui";
 
-const [open, setOpen] = React.useState(false);
-
-const [pressed, setPressed] = React.useState(false);
-
-const [align, setAlign] = React.useState("left");
-
-const [page, setPage] = React.useState(1);
-
 export default function MiscPrimitives02Example() {
+  const [open, setOpen] = React.useState(false);
+
   return (
     <>
       <div className="flex max-w-lg flex-col gap-4">

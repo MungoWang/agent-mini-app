@@ -7,9 +7,9 @@ import * as React from "react";
 
 import { Button, ConfirmDialog, toast } from "@monkey-mini-app/ui";
 
-const [confirm, setConfirm] = React.useState(false);
-
 export default function ConfirmDialog01Example() {
+  const [confirm, setConfirm] = React.useState(false);
+
   return (
     <>
       <div className="flex gap-2">

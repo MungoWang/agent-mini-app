@@ -57,6 +57,7 @@ Effect: `env-table.md` went from 332 prop rows (5 real, with `String.prototype` 
 | `contract-size` / `contract-noise` / `contract-import` / `contract-when` | Inherited-prop dumps, legacy specifiers, missing `@when` |
 | `taxonomy` / `taxonomy-empty` | Missing/unknown family, catalog grouping disagreeing with the registry |
 | `example-meta` | An example file that does not describe itself: it needs `@exampleOf` **or** `@group` (never both), plus `@title` and a real `@scenario` (a `TODO` placeholder fails) |
+| `example-hooks` | A `use*()` call at module scope in `packages/ui-examples` — it compiles and type-checks, then throws in the browser (`Cannot read properties of null (reading 'useState')`) |
 | `example-orphan` | A file under `references/examples/` that no contract or group index links — an agent would never find it |
 | `md-table` | Merged table rows (one such row silently deleted two navigation entries) |
 | `dead-link` / `catalog-orphan` / `catalog-dead` | Broken relative links, contracts unreachable from the catalog, index pointing at nothing |
@@ -110,3 +111,7 @@ internals are reported as a note.
 Adding a component example: create `packages/ui-examples/src/components/<kebab>/<kebab>-NN.tsx`
 with the header, run `pnpm gen:skill`. `@exampleOf` that matches no component prints a
 `gen:skill` warning and the file stays unreferenced.
+
+`packages/ui-examples/tests/render.test.ts` (S8) additionally mounts all 78 examples in jsdom, so a
+structurally valid but runtime-broken example (bad hook placement, dangling import,
+missing Web API usage) fails the suite rather than the user's panel.

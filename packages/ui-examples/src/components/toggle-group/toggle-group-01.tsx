@@ -7,15 +7,9 @@ import * as React from "react";
 
 import { ToggleGroup, ToggleGroupItem } from "@monkey-mini-app/ui";
 
-const [open, setOpen] = React.useState(false);
-
-const [pressed, setPressed] = React.useState(false);
-
-const [align, setAlign] = React.useState("left");
-
-const [page, setPage] = React.useState(1);
-
 export default function ToggleGroup01Example() {
+  const [align, setAlign] = React.useState("left");
+
   return (
     <>
       <ToggleGroup value={[align]} onValueChange={(v) => v[0] && setAlign(v[0])}>
