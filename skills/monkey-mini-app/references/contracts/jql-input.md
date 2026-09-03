@@ -2,9 +2,9 @@
 
 # JqlInput
 
-JQL query textbox. Native textarea by default (no CodeMirror npm/peer). Callers who want completion can swap in `CodeEditor` (CM6 from esm.sh).
+JQL query field: CodeMirror 6 (esm.sh, on demand) with syntax highlighting and field/operator/value completion that opens as you type. Falls back to a plain textarea when the CDN is unreachable — the query still edits.
 
-**when** Issue search / saved filters
+**when** Issue search / saved filters. Needs a real field list: pass `fields`.
 
 `import { JqlInput, JqlSuggestItem } from "@monkey-mini-app/ui"`
 
@@ -15,6 +15,7 @@ JQL query textbox. Native textarea by default (no CodeMirror npm/peer). Callers 
 | field | type | required | note |
 |---|---|:---:|---|
 | `className` | `string \| undefined` |  |  |
+| `fields` | `JqlSuggestItem[] \| undefined` |  | Field names offered by completion (from your JQL backend). |
 | `height` | `string \| undefined` |  |  |
 | `onChange` | `((value: string) => void) \| undefined` |  |  |
 | `value` | `string` | ✓ |  |
@@ -31,7 +32,7 @@ JQL query textbox. Native textarea by default (no CodeMirror npm/peer). Callers 
 ## Example
 
 ```tsx
-<JqlInput value={jql} onChange={setJql} />
+<JqlInput value={jql} onChange={setJql} fields={[{ name: "status" }, { name: "assignee" }]} />
 ```
 
 ## Examples

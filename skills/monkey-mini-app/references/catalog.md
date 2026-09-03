@@ -75,7 +75,7 @@ Inputs, selects, toggles, buttons and actions — anything the user edits.
 | component | type | parts | when | contract |
 |---|---|---|---|---|
 | `FileDropzone` | product | — | Getting a local File into the app (then upload via `ctx.http` in the api layer). | [docs](contracts/file-dropzone.md) |
-| `JqlInput` | product | — | Issue search / saved filters | [docs](contracts/jql-input.md) |
+| `JqlInput` | product | — | Issue search / saved filters. Needs a real field list: pass `fields`. | [docs](contracts/jql-input.md) |
 | `Autocomplete` | composite | — | Free text allowed but known values should be suggested. Strict pick-list → `Select`. | [docs](contracts/autocomplete.md) |
 | `Cascader` | composite | — | Hierarchical codes (region → site → line). Flat tree → `TreeView`. | [docs](contracts/cascader.md) |
 | `ColorPicker` | composite | — | Theme/label colour config. Never for secrets. | [docs](contracts/color-picker.md) |

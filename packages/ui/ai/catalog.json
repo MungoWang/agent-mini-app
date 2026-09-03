@@ -748,7 +748,7 @@
       "componentType": "product",
       "family": "Form",
       "primitive": false,
-      "when": "Issue search / saved filters",
+      "when": "Issue search / saved filters. Needs a real field list: pass `fields`.",
       "contract": "references/contracts/jql-input.md"
     },
     "JsonViewer": {
