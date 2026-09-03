@@ -8,12 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@monkey-mini-app/ui";
 export default function Card01Example() {
   return (
     <>
-<Card>
-            <CardHeader>
-              <CardTitle>Card</CardTitle>
-            </CardHeader>
-            <CardContent>Interactive container.</CardContent>
-          </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Card</CardTitle>
+        </CardHeader>
+        <CardContent>Interactive container.</CardContent>
+      </Card>
     </>
   );
 }

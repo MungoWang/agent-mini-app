@@ -33,6 +33,8 @@ No file sits directly under `scripts/`. If you are about to add one, pick a stag
 | `build/api.mjs` | `pnpm build:api` (also api `prepack`) | `packages/api/dist/index.js` | repo build |
 | `gen/skill/index.mjs` | `pnpm gen:skill` | `skills/.../references/**`, `packages/ui/ai/catalog.json` | repo tracked files |
 | `gen/skill/copy.mjs` | dsh `prepack` / `postpack` | `packages/<adapter>/skills/monkey-mini-app/` | packing scratch copy |
+| `gen/examples.mjs` | `pnpm gen:examples` (in `pnpm verify`) | `apps/dsh-host/fixtures/com.example.kit/lib/**` | repo tracked fixture |
+| `build/api.mjs` | `pnpm build:api` (also api `prepack`) | `packages/api/dist/index.js` | repo build |
 | `gen/illustrations.mjs` | manual — only when changing illustrations | `packages/ui/src/lib/illustrations.tsx` | repo tracked source |
 | `check/skill.mjs` | `pnpm check:skill` | nothing | exit 1 on drift |
 | `check/templates.mts` | `pnpm check:templates` | `packages/dsh/.tpl-check/` (deleted after) | temp dir |
@@ -55,6 +57,8 @@ Canonical form is **`verb:object`**:
 | `pnpm gen:skill` | regenerate skill contracts |
 | `pnpm check:skill` | skill ↔ code gate |
 | `pnpm check:templates` | type-check skill templates |
+| `pnpm gen:examples` | publish ui-examples into the dsh e2e fixture app |
+| `pnpm format:examples` / `check:format` | prettier over `packages/ui-examples` (the check runs inside `pnpm verify`) |
 | `pnpm skill` | gen then check |
 | `pnpm verify` | **post-refactor one-shot**: build ui/sdk/api → skill → templates → lint → tsc → tests → dsh build |
 | `pnpm verify:coverage` | `verify` + `test:coverage` thresholds |

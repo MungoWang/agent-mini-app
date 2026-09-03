@@ -6,7 +6,5 @@
 import { Separator } from "@monkey-mini-app/ui";
 
 export default function Separator01Example() {
-  return (
-    <Separator />
-  );
+  return <Separator />;
 }

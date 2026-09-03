@@ -6,7 +6,5 @@
 import { DiffViewer } from "@monkey-mini-app/ui";
 
 export default function DiffViewer01Example() {
-  return (
-    <DiffViewer original={"a\nb\n"} modified={"a\nc\n"} />
-  );
+  return <DiffViewer original={"a\nb\n"} modified={"a\nc\n"} />;
 }

@@ -22,14 +22,21 @@
     "dev:dsh-prod": "tsx scripts/dev/dsh-switch.mts prod",
     "dsh-host": "pnpm --filter @monkey-mini-app/dsh-host start",
     "test:dsh": "pnpm --filter @monkey-mini-app/dsh-host test:e2e",
-    "publish:prep": "pnpm build:ui && pnpm build:sdk && pnpm build:api && pnpm skill && pnpm --filter @monkey-mini-app/dsh-mini-app build",
+    "publish:prep": "pnpm build:ui && pnpm build:sdk && pnpm build:api && pnpm skill && pnpm gen:examples && pnpm --filter @monkey-mini-app/dsh-mini-app build",
     "publish": "pnpm publish:prep && pnpm -r publish",
     "publish:packages": "tsx scripts/release/publish.mts",
     "build:api": "node scripts/build/api.mjs",
     "verify": "node scripts/check/verify.mjs",
-    "verify:coverage": "node scripts/check/verify.mjs --coverage"
+    "verify:coverage": "node scripts/check/verify.mjs --coverage",
+    "gen:examples": "node scripts/gen/examples.mjs",
+    "format:examples": "prettier --write \"packages/ui-examples/src/**/*.{ts,tsx}\"",
+    "check:format": "prettier --check \"packages/ui-examples/src/**/*.{ts,tsx}\""
   },
   "devDependencies": {
+    "@monkey-mini-app/api": "workspace:*",
+    "@monkey-mini-app/host": "workspace:*",
+    "@monkey-mini-app/ui": "workspace:*",
+    "@monkey-mini-app/ui-examples": "workspace:*",
     "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^22.10.0",
     "@vitest/coverage-v8": "2.1.9",
@@ -37,14 +44,11 @@
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "happy-dom": "^20.11.6",
     "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.68.0",
-    "vitest": "^2.1.8",
-    "@monkey-mini-app/api": "workspace:*",
-    "@monkey-mini-app/ui": "workspace:*",
-    "@monkey-mini-app/host": "workspace:*",
-    "@monkey-mini-app/ui-examples": "workspace:*"
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=20"

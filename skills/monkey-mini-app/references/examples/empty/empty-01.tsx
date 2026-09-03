@@ -8,12 +8,12 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@monkey-mini-a
 export default function Empty01Example() {
   return (
     <>
-<Empty>
-            <EmptyHeader>
-              <EmptyTitle>Nothing here</EmptyTitle>
-              <EmptyDescription>Create the first item.</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>Nothing here</EmptyTitle>
+          <EmptyDescription>Create the first item.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     </>
   );
 }

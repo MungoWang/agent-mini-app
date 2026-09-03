@@ -6,7 +6,5 @@
 import { Spinner } from "@monkey-mini-app/ui";
 
 export default function Spinner01Example() {
-  return (
-    <Spinner />
-  );
+  return <Spinner />;
 }

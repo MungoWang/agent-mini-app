@@ -52,10 +52,10 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function Slider01Example() {
   return (
     <>
-        <div className="flex max-w-sm flex-col gap-4">
-          <Slider value={slider} onValueChange={(v) => setSlider(Array.from(v as number[]))} />
-          <SliderRange value={range} onChange={setRange} />
-        </div>
+      <div className="flex max-w-sm flex-col gap-4">
+        <Slider value={slider} onValueChange={(v) => setSlider(Array.from(v as number[]))} />
+        <SliderRange value={range} onChange={setRange} />
+      </div>
     </>
   );
 }

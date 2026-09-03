@@ -6,7 +6,5 @@
 import { Skeleton } from "@monkey-mini-app/ui";
 
 export default function Skeleton01Example() {
-  return (
-    <Skeleton className="h-6 w-48" />
-  );
+  return <Skeleton className="h-6 w-48" />;
 }

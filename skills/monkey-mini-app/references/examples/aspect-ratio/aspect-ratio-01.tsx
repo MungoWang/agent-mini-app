@@ -8,9 +8,9 @@ import { AspectRatio } from "@monkey-mini-app/ui";
 export default function AspectRatio01Example() {
   return (
     <>
-        <div className="w-48">
-          <AspectRatio ratio={16 / 9} className="rounded-lg bg-muted" />
-        </div>
+      <div className="w-48">
+        <AspectRatio ratio={16 / 9} className="rounded-lg bg-muted" />
+      </div>
     </>
   );
 }

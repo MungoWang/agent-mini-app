@@ -8,16 +8,16 @@ import { Button, ButtonGroup } from "@monkey-mini-app/ui";
 export default function ButtonGroup01Example() {
   return (
     <>
-        <div className="flex flex-wrap gap-2">
-          <Button data-testid="primitive-button">Default</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button variant="destructive">Destructive</Button>
-          <ButtonGroup>
-            <Button variant="outline">One</Button>
-            <Button variant="outline">Two</Button>
-          </ButtonGroup>
-        </div>
+      <div className="flex flex-wrap gap-2">
+        <Button data-testid="primitive-button">Default</Button>
+        <Button variant="outline">Outline</Button>
+        <Button variant="ghost">Ghost</Button>
+        <Button variant="destructive">Destructive</Button>
+        <ButtonGroup>
+          <Button variant="outline">One</Button>
+          <Button variant="outline">Two</Button>
+        </ButtonGroup>
+      </div>
     </>
   );
 }

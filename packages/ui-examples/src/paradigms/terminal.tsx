@@ -7,7 +7,7 @@ import * as React from "react";
 
 import { Icon } from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader } from "./shared";
+import { Reveal, StyleHeader } from "./shared";
 
 /**
  * Terminal Mono
@@ -35,12 +35,19 @@ export function TerminalParadigm() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* 主面板：任务列表 + 状态 */}
         <Reveal className="lg:col-span-2">
-          <div className="overflow-hidden rounded-xl border" style={{ background: document.documentElement.classList.contains("dark") ? TERM_BG : TERM_BG_LIGHT }}>
+          <div
+            className="overflow-hidden rounded-xl border"
+            style={{
+              background: document.documentElement.classList.contains("dark") ? TERM_BG : TERM_BG_LIGHT,
+            }}
+          >
             <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 px-4 py-2.5">
               <span className="size-2.5 rounded-full bg-[#ff5f57]" />
               <span className="size-2.5 rounded-full bg-[#febc2e]" />
               <span className="size-2.5 rounded-full bg-[#28c840]" />
-              <span className="text-slate-700/40 dark:text-white/40 ml-2 font-mono text-xs">deploy --watch</span>
+              <span className="text-slate-700/40 dark:text-white/40 ml-2 font-mono text-xs">
+                deploy --watch
+              </span>
             </div>
             <div className="p-4 font-mono text-[13px] leading-relaxed">
               {[
@@ -59,13 +66,16 @@ export function TerminalParadigm() {
                       )}
                     </span>
                     <span className="text-slate-700/85 dark:text-white/85">{line.t}</span>
-                    <span className="text-slate-700/30 dark:text-white/30 ml-auto tabular-nums">{line.s}</span>
+                    <span className="text-slate-700/30 dark:text-white/30 ml-auto tabular-nums">
+                      {line.s}
+                    </span>
                   </div>
                 </Reveal>
               ))}
               <Reveal delay={450}>
                 <div className="mt-3 border-t border-slate-200 dark:border-white/10 pt-3 text-slate-700/45 dark:text-slate-500 dark:text-white/45">
-                  <span className="text-emerald-600 dark:text-emerald-400">✓</span> 3 passed · <span className="text-amber-600 dark:text-amber-300">●</span> 1 running
+                  <span className="text-emerald-600 dark:text-emerald-400">✓</span> 3 passed ·{" "}
+                  <span className="text-amber-600 dark:text-amber-300">●</span> 1 running
                 </div>
               </Reveal>
             </div>
@@ -75,7 +85,12 @@ export function TerminalParadigm() {
         {/* 侧栏：指标 + 源状态 */}
         <Reveal delay={150}>
           <div className="flex h-full flex-col gap-3 font-mono">
-            <div className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 p-4" style={{ background: document.documentElement.classList.contains("dark") ? TERM_BG : TERM_BG_LIGHT }}>
+            <div
+              className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 p-4"
+              style={{
+                background: document.documentElement.classList.contains("dark") ? TERM_BG : TERM_BG_LIGHT,
+              }}
+            >
               <div className="text-slate-700/40 dark:text-white/40 mb-3 text-xs uppercase">cluster</div>
               {[
                 ["web", "3/3", "text-emerald-600 dark:text-emerald-400"],
@@ -91,7 +106,9 @@ export function TerminalParadigm() {
                 </div>
               ))}
               <div className="mt-3 border-t border-slate-200 dark:border-white/10 pt-3">
-                <div className="text-slate-700/40 dark:text-white/40 mb-1.5 text-xs uppercase">p95 latency</div>
+                <div className="text-slate-700/40 dark:text-white/40 mb-1.5 text-xs uppercase">
+                  p95 latency
+                </div>
                 <div className="text-2xl font-semibold text-slate-700 dark:text-white tabular-nums">
                   84<span className="text-slate-700/40 dark:text-white/40 text-sm">ms</span>
                 </div>
@@ -99,7 +116,12 @@ export function TerminalParadigm() {
               </div>
             </div>
             <Reveal delay={240}>
-              <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4" style={{ background: document.documentElement.classList.contains("dark") ? TERM_BG : TERM_BG_LIGHT }}>
+              <div
+                className="rounded-xl border border-slate-200 dark:border-white/10 p-4"
+                style={{
+                  background: document.documentElement.classList.contains("dark") ? TERM_BG : TERM_BG_LIGHT,
+                }}
+              >
                 <div className="text-slate-700/40 dark:text-white/40 mb-2 flex items-center gap-1.5 text-xs uppercase">
                   <Icon.TerminalSquare className="size-3.5" /> quick
                 </div>

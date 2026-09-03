@@ -15,7 +15,7 @@ import { Reveal, StyleHeader, useCountUp } from "./shared";
  * colour is reserved for status chips and avatars. Hierarchy comes from weight and size.
  */
 
-type Task = { id: string; title: string; time: string; done: boolean; tag: string; hours: number }
+type Task = { id: string; title: string; time: string; done: boolean; tag: string; hours: number };
 
 const INITIAL_TASKS: Task[] = [
   { id: "t1", title: "核对 Q3 回款账单", time: "09:30", done: true, tag: "财务", hours: 0.5 },
@@ -45,10 +45,10 @@ const CARD =
   "rounded-2xl border border-foreground/[0.06] bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(16,24,40,0.08)]";
 
 const TAG_STYLE: Record<string, string> = {
-  "财务": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  "销售": "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-  "开发": "bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  "客服": "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  财务: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  销售: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  开发: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+  客服: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
 };
 
 const TREND = {
@@ -64,12 +64,12 @@ function Metric({
   delay,
   trend,
 }: {
-  label: string
-  value: number
-  delta: string
-  up: boolean
-  delay: number
-  trend: number[]
+  label: string;
+  value: number;
+  delta: string;
+  up: boolean;
+  delay: number;
+  trend: number[];
 }) {
   const n = useCountUp(value);
   const max = Math.max(...trend);
@@ -84,7 +84,8 @@ function Metric({
               <span className="text-[28px] leading-none font-bold tracking-tight tabular-nums">{n}</span>
               <span
                 className={
-                  "text-xs font-semibold " + (up ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400")
+                  "text-xs font-semibold " +
+                  (up ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400")
                 }
               >
                 {delta}
@@ -96,7 +97,11 @@ function Metric({
             <polyline
               points={pts}
               fill="none"
-              stroke={up ? "var(--color-emerald-500, oklch(0.627 0.17 149.2))" : "var(--color-amber-500, oklch(0.769 0.188 70.08))"}
+              stroke={
+                up
+                  ? "var(--color-emerald-500, oklch(0.627 0.17 149.2))"
+                  : "var(--color-amber-500, oklch(0.769 0.188 70.08))"
+              }
               strokeWidth="1.6"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -176,18 +181,34 @@ export function DeskParadigm() {
                         type="button"
                         aria-label="toggle"
                         onClick={() => toggleTask(item.id)}
-                        className={item.done ? "text-emerald-500" : "text-muted-foreground/50 hover:text-foreground"}
+                        className={
+                          item.done ? "text-emerald-500" : "text-muted-foreground/50 hover:text-foreground"
+                        }
                       >
                         {item.done ? <Icon.Check className="size-4" /> : <Icon.Circle className="size-4" />}
                       </button>
-                      <span className={"min-w-0 flex-1 truncate text-[13px] font-medium " + (item.done ? "text-muted-foreground line-through" : "")}>
+                      <span
+                        className={
+                          "min-w-0 flex-1 truncate text-[13px] font-medium " +
+                          (item.done ? "text-muted-foreground line-through" : "")
+                        }
+                      >
                         {item.title}
                       </span>
-                      <span className={"hidden rounded-md px-1.5 py-0.5 text-[10px] font-semibold sm:inline " + TAG_STYLE[item.tag]}>
+                      <span
+                        className={
+                          "hidden rounded-md px-1.5 py-0.5 text-[10px] font-semibold sm:inline " +
+                          TAG_STYLE[item.tag]
+                        }
+                      >
                         {item.tag}
                       </span>
-                      <span className="text-muted-foreground/60 w-8 text-right text-[11px] tabular-nums">{item.time}</span>
-                      <span className="text-muted-foreground w-8 text-right text-[11px] tabular-nums">{item.hours}h</span>
+                      <span className="text-muted-foreground/60 w-8 text-right text-[11px] tabular-nums">
+                        {item.time}
+                      </span>
+                      <span className="text-muted-foreground w-8 text-right text-[11px] tabular-nums">
+                        {item.hours}h
+                      </span>
                       <span className="flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                         <button
                           type="button"
@@ -220,10 +241,18 @@ export function DeskParadigm() {
                   <div className="text-sm font-semibold">工时统计</div>
                   <div className="text-muted-foreground mt-0.5 text-xs">按日汇总 · 与回款关联</div>
                 </div>
-                <Tabs value={period} onValueChange={(v) => setPeriod(v as "week" | "month")} className="w-auto">
+                <Tabs
+                  value={period}
+                  onValueChange={(v) => setPeriod(v as "week" | "month")}
+                  className="w-auto"
+                >
                   <TabsList className="h-7">
-                    <TabsTrigger value="week" className="px-2 text-xs">周</TabsTrigger>
-                    <TabsTrigger value="month" className="px-2 text-xs">月</TabsTrigger>
+                    <TabsTrigger value="week" className="px-2 text-xs">
+                      周
+                    </TabsTrigger>
+                    <TabsTrigger value="month" className="px-2 text-xs">
+                      月
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -301,7 +330,10 @@ export function DeskParadigm() {
               </div>
               <div className="space-y-1.5">
                 {(EVENTS[selectedDay] ?? ["这一天没有安排"]).map((ev, i) => (
-                  <div key={ev} className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40">
+                  <div
+                    key={ev}
+                    className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40"
+                  >
                     <span className="bg-muted text-muted-foreground flex size-5 shrink-0 items-center justify-center rounded text-[10px]">
                       {i + 1}
                     </span>
@@ -339,7 +371,8 @@ export function DeskParadigm() {
                   <span
                     key={name}
                     className={
-                      "flex size-6 items-center justify-center rounded-full border-2 border-card text-[9px] font-semibold text-white " + color
+                      "flex size-6 items-center justify-center rounded-full border-2 border-card text-[9px] font-semibold text-white " +
+                      color
                     }
                   >
                     {String(name).slice(0, 1)}

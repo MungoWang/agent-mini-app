@@ -20,8 +20,10 @@ const STEPS = [
   { name: "build:sdk", cmd: "pnpm", args: ["build:sdk"] },
   { name: "build:api", cmd: "pnpm", args: ["build:api"] },
   { name: "skill (gen + check)", cmd: "pnpm", args: ["skill"] },
+  { name: "gen:examples (kit fixture)", cmd: "pnpm", args: ["gen:examples"] },
   { name: "check:templates", cmd: "pnpm", args: ["check:templates"] },
   { name: "lint", cmd: "pnpm", args: ["lint"] },
+  { name: "check:format (ui-examples)", cmd: "pnpm", args: ["check:format"] },
   { name: "typecheck (tsc -b)", cmd: "pnpm", args: ["typecheck"] },
   { name: "typecheck ui-examples", cmd: "pnpm", args: ["exec", "tsc", "-p", "packages/ui-examples", "--pretty", "false"] },
   {

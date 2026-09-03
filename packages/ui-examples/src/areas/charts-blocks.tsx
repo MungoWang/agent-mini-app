@@ -27,7 +27,10 @@ export function ChartBlockExamples() {
       <Example id="feeds" title="ActivityFeed / NotificationCenter / CommentThread / TestStepList">
         <MiscChartsBlocks05Example />
       </Example>
-      <Example id="inspect" title="DescriptionList / RequestInspector / Terminal / FileTree / AttachmentGallery">
+      <Example
+        id="inspect"
+        title="DescriptionList / RequestInspector / Terminal / FileTree / AttachmentGallery"
+      >
         <MiscChartsBlocks06Example />
       </Example>
       <Example id="detail-panel" title="DetailPanel">

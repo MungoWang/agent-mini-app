@@ -52,15 +52,15 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function MiscForms05Example() {
   return (
     <>
-        <div className="flex max-w-sm flex-col gap-2">
-          <SearchInput value={search} onChange={setSearch} />
-          <Autocomplete
-            value={auto}
-            onChange={setAuto}
-            options={["alpha", "bravo", "charlie", "delta"]}
-            placeholder="Type a…"
-          />
-        </div>
+      <div className="flex max-w-sm flex-col gap-2">
+        <SearchInput value={search} onChange={setSearch} />
+        <Autocomplete
+          value={auto}
+          onChange={setAuto}
+          options={["alpha", "bravo", "charlie", "delta"]}
+          placeholder="Type a…"
+        />
+      </div>
     </>
   );
 }

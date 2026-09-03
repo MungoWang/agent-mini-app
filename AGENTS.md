@@ -29,7 +29,8 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 | Platform panel (`PanelHost`, host-agnostic) | `packages/panel/src/` |
 | Mini-app UI author package | `packages/ui/` → `pnpm build:ui` + `pnpm build:sdk` (iframe) |
 | Mini-app backend contract | `packages/api/` → `pnpm build:api` |
-| UI kit | `packages/ui/` → `node scripts/build/ui.mjs` |
+| UI kit | `packages/ui/` → `pnpm build:ui` (+ `pnpm build:sdk` iframe) |
+| Runnable examples (gallery · e2e · skill) | `packages/ui-examples/` → `pnpm gen:skill` + `pnpm gen:examples` |
 | dsh adapter (plugin + client + skills) | `packages/dsh/` (npm: `@monkey-mini-app/dsh-mini-app`) |
 | Mini-app authoring skill (platform) | `skills/monkey-mini-app/` |
 | UI skill contracts (generated) | `scripts/gen/skill/` → `pnpm gen:skill`; gate `scripts/check/skill.mjs` → `pnpm check:skill` (see `scripts/README.md`) |
@@ -103,6 +104,10 @@ pnpm lint
 
 Repo automation lives under `scripts/` by lifecycle stage — see [`scripts/README.md`](scripts/README.md).
 
+
+Examples must stay mini-app-portable (`react` + bare `@monkey-mini-app/ui` + relatives):
+the eslint gate in `packages/ui-examples` enforces it, prettier formatting is checked by
+`pnpm check:format`. After touching examples run `pnpm gen:skill && pnpm gen:examples`.
 
 ```bash
 pnpm verify          # preferred after refactor: build + skill + templates + lint + tsc + test + dsh build

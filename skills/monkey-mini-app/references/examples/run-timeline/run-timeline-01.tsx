@@ -7,6 +7,11 @@ import { RunTimeline } from "@monkey-mini-app/ui";
 
 export default function RunTimeline01Example() {
   return (
-    <RunTimeline items={[{ id: "1", title: "Queued" }, { id: "2", title: "Running" }]} />
+    <RunTimeline
+      items={[
+        { id: "1", title: "Queued" },
+        { id: "2", title: "Running" },
+      ]}
+    />
   );
 }

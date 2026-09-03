@@ -8,9 +8,9 @@ import { Marker, MarkerContent } from "@monkey-mini-app/ui";
 export default function Marker01Example() {
   return (
     <>
-<Marker>
-            <MarkerContent>Explored 4 files</MarkerContent>
-          </Marker>
+      <Marker>
+        <MarkerContent>Explored 4 files</MarkerContent>
+      </Marker>
     </>
   );
 }

@@ -52,32 +52,32 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function MiscForms07Example() {
   return (
     <>
-        <div className="flex flex-col gap-4">
-          <Cascader
-            value={cascade}
-            onChange={setCascade}
-            options={[
-              {
-                value: "cn",
-                label: "China",
-                children: [
-                  { value: "sh", label: "Shanghai" },
-                  { value: "bj", label: "Beijing" },
-                ],
-              },
-              { value: "us", label: "US", children: [{ value: "sf", label: "SF" }] },
-            ]}
-          />
-          <Transfer
-            value={transfer}
-            onChange={setTransfer}
-            items={[
-              { id: "a", label: "Alpha" },
-              { id: "b", label: "Bravo" },
-              { id: "c", label: "Charlie" },
-            ]}
-          />
-        </div>
+      <div className="flex flex-col gap-4">
+        <Cascader
+          value={cascade}
+          onChange={setCascade}
+          options={[
+            {
+              value: "cn",
+              label: "China",
+              children: [
+                { value: "sh", label: "Shanghai" },
+                { value: "bj", label: "Beijing" },
+              ],
+            },
+            { value: "us", label: "US", children: [{ value: "sf", label: "SF" }] },
+          ]}
+        />
+        <Transfer
+          value={transfer}
+          onChange={setTransfer}
+          items={[
+            { id: "a", label: "Alpha" },
+            { id: "b", label: "Bravo" },
+            { id: "c", label: "Charlie" },
+          ]}
+        />
+      </div>
     </>
   );
 }

@@ -6,7 +6,5 @@
 import { Input } from "@monkey-mini-app/ui";
 
 export default function Input01Example() {
-  return (
-    <Input id="demo-name" placeholder="Ada" />
-  );
+  return <Input id="demo-name" placeholder="Ada" />;
 }

@@ -8,13 +8,13 @@ import { EnvBadge, SeverityChip, StatusBadge } from "@monkey-mini-app/ui";
 export default function MiscChartsBlocks04Example() {
   return (
     <>
-        <div className="flex flex-wrap gap-2">
-          <StatusBadge status="pass" />
-          <StatusBadge status="fail" />
-          <StatusBadge status="flaky" />
-          <SeverityChip severity="P0" />
-          <EnvBadge env="stg" />
-        </div>
+      <div className="flex flex-wrap gap-2">
+        <StatusBadge status="pass" />
+        <StatusBadge status="fail" />
+        <StatusBadge status="flaky" />
+        <SeverityChip severity="P0" />
+        <EnvBadge env="stg" />
+      </div>
     </>
   );
 }

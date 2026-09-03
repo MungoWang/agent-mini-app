@@ -5,7 +5,7 @@
  */
 import { Badge, Button, Icon } from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader } from "./shared";
+import { Reveal, StyleHeader } from "./shared";
 
 /**
  * Editorial
@@ -30,9 +30,7 @@ export function EditorialParadigm() {
             <div className={SERIF + " text-4xl font-bold tracking-tight"}>
               每周<span className="text-primary">精选</span>
             </div>
-            <div className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
-              Vol.24 · Aug 2026
-            </div>
+            <div className="text-muted-foreground text-xs tracking-[0.2em] uppercase">Vol.24 · Aug 2026</div>
           </div>
           <p className="text-muted-foreground mt-3 max-w-xl text-sm leading-relaxed">
             本期主题：让工具回到「记事」的本分。三篇文章，一个观点。
@@ -43,16 +41,13 @@ export function EditorialParadigm() {
       {/* 头条：衬线大标题 + 引文 */}
       <Reveal delay={120}>
         <article className="mt-10">
-          <p className="text-primary mb-3 text-xs font-medium tracking-[0.2em] uppercase">
-            Feature
-          </p>
+          <p className="text-primary mb-3 text-xs font-medium tracking-[0.2em] uppercase">Feature</p>
           <h2 className={SERIF + " max-w-2xl text-3xl leading-snug font-bold"}>
             记事的本质，是让人愿意
             <span className="text-primary italic">回头再看</span>
           </h2>
           <p className="text-muted-foreground mt-4 max-w-xl text-sm leading-relaxed">
-            我们不缺工具，缺的是「合手的形状」。这周我们花了一半时间删功能，
-            而不是加功能。
+            我们不缺工具，缺的是「合手的形状」。这周我们花了一半时间删功能， 而不是加功能。
           </p>
           <div className="mt-5 flex items-center gap-4">
             <Button size="sm" variant="outline" className="rounded-full">
@@ -64,12 +59,8 @@ export function EditorialParadigm() {
           {/* 引文块 */}
           <blockquote className="relative mt-8 max-w-xl border-l-2 border-primary pl-5">
             <Icon.Quote className="text-primary/30 absolute -top-1 left-0 size-5" />
-            <p className={SERIF + " text-lg leading-relaxed italic"}>
-              好界面不是被看见的，而是被忘记的。
-            </p>
-            <footer className="text-muted-foreground mt-2 text-xs">
-              — 产品笔记 · 2026-08
-            </footer>
+            <p className={SERIF + " text-lg leading-relaxed italic"}>好界面不是被看见的，而是被忘记的。</p>
+            <footer className="text-muted-foreground mt-2 text-xs">— 产品笔记 · 2026-08</footer>
           </blockquote>
         </article>
       </Reveal>
@@ -91,7 +82,12 @@ export function EditorialParadigm() {
                 type="button"
                 className="group flex w-full items-start gap-6 py-5 text-left transition-colors hover:bg-muted/40 px-2 -mx-2"
               >
-                <span className={SERIF + " text-foreground/25 pt-0.5 text-sm tabular-nums transition-colors group-hover:text-primary"}>
+                <span
+                  className={
+                    SERIF +
+                    " text-foreground/25 pt-0.5 text-sm tabular-nums transition-colors group-hover:text-primary"
+                  }
+                >
                   {item.no}
                 </span>
                 <span className="flex-1">
@@ -113,9 +109,7 @@ export function EditorialParadigm() {
       <Reveal delay={400}>
         <div className="mt-10 flex flex-wrap items-center justify-between border-t border-border pt-6">
           <span className="text-muted-foreground text-xs">下期预告：让数字动起来</span>
-          <span className="text-foreground/30 text-xs tracking-[0.2em] uppercase">
-            · end ·
-          </span>
+          <span className="text-foreground/30 text-xs tracking-[0.2em] uppercase">· end ·</span>
         </div>
       </Reveal>
     </div>

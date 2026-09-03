@@ -53,10 +53,10 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function NumberField01Example() {
   return (
     <>
-        <NumberField value={n} onChange={setN} min={0} max={99} />
-        <p className="text-muted-foreground mt-2 text-xs" data-testid="number-field-value">
-          value: {n}
-        </p>
+      <NumberField value={n} onChange={setN} min={0} max={99} />
+      <p className="text-muted-foreground mt-2 text-xs" data-testid="number-field-value">
+        value: {n}
+      </p>
     </>
   );
 }

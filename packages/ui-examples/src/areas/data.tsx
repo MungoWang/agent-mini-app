@@ -8,7 +8,11 @@ export function DataExamples() {
       <Example id="data-grid" title="DataGrid" hint="Sort cycles asc → desc → none">
         <DataGrid01Example />
       </Example>
-      <Example id="data-grid-custom" title="DataGrid · custom cells" hint="Avatar, progress, badges, row expand, selection, CSV">
+      <Example
+        id="data-grid-custom"
+        title="DataGrid · custom cells"
+        hint="Avatar, progress, badges, row expand, selection, CSV"
+      >
         <DataGrid02Example />
       </Example>
     </>

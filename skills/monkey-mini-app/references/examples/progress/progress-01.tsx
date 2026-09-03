@@ -6,7 +6,5 @@
 import { Progress } from "@monkey-mini-app/ui";
 
 export default function Progress01Example() {
-  return (
-    <Progress value={48} />
-  );
+  return <Progress value={48} />;
 }

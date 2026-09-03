@@ -15,8 +15,8 @@ const [html, setHtml] = React.useState("<p>Write a <strong>run note</strong>.</p
 const [code, setCode] = React.useState("export const n = 1\n");
 
 const [md, setMd] = React.useState(
-    "# Title\n\n**bold**, a [link](https://example.com), and a task:\n\n- [x] Review grid\n- [ ] Ship demo\n"
-  );
+  "# Title\n\n**bold**, a [link](https://example.com), and a task:\n\n- [x] Review grid\n- [ ] Ship demo\n",
+);
 
 const [mdMode, setMdMode] = React.useState<"edit" | "split" | "preview">("split");
 
@@ -120,18 +120,11 @@ function DiffPlayground() {
           {mode}
         </Button>
       </div>
-      <DiffViewer
-        fileName={file}
-        original={current.original}
-        modified={current.modified}
-        mode={mode}
-      />
+      <DiffViewer fileName={file} original={current.original} modified={current.modified} mode={mode} />
     </div>
   );
 }
 
 export default function MiscEditors01Example() {
-  return (
-    <DiffPlayground />
-  );
+  return <DiffPlayground />;
 }

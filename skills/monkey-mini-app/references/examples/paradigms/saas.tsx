@@ -3,9 +3,23 @@
  * @title SaaS dashboard
  * @scenario Conventional app landing dashboard — stat cards, tabs, progress, sparkline — the safe default when no specific paradigm fits.
  */
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Icon, Progress, Sparkline, Tabs, TabsList, TabsTrigger } from "@monkey-mini-app/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Icon,
+  Progress,
+  Sparkline,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader, useCountUp } from "./shared";
+import { Reveal, StyleHeader, useCountUp } from "./shared";
 
 /* ------------------------------------------------------------------ */
 /* Motion/helpers private to the paradigm demos (inlined here; promote to the kit later) */
@@ -22,11 +36,11 @@ function StatCardFancy({
   data,
   delay,
 }: {
-  title: string
-  value: number
-  delta: string
-  data: number[]
-  delay: number
+  title: string;
+  value: number;
+  delta: string;
+  data: number[];
+  delay: number;
 }) {
   const n = useCountUp(value);
   return (
@@ -86,8 +100,7 @@ function DashboardParadigm() {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">
-                <Icon.Calendar className="size-3.5" />
-                近 7 天
+                <Icon.Calendar className="size-3.5" />近 7 天
               </Button>
               <Button size="sm">
                 <Icon.Bell className="size-3.5" />
@@ -99,10 +112,34 @@ function DashboardParadigm() {
 
         {/* KPI strip */}
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCardFancy title="活跃用户" value={12840} delta="+12.4%" data={[12, 15, 13, 17, 19, 22, 26, 24, 28, 30]} delay={60} />
-          <StatCardFancy title="今日转化" value={3128} delta="+8.1%" data={[8, 9, 11, 10, 13, 12, 15, 17, 16, 18]} delay={140} />
-          <StatCardFancy title="营收" value={862} delta="+5.2%" data={[6, 7, 8, 7, 9, 10, 11, 10, 12, 13]} delay={220} />
-          <StatCardFancy title="退款率" value={1.2} delta="-0.4%" data={[4, 3, 3, 4, 3, 2, 3, 2, 2, 1]} delay={300} />
+          <StatCardFancy
+            title="活跃用户"
+            value={12840}
+            delta="+12.4%"
+            data={[12, 15, 13, 17, 19, 22, 26, 24, 28, 30]}
+            delay={60}
+          />
+          <StatCardFancy
+            title="今日转化"
+            value={3128}
+            delta="+8.1%"
+            data={[8, 9, 11, 10, 13, 12, 15, 17, 16, 18]}
+            delay={140}
+          />
+          <StatCardFancy
+            title="营收"
+            value={862}
+            delta="+5.2%"
+            data={[6, 7, 8, 7, 9, 10, 11, 10, 12, 13]}
+            delay={220}
+          />
+          <StatCardFancy
+            title="退款率"
+            value={1.2}
+            delta="-0.4%"
+            data={[4, 3, 3, 4, 3, 2, 3, 2, 2, 1]}
+            delay={300}
+          />
         </div>
 
         {/* 主副栏 */}
@@ -255,11 +292,7 @@ function BriefParadigm() {
                     <span
                       className={
                         "absolute -left-[21px] top-1 size-2.5 rounded-full ring-4 ring-card " +
-                        (item.active
-                          ? "bg-primary"
-                          : item.done
-                            ? "bg-emerald-500"
-                            : "bg-muted")
+                        (item.active ? "bg-primary" : item.done ? "bg-emerald-500" : "bg-muted")
                       }
                     />
                     <div className="text-muted-foreground text-xs">{item.day}</div>
@@ -308,7 +341,11 @@ function WorkbenchParadigm() {
         </div>
         <div className="grid gap-px bg-border lg:grid-cols-3">
           {[
-            { title: "待处理", count: 4, items: ["审批：预算调整", "评审：移动端 A/B 方案", "回复：客户反馈 3 条", "确认：本周排期"] },
+            {
+              title: "待处理",
+              count: 4,
+              items: ["审批：预算调整", "评审：移动端 A/B 方案", "回复：客户反馈 3 条", "确认：本周排期"],
+            },
             { title: "进行中", count: 2, items: ["新版注册引导（二期）", "数据看板重构"] },
             { title: "已完成", count: 6, items: ["注册引导 v2 上线", "漏斗埋点验证"] },
           ].map((col, ci) => (
@@ -351,7 +388,11 @@ export function SaasParadigms() {
   return (
     <div className="space-y-10">
       <div>
-        <StyleHeader tag="Glow Minimal" name="辉光简约" desc="渐变标题 + 主题色光晕 + 留白 + 微动效（三组页面统一语言）" />
+        <StyleHeader
+          tag="Glow Minimal"
+          name="辉光简约"
+          desc="渐变标题 + 主题色光晕 + 留白 + 微动效（三组页面统一语言）"
+        />
         <DashboardParadigm />
       </div>
       <div>

@@ -7,7 +7,7 @@ import * as React from "react";
 
 import { Icon } from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader, useCountUp } from "./shared";
+import { Reveal, StyleHeader, useCountUp } from "./shared";
 
 /**
  * Dark Data
@@ -25,12 +25,12 @@ function Metric({
   delay,
   dark,
 }: {
-  label: string
-  value: number
-  unit: string
-  tone: string
-  delay: number
-  dark: boolean
+  label: string;
+  value: number;
+  unit: string;
+  tone: string;
+  delay: number;
+  dark: boolean;
 }) {
   const n = useCountUp(value, 1200);
   return (
@@ -45,7 +45,13 @@ function Metric({
           boxShadow: dark ? "none" : "0 4px 24px rgba(60,80,110,0.07), inset 0 1px 0 rgba(255,255,255,0.45)",
         }}
       >
-        <div className={"text-xs font-medium tracking-wide uppercase " + (dark ? "text-white/40" : "text-[#3E5A4A]/80")}>{label}</div>
+        <div
+          className={
+            "text-xs font-medium tracking-wide uppercase " + (dark ? "text-white/40" : "text-[#3E5A4A]/80")
+          }
+        >
+          {label}
+        </div>
         <div className={"mt-1.5 text-3xl font-semibold tabular-nums " + tone}>
           {n}
           <span className={"ml-0.5 text-sm " + (dark ? "text-white/35" : "text-[#0E2A1F]/50")}>{unit}</span>
@@ -56,8 +62,8 @@ function Metric({
 }
 
 export function DarkDataParadigm() {
-  const [dark, setDark] = React.useState<boolean>(() =>
-    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+  const [dark, setDark] = React.useState<boolean>(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
   );
   React.useEffect(() => {
     const update = () => setDark(document.documentElement.classList.contains("dark"));
@@ -166,10 +172,38 @@ export function DarkDataParadigm() {
 
           {/* 指标行 */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Metric dark={dark} label="总市值" value={1284} unit="亿" tone="text-[#0E2A1F] dark:text-white" delay={60} />
-            <Metric dark={dark} label="24h 成交" value={86.4} unit="亿" tone="text-emerald-800 dark:text-emerald-400" delay={130} />
-            <Metric dark={dark} label="活跃标的" value={312} unit="" tone="text-sky-900 dark:text-cyan-300" delay={200} />
-            <Metric dark={dark} label="波动率" value={4.2} unit="%" tone="text-amber-800 dark:text-amber-300" delay={270} />
+            <Metric
+              dark={dark}
+              label="总市值"
+              value={1284}
+              unit="亿"
+              tone="text-[#0E2A1F] dark:text-white"
+              delay={60}
+            />
+            <Metric
+              dark={dark}
+              label="24h 成交"
+              value={86.4}
+              unit="亿"
+              tone="text-emerald-800 dark:text-emerald-400"
+              delay={130}
+            />
+            <Metric
+              dark={dark}
+              label="活跃标的"
+              value={312}
+              unit=""
+              tone="text-sky-900 dark:text-cyan-300"
+              delay={200}
+            />
+            <Metric
+              dark={dark}
+              label="波动率"
+              value={4.2}
+              unit="%"
+              tone="text-amber-800 dark:text-amber-300"
+              delay={270}
+            />
           </div>
 
           {/* 主图区 */}
@@ -177,18 +211,26 @@ export function DarkDataParadigm() {
             <Reveal delay={200} className="lg:col-span-2">
               <div
                 className="flex h-48 flex-col rounded-xl border p-4"
-                style={{ borderColor: dark ? PANEL_LINE : "rgba(15,23,42,0.06)", background: dark ? "rgba(160,210,255,0.02)" : "rgba(255,255,255,0.8)" }}
+                style={{
+                  borderColor: dark ? PANEL_LINE : "rgba(15,23,42,0.06)",
+                  background: dark ? "rgba(160,210,255,0.02)" : "rgba(255,255,255,0.8)",
+                }}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[#16324a]/75 font-mono text-xs dark:text-white/60">INDEX · 24h</span>
-                  <span className="text-emerald-500 font-mono dark:text-emerald-400 text-sm tabular-nums">+6.4%</span>
+                  <span className="text-emerald-500 font-mono dark:text-emerald-400 text-sm tabular-nums">
+                    +6.4%
+                  </span>
                 </div>
                 {/* 示意走势（纯 CSS 折线） */}
                 <svg
                   viewBox="0 0 400 120"
                   className="mt-2 flex-1 w-full"
                   preserveAspectRatio="none"
-                  style={{ filter: "drop-shadow(0 0 6px rgba(56,189,248,0.45))", animation: "mma-neon 4.5s ease-in-out infinite" }}
+                  style={{
+                    filter: "drop-shadow(0 0 6px rgba(56,189,248,0.45))",
+                    animation: "mma-neon 4.5s ease-in-out infinite",
+                  }}
                 >
                   <defs>
                     <linearGradient id="dd-area" x1="0" y1="0" x2="0" y2="1">
@@ -215,9 +257,14 @@ export function DarkDataParadigm() {
             <Reveal delay={270}>
               <div
                 className="flex h-48 flex-col rounded-xl border p-4"
-                style={{ borderColor: dark ? PANEL_LINE : "rgba(15,23,42,0.06)", background: dark ? "rgba(160,210,255,0.02)" : "rgba(255,255,255,0.8)" }}
+                style={{
+                  borderColor: dark ? PANEL_LINE : "rgba(15,23,42,0.06)",
+                  background: dark ? "rgba(160,210,255,0.02)" : "rgba(255,255,255,0.8)",
+                }}
               >
-                <div className="text-[#16324a]/75 font-mono text-xs dark:text-white/60 uppercase">top movers</div>
+                <div className="text-[#16324a]/75 font-mono text-xs dark:text-white/60 uppercase">
+                  top movers
+                </div>
                 <div className="mt-2 space-y-2 font-mono">
                   {[
                     ["RADAR", "+18.2%", "text-emerald-500 dark:text-emerald-400"],
@@ -235,7 +282,10 @@ export function DarkDataParadigm() {
                     </Reveal>
                   ))}
                 </div>
-                <div className="mt-auto flex items-center gap-3 border-t pt-3" style={{ borderColor: dark ? GRID_LINE : "rgba(15,23,42,0.05)" }}>
+                <div
+                  className="mt-auto flex items-center gap-3 border-t pt-3"
+                  style={{ borderColor: dark ? GRID_LINE : "rgba(15,23,42,0.05)" }}
+                >
                   <span className="flex items-center gap-1 text-[#16324a]/70 font-mono text-xs dark:text-white/50">
                     <Icon.Cpu className="size-3.5" /> 24 core
                   </span>

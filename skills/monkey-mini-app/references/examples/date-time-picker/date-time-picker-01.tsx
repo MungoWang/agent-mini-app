@@ -31,7 +31,5 @@ const [rel, setRel] = React.useState<DateRange | undefined>();
 const [duration, setDuration] = React.useState("2h 30m");
 
 export default function DateTimePicker01Example() {
-  return (
-    <DateTimePicker value={dt} onChange={setDt} timezone={zone} onTimezoneChange={setZone} />
-  );
+  return <DateTimePicker value={dt} onChange={setDt} timezone={zone} onTimezoneChange={setZone} />;
 }

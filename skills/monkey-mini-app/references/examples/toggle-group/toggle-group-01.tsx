@@ -18,11 +18,11 @@ const [page, setPage] = React.useState(1);
 export default function ToggleGroup01Example() {
   return (
     <>
-<ToggleGroup value={[align]} onValueChange={(v) => v[0] && setAlign(v[0])}>
-            <ToggleGroupItem value="left">Left</ToggleGroupItem>
-            <ToggleGroupItem value="center">Center</ToggleGroupItem>
-            <ToggleGroupItem value="right">Right</ToggleGroupItem>
-          </ToggleGroup>
+      <ToggleGroup value={[align]} onValueChange={(v) => v[0] && setAlign(v[0])}>
+        <ToggleGroupItem value="left">Left</ToggleGroupItem>
+        <ToggleGroupItem value="center">Center</ToggleGroupItem>
+        <ToggleGroupItem value="right">Right</ToggleGroupItem>
+      </ToggleGroup>
     </>
   );
 }

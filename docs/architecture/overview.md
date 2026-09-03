@@ -28,6 +28,8 @@ dsh supplies capabilities/lifecycle; another host implements its own. Do not lea
 - Backend: `import { defineApp } from "@monkey-mini-app/ui"` (host injects the runtime `defineApp`)
 - Layout trees: `ui/**` (UI only), `api/**` (backend only), `shared/**` (isomorphic pure)
 - Skill: `skills/monkey-mini-app/`
+- Runnable examples: `packages/ui-examples` → copied (byte-for-byte, path-rewritten only) into
+  `references/examples/` (`pnpm gen:skill`) and the `com.example.kit` e2e fixture (`pnpm gen:examples`).
 
 ## Iframe platform
 

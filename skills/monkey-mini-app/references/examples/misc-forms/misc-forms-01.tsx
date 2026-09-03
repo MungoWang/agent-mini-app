@@ -52,10 +52,10 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function MiscForms01Example() {
   return (
     <>
-        <div className="flex max-w-sm flex-col gap-2">
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type here" />
-          <Textarea value={area} onChange={(e) => setArea(e.target.value)} />
-        </div>
+      <div className="flex max-w-sm flex-col gap-2">
+        <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type here" />
+        <Textarea value={area} onChange={(e) => setArea(e.target.value)} />
+      </div>
     </>
   );
 }

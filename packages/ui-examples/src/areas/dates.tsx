@@ -28,7 +28,11 @@ export function DateExamples() {
       <Example id="date-time-picker" title="DateTimePicker" hint="One popover: calendar + time">
         <DateTimePicker01Example />
       </Example>
-      <Example id="date-time-range-picker" title="DateTimeRangePicker" hint="Two DateTimePickers; allDay switches to a date range">
+      <Example
+        id="date-time-range-picker"
+        title="DateTimeRangePicker"
+        hint="Two DateTimePickers; allDay switches to a date range"
+      >
         <DateTimeRangePicker01Example />
       </Example>
       <Example id="timezone-select" title="TimezoneSelect" hint="Common zones first; type to search the rest">

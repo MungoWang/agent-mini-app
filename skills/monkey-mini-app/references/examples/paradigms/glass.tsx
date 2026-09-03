@@ -5,7 +5,7 @@
  */
 import { Badge, Button, Icon } from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader } from "./shared";
+import { Reveal, StyleHeader } from "./shared";
 
 /**
  * Glassmorphism
@@ -89,10 +89,7 @@ export function GlassParadigm() {
                   >
                     <Icon.Music2 className="size-3.5" /> 播放精选
                   </Button>
-                  <Button
-                    size="sm"
-                    
-                  >
+                  <Button size="sm">
                     查看灵感 <Icon.ArrowUpRight className="size-3.5" />
                   </Button>
                 </div>

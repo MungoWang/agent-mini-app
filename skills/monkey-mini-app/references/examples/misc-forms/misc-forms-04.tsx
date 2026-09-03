@@ -52,12 +52,12 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function MiscForms04Example() {
   return (
     <>
-        <div className="flex max-w-sm flex-col gap-2">
-          <PhoneInput value={phone} onChange={setPhone} />
-          <PasswordField value={pwd} onChange={setPwd} />
-          <CurrencyInput value={money} onChange={setMoney} />
-          <Copyable value="TMS-55357" />
-        </div>
+      <div className="flex max-w-sm flex-col gap-2">
+        <PhoneInput value={phone} onChange={setPhone} />
+        <PasswordField value={pwd} onChange={setPwd} />
+        <CurrencyInput value={money} onChange={setMoney} />
+        <Copyable value="TMS-55357" />
+      </div>
     </>
   );
 }

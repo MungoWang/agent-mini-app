@@ -7,14 +7,14 @@ import * as React from "react";
 
 import { Badge, Button, Icon, Progress } from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader } from "./shared";
+import { Reveal, StyleHeader } from "./shared";
 
 /**
  * Cyberpunk admin console (Web3 / AI data platform).
  * Deep blue-black ground + neon glow (cyan/blue/orange); regions split by luminance, not borders.
  */
 
-type Repo = { name: string; branch: string; status: "idle" | "queued" | "building" | "done" }
+type Repo = { name: string; branch: string; status: "idle" | "queued" | "building" | "done" };
 
 const INITIAL_REPOS: Repo[] = [
   { name: "api-gateway", branch: "feat/rate-limit", status: "idle" },
@@ -26,7 +26,8 @@ const INITIAL_REPOS: Repo[] = [
 const PIPELINE = ["Checkout", "Install", "Test", "Build", "Deploy"];
 
 /** Region: dark slate-blue, separated by luminance, no hard border */
-const BLOCK = "rounded-lg bg-white/40 backdrop-blur-2xl border border-white/50 dark:bg-white/[0.03] dark:backdrop-blur-none dark:border-transparent";
+const BLOCK =
+  "rounded-lg bg-white/40 backdrop-blur-2xl border border-white/50 dark:bg-white/[0.03] dark:backdrop-blur-none dark:border-transparent";
 
 /** Neon glow shadow */
 const NEON_CYAN = "0 0 10px rgba(34,211,238,0.55), 0 0 22px rgba(34,211,238,0.2)";
@@ -163,7 +164,9 @@ export function OpsParadigm() {
             <Reveal>
               <div className={BLOCK + " mb-4 p-3"}>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-cyan-800 dark:text-cyan-200/90 text-xs font-medium">Pipeline · deploy</span>
+                  <span className="text-cyan-800 dark:text-cyan-200/90 text-xs font-medium">
+                    Pipeline · deploy
+                  </span>
                   <span className="text-slate-700/40 dark:text-white/40 text-[11px] tabular-nums">
                     {pipeline + 1}/{PIPELINE.length}
                   </span>
@@ -189,7 +192,9 @@ export function OpsParadigm() {
                         ) : null}
                         {stage}
                       </span>
-                      {i < PIPELINE.length - 1 ? <span className="text-slate-700/20 dark:text-white/20 text-[10px]">→</span> : null}
+                      {i < PIPELINE.length - 1 ? (
+                        <span className="text-slate-700/20 dark:text-white/20 text-[10px]">→</span>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -230,7 +235,9 @@ export function OpsParadigm() {
                     >
                       {selected.has(repo.name) ? <Icon.CheckCircle2 className="size-3" /> : null}
                     </button>
-                    <span className="truncate font-mono text-[13px] font-medium text-slate-700/90 dark:text-white/90">{repo.name}</span>
+                    <span className="truncate font-mono text-[13px] font-medium text-slate-700/90 dark:text-white/90">
+                      {repo.name}
+                    </span>
                     <span className="text-slate-700/40 dark:text-white/40 hidden items-center gap-1 truncate font-mono text-[10px] md:inline-flex">
                       <Icon.GitBranch className="size-3 shrink-0" />
                       <span className="truncate">{repo.branch}</span>
@@ -246,7 +253,10 @@ export function OpsParadigm() {
                   <span className="hidden sm:block">
                     {repo.status === "done" ? (
                       <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-300">
-                        <span className="size-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" style={{ boxShadow: NEON_EMERALD }} />
+                        <span
+                          className="size-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"
+                          style={{ boxShadow: NEON_EMERALD }}
+                        />
                         已部署
                       </span>
                     ) : repo.status === "building" ? (
@@ -254,7 +264,10 @@ export function OpsParadigm() {
                         <Icon.Loader2 className="size-3.5 animate-spin" /> 构建中
                       </span>
                     ) : repo.status === "queued" ? (
-                      <span className="text-amber-700 dark:text-amber-300 text-[11px] font-medium" style={{ textShadow: NEON_AMBER }}>
+                      <span
+                        className="text-amber-700 dark:text-amber-300 text-[11px] font-medium"
+                        style={{ textShadow: NEON_AMBER }}
+                      >
                         排队中
                       </span>
                     ) : (
@@ -273,7 +286,7 @@ export function OpsParadigm() {
                         className="text-slate-700/50 dark:text-white/50 hover:text-cyan-800 dark:text-cyan-200 h-6 gap-1 px-1.5 text-[11px]"
                         onClick={() =>
                           setRepos((prev) =>
-                            prev.map((r) => (r.name === repo.name ? { ...r, status: "building" } : r))
+                            prev.map((r) => (r.name === repo.name ? { ...r, status: "building" } : r)),
                           )
                         }
                       >
@@ -291,7 +304,10 @@ export function OpsParadigm() {
             <div className={BLOCK + " p-4"}>
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-slate-700/85 dark:text-white/85 text-xs font-medium">最近部署</span>
-                <Badge variant="outline" className="border-cyan-600/30 dark:border-cyan-400/25 text-cyan-700 dark:text-cyan-300/80 text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="border-cyan-600/30 dark:border-cyan-400/25 text-cyan-700 dark:text-cyan-300/80 text-[10px]"
+                >
                   自动回滚已开启
                 </Badge>
               </div>
@@ -304,7 +320,10 @@ export function OpsParadigm() {
                   <Reveal key={item.t} delay={200 + i * 60}>
                     <div className="flex items-center gap-2.5 rounded-md px-1 py-1 text-[13px] transition-colors hover:bg-white/50 dark:bg-white/[0.04]">
                       {item.warn ? (
-                        <span className="text-amber-700 dark:text-amber-300" style={{ textShadow: NEON_AMBER }}>
+                        <span
+                          className="text-amber-700 dark:text-amber-300"
+                          style={{ textShadow: NEON_AMBER }}
+                        >
                           <Icon.Circle className="size-3.5" />
                         </span>
                       ) : (
@@ -313,7 +332,9 @@ export function OpsParadigm() {
                         </span>
                       )}
                       <span className="font-mono text-slate-700/80 dark:text-white/80">{item.t}</span>
-                      <span className="text-slate-700/35 dark:text-white/35 ml-auto text-xs tabular-nums">{item.d}</span>
+                      <span className="text-slate-700/35 dark:text-white/35 ml-auto text-xs tabular-nums">
+                        {item.d}
+                      </span>
                     </div>
                   </Reveal>
                 ))}

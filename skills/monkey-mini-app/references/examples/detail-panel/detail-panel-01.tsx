@@ -12,10 +12,10 @@ const [open, setOpen] = React.useState(false);
 export default function DetailPanel01Example() {
   return (
     <>
-        <Button onClick={() => setOpen(true)}>Open inspector</Button>
-        <DetailPanel open={open} onOpenChange={setOpen} title="login-spec" description="Last run">
-          Failed at step 2
-        </DetailPanel>
+      <Button onClick={() => setOpen(true)}>Open inspector</Button>
+      <DetailPanel open={open} onOpenChange={setOpen} title="login-spec" description="Last run">
+        Failed at step 2
+      </DetailPanel>
     </>
   );
 }

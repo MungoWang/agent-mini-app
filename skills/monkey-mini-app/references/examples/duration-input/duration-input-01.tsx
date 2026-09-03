@@ -33,8 +33,8 @@ const [duration, setDuration] = React.useState("2h 30m");
 export default function DurationInput01Example() {
   return (
     <>
-        <DurationInput value={duration} onChange={(v) => setDuration(v)} />
-        <p className="text-muted-foreground mt-2 text-xs">{duration}</p>
+      <DurationInput value={duration} onChange={(v) => setDuration(v)} />
+      <p className="text-muted-foreground mt-2 text-xs">{duration}</p>
     </>
   );
 }

@@ -2,41 +2,11 @@ import { useState } from "react";
 
 import { cn, useApp } from "@monkey-mini-app/ui";
 
-import { SECTIONS, type SectionId } from "./lib/data";
-import {
-  BoardsSection,
-  ChartsSection,
-  DataSection,
-  DatesSection,
-  EditorsSection,
-  FormsSection,
-  OverviewSection,
-} from "./lib/sections";
-
-function SectionBody({ id }: { id: SectionId }) {
-  switch (id) {
-    case "overview":
-      return <OverviewSection />;
-    case "forms":
-      return <FormsSection />;
-    case "dates":
-      return <DatesSection />;
-    case "data":
-      return <DataSection />;
-    case "editors":
-      return <EditorsSection />;
-    case "boards":
-      return <BoardsSection />;
-    case "charts":
-      return <ChartsSection />;
-    default:
-      return null;
-  }
-}
+import { SECTION_BODIES, SECTIONS, type SectionId } from "./lib/sections";
 
 export default function Ui() {
   useApp();
-  const [section, setSection] = useState<SectionId>("overview");
+  const [section, setSection] = useState<SectionId>("primitives");
   const current = SECTIONS.find((s) => s.id === section) ?? SECTIONS[0];
 
   return (
@@ -81,7 +51,7 @@ export default function Ui() {
           data-testid={`kit-section-${section}`}
         >
           <div className="mx-auto flex max-w-5xl flex-col gap-5">
-            <SectionBody id={section} />
+            {SECTION_BODIES[section]()}
           </div>
         </main>
       </div>

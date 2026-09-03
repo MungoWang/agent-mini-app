@@ -8,18 +8,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export default function Table01Example() {
   return (
     <>
-<Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Col</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>Row</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Col</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>Row</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </>
   );
 }

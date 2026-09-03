@@ -30,10 +30,18 @@ export function ProductExamples() {
       <Example id="kanban" title="Kanban" hint="Drag between columns · click a card for Jira details">
         <Kanban01Example />
       </Example>
-      <Example id="calendar-gantt-event-calendar" title="EventCalendar" hint="Drag days or hours to create · All day uses date range picker">
+      <Example
+        id="calendar-gantt-event-calendar"
+        title="EventCalendar"
+        hint="Drag days or hours to create · All day uses date range picker"
+      >
         <EventCalendar01Example />
       </Example>
-      <Example id="calendar-gantt-gantt" title="Gantt" hint="Drag days or hours to create · All day uses date range picker">
+      <Example
+        id="calendar-gantt-gantt"
+        title="Gantt"
+        hint="Drag days or hours to create · All day uses date range picker"
+      >
         <Gantt01Example />
       </Example>
       <Example id="dropzone" title="FileDropzone">

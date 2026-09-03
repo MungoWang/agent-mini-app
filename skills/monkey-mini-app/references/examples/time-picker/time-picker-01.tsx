@@ -5,7 +5,7 @@
  */
 import * as React from "react";
 
-import { type DateRange, type RelativePreset,TimePicker } from "@monkey-mini-app/ui";
+import { type DateRange, type RelativePreset, TimePicker } from "@monkey-mini-app/ui";
 
 const [date, setDate] = React.useState<Date | undefined>(new Date("2026-08-26"));
 
@@ -32,8 +32,8 @@ const [duration, setDuration] = React.useState("2h 30m");
 export default function TimePicker01Example() {
   return (
     <>
-        <TimePicker value={time} onChange={setTime} />
-        <p className="text-muted-foreground mt-2 text-xs">{time || "empty"}</p>
+      <TimePicker value={time} onChange={setTime} />
+      <p className="text-muted-foreground mt-2 text-xs">{time || "empty"}</p>
     </>
   );
 }

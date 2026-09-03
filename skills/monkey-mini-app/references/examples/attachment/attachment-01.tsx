@@ -8,12 +8,12 @@ import { Attachment, AttachmentContent, AttachmentDescription, AttachmentTitle }
 export default function Attachment01Example() {
   return (
     <>
-<Attachment>
-            <AttachmentContent>
-              <AttachmentTitle>report.pdf</AttachmentTitle>
-              <AttachmentDescription>PDF · 120 KB</AttachmentDescription>
-            </AttachmentContent>
-          </Attachment>
+      <Attachment>
+        <AttachmentContent>
+          <AttachmentTitle>report.pdf</AttachmentTitle>
+          <AttachmentDescription>PDF · 120 KB</AttachmentDescription>
+        </AttachmentContent>
+      </Attachment>
     </>
   );
 }

@@ -6,7 +6,7 @@
  */
 import * as React from "react";
 
-import { type DateRange, type RelativePreset,TimezoneSelect } from "@monkey-mini-app/ui";
+import { type DateRange, type RelativePreset, TimezoneSelect } from "@monkey-mini-app/ui";
 
 const [date, setDate] = React.useState<Date | undefined>(new Date("2026-08-26"));
 
@@ -31,7 +31,5 @@ const [rel, setRel] = React.useState<DateRange | undefined>();
 const [duration, setDuration] = React.useState("2h 30m");
 
 export default function TimezoneSelect01Example() {
-  return (
-    <TimezoneSelect value={zone} onChange={setZone} />
-  );
+  return <TimezoneSelect value={zone} onChange={setZone} />;
 }

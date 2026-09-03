@@ -22,7 +22,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm check:skill
       # contracts are generated: committed docs must match source
-      - run: pnpm gen:skill && git diff --exit-code skills packages/ui/ai
+      - run: pnpm gen:skill && pnpm gen:examples && git diff --exit-code skills packages/ui/ai apps/dsh-host/fixtures
       - run: pnpm exec tsc -b --pretty false
       - run: pnpm test
       - run: pnpm --filter @monkey-mini-app/dsh-mini-app build

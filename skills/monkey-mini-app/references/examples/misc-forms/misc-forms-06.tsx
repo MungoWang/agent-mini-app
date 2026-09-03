@@ -52,19 +52,19 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function MiscForms06Example() {
   return (
     <>
-        <div className="flex max-w-sm flex-col gap-3">
-          <TagInput value={tags} onChange={setTags} />
-          <UserPicker
-            value={user}
-            onChange={setUser}
-            users={[
-              { id: "ada", name: "Ada" },
-              { id: "lin", name: "Lin" },
-            ]}
-          />
-          <Rating value={stars} onChange={setStars} />
-          <ColorPicker value={color} onChange={setColor} />
-        </div>
+      <div className="flex max-w-sm flex-col gap-3">
+        <TagInput value={tags} onChange={setTags} />
+        <UserPicker
+          value={user}
+          onChange={setUser}
+          users={[
+            { id: "ada", name: "Ada" },
+            { id: "lin", name: "Lin" },
+          ]}
+        />
+        <Rating value={stars} onChange={setStars} />
+        <ColorPicker value={color} onChange={setColor} />
+      </div>
     </>
   );
 }

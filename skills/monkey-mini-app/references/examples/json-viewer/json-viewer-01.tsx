@@ -6,7 +6,5 @@
 import { JsonViewer } from "@monkey-mini-app/ui";
 
 export default function JsonViewer01Example() {
-  return (
-    <JsonViewer value={{ ok: true, count: 2, nested: { a: 1 } }} />
-  );
+  return <JsonViewer value={{ ok: true, count: 2, nested: { a: 1 } }} />;
 }

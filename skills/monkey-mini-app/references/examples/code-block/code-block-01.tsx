@@ -8,10 +8,7 @@ import { CodeBlock } from "@monkey-mini-app/ui";
 export default function CodeBlock01Example() {
   return (
     <>
-<CodeBlock
-            language="ts"
-            code={`type Run = { id: string }\nexport const run: Run = { id: \"1\" }\n`}
-          />
+      <CodeBlock language="ts" code={`type Run = { id: string }\nexport const run: Run = { id: \"1\" }\n`} />
     </>
   );
 }

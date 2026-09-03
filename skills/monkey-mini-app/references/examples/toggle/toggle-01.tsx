@@ -18,9 +18,9 @@ const [page, setPage] = React.useState(1);
 export default function Toggle01Example() {
   return (
     <>
-<Toggle pressed={pressed} onPressedChange={setPressed}>
-            Bold
-          </Toggle>
+      <Toggle pressed={pressed} onPressedChange={setPressed}>
+        Bold
+      </Toggle>
     </>
   );
 }

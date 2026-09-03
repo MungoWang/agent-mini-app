@@ -32,12 +32,7 @@ const [duration, setDuration] = React.useState("2h 30m");
 export default function RelativeDatePicker01Example() {
   return (
     <>
-        <RelativeDatePicker
-          preset={preset}
-          value={rel}
-          onPresetChange={setPreset}
-          onChange={setRel}
-        />
+      <RelativeDatePicker preset={preset} value={rel} onPresetChange={setPreset} onChange={setRel} />
     </>
   );
 }

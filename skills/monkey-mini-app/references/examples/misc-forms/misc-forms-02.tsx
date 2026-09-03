@@ -52,24 +52,24 @@ const [transfer, setTransfer] = React.useState(["b"]);
 export default function MiscForms02Example() {
   return (
     <>
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox checked={checked} onCheckedChange={(v) => setChecked(!!v)} />
+          Accept
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={on} onCheckedChange={setOn} />
+          Enabled {on ? "on" : "off"}
+        </label>
+        <RadioGroup value={radio} onValueChange={setRadio}>
           <label className="flex items-center gap-2 text-sm">
-            <Checkbox checked={checked} onCheckedChange={(v) => setChecked(!!v)} />
-            Accept
+            <RadioGroupItem value="a" /> A
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <Switch checked={on} onCheckedChange={setOn} />
-            Enabled {on ? "on" : "off"}
+            <RadioGroupItem value="b" /> B
           </label>
-          <RadioGroup value={radio} onValueChange={setRadio}>
-            <label className="flex items-center gap-2 text-sm">
-              <RadioGroupItem value="a" /> A
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <RadioGroupItem value="b" /> B
-            </label>
-          </RadioGroup>
-        </div>
+        </RadioGroup>
+      </div>
     </>
   );
 }

@@ -24,9 +24,9 @@ export function Reveal({
   delay = 0,
   className = "",
 }: {
-  children: React.ReactNode
-  delay?: number
-  className?: string
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
 }) {
   return (
     <div
@@ -39,15 +39,7 @@ export function Reveal({
 }
 
 /** Heading block that opens a style group */
-export function StyleHeader({
-  name,
-  desc,
-  tag,
-}: {
-  name: string
-  desc: string
-  tag: string
-}) {
+export function StyleHeader({ name, desc, tag }: { name: string; desc: string; tag: string }) {
   return (
     <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
       <span className="text-xs font-semibold tracking-wide text-primary uppercase">{tag}</span>

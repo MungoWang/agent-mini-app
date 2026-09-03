@@ -8,12 +8,12 @@ import { Item, ItemContent, ItemDescription, ItemTitle } from "@monkey-mini-app/
 export default function Item01Example() {
   return (
     <>
-<Item variant="outline">
-            <ItemContent>
-              <ItemTitle>Notification</ItemTitle>
-              <ItemDescription>Build finished</ItemDescription>
-            </ItemContent>
-          </Item>
+      <Item variant="outline">
+        <ItemContent>
+          <ItemTitle>Notification</ItemTitle>
+          <ItemDescription>Build finished</ItemDescription>
+        </ItemContent>
+      </Item>
     </>
   );
 }

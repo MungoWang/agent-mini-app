@@ -12,22 +12,22 @@ const [confirm, setConfirm] = React.useState(false);
 export default function ConfirmDialog01Example() {
   return (
     <>
-        <div className="flex gap-2">
-          <Button variant="destructive" onClick={() => setConfirm(true)}>
-            Delete
-          </Button>
-          <Button variant="outline" onClick={() => toast.add({ title: "Saved", description: "Run updated." })}>
-            Toast
-          </Button>
-        </div>
-        <ConfirmDialog
-          open={confirm}
-          onOpenChange={setConfirm}
-          title="Delete this run?"
-          description="This cannot be undone."
-          confirmLabel="Delete"
-          onConfirm={() => setConfirm(false)}
-        />
+      <div className="flex gap-2">
+        <Button variant="destructive" onClick={() => setConfirm(true)}>
+          Delete
+        </Button>
+        <Button variant="outline" onClick={() => toast.add({ title: "Saved", description: "Run updated." })}>
+          Toast
+        </Button>
+      </div>
+      <ConfirmDialog
+        open={confirm}
+        onOpenChange={setConfirm}
+        title="Delete this run?"
+        description="This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => setConfirm(false)}
+      />
     </>
   );
 }

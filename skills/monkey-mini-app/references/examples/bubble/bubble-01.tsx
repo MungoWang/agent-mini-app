@@ -8,9 +8,9 @@ import { Bubble, BubbleContent } from "@monkey-mini-app/ui";
 export default function Bubble01Example() {
   return (
     <>
-<Bubble>
-            <BubbleContent>Can you rerun login-spec?</BubbleContent>
-          </Bubble>
+      <Bubble>
+        <BubbleContent>Can you rerun login-spec?</BubbleContent>
+      </Bubble>
     </>
   );
 }

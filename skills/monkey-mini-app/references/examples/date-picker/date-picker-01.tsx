@@ -30,7 +30,5 @@ const [rel, setRel] = React.useState<DateRange | undefined>();
 const [duration, setDuration] = React.useState("2h 30m");
 
 export default function DatePicker01Example() {
-  return (
-    <DatePicker value={date} onChange={setDate} />
-  );
+  return <DatePicker value={date} onChange={setDate} />;
 }

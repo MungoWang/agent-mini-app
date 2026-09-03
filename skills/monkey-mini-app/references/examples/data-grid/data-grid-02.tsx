@@ -4,9 +4,9 @@
  * @scenario Same grid but the columns render rich cells (avatar, progress bar, status badge) via cell renderers — the pattern for 'run list' style screens.
  * @hint Avatar, progress, badges, row expand, selection, CSV
  */
-import { Avatar, AvatarFallback, type ColumnDef,DataGrid, Progress, StatusBadge } from "@monkey-mini-app/ui";
+import { Avatar, AvatarFallback, type ColumnDef, DataGrid, Progress, StatusBadge } from "@monkey-mini-app/ui";
 
-type Run = { id: string; name: string; owner: string; duration: string; status: string }
+type Run = { id: string; name: string; owner: string; duration: string; status: string };
 
 const runs: Run[] = [
   { id: "1", name: "login-spec", owner: "Ada", duration: "1.2s", status: "pass" },
@@ -30,13 +30,13 @@ const columns: ColumnDef<Run>[] = [
 ];
 
 type Ticket = {
-  id: string
-  key: string
-  title: string
-  owner: string
-  progress: number
-  status: string
-}
+  id: string;
+  key: string;
+  title: string;
+  owner: string;
+  progress: number;
+  status: string;
+};
 
 const tickets: Ticket[] = [
   { id: "1", key: "TMS-1201", title: "Grid sort reset", owner: "Ada", progress: 80, status: "pass" },
@@ -92,20 +92,20 @@ const ticketColumns: ColumnDef<Ticket>[] = [
 export default function DataGrid02Example() {
   return (
     <>
-        <DataGrid
-          columns={ticketColumns}
-          data={tickets}
-          pageSize={10}
-          features={{ rowSelection: true, csvExport: true }}
-          searchPlaceholder="Search tickets…"
-          renderExpanded={(row) => (
-            <div className="text-sm">
-              <span className="font-mono text-muted-foreground">{row.key}</span>
-              {" — "}
-              {row.title} assigned to {row.owner}
-            </div>
-          )}
-        />
+      <DataGrid
+        columns={ticketColumns}
+        data={tickets}
+        pageSize={10}
+        features={{ rowSelection: true, csvExport: true }}
+        searchPlaceholder="Search tickets…"
+        renderExpanded={(row) => (
+          <div className="text-sm">
+            <span className="font-mono text-muted-foreground">{row.key}</span>
+            {" — "}
+            {row.title} assigned to {row.owner}
+          </div>
+        )}
+      />
     </>
   );
 }

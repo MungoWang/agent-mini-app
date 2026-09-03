@@ -8,17 +8,17 @@ import { ActivityFeed, CommentThread, NotificationCenter, TestStepList } from "@
 export default function MiscChartsBlocks05Example() {
   return (
     <>
-        <div className="grid gap-4 md:grid-cols-2">
-          <ActivityFeed items={[{ id: "1", title: "Deployed", time: "10:00" }]} />
-          <NotificationCenter items={[{ id: "1", title: "Build failed", body: "login-spec" }]} />
-          <CommentThread comments={[{ id: "1", author: "Ada", body: "Looks good", time: "now" }]} />
-          <TestStepList
-            steps={[
-              { id: "1", title: "Login", status: "pass" },
-              { id: "2", title: "Checkout", status: "fail" },
-            ]}
-          />
-        </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <ActivityFeed items={[{ id: "1", title: "Deployed", time: "10:00" }]} />
+        <NotificationCenter items={[{ id: "1", title: "Build failed", body: "login-spec" }]} />
+        <CommentThread comments={[{ id: "1", author: "Ada", body: "Looks good", time: "now" }]} />
+        <TestStepList
+          steps={[
+            { id: "1", title: "Login", status: "pass" },
+            { id: "2", title: "Checkout", status: "fail" },
+          ]}
+        />
+      </div>
     </>
   );
 }

@@ -5,7 +5,7 @@
  */
 import { Badge, Button, Icon } from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader } from "./shared";
+import { Reveal, StyleHeader } from "./shared";
 
 /**
  * Minimal Whitespace
@@ -31,8 +31,7 @@ export function MinimalParadigm() {
               让整理成为<span className="text-primary">习惯</span>
             </h2>
             <p className="text-muted-foreground mt-4 max-w-lg text-base leading-relaxed">
-              本周我们把重复操作收敛成了三个动作：归档、置顶、定时清理。
-              更少的按钮，更多的专注。
+              本周我们把重复操作收敛成了三个动作：归档、置顶、定时清理。 更少的按钮，更多的专注。
             </p>
             <div className="mt-6 flex items-center gap-3">
               <Button size="lg" className="rounded-full px-6">
@@ -115,10 +114,7 @@ export function MinimalParadigm() {
                     {item.t}
                   </span>
                   <span className="text-muted-foreground text-xs tabular-nums">{item.d}</span>
-                  <Badge
-                    variant="outline"
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                  >
+                  <Badge variant="outline" className="opacity-0 transition-opacity group-hover:opacity-100">
                     详情
                   </Badge>
                 </div>

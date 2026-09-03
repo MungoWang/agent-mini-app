@@ -30,7 +30,5 @@ const [rel, setRel] = React.useState<DateRange | undefined>();
 const [duration, setDuration] = React.useState("2h 30m");
 
 export default function MiniCalendar01Example() {
-  return (
-    <MiniCalendar value={mini} onChange={setMini} />
-  );
+  return <MiniCalendar value={mini} onChange={setMini} />;
 }

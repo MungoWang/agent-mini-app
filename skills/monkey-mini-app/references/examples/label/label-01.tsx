@@ -6,7 +6,5 @@
 import { Label } from "@monkey-mini-app/ui";
 
 export default function Label01Example() {
-  return (
-    <Label htmlFor="demo-name">Name</Label>
-  );
+  return <Label htmlFor="demo-name">Name</Label>;
 }

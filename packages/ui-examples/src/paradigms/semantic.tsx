@@ -7,7 +7,7 @@ import * as React from "react";
 
 import { Badge, Button, Icon, Progress } from "@monkey-mini-app/ui";
 
-import { Reveal,StyleHeader } from "./shared";
+import { Reveal, StyleHeader } from "./shared";
 
 /**
  * Semantic Palette
@@ -24,14 +24,14 @@ const STATUS = {
 } as const;
 
 type Task = {
-  key: string
-  title: string
-  tag: "todo" | "doing" | "review" | "done"
-  assignee: string
-  points: number
-  branch?: string
-  deploy?: "idle" | "running" | "done"
-}
+  key: string;
+  title: string;
+  tag: "todo" | "doing" | "review" | "done";
+  assignee: string;
+  points: number;
+  branch?: string;
+  deploy?: "idle" | "running" | "done";
+};
 
 const TAG_BAR: Record<Task["tag"], string> = {
   todo: "border-l-muted",
@@ -40,15 +40,7 @@ const TAG_BAR: Record<Task["tag"], string> = {
   done: "border-l-emerald-500",
 };
 
-function TaskCard({
-  task,
-  onToggle,
-  onDeploy,
-}: {
-  task: Task
-  onToggle: () => void
-  onDeploy: () => void
-}) {
+function TaskCard({ task, onToggle, onDeploy }: { task: Task; onToggle: () => void; onDeploy: () => void }) {
   const done = task.tag === "done";
   return (
     <div
@@ -77,7 +69,11 @@ function TaskCard({
         </span>
         <Icon.MoreHorizontal className="text-muted-foreground/40 size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
-      <div className={"text-[13px] leading-snug font-medium " + (done ? "text-muted-foreground line-through" : "")}>
+      <div
+        className={
+          "text-[13px] leading-snug font-medium " + (done ? "text-muted-foreground line-through" : "")
+        }
+      >
         {task.title}
       </div>
       {task.branch ? (
@@ -88,16 +84,30 @@ function TaskCard({
       ) : null}
       <div className="mt-2.5 flex items-center justify-between">
         <span className={"rounded-md px-1.5 py-0.5 text-[10px] font-semibold " + STATUS[task.tag]}>
-          {task.tag === "doing" ? "进行" : task.tag === "review" ? "评审" : task.tag === "done" ? "完成" : "待办"}
+          {task.tag === "doing"
+            ? "进行"
+            : task.tag === "review"
+              ? "评审"
+              : task.tag === "done"
+                ? "完成"
+                : "待办"}
         </span>
         <span className="flex items-center gap-2">
           {task.deploy ? (
             task.deploy === "running" ? (
-              <Button size="icon-xs" variant="outline" className="text-sky-500 h-5 w-9 animate-pulse text-[10px]">
+              <Button
+                size="icon-xs"
+                variant="outline"
+                className="text-sky-500 h-5 w-9 animate-pulse text-[10px]"
+              >
                 部署中
               </Button>
             ) : (
-              <Button size="icon-xs" variant="ghost" className="text-emerald-500 h-5 gap-0.5 px-1 text-[10px]">
+              <Button
+                size="icon-xs"
+                variant="ghost"
+                className="text-emerald-500 h-5 gap-0.5 px-1 text-[10px]"
+              >
                 <Icon.Rocket className="size-3" /> 已部署
               </Button>
             )
@@ -161,26 +171,59 @@ function TestCaseRow({ id, name, onRun }: { id: string; name: string; onRun: () 
 
 export function SemanticParadigm() {
   const [tasks, setTasks] = React.useState<Task[]>([
-    { key: "RADAR-42", title: "拆分大卡片组件", tag: "todo", assignee: "Ada", points: 5, branch: "feat/card-split" },
-    { key: "RADAR-38", title: "看板拖拽性能优化", tag: "doing", assignee: "Ada", points: 8, branch: "perf/dnd" },
-    { key: "RADAR-44", title: "语义色板落地到模板", tag: "doing", assignee: "Cici", points: 5, branch: "feat/semantic" },
-    { key: "RADAR-40", title: "Reveal 组件 API 评审", tag: "review", assignee: "Ben", points: 3, branch: "feat/reveal" },
+    {
+      key: "RADAR-42",
+      title: "拆分大卡片组件",
+      tag: "todo",
+      assignee: "Ada",
+      points: 5,
+      branch: "feat/card-split",
+    },
+    {
+      key: "RADAR-38",
+      title: "看板拖拽性能优化",
+      tag: "doing",
+      assignee: "Ada",
+      points: 8,
+      branch: "perf/dnd",
+    },
+    {
+      key: "RADAR-44",
+      title: "语义色板落地到模板",
+      tag: "doing",
+      assignee: "Cici",
+      points: 5,
+      branch: "feat/semantic",
+    },
+    {
+      key: "RADAR-40",
+      title: "Reveal 组件 API 评审",
+      tag: "review",
+      assignee: "Ben",
+      points: 3,
+      branch: "feat/reveal",
+    },
     { key: "RADAR-35", title: "CountUp 数字滚动", tag: "done", assignee: "Ada", points: 2 },
-    { key: "RADAR-36", title: "PageHero 渐变标题", tag: "done", assignee: "Cici", points: 5, branch: "feat/hero" },
+    {
+      key: "RADAR-36",
+      title: "PageHero 渐变标题",
+      tag: "done",
+      assignee: "Cici",
+      points: 5,
+      branch: "feat/hero",
+    },
   ]);
   const [sprint, setSprint] = React.useState(true);
 
   const toggleTask = (key: string) =>
     setTasks((prev) =>
-      prev.map((t) =>
-        t.key === key ? { ...t, tag: t.tag === "done" ? "doing" : "done" } : t
-      )
+      prev.map((t) => (t.key === key ? { ...t, tag: t.tag === "done" ? "doing" : "done" } : t)),
     );
   const deployTask = (key: string) => {
     setTasks((prev) => prev.map((t) => (t.key === key ? { ...t, deploy: "running" } : t)));
     setTimeout(
       () => setTasks((prev) => prev.map((t) => (t.key === key ? { ...t, deploy: "done" } : t))),
-      1800
+      1800,
     );
   };
 
@@ -222,18 +265,12 @@ export function SemanticParadigm() {
                     style={{ width: `${(doneCount / 6) * 100}%` }}
                   />
                 </div>
-                <span className="text-muted-foreground text-xs">
-                  {doneCount}/6 · 剩余 8 天
-                </span>
+                <span className="text-muted-foreground text-xs">{doneCount}/6 · 剩余 8 天</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setSprint((v) => !v)}
-            >
+            <Button size="sm" variant="outline" onClick={() => setSprint((v) => !v)}>
               {sprint ? "结束 Sprint" : "重新开启"}
             </Button>
             <Button size="sm">
@@ -247,9 +284,24 @@ export function SemanticParadigm() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { col: "待办", dot: "bg-muted", tint: "bg-zinc-400/[0.04]", filter: (t: Task) => t.tag === "todo" },
-          { col: "进行中", dot: "bg-sky-500", tint: "bg-sky-500/[0.06]", filter: (t: Task) => t.tag === "doing" },
-          { col: "评审", dot: "bg-violet-500", tint: "bg-violet-500/[0.06]", filter: (t: Task) => t.tag === "review" },
-          { col: "完成", dot: "bg-emerald-500", tint: "bg-emerald-500/[0.06]", filter: (t: Task) => t.tag === "done" },
+          {
+            col: "进行中",
+            dot: "bg-sky-500",
+            tint: "bg-sky-500/[0.06]",
+            filter: (t: Task) => t.tag === "doing",
+          },
+          {
+            col: "评审",
+            dot: "bg-violet-500",
+            tint: "bg-violet-500/[0.06]",
+            filter: (t: Task) => t.tag === "review",
+          },
+          {
+            col: "完成",
+            dot: "bg-emerald-500",
+            tint: "bg-emerald-500/[0.06]",
+            filter: (t: Task) => t.tag === "done",
+          },
         ].map((group, gi) => (
           <Reveal key={group.col} delay={gi * 70}>
             <div className={"rounded-lg border p-2.5 " + group.tint}>
@@ -265,7 +317,11 @@ export function SemanticParadigm() {
               <div className="space-y-2">
                 {tasks.filter(group.filter).map((task, ti) => (
                   <Reveal key={task.key} delay={gi * 70 + 60 + ti * 40}>
-                    <TaskCard task={task} onToggle={() => toggleTask(task.key)} onDeploy={() => deployTask(task.key)} />
+                    <TaskCard
+                      task={task}
+                      onToggle={() => toggleTask(task.key)}
+                      onDeploy={() => deployTask(task.key)}
+                    />
                   </Reveal>
                 ))}
               </div>

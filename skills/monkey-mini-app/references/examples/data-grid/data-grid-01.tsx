@@ -4,9 +4,9 @@
  * @scenario The default table for anything bigger than a static list: column sort (asc→desc→off), global search box, pagination — all from props, no external state library.
  * @hint Sort cycles asc → desc → none
  */
-import { Avatar, AvatarFallback, type ColumnDef,DataGrid, Progress, StatusBadge } from "@monkey-mini-app/ui";
+import { Avatar, AvatarFallback, type ColumnDef, DataGrid, Progress, StatusBadge } from "@monkey-mini-app/ui";
 
-type Run = { id: string; name: string; owner: string; duration: string; status: string }
+type Run = { id: string; name: string; owner: string; duration: string; status: string };
 
 const runs: Run[] = [
   { id: "1", name: "login-spec", owner: "Ada", duration: "1.2s", status: "pass" },
@@ -30,13 +30,13 @@ const columns: ColumnDef<Run>[] = [
 ];
 
 type Ticket = {
-  id: string
-  key: string
-  title: string
-  owner: string
-  progress: number
-  status: string
-}
+  id: string;
+  key: string;
+  title: string;
+  owner: string;
+  progress: number;
+  status: string;
+};
 
 const tickets: Ticket[] = [
   { id: "1", key: "TMS-1201", title: "Grid sort reset", owner: "Ada", progress: 80, status: "pass" },
@@ -90,7 +90,5 @@ const ticketColumns: ColumnDef<Ticket>[] = [
 ];
 
 export default function DataGrid01Example() {
-  return (
-    <DataGrid columns={columns} data={runs} pageSize={4} searchPlaceholder="Search runs…" />
-  );
+  return <DataGrid columns={columns} data={runs} pageSize={4} searchPlaceholder="Search runs…" />;
 }
