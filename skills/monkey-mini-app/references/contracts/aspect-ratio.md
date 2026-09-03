@@ -15,3 +15,11 @@
 | `AspectRatio` | `ratio` |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[aspect-ratio-01.tsx](../examples/aspect-ratio/aspect-ratio-01.tsx)** — AspectRatio — A media/skeleton placeholder that must keep a fixed ratio (16/9 here) while its container resizes — prevents layout shift when images or embeds load late.

@@ -23,3 +23,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Input value={v} onChange={(e) => set(e.target.value)} placeholder="名称" />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[input-01.tsx](../examples/input/input-01.tsx)** — Input — Plain single-line text bound to state; combine with Label/InputGroup rather than styling the native input.

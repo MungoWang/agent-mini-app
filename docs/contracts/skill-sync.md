@@ -56,6 +56,8 @@ Effect: `env-table.md` went from 332 prop rows (5 real, with `String.prototype` 
 | `ctx-mirror` | The SDK's author-facing `AppCtx` drifting from the host's `AppContext` — the backend takes its **types** from `@monkey-mini-app/ui` / `@monkey-mini-app/api` but its runtime `defineApp` from the host injection, so the two key sets must be identical |
 | `contract-size` / `contract-noise` / `contract-import` / `contract-when` | Inherited-prop dumps, legacy specifiers, missing `@when` |
 | `taxonomy` / `taxonomy-empty` | Missing/unknown family, catalog grouping disagreeing with the registry |
+| `example-meta` | An example file that does not describe itself: it needs `@exampleOf` **or** `@group` (never both), plus `@title` and a real `@scenario` (a `TODO` placeholder fails) |
+| `example-orphan` | A file under `references/examples/` that no contract or group index links — an agent would never find it |
 | `md-table` | Merged table rows (one such row silently deleted two navigation entries) |
 | `dead-link` / `catalog-orphan` / `catalog-dead` | Broken relative links, contracts unreachable from the catalog, index pointing at nothing |
 | `jsdoc-stacked` | Two JSDoc blocks on one declaration — TypeScript keeps only the last, so annotations silently stop working |
@@ -91,3 +93,20 @@ internals are reported as a note.
 | `Illu*` had one example, and the names are not guessable | all 10 listed; the smoke test cross-checks them against `illustrations.tsx` |
 | Deleting an entire app had no legal path | SKILL.md states it is a user action in the panel (a `mini_app_unregister` tool remains an open platform decision) |
 | `RichTextEditor` described as CDN-backed (tiptap) | corrected to the local contentEditable editor |
+
+## Examples come from `packages/ui-examples`
+
+`references/examples/**` is generated: it is a copy of `packages/ui-examples/src/components/**`
+(plus `src/shared/**`), rewritten only so `../../shared/x` becomes `../shared/x`.
+
+| Contract | Mechanism |
+|---|---|
+| One source, three consumers | the same file is imported by demo-host, copied into e2e fixtures, and published into the skill |
+| Portability | every example imports `react` + bare `@monkey-mini-app/ui` + relatives; enforced by eslint `no-restricted-imports` inside `pnpm lint`, **not** a separate gate |
+| Component link | the `@exampleOf <Component>` JSDoc tag — **not** the folder name; `@group <slug>` marks a collaborative/layout demo with no single subject |
+| Self-description | `@title` + `@scenario` (+ optional `@hint`). `@scenario` states the *situation* the example stands for, and sibling examples of one component must differ in it |
+| Contract budget | the contract lists `title — scenario` and links the file; full source is **not** inlined, so the 8 KB cap holds (largest contract ≈ 4 KB) |
+
+Adding a component example: create `packages/ui-examples/src/components/<kebab>/<kebab>-NN.tsx`
+with the header, run `pnpm gen:skill`. `@exampleOf` that matches no component prints a
+`gen:skill` warning and the file stays unreferenced.

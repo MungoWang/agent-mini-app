@@ -23,3 +23,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <div className="flex flex-col gap-2">{[0,1,2].map((i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[skeleton-01.tsx](../examples/skeleton/skeleton-01.tsx)** — Skeleton — Loading placeholder shaped like the content that will replace it (cards/rows), avoiding layout jump on first paint.

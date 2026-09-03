@@ -26,3 +26,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <ButtonGroup><Button variant="outline">List</Button><Button variant="outline">Board</Button></ButtonGroup>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[button-group-01.tsx](../examples/button-group/button-group-01.tsx)** — Button / ButtonGroup — Related buttons fused into one visual unit (joined borders/radius) — e.g. Save + dropdown Split action; distinct from Toolbar/ToggleGroup because there is no pressed state.

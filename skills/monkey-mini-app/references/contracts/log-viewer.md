@@ -44,3 +44,11 @@ Virtualized streaming log viewer with level colors, search, and auto-scroll.
 ```tsx
 <LogViewer entries={[{ level: "info", message: "boot" }, { level: "error", message: "boom" }]} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[log-viewer-01.tsx](../examples/log-viewer/log-viewer-01.tsx)** — LogViewer — Thousands of streamed log lines: virtualised rows with level colouring and auto-follow; never render logs with a plain map.

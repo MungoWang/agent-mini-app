@@ -33,3 +33,11 @@ Vanilla CodeMirror 6 loaded on demand from `esm.sh` (not npm, not a React wrappe
 ```tsx
 <CodeEditor value={src} language="ts" onChange={(v) => set(v)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[code-editor-01.tsx](../examples/code-editor/code-editor-01.tsx)** — CodeEditor — Editable source with syntax highlighting and line numbers (CodeMirror 6 via CDN). Reach for it when the user changes config/scripts in-app; degrade to Textarea if the network blocks the CDN. — _*CodeMirror 6*_

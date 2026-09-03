@@ -24,3 +24,11 @@ Popover date range with month/year chrome.
 ```tsx
 <DateRangePicker value={range} onChange={setRange} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[date-range-picker-01.tsx](../examples/date-range-picker/date-range-picker-01.tsx)** — DateRangePicker — Pick from/to as one value — one popover, both endpoints validated together, so you never re-check 'to > from' yourself.

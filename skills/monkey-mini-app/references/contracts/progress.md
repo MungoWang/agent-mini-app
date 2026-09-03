@@ -29,3 +29,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Progress value={scan.progress} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[progress-01.tsx](../examples/progress/progress-01.tsx)** — Progress — Determinate percentage bar for a known-length task (upload, batch done/total); use Spinner when progress is unknown.

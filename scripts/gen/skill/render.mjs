@@ -22,7 +22,7 @@ export function propCell(p) {
  return `\`${p.name}${p.optional ? "?" : ""}${short}\``
 }
 
-export function renderFamilyContract(f) {
+export function renderFamilyContract(f, examples = []) {
  const lines = [GENERATED_BANNER, `# ${f.root} (L1 primitive)`, ""]
  if (f.summary) lines.push(oneLine(f.summary), "")
  if (f.when) lines.push(`**when** ${oneLine(f.when)}`, "")
@@ -57,6 +57,7 @@ export function renderFamilyContract(f) {
  lines.push(body, "")
  }
  }
+ lines.push(...renderExamplesSection(examples))
  return lines.join("\n").trimEnd() + "\n"
 }
 
@@ -84,7 +85,7 @@ export function renderFieldsTable(fields, dropped) {
  return lines
 }
 
-export function renderContract(c) {
+export function renderContract(c, examples = []) {
  const lines = [GENERATED_BANNER, `# ${c.name}`, ""]
  if (c.summary) lines.push(oneLine(c.summary), "")
  if (c.when) lines.push(`**when** ${oneLine(c.when)}`, "")
@@ -142,6 +143,7 @@ export function renderContract(c) {
  lines.push(body, "")
  }
  }
+ lines.push(...renderExamplesSection(examples))
 
  return lines.join("\n").trimEnd() + "\n"
 }
@@ -223,4 +225,26 @@ export function renderCatalogJson(entries, families) {
  ])
 ),
  }
+}
+
+/** `## Examples` — the ui-examples package entries tied to this component. */
+export function renderExamplesSection(examples) {
+ if (!examples?.length) return []
+ const lines = [
+ "## Examples",
+ "",
+ "Runnable files under `references/examples/` — portable by construction (`react` +",
+ "`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.",
+ "Pick by **scenario**, then open the file you need.",
+ "",
+ ]
+ for (const e of examples) {
+ const bit = [`**[${e.base}](../examples/${e.href})**`]
+ if (e.title && e.title !== e.base) bit.push(oneLine(e.title))
+ if (e.scenario) bit.push(oneLine(e.scenario))
+ if (e.hint) bit.push(`_*${oneLine(e.hint)}*_`)
+ lines.push(`- ${bit.join(" — ")}`)
+ }
+ lines.push("")
+ return lines
 }

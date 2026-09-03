@@ -322,6 +322,53 @@ if (fs.existsSync(registryFile)) {
  fail("taxonomy", registryFile, "missing — run pnpm gen:skill")
 }
 
+/* ------------------------------------------- 4d. examples published from ui-examples */
+
+// references/examples/** is generated from packages/ui-examples: every file must
+// describe itself (subject or group + title + scenario) and must be reachable from a
+// contract or a group index, or an agent will never find it.
+{
+ const examplesDir = path.join(skillDir, "references/examples")
+ const sharedPrefix = "packages/ui-examples/src/components"
+ if (fs.existsSync(examplesDir)) {
+ const docs = [...walk(contractsDir, (f) => f.endsWith(".md")), ...walk(examplesDir, (f) => f.endsWith(".md"))]
+ // links are resolved relative to the doc that carries them (contracts/ uses ../examples/,
+ // a group index inside examples/ uses ./<dir>/)
+ const linked = new Set()
+ for (const d of docs) {
+ for (const m of fs.readFileSync(d, "utf8").matchAll(/\]\(([^)\s]+\.tsx)\)/g)) {
+ const abs = path.resolve(path.dirname(d), m[1])
+ if (abs.startsWith(examplesDir + path.sep)) linked.add(path.relative(examplesDir, abs).split(path.sep).join("/"))
+ }
+ }
+ let checked = 0
+ for (const file of walk(examplesDir, (f) => f.endsWith(".tsx"))) {
+ const rel = path.relative(examplesDir, file).split(path.sep).join("/")
+ if (rel.startsWith("shared/")) continue
+ checked++
+ const text = fs.readFileSync(file, "utf8")
+ const head = /^\/\*\*([\s\S]*?)\*\//.exec(text)
+ if (!head) {
+ fail("example-meta", file, `no JSDoc header — needs @exampleOf|@group + @title + @scenario (source: ${sharedPrefix}/${rel})`)
+ continue
+ }
+ const tag = (k) => new RegExp(`@${k}\\s+(.*)`).exec(head[1])?.[1]?.trim() ?? ""
+ const of = tag("exampleOf")
+ const group = tag("group")
+ if (of === group === "") fail("example-meta", file, "needs @exampleOf <Component> or @group <slug>")
+ if (of && group) fail("example-meta", file, "@exampleOf and @group are mutually exclusive")
+ if (!tag("title")) fail("example-meta", file, "missing @title")
+ const sc = tag("scenario")
+ if (!sc) fail("example-meta", file, "missing @scenario — say what situation this example represents")
+ else if (/^TODO/i.test(sc)) fail("example-meta", file, "@scenario is still a placeholder — describe the situation, not the component name")
+ if (!linked.has(rel)) fail("example-orphan", file, `nothing links examples/${rel} — add @exampleOf/@group so gen:skill references it`)
+ }
+ console.log(`check:skill — ${checked} examples under references/examples/`)
+ } else {
+ fail("example-orphan", examplesDir, `missing — run pnpm gen:skill (source: ${sharedPrefix})`)
+ }
+}
+
 /* ------------------------------------------- 4c. annotation hygiene in ui source */
 
 // Two stacked JSDoc blocks silently hide everything in the first one: TypeScript

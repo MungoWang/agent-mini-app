@@ -15,3 +15,11 @@
 | `Slider` | `disabled?` `form?` `format?` `largeStep?` `locale?` `max?` `min?` `minStepsBetweenValues?` `name?` `onValueChange?` `onValueCommitted?` `orientation?` +5 |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[slider-01.tsx](../examples/slider/slider-01.tsx)** — Slider / SliderRange — One-handle range for 'pick a value' (thresholds, limits); SliderRange beside it for min–max filter pairs.

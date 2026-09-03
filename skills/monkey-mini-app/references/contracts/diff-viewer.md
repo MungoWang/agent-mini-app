@@ -25,3 +25,11 @@ Unified or split diff view.
 ```tsx
 <DiffViewer original={a} modified={b} language="ts" mode="split" />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[diff-viewer-01.tsx](../examples/diff-viewer/diff-viewer-01.tsx)** — DiffViewer — Two strings side by side (unified/split) with added/removed counts — reviewing a config or code change before applying it.

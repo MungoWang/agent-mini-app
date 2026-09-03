@@ -22,3 +22,11 @@ Duration text field (e.g. `1h30m`) with minutes.
 ```tsx
 <DurationInput value="45m" onChange={(v, min) => set(min)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[duration-input-01.tsx](../examples/duration-input/duration-input-01.tsx)** — DurationInput — Enter a length of time (hours + minutes), not a calendar date — timeouts, SLAs, shift lengths. — _*Hours and minutes, not a text box*_

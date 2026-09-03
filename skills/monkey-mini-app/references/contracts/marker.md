@@ -20,3 +20,11 @@ Compound: compose the parts below — **do not invent part names**.
 | `markerVariants` (hook/util) | `class?` `variant?=default/separator/border` |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[marker-01.tsx](../examples/marker/marker-01.tsx)** — Marker — Small inline marker (icon + text) used to annotate a list row or timeline step with its state/file type.

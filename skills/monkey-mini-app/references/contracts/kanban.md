@@ -62,3 +62,11 @@ DnD board: columns + cards. Move cards across columns via drag.
 ```tsx
 <Kanban columns={cols} cards={cards} onCardsChange={setCards} onCardClick={open} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[kanban-01.tsx](../examples/kanban/kanban-01.tsx)** — Kanban — Card board with drag between columns, plus the issue detail sheet — the workflow/pipeline view; use Table/DataGrid when you need sorting and totals. — _*Drag between columns · click a card for Jira details*_

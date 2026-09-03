@@ -31,3 +31,11 @@ Generic expandable node list.
 ```tsx
 <TreeView nodes={[{ id: "a", label: "华东" }]} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[tree-view-01.tsx](../examples/tree-view/tree-view-01.tsx)** — TreeView — Nested hierarchy with expand/collapse and selection — file tree, org chart, category taxonomy.

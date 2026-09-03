@@ -23,3 +23,11 @@ Compound: compose the parts below — **do not invent part names**.
 | `PaginationPrevious` | `isActive?` `size?=default/xs/sm/lg/icon/icon-xs/icon-sm/icon-lg` `text?` |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[pagination-01.tsx](../examples/pagination/pagination-01.tsx)** — Pagination — Numbered page nav with prev/next and an active page, driven by your own state; DataGrid already includes this when you need a full table.

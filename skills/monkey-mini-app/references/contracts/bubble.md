@@ -20,3 +20,11 @@ Compound: compose the parts below — **do not invent part names**.
 | `BubbleReactions` | `align?=start/end` `side?=top/bottom` |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[bubble-01.tsx](../examples/bubble/bubble-01.tsx)** — Bubble — One side of a chat transcript — agent vs user bubble without hand-rolling alignment or spacing.

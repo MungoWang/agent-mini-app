@@ -25,3 +25,11 @@ Numeric input with min/max/step + steppers.
 ```tsx
 <NumberField min={0} max={100} value={n} onChange={(v) => set(v)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[number-field-01.tsx](../examples/number-field/number-field-01.tsx)** — NumberField — Numeric input with stepper buttons and clamped min/max, so quantity fields never receive NaN or out-of-range text. — _*Plus/minus and typing*_

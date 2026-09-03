@@ -16,3 +16,11 @@
 | `toggleVariants` (hook/util) | `class?` `size?=default/sm/lg` `variant?=default/outline` |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[toggle-01.tsx](../examples/toggle/toggle-01.tsx)** — Toggle — Single pressed/unpressed icon button (bold, mute) — one binary view option, not a form value; use Switch for settings on/off.

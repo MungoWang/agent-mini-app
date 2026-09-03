@@ -28,3 +28,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Alert variant="destructive"><AlertTitle>拉取失败</AlertTitle><AlertDescription>上游 502，已用缓存</AlertDescription></Alert>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[alert-01.tsx](../examples/alert/alert-01.tsx)** — Alert — Inline, non-blocking notice inside a page or panel — title + description, colours follow the semantic theme. Use for 'saved', '2 checks failed'; reach for Toast for transient confirmations and Dialog when the user must acknowledge.

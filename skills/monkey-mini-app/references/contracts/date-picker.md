@@ -25,3 +25,11 @@ Single calendar date (day precision).
 ```tsx
 <DatePicker value={d} onChange={(v) => set(v)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[date-picker-01.tsx](../examples/date-picker/date-picker-01.tsx)** — DatePicker — Pick a single calendar date; popover trigger shows the formatted value and supports clearing.

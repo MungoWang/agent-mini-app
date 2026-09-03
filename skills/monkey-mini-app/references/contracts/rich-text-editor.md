@@ -17,3 +17,11 @@ Lightweight rich-text editor (contentEditable + toolbar), same idea as `react-si
 | `onChange` | `((html: string) => void) \| undefined` |  |  |
 | `placeholder` | `string \| undefined` |  |  |
 | `value` | `string \| undefined` |  |  |
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[rich-text-editor-01.tsx](../examples/rich-text-editor/rich-text-editor-01.tsx)** — RichTextEditor — WYSIWYG editing with a local contentEditable toolbar (bold/list/quote) — no CDN, no dependency; use when users are not writing raw markdown. — _*Tiptap — toolbar is live*_

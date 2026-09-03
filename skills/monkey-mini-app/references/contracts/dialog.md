@@ -34,3 +34,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button>编辑</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>标题</DialogTitle></DialogHeader>…<DialogFooter><Button onClick={save}>保存</Button></DialogFooter></DialogContent></Dialog>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[dialog-01.tsx](../examples/dialog/dialog-01.tsx)** — Dialog — Modal flow with trigger/content/header/footer composition and focus trapping; the base for forms that must interrupt the page.

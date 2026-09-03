@@ -33,3 +33,11 @@ JQL query textbox. Native textarea by default (no CodeMirror npm/peer). Callers 
 ```tsx
 <JqlInput value={jql} onChange={setJql} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[jql-input-01.tsx](../examples/jql-input/jql-input-01.tsx)** — JqlInput — Query-language field with syntax feedback (JQL/SQL-ish filters) — the CodeMirror-powered sibling of SearchInput. — _*CodeMirror JQL · type to complete fields*_

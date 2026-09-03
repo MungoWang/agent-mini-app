@@ -21,3 +21,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Button disabled><Spinner /> 保存中</Button>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[spinner-01.tsx](../examples/spinner/spinner-01.tsx)** — Spinner — Unknown-duration busy indicator inline in a button or row; prefer Progress when you can report percent.

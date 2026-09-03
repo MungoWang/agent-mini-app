@@ -125,7 +125,8 @@ export default function Ui() {
 - **Layout is Tailwind** (`flex flex-col gap-3 p-4 grid md:grid-cols-3 w-full space-y-4`)
 - **Icons**: `import { Icon } from "@monkey-mini-app/ui"`, then `Icon.HelpCircle` (any lucide name works); **curated subset + when to use** → **[references/icons.md](references/icons.md)** (don't page through a thousand names)
 - **Empty-state illustrations** — exactly these 10, the names are not guessable: `IlluEmpty` `IlluNoData` `IlluSearch` `IlluLoading` `IlluServerStatus` `IlluAccessDenied` `IlluPageNotFound` `IlluDataProcessing` `IlluBugFixing` `IlluCodeReview`
-- Component index (props + types + examples) → **[references/catalog.md](references/catalog.md)** and **[references/contracts/](references/contracts/)** (generated; after changing a component run `pnpm gen:skill`)
+- Component index (props + types) → **[references/catalog.md](references/catalog.md)** and **[references/contracts/](references/contracts/)** (generated; after changing a component run `pnpm gen:skill`).
+- **Prefer a ready example over writing a widget from memory**: each component contract lists [references/examples/](references/examples/) files, one scenario each (e.g. `data-grid-01` = sort+search+pagination, `data-grid-02` = rich cells via renderers). They import `react` + `@monkey-mini-app/ui` + relatives only, so copy one into `ui/` and edit — do not invent a variant no example shows.
 - The SDK already bundles React / lucide / recharts — **never** import those yourself
 - **Heavy editors load from a CDN on demand** (not npm): `CodeEditor` pulls CodeMirror 6 from `esm.sh`; `CodeBlock` / `DiffViewer` pull shiki; `RichTextEditor` is a local contentEditable editor (no CDN, no dependency). Do not `import` `@codemirror/*` / `shiki` / `@tiptap/*` / `@uiw/react-codemirror` (the last one brings a second React). When the CDN is blocked the components degrade — see [troubleshoot.md](references/troubleshoot.md)
 
@@ -202,7 +203,8 @@ export default defineApp({
 
 | When | Open |
 |------|------|
-| Component props / types / examples | [references/catalog.md](references/catalog.md) → [references/contracts/](references/contracts/) |
+| Component props / types | [references/catalog.md](references/catalog.md) → [references/contracts/](references/contracts/) |
+| **A runnable starting point for one component** | contract's `## Examples` → [references/examples/](references/examples/) (each file = one scenario: `@title` + `@scenario`; layout/pattern recipes in `examples/<group>.md`) |
 | Icon subset (`Icon` namespace, when to use) | [references/icons.md](references/icons.md) |
 | Full `ctx.*` contract (incl. agent `onEvent` shapes) | [references/ctx.md](references/ctx.md) (use `ctx.http`, not bash curl) |
 | Structured JSON via `schema` | [references/llm-json.md](references/llm-json.md) |

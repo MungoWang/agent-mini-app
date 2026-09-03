@@ -26,3 +26,11 @@ Date + time, optional timezone.
 ```tsx
 <DateTimePicker value={d} onChange={(v) => set(v)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[date-time-picker-01.tsx](../examples/date-time-picker/date-time-picker-01.tsx)** — DateTimePicker — Date + time + timezone edited as a single value in one popover, for scheduling where the zone matters (CI triggers, shifts). — _*One popover: calendar + time*_

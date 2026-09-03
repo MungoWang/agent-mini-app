@@ -21,3 +21,11 @@ Anchor nav that highlights the section in view.
 ```tsx
 <Scrollspy sections={[{ id: "overview", label: "概览" }]} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[scrollspy-01.tsx](../examples/scrollspy/scrollspy-01.tsx)** — Scrollspy — Section nav that highlights whichever section is currently in view — long settings/docs pages; wire it to element ids.

@@ -32,3 +32,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Table><TableHeader><TableRow><TableHead>列</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>v</TableCell></TableRow></TableBody></Table>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[table-01.tsx](../examples/table/table-01.tsx)** — Table — Static, semantic table you lay out by hand — small fixed datasets; switch to DataGrid the moment you need sort/filter/pagination.

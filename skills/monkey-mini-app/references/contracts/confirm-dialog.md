@@ -27,3 +27,11 @@ Controlled yes/no dialog with loading-safe confirm.
 ```tsx
 <ConfirmDialog open={open} title="删除这条？" onConfirm={remove} onOpenChange={setOpen} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[confirm-dialog-01.tsx](../examples/confirm-dialog/confirm-dialog-01.tsx)** — ConfirmDialog / Toast — Destructive-action guard — one click opens a yes/no dialog, cancel keeps state; pair with toast for the result. Do not hand-roll a Dialog for confirmations.

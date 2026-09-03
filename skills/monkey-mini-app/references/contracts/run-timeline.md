@@ -32,3 +32,11 @@ Timeline of run phases with duration + status.
 ```tsx
 <RunTimeline items={[{ id: "p1", title: "checkout", status: "pass", time: "3s" }]} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[run-timeline-01.tsx](../examples/run-timeline/run-timeline-01.tsx)** — RunTimeline — Ordered steps of one job (queued → running → done) with per-step status; denser than a Table when the story is sequence.

@@ -25,3 +25,11 @@ Right-side inspector Sheet for a selected row/entity.
 ```tsx
 <DetailPanel open={!!id} onOpenChange={() => setId(null)} title="Run #12">{body}</DetailPanel>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[detail-panel-01.tsx](../examples/detail-panel/detail-panel-01.tsx)** — DetailPanel — Slide-over for record details that keeps the list visible and scroll position intact — the alternative to navigating away or a Dialog.

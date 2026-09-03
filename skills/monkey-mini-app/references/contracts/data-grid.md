@@ -83,3 +83,12 @@ const [page, setPage] = useState(0)
 />
 // “back to page 1” button: setPage(0); for a structural reload you can also remount via key
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[data-grid-01.tsx](../examples/data-grid/data-grid-01.tsx)** — DataGrid — The default table for anything bigger than a static list: column sort (asc→desc→off), global search box, pagination — all from props, no external state library. — _*Sort cycles asc → desc → none*_
+- **[data-grid-02.tsx](../examples/data-grid/data-grid-02.tsx)** — DataGrid · custom cells — Same grid but the columns render rich cells (avatar, progress bar, status badge) via cell renderers — the pattern for 'run list' style screens. — _*Avatar, progress, badges, row expand, selection, CSV*_

@@ -32,3 +32,11 @@ From/to moments, all-day toggle.
 ```tsx
 <DateTimeRangePicker onChange={(r) => set(r)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[date-time-range-picker-01.tsx](../examples/date-time-range-picker/date-time-range-picker-01.tsx)** — DateTimeRangePicker — A time span with both endpoints at day+time precision (log/incident investigation windows). — _*Two DateTimePickers; allDay switches to a date range*_

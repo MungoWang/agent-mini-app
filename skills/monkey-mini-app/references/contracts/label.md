@@ -23,3 +23,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Label htmlFor="name">名称</Label>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[label-01.tsx](../examples/label/label-01.tsx)** — Label — Accessible field label wired by htmlFor; the piece that makes a bare Input keyboard/AT-usable.

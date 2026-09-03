@@ -30,3 +30,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Empty><EmptyHeader><EmptyMedia variant="icon"><IlluEmpty /></EmptyMedia><EmptyTitle>还没有数据</EmptyTitle><EmptyDescription>点右上角添加</EmptyDescription></EmptyHeader></Empty>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[empty-01.tsx](../examples/empty/empty-01.tsx)** — Empty — First-run / no-results state with illustration slot, title, description and a primary action; use instead of a blank card.

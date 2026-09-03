@@ -21,3 +21,11 @@ Collapsible JSON tree.
 ```tsx
 <JsonViewer value={data} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[json-viewer-01.tsx](../examples/json-viewer/json-viewer-01.tsx)** — JsonViewer — Collapsible tree over an API response payload; use for debugging output instead of <pre>{JSON.stringify(...)}.

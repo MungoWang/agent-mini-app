@@ -31,3 +31,11 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ```tsx
 <Card><CardHeader><CardTitle>今日摘要</CardTitle></CardHeader><CardContent>…</CardContent></Card>
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[card-01.tsx](../examples/card/card-01.tsx)** — Card — The default content container: header (title + description), body, optional footer. Start here for any panel before writing custom borders/padding.

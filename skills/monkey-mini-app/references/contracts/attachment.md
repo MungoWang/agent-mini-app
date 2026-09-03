@@ -25,3 +25,11 @@ Compound: compose the parts below — **do not invent part names**.
 | `AttachmentTrigger` | `render?` |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[attachment-01.tsx](../examples/attachment/attachment-01.tsx)** — Attachment — A file chip in a list — icon, name, meta line and a remove affordance; the shape used for uploaded files or chat attachments.

@@ -26,3 +26,11 @@ Compound: compose the parts below — **do not invent part names**.
 | `ItemTitle` | — |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[item-01.tsx](../examples/item/item-01.tsx)** — Item — A uniform row (title + description + trailing actions) inside menus, lists and cards, with an outline variant for grouping.

@@ -22,3 +22,11 @@ Drag-drop + click file picker.
 ```tsx
 <FileDropzone onFiles={(fs) => set(fs)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[file-dropzone-01.tsx](../examples/file-dropzone/file-dropzone-01.tsx)** — FileDropzone — Drag-drop or click-to-pick file list with per-file name/size and a clear action; the UI half only — upload belongs in main.api.ts.

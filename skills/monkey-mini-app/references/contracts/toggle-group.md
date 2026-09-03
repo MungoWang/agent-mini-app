@@ -18,3 +18,11 @@ Compound: compose the parts below — **do not invent part names**.
 | `ToggleGroupItem` | `defaultPressed?` `disabled?` `nativeButton?` `onPressedChange?` `pressed?` `render?` `size?=default/sm/lg` `value?` `variant?=default/outline` |
 
 _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …) omitted — every component takes them._
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[toggle-group-01.tsx](../examples/toggle-group/toggle-group-01.tsx)** — ToggleGroup — Mutually exclusive set of Toggle buttons for a view choice (alignment, density) held as one value.

@@ -32,3 +32,11 @@ Task bars on a date axis.
 ```tsx
 <Gantt tasks={[{ id: "t1", name: "联调", start: "2026-09-01", end: "2026-09-05" }]} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[gantt-01.tsx](../examples/gantt/gantt-01.tsx)** — Gantt — Time-phased bars for planning (tasks against a date axis) where dependency order and overlap matter more than exact times.

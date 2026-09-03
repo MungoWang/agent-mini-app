@@ -35,3 +35,11 @@ IANA timezone dropdown.
 ```tsx
 <TimezoneSelect value={tz} onChange={(v) => set(v)} />
 ```
+
+## Examples
+
+Runnable files under `references/examples/` — portable by construction (`react` +
+`@monkey-mini-app/ui` + relatives), so copy the closest one into `ui.tsx` / `ui/`.
+Pick by **scenario**, then open the file you need.
+
+- **[timezone-select-01.tsx](../examples/timezone-select/timezone-select-01.tsx)** — TimezoneSelect — IANA timezone chosen from common zones first, searchable — pair with DateTimePicker when schedules cross regions. — _*Common zones first; type to search the rest*_
