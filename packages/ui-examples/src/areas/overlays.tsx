@@ -1,53 +1,11 @@
-import * as React from "react"
-import { ConfirmDialog } from "@monkey-mini-app/ui/composites/confirm-dialog"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@monkey-mini-app/ui/components/dialog"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@monkey-mini-app/ui/components/drawer"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@monkey-mini-app/ui/components/dropdown-menu"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@monkey-mini-app/ui/components/hover-card"
-import { Popover, PopoverContent, PopoverTrigger } from "@monkey-mini-app/ui/components/popover"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@monkey-mini-app/ui/components/sheet"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@monkey-mini-app/ui/components/tooltip"
-import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuTrigger } from "@monkey-mini-app/ui/components/context-menu"
-import { toast } from "@monkey-mini-app/ui/components/toast"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@monkey-mini-app/ui/components/command"
-import { Example } from "./section"
+import * as React from "react";
+
+import { Button, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, ConfirmDialog, ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuTrigger, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, HoverCard, HoverCardContent, HoverCardTrigger, Popover, PopoverContent, PopoverTrigger, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, toast,Tooltip, TooltipContent, TooltipTrigger } from "@monkey-mini-app/ui";
+
+import { Example } from "../shared/example";
 
 export function OverlayExamples() {
-  const [confirm, setConfirm] = React.useState(false)
+  const [confirm, setConfirm] = React.useState(false);
   return (
     <>
       <Example id="dialog" title="Dialog">
@@ -152,5 +110,5 @@ export function OverlayExamples() {
         />
       </Example>
     </>
-  )
+  );
 }

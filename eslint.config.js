@@ -6,6 +6,7 @@ const mmaPackages = [
   "packages/api/**/*.{ts,tsx}",
   "packages/panel/**/*.{ts,tsx}",
   "packages/dsh/**/*.{ts,tsx}",
+  "packages/ui-examples/**/*.{ts,tsx}",
 ];
 
 const monkeyMiniAppStringRule = [
@@ -23,6 +24,39 @@ const monkeyMiniAppStringRule = [
 ];
 
 export default tseslint.config(
+  {
+    // ui-examples must stay mini-app-portable: bare UI package + react + in-package relatives only.
+    files: [
+      "packages/ui-examples/src/areas/**/*.{ts,tsx}",
+      "packages/ui-examples/src/components/**/*.{ts,tsx}",
+      "packages/ui-examples/src/shared/**/*.{ts,tsx}",
+      "packages/ui-examples/src/index.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@monkey-mini-app/ui/*",
+                "@monkeyagent/*",
+                "@monkey-mini-app/sdk",
+                "lucide-react",
+                "react-day-picker",
+                "recharts",
+                "@codemirror/*",
+                "shiki",
+                "@tiptap/*",
+              ],
+              message:
+                "examples may import only react + bare @monkey-mini-app/ui + in-package relatives (must stay mini-app-portable)",
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     ignores: [
       "**/node_modules/**",

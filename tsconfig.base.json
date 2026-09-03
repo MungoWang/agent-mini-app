@@ -18,6 +18,7 @@
       "@monkey-mini-app/panel": ["./packages/panel/src/index.ts"],
       "@monkey-mini-app/ui": ["./packages/ui/src/index.ts"],
       "@monkey-mini-app/api": ["./packages/api/src/index.ts"],
+      "@monkey-mini-app/ui-examples": ["./packages/ui-examples/src/index.ts"],
       "@deepseek-ai/dsh-tools": ["./packages/dsh/src/dsh-tools.d.ts"],
       "@monkey-mini-app/host": ["./packages/host/src/index.ts"],
       "@monkey-mini-app/dsh-mini-app": ["./packages/dsh/src/index.ts"]

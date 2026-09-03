@@ -1,32 +1,8 @@
-import * as React from "react"
-import { ActivityFeed } from "@monkey-mini-app/ui/blocks/activity-feed"
-import { AttachmentGallery } from "@monkey-mini-app/ui/blocks/attachment-gallery"
-import { StackedBarChart } from "@monkey-mini-app/ui/blocks/bar-chart"
-import { CommentThread } from "@monkey-mini-app/ui/blocks/comment-thread"
-import { DescriptionList } from "@monkey-mini-app/ui/blocks/description-list"
-import { DetailPanel } from "@monkey-mini-app/ui/blocks/detail-panel"
-import { DonutChart } from "@monkey-mini-app/ui/blocks/donut-chart"
-import { EnvBadge } from "@monkey-mini-app/ui/blocks/env-badge"
-import { FileTree } from "@monkey-mini-app/ui/blocks/file-tree"
-import { FilterBar } from "@monkey-mini-app/ui/blocks/filter-bar"
-import { Gauge } from "@monkey-mini-app/ui/blocks/gauge"
-import { NotificationCenter } from "@monkey-mini-app/ui/blocks/notification-center"
-import { PageHeader } from "@monkey-mini-app/ui/blocks/page-header"
-import { ProgressRing } from "@monkey-mini-app/ui/blocks/progress-ring"
-import { RadarChart } from "@monkey-mini-app/ui/blocks/radar-chart"
-import { RequestInspector } from "@monkey-mini-app/ui/blocks/request-inspector"
-import { RunTimeline } from "@monkey-mini-app/ui/blocks/run-timeline"
-import { SeverityChip } from "@monkey-mini-app/ui/blocks/severity-chip"
-import { Sparkline } from "@monkey-mini-app/ui/blocks/sparkline"
-import { StatCard } from "@monkey-mini-app/ui/blocks/stat-card"
-import { StatusBadge } from "@monkey-mini-app/ui/blocks/status-badge"
-import { Terminal } from "@monkey-mini-app/ui/blocks/terminal"
-import { TestStepList } from "@monkey-mini-app/ui/blocks/test-step-list"
-import { TrendCard } from "@monkey-mini-app/ui/blocks/trend-card"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { Input } from "@monkey-mini-app/ui/components/input"
-import { Scrollspy } from "@monkey-mini-app/ui/blocks/scrollspy"
-import { Example } from "./section"
+import * as React from "react";
+
+import { ActivityFeed, AttachmentGallery, Button, CommentThread, DescriptionList, DetailPanel, DonutChart, EnvBadge, FileTree, FilterBar, Gauge, Input, NotificationCenter, PageHeader, ProgressRing, RadarChart, RequestInspector, RunTimeline, Scrollspy, SeverityChip, Sparkline, StackedBarChart, StatCard, StatusBadge, Terminal, TestStepList, TrendCard } from "@monkey-mini-app/ui";
+
+import { Example } from "../shared/example";
 
 const trend = [
   { label: "Mon", value: 12 },
@@ -34,10 +10,10 @@ const trend = [
   { label: "Wed", value: 9 },
   { label: "Thu", value: 22 },
   { label: "Fri", value: 16 },
-]
+];
 
 export function ChartBlockExamples() {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
   return (
     <>
       <Example id="page-header-filter" title="PageHeader / FilterBar">
@@ -133,5 +109,5 @@ export function ChartBlockExamples() {
         </div>
       </Example>
     </>
-  )
+  );
 }

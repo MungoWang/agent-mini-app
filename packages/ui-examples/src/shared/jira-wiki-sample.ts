@@ -35,4 +35,4 @@ export const JIRA_WIKI_SAMPLE = [
   "|WarpTradeBonedPartView|YES|Read Only|",
   "",
   "You can put me, Hailin, and Elaine Xie (谢靜芳) as the role owner for approval.",
-].join("\n")
+].join("\n");

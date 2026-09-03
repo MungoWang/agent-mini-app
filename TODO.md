@@ -24,3 +24,18 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 **Skill ↔ code 同步**：契约见 [`docs/contracts/skill-sync.md`](docs/contracts/skill-sync.md)（生成器 + `pnpm check:skill` 门禁）。待平台侧决定：`mini_app_unregister`（整 app 删除工具）；`packages/ui/src/index.ts` 未 re-export `lib/illustrations`（只靠 `build-ui.mjs` 注入 dist）；`manifest.permissions` 被 parse 但不校验。
 
 Publish with `pnpm publish:packages` (runs `pnpm test:dsh` first; emergency `--skip-e2e`).
+
+
+## ui-examples package (Phase 1 landed)
+
+`packages/ui-examples` — portable examples (react + bare `@monkey-mini-app/ui` + relatives),
+enforced by eslint `no-restricted-imports`; typechecked in `pnpm verify`. Component link is
+the `@exampleOf` JSDoc tag, not the folder name.
+
+Phase 2 (not started):
+- decompose `areas/*.tsx` showcases into `components/<Name>/<name>-NN.tsx`
+- Icon-ize `apps/demo-host/.../paradigms` and move them in (drops lucide)
+- `gen/skill`: copy examples into `references/examples/`, link from `contracts/<slug>.md`
+  (inline if small, else link — respect the 8KB contract cap), build `examples/<group>.md`
+  for `@group` files; validate `@exampleOf` resolves in `check:skill`
+- `gen/examples`: byte-copy selected files into `com.example.kit/lib/` for dsh e2e

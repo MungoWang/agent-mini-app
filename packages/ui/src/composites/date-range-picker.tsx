@@ -5,6 +5,9 @@ import { format, isSameMonth, isSameYear, type Locale } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { ChevronDown } from "lucide-react"
 
+// Re-exported so mini-app authors (bare `@monkey-mini-app/ui` only) can type the value.
+export type { DateRange }
+
 import { cn } from "@monkey-mini-app/ui/lib/utils"
 import { useDateLocale, useLabels } from "@monkey-mini-app/ui/i18n/context"
 import { Button } from "@monkey-mini-app/ui/components/button"

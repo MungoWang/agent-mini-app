@@ -7,8 +7,8 @@
     "build": "pnpm -r run build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage packages/host/tests packages/panel/tests packages/dsh/tests",
-    "lint": "eslint packages/host packages/api packages/panel packages/dsh",
-    "lint:fix": "eslint packages/host packages/api packages/panel packages/dsh --fix",
+    "lint": "eslint packages/host packages/api packages/panel packages/dsh packages/ui-examples",
+    "lint:fix": "eslint packages/host packages/api packages/panel packages/dsh packages/ui-examples --fix",
     "typecheck": "tsc -b --pretty false",
     "smoke": "vitest run packages/smoke-test",
     "build:ui": "node scripts/build/ui.mjs",
@@ -43,7 +43,8 @@
     "vitest": "^2.1.8",
     "@monkey-mini-app/api": "workspace:*",
     "@monkey-mini-app/ui": "workspace:*",
-    "@monkey-mini-app/host": "workspace:*"
+    "@monkey-mini-app/host": "workspace:*",
+    "@monkey-mini-app/ui-examples": "workspace:*"
   },
   "engines": {
     "node": ">=20"

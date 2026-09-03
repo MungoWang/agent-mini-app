@@ -1,13 +1,9 @@
-import * as React from "react"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { CodeEditor } from "@monkey-mini-app/ui/products/code-editor"
-import { DiffViewer } from "@monkey-mini-app/ui/products/diff-viewer"
-import { MarkdownEditor } from "@monkey-mini-app/ui/products/markdown-editor"
-import { RichTextEditor } from "@monkey-mini-app/ui/products/rich-text-editor"
-import { JiraWiki, JqlInput } from "@monkey-mini-app/ui"
-import { Textarea } from "@monkey-mini-app/ui/components/textarea"
-import { Example } from "./section"
-import { JIRA_WIKI_SAMPLE } from "./jira-wiki-sample"
+import * as React from "react";
+
+import { Button, CodeEditor, DiffViewer, JiraWiki, JqlInput, MarkdownEditor, RichTextEditor, Textarea } from "@monkey-mini-app/ui";
+
+import { Example } from "../shared/example";
+import { JIRA_WIKI_SAMPLE } from "../shared/jira-wiki-sample";
 
 const DIFFS = {
   "src/products/data-grid.tsx": {
@@ -75,13 +71,13 @@ const DIFFS = {
 }
 `,
   },
-}
+};
 
 function DiffPlayground() {
-  const files = Object.keys(DIFFS) as (keyof typeof DIFFS)[]
-  const [file, setFile] = React.useState<(typeof files)[number]>(files[0])
-  const [mode, setMode] = React.useState<"unified" | "split">("unified")
-  const current = DIFFS[file]
+  const files = Object.keys(DIFFS) as (keyof typeof DIFFS)[];
+  const [file, setFile] = React.useState<(typeof files)[number]>(files[0]);
+  const [mode, setMode] = React.useState<"unified" | "split">("unified");
+  const current = DIFFS[file];
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-1">
@@ -112,18 +108,18 @@ function DiffPlayground() {
         mode={mode}
       />
     </div>
-  )
+  );
 }
 
 export function EditorExamples() {
-  const [html, setHtml] = React.useState("<p>Write a <strong>run note</strong>.</p>")
-  const [code, setCode] = React.useState("export const n = 1\n")
+  const [html, setHtml] = React.useState("<p>Write a <strong>run note</strong>.</p>");
+  const [code, setCode] = React.useState("export const n = 1\n");
   const [md, setMd] = React.useState(
     "# Title\n\n**bold**, a [link](https://example.com), and a task:\n\n- [x] Review grid\n- [ ] Ship demo\n"
-  )
-  const [mdMode, setMdMode] = React.useState<"edit" | "split" | "preview">("split")
-  const [jql, setJql] = React.useState('project = TMS AND status = "In Progress" ORDER BY updated DESC')
-  const [wiki, setWiki] = React.useState(JIRA_WIKI_SAMPLE)
+  );
+  const [mdMode, setMdMode] = React.useState<"edit" | "split" | "preview">("split");
+  const [jql, setJql] = React.useState('project = TMS AND status = "In Progress" ORDER BY updated DESC');
+  const [wiki, setWiki] = React.useState(JIRA_WIKI_SAMPLE);
 
   return (
     <>
@@ -163,5 +159,5 @@ export function EditorExamples() {
         <p className="text-muted-foreground mt-2 font-mono text-xs">{jql}</p>
       </Example>
     </>
-  )
+  );
 }

@@ -1,27 +1,17 @@
-import * as React from "react"
-import { CodeBlock } from "@monkey-mini-app/ui/products/code-block"
-import { DiffViewer } from "@monkey-mini-app/ui/products/diff-viewer"
-import { EventCalendar, type CalendarEvent } from "@monkey-mini-app/ui/products/event-calendar"
-import { FileDropzone } from "@monkey-mini-app/ui/products/file-dropzone"
-import { Gantt } from "@monkey-mini-app/ui/products/gantt"
-import { JsonViewer } from "@monkey-mini-app/ui/products/json-viewer"
-import { Kanban, type KanbanCard } from "@monkey-mini-app/ui/products/kanban"
-import { KanbanIssuePanel } from "@monkey-mini-app/ui/products/kanban-issue-panel"
-import { LogViewer } from "@monkey-mini-app/ui/products/log-viewer"
-import { SortableList, type SortableItem } from "@monkey-mini-app/ui/products/sortable-list"
-import { Stepper, StepperItem } from "@monkey-mini-app/ui/products/stepper"
-import { Timeline } from "@monkey-mini-app/ui/products/timeline"
-import { TreeView } from "@monkey-mini-app/ui/products/tree-view"
-import { Example } from "./section"
+import * as React from "react";
+
+import { type CalendarEvent, CodeBlock, DiffViewer, EventCalendar, FileDropzone, Gantt, JsonViewer, Kanban, type KanbanCard, KanbanIssuePanel, LogViewer, type SortableItem, SortableList, Stepper, StepperItem, Timeline, TreeView } from "@monkey-mini-app/ui";
+
+import { Example } from "../shared/example";
 
 export function ProductExamples() {
-  const [step, setStep] = React.useState(1)
-  const [files, setFiles] = React.useState<File[]>([])
+  const [step, setStep] = React.useState(1);
+  const [files, setFiles] = React.useState<File[]>([]);
   const [items, setItems] = React.useState<SortableItem[]>([
     { id: "1", label: "Alpha" },
     { id: "2", label: "Bravo" },
     { id: "3", label: "Charlie" },
-  ])
+  ]);
   const [cards, setCards] = React.useState<KanbanCard[]>([
     {
       id: "c1",
@@ -47,9 +37,9 @@ export function ProductExamples() {
       priority: "P2",
       assignee: "Kai",
     },
-  ])
-  const [issue, setIssue] = React.useState<KanbanCard | null>(null)
-  const calUser = { id: "u1", name: "Ada", picturePath: null }
+  ]);
+  const [issue, setIssue] = React.useState<KanbanCard | null>(null);
+  const calUser = { id: "u1", name: "Ada", picturePath: null };
   const [events, setEvents] = React.useState<CalendarEvent[]>([
     {
       id: 1,
@@ -87,7 +77,7 @@ export function ProductExamples() {
       description: "",
       user: calUser,
     },
-  ])
+  ]);
 
   return (
     <>
@@ -206,5 +196,5 @@ export function ProductExamples() {
         </div>
       </Example>
     </>
-  )
+  );
 }

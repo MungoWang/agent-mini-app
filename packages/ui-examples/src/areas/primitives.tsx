@@ -1,58 +1,14 @@
-import * as React from "react"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@monkey-mini-app/ui/components/accordion"
-import { Alert, AlertDescription, AlertTitle } from "@monkey-mini-app/ui/components/alert"
-import { AspectRatio } from "@monkey-mini-app/ui/components/aspect-ratio"
-import {
-  Attachment,
-  AttachmentContent,
-  AttachmentDescription,
-  AttachmentTitle,
-} from "@monkey-mini-app/ui/components/attachment"
-import { Avatar, AvatarFallback } from "@monkey-mini-app/ui/components/avatar"
-import { Badge } from "@monkey-mini-app/ui/components/badge"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@monkey-mini-app/ui/components/breadcrumb"
-import { Bubble, BubbleContent } from "@monkey-mini-app/ui/components/bubble"
-import { Button } from "@monkey-mini-app/ui/components/button"
-import { ButtonGroup } from "@monkey-mini-app/ui/components/button-group"
-import { Card, CardContent, CardHeader, CardTitle } from "@monkey-mini-app/ui/components/card"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@monkey-mini-app/ui/components/collapsible"
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@monkey-mini-app/ui/components/empty"
-import { Item, ItemContent, ItemDescription, ItemTitle } from "@monkey-mini-app/ui/components/item"
-import { Kbd } from "@monkey-mini-app/ui/components/kbd"
-import { Marker, MarkerContent } from "@monkey-mini-app/ui/components/marker"
-import { Progress } from "@monkey-mini-app/ui/components/progress"
-import { Separator } from "@monkey-mini-app/ui/components/separator"
-import { Skeleton } from "@monkey-mini-app/ui/components/skeleton"
-import { Spinner } from "@monkey-mini-app/ui/components/spinner"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@monkey-mini-app/ui/components/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@monkey-mini-app/ui/components/tabs"
-import { Toggle } from "@monkey-mini-app/ui/components/toggle"
-import { ToggleGroup, ToggleGroupItem } from "@monkey-mini-app/ui/components/toggle-group"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@monkey-mini-app/ui/components/pagination"
-import { Calendar } from "@monkey-mini-app/ui/components/calendar"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@monkey-mini-app/ui/components/input-group"
-import { Message, MessageContent } from "@monkey-mini-app/ui/components/message"
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@monkey-mini-app/ui/components/resizable"
-import { ScrollArea } from "@monkey-mini-app/ui/components/scroll-area"
-import { Example } from "./section"
+import * as React from "react";
+
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Alert, AlertDescription, AlertTitle, AspectRatio, Attachment, AttachmentContent, AttachmentDescription, AttachmentTitle, Avatar, AvatarFallback, Badge, Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, Bubble, BubbleContent, Button, ButtonGroup, Calendar, Card, CardContent, CardHeader, CardTitle, Collapsible, CollapsibleContent, CollapsibleTrigger, Empty, EmptyDescription, EmptyHeader, EmptyTitle, InputGroup, InputGroupAddon, InputGroupInput, Item, ItemContent, ItemDescription, ItemTitle, Kbd, Marker, MarkerContent, Message, MessageContent, Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, Progress, ResizableHandle, ResizablePanel, ResizablePanelGroup, ScrollArea, Separator, Skeleton, Spinner, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, Toggle, ToggleGroup, ToggleGroupItem } from "@monkey-mini-app/ui";
+
+import { Example } from "../shared/example";
 
 export function PrimitiveExamples() {
-  const [open, setOpen] = React.useState(false)
-  const [pressed, setPressed] = React.useState(false)
-  const [align, setAlign] = React.useState("left")
-  const [page, setPage] = React.useState(1)
+  const [open, setOpen] = React.useState(false);
+  const [pressed, setPressed] = React.useState(false);
+  const [align, setAlign] = React.useState("left");
+  const [page, setPage] = React.useState(1);
 
   return (
     <>
@@ -169,7 +125,7 @@ export function PrimitiveExamples() {
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); setPage((p) => Math.max(1, p - 1)) }} />
+              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); setPage((p) => Math.max(1, p - 1)); }} />
             </PaginationItem>
             <PaginationItem>
               <PaginationLink href="#" isActive>
@@ -177,7 +133,7 @@ export function PrimitiveExamples() {
               </PaginationLink>
             </PaginationItem>
             <PaginationItem>
-              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); setPage((p) => p + 1) }} />
+              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); setPage((p) => p + 1); }} />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
@@ -232,5 +188,5 @@ export function PrimitiveExamples() {
         </div>
       </Example>
     </>
-  )
+  );
 }

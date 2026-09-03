@@ -23,6 +23,7 @@ const STEPS = [
   { name: "check:templates", cmd: "pnpm", args: ["check:templates"] },
   { name: "lint", cmd: "pnpm", args: ["lint"] },
   { name: "typecheck (tsc -b)", cmd: "pnpm", args: ["typecheck"] },
+  { name: "typecheck ui-examples", cmd: "pnpm", args: ["exec", "tsc", "-p", "packages/ui-examples", "--pretty", "false"] },
   {
     name: "typecheck skill templates",
     cmd: "pnpm",

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactNode } from "react";
 
 export function Example({
   id,
@@ -19,5 +19,5 @@ export function Example({
       </div>
       <div className="rounded-xl border bg-card p-4">{children}</div>
     </section>
-  )
+  );
 }

@@ -11,6 +11,7 @@
 | `packages/dsh` | `@monkey-mini-app/dsh-mini-app` | dsh adapter: capabilities + lifecycle + client + skills |
 | `packages/ui` | `@monkey-mini-app/ui` | Author UI package: kit + `useApp`; iframe `/mma/runtime.js` + `/mma/sdk.js` |
 | `packages/api` | `@monkey-mini-app/api` | Backend `defineApp` + `AppCtx` types (host injects runtime) |
+| `packages/ui-examples` | `@monkey-mini-app/ui-examples` | Portable component examples (demo-host · e2e · skill) — private |
 | `packages/smoke-test` | — | Integration / sample smoke tests |
 
 ## Composition root

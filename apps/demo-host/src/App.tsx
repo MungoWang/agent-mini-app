@@ -10,13 +10,16 @@ import {
   DropdownMenuTrigger,
 } from "@monkey-mini-app/ui/components/dropdown-menu"
 import { UiProvider, type UiLocale } from "@monkey-mini-app/ui"
-import { ChartBlockExamples } from "./gallery/charts-blocks"
-import { DataExamples } from "./gallery/data"
-import { EditorExamples } from "./gallery/editors"
-import { DateExamples } from "./gallery/dates"
-import { FormExamples } from "./gallery/forms"
-import { OverlayExamples } from "./gallery/overlays"
-import { PrimitiveExamples } from "./gallery/primitives"
+import {
+  ChartBlockExamples,
+  DataExamples,
+  DateExamples,
+  EditorExamples,
+  FormExamples,
+  OverlayExamples,
+  PrimitiveExamples,
+  ProductExamples,
+} from "@monkey-mini-app/ui-examples"
 import {
   SaasParadigms,
   MinimalParadigm,
@@ -28,7 +31,6 @@ import {
   OpsParadigm,
   GlassParadigm,
 } from "./gallery/paradigms/index"
-import { ProductExamples } from "./gallery/products"
 import { useTheme, type Palette } from "./components/theme-provider"
 
 const sectionIds = [

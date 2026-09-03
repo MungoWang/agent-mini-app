@@ -1,8 +1,6 @@
-import { Avatar, AvatarFallback } from "@monkey-mini-app/ui/components/avatar"
-import { Progress } from "@monkey-mini-app/ui/components/progress"
-import { StatusBadge } from "@monkey-mini-app/ui/blocks/status-badge"
-import { DataGrid, type ColumnDef } from "@monkey-mini-app/ui/products/data-grid"
-import { Example } from "./section"
+import { Avatar, AvatarFallback, type ColumnDef, DataGrid, Progress, StatusBadge } from "@monkey-mini-app/ui";
+
+import { Example } from "../shared/example";
 
 type Run = { id: string; name: string; owner: string; duration: string; status: string }
 
@@ -13,7 +11,7 @@ const runs: Run[] = [
   { id: "4", name: "upload-spec", owner: "Kai", duration: "12.0s", status: "blocked" },
   { id: "5", name: "grid-spec", owner: "Lin", duration: "3.1s", status: "flaky" },
   { id: "6", name: "auth-spec", owner: "Kai", duration: "2.0s", status: "running" },
-]
+];
 
 const columns: ColumnDef<Run>[] = [
   { accessorKey: "name", header: "Name", meta: { sort: true, search: "text" } },
@@ -25,7 +23,7 @@ const columns: ColumnDef<Run>[] = [
     meta: { sort: true, search: "text" },
     cell: ({ getValue }) => <StatusBadge status={String(getValue())} />,
   },
-]
+];
 
 type Ticket = {
   id: string
@@ -41,7 +39,7 @@ const tickets: Ticket[] = [
   { id: "2", key: "TMS-1208", title: "Kanban details", owner: "Lin", progress: 45, status: "running" },
   { id: "3", key: "TMS-1210", title: "Calendar views", owner: "Kai", progress: 20, status: "blocked" },
   { id: "4", key: "TMS-1214", title: "Markdown split", owner: "Ada", progress: 100, status: "pass" },
-]
+];
 
 const ticketColumns: ColumnDef<Ticket>[] = [
   {
@@ -58,7 +56,7 @@ const ticketColumns: ColumnDef<Ticket>[] = [
     header: "Owner",
     meta: { sort: true, search: "text" },
     cell: ({ getValue }) => {
-      const name = String(getValue())
+      const name = String(getValue());
       return (
         <span className="inline-flex items-center gap-2">
           <Avatar className="size-5">
@@ -66,7 +64,7 @@ const ticketColumns: ColumnDef<Ticket>[] = [
           </Avatar>
           {name}
         </span>
-      )
+      );
     },
   },
   {
@@ -85,7 +83,7 @@ const ticketColumns: ColumnDef<Ticket>[] = [
     meta: { sort: true, search: "text" },
     cell: ({ getValue }) => <StatusBadge status={String(getValue())} />,
   },
-]
+];
 
 export function DataExamples() {
   return (
@@ -114,5 +112,5 @@ export function DataExamples() {
         />
       </Example>
     </>
-  )
+  );
 }

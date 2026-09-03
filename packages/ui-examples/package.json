@@ -1,0 +1,33 @@
+{
+  "name": "@monkey-mini-app/ui-examples",
+  "version": "0.0.0",
+  "description": "Runnable mini-app-safe examples for the @monkey-mini-app/ui kit (feeds demo-host, e2e fixtures, and the authoring skill)",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@monkey-mini-app/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "typescript": "~5.9.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

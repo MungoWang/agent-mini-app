@@ -17,6 +17,9 @@ importers:
       '@monkey-mini-app/ui':
         specifier: workspace:*
         version: link:packages/ui
+      '@monkey-mini-app/ui-examples':
+        specifier: workspace:*
+        version: link:packages/ui-examples
       '@tailwindcss/cli':
         specifier: ^4.3.3
         version: 4.3.3
@@ -80,6 +83,9 @@ importers:
       '@monkey-mini-app/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@monkey-mini-app/ui-examples':
+        specifier: workspace:*
+        version: link:../../packages/ui-examples
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -537,6 +543,28 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@20.11.6)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.32.0)(terser@5.51.2)(tsx@4.23.12)(yaml@2.9.0)
+
+  packages/ui-examples:
+    dependencies:
+      '@monkey-mini-app/ui':
+        specifier: workspace:*
+        version: link:../ui
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.5(@types/react@19.2.18)
+      react:
+        specifier: ^19.2.6
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.6
+        version: 19.2.8(react@19.2.8)
+      typescript:
+        specifier: ~5.9.2
+        version: 5.9.3
 
 packages:
 
