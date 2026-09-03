@@ -13,11 +13,11 @@ Every `api.*` method (`defineApp({ api })` keys) receives the same `ctx`.
 | `ctx.storage.delete` / `clear` | | |
 | `ctx.storage.table(name)` | same API | Separate file `{name}.storage.json`; `name` = `[A-Za-z0-9_-]` |
 | `ctx.state` | object | In-memory; the same reference as `defineApp.state` |
-| `ctx.config` | `{ theme, palette, chatLanguage, hostPort, llm }` | This host's own settings only (settings page / top bar), **not** a dsh settings dump. `theme` = `light`\|`dark`; `palette` = `default`\|`ocean`\|`violet`\|`slate` |
+| `ctx.config` | `{ theme, palette, chatLanguage, hostPort, llm }` | This host's own settings only (settings page / top bar), **not** a dsh settings dump. `theme` = `light`\|`dark`\|`system` (a *preference* — resolve `system` yourself if you need a concrete mode); `palette` = `default`\|`ocean`\|`violet`\|`slate` |
 | `ctx.credentials` | `Record<string,string>` | Secrets **supplied by the host** — a mini-app cannot declare them. `{}` when the host has no credential service: read by key, show a usable empty state when missing, never invent key names |
 | `ctx.log(...args)` | | console |
 | `ctx.signal` | AbortSignal or undefined | Cancel signal for the current call (aborted when the user hits "stop"). In long jobs check `if (ctx.signal?.aborted) throw new Error("cancelled")` between batches/loops and pass it to `sleep` too |
-| `ctx.push(method, params)` | | **Currently a no-op** (event bus reserved by the host) — do not build progress or streaming on it; write to storage and let the UI poll |
+| `ctx.push(name, params)` | SSE to this app's UI | Live channel for `useApp().on(name, cb)`. Fire-and-forget, never throws; `params` must be JSON-serialisable. Host keeps the last 200 events **per app**, so a reconnecting or later-opened UI replays them (`Last-Event-ID`) |
 | `ctx.system.metrics()` | os snapshot | |
 
 ## Host capabilities
@@ -82,7 +82,13 @@ A soft "reply with JSON only" constraint plus fence stripping — **the return v
 
 ### `opts.onEvent` (agent only) — full event shapes
 
-The return value is still the final string; `onEvent` only observes the run. The UI can poll storage:
+The return value is still the final string; `onEvent` only observes the run. To show progress in the UI pass
+`streamTo: "agent"` — the host mirrors every event as `ctx.push("agent", event)`:
+
+```ts
+await ctx.agent(goal, { streamTo: "agent", maxIterations: 12 });
+// UI: on("agent", (ev) => …) — see templates/agentrun
+```
 
 ```ts
 type AgentEvent =
@@ -133,4 +139,4 @@ Multi-source fetch × LLM analysis — **do not run it in full**:
   if (ctx.signal?.aborted) throw new Error("cancelled");
   await sleep(400, ctx.signal);
   ```
-- **Async progress**: expose a `scanStatus` / `progress` method (state written to storage) and poll it from the UI; `scan` itself is fire-and-forget and returns "started" immediately.
+- **Async progress**: `ctx.push(name, payload)` from the background job; the UI fetches one snapshot on mount (`runStatus`) and then applies pushed events — do **not** `setInterval` a status method. Keep writing the snapshot to storage as well, so an app opened cold still shows the last state. Buffer is 200/app: if the UI sees an `app:gap` (`onAny` receives `{ name: "*", data: { gap: true } }`), refetch the snapshot.

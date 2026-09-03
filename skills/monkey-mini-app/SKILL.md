@@ -214,7 +214,7 @@ export default defineApp({
 | Errors | [references/troubleshoot.md](references/troubleshoot.md) |
 | Versioning / rollback | [references/history.md](references/history.md) |
 
-**Templates are reference material, not a menu you must choose one from.** Read [`templates/README.md`](templates/README.md) to find the closest starting point, and open whichever others cover your app's capabilities (a dashboard that calls the model = `monitor` + `insights`). **Extract the pattern you need — structure, naming, cancellation, polling — rather than pasting whole files** (`jira/ui.tsx` is 300+ lines), and read one file at a time so you spend tokens on the user's app, not on the samples.
+**Templates are reference material, not a menu you must choose one from.** Read [`templates/README.md`](templates/README.md) to find the closest starting point, and open whichever others cover your app's capabilities (a dashboard that calls the model = `monitor` + `insights`). **Extract the pattern you need — structure, naming, cancellation, progress events — rather than pasting whole files** (`jira/ui.tsx` is 300+ lines), and read one file at a time so you spend tokens on the user's app, not on the samples.
 
 | Scenario | Template |
 |---|---|

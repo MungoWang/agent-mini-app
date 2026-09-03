@@ -22,7 +22,7 @@ type Payload = { items: Item[]; digest: Digest | null; at: number };
 type Progress = { running: boolean; step: string; done: number; total: number; error?: string };
 
 export default function Ui() {
-  const { call } = useApp();
+  const { call, on } = useApp();
   const [data, setData] = useState<Payload | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [selected, setSelected] = useState<Item | null>(null);
@@ -30,21 +30,26 @@ export default function Ui() {
 
   const load = async () => setData((await call("latest", {})) as Payload);
 
+  // ⭐ key: long-task progress arrives over SSE — one snapshot on mount, then events.
+  //         No setInterval, so the UI reacts as fast as the backend pushes.
+  useEffect(() => {
+    const offProgress = on("progress", (d) => {
+      const p = d as Progress;
+      setProgress(p);
+      if (!p.running && !p.error) void load();
+      if (p.error) setError(p.error);
+    });
+    const offLatest = on("latest", (d) => setData(d as Payload));
+    return () => {
+      offProgress();
+      offLatest();
+    };
+  }, [on]);
+
   async function run() {
     setError(null);
     try {
       await call("scan", {}); // fire-and-forget start, returns immediately
-      // ⭐ key: long-task progress — the UI polls scanStatus until running=false
-      const iv = setInterval(async () => {
-        const p = (await call("scanStatus", {})) as Progress;
-        setProgress(p);
-        if (!p.running) {
-          clearInterval(iv);
-          await load();
-        }
-      }, 300);
-      // fallback: force-stop the polling after a while (in case progress gets stuck on running)
-      setTimeout(() => clearInterval(iv), 60_000);
     } catch (e) {
       setError(String((e as Error)?.message || e));
     }

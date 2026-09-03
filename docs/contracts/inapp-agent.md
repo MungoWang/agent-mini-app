@@ -16,10 +16,11 @@ ctx.agent(goal: string, opts?: {
 - Return value is always the **final string** (not a stream handle).
 - `onEvent` is observation only — it does not change the return type.
 - Event union: `status` | `text-delta` | `tool` | `turn` | `error` | `done` (see host `AgentEvent`).
+- `opts.streamTo = CHANNEL` mirrors every event to the app's UI as `ctx.push(CHANNEL, event)`; the caller's own `onEvent` still runs first, and a throwing `onEvent` cannot abort the run.
 
 ## Authoring notes
 
-- Long jobs must honour `ctx.signal` and expose progress the UI can poll.
+- Long jobs must honour `ctx.signal` and stream progress with `ctx.push(...)` (or `opts.streamTo`) — the UI subscribes, it does not poll.
 - Prefer `templates/agentrun/` for the working pattern.
 - Do not invent MCP-style `{ input: "..." }` wrappers for tool args.
 

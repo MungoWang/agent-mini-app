@@ -6,10 +6,10 @@ Each template is a different **reference scenario**: one layout prototype × one
 |---|---|---|---|
 | [minimal](./minimal/) | Smallest runnable skeleton | Starting out / connectivity check / you just need a working shell | `defineApp` + one `useApp().call` round trip + `AppShell`/`PageHeader` skeleton |
 | [todo](./todo/) | Local CRUD + filtering + derived stats | Storing local data with add/edit/delete and a status filter | `ctx.storage` + one fixed-height scrolling screen + `FilterBar` + multiple tables via `storage.table()` |
-| [insights](./insights/) | Web data → model summary (long job) | External data plus summarisation, and it will be slow | `ctx.http` + `ctx.llm({schema})` + **sampling / progress / `ctx.signal` cancellation** (`scan` / `scanStatus` polling) |
+| [insights](./insights/) | Web data → model summary (long job) | External data plus summarisation, and it will be slow | `ctx.http` + `ctx.llm({schema})` + **sampling / progress / `ctx.signal` cancellation** (`scan` starts, `ctx.push("progress")` streams) |
 | [monitor](./monitor/) | Live machine-metrics dashboard | Monitoring, overview pages, charts, KPIs | `ctx.system.metrics()` + `ctx.bash` (only for `ps`/`df` the host does not provide) + polling that stops when hidden |
 | [review](./review/) | Code/text comparison + test-case table | Reviewing diffs or cases, with write-back editing | `DiffViewer` (original/modified) + `CodeEditor` + `DataGrid` column filters/sorting + saving back |
-| [agentrun](./agentrun/) | Multi-step model work with visible progress | You need `ctx.agent` (**the only** demonstration of it) + cancel/progress | `ctx.agent` + `onEvent` → storage → UI polling + module-level `AbortController` cancellation |
+| [agentrun](./agentrun/) | Multi-step model work with visible progress | You need `ctx.agent` (**the only** demonstration of it) + cancel/progress | `ctx.agent` + `streamTo` → SSE → `useApp().on("agent")` + module-level `AbortController` cancellation |
 | [jira](./jira/) | Complex business simulation (multi-view + state machine + AI) | Ticket / Jira / project-management style apps, several views, AI assist | `Kanban` + `DataGrid` dual view + editing in a detail `Sheet` + status palette + `ctx.llm` drafting something the user confirms |
 
 ## How to use them

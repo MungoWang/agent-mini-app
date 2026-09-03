@@ -1,78 +1,91 @@
 import { defineApp } from "@monkey-mini-app/api";
 
 // ⭐ key: ctx.agent is the entry point for "have the model do one multi-step job"; it returns the final string.
-//         Progress events are observed via onEvent (status/tool/turn/text-delta/done), written into storage for the UI to poll.
-//         Cancellation: a module-level AbortController (the app module loads once, so a var can hold it); no wasted runs when the page is hidden/stopped.
+//         Progress reaches the UI over `ctx.push(...)` (SSE) — no polling. `streamTo` mirrors the agent's own
+//         events onto one channel; lifecycle changes are pushed explicitly.
+//         The run is ALSO persisted, so reopening the app shows the last run instead of a blank screen.
+//         Cancellation: a module-level AbortController (the app module loads once, so a var can hold it).
 type Step = { phase: string; name?: string; turn?: number; text?: string; at: number };
+type Run = { goal: string; status: string; steps: Step[]; result: string; startedAt: number };
+
+const EMPTY: Run = { goal: "", status: "idle", steps: [], result: "", startedAt: 0 };
 
 let currentAbort: AbortController | null = null;
 
-function pushStep(ctx, step: Step) {
-  void ctx.storage.set("step", step);
+async function load(ctx: { storage: { get(k: string): Promise<unknown> } }): Promise<Run> {
+  return ((await ctx.storage.get("run")) as Run) || EMPTY;
 }
-async function addStep(ctx, step: Step) {
-  const run = (await ctx.storage.get("run")) || { goal: "", status: "idle", steps: [], result: "", startedAt: 0 };
-  run.steps = [...(run.steps || []), step];
-  await ctx.storage.set("run", run);
+
+/** Persist + stream one change. Storage is the snapshot, `push` is the live feed. */
+async function save(ctx, run: Run, patch?: Partial<Run>) {
+  const next: Run = { ...run, ...(patch || {}) };
+  await ctx.storage.set("run", next);
+  ctx.push("run", next);
+  return next;
 }
 
 export default defineApp({
   name: "任务执行器",
   description: "让模型干一个多步活，实时展示过程，可取消",
   api: {
+    /** Snapshot for first paint: fetch once on mount, then live-update from events. */
     async runStatus(ctx) {
-      return (await ctx.storage.get("run")) || { goal: "", status: "idle", steps: [], result: "", startedAt: 0 };
+      return load(ctx);
     },
 
-    // start: returns immediately, the agent runs in background; progress via storage + UI polling
+    // start returns immediately; the agent runs in the background and pushes as it goes
     async start(ctx, args?: { goal?: string }) {
       const goal = String(args?.goal ?? "").trim();
       if (!goal) throw new Error("请输入目标");
       currentAbort?.abort();
       const ac = new AbortController();
       currentAbort = ac;
-      const run = { goal, status: "running", steps: [], result: "", startedAt: Date.now() };
-      await ctx.storage.set("run", run);
-      await ctx.storage.set("step", { phase: "status", text: "running", at: Date.now() });
 
-      void ctx.agent(goal, {
-        signal: ac.signal,
-        maxIterations: 12,
-        onEvent: (ev) => {
-          // ⭐ key: onEvent only observes progress, the return value is still the final string. Here every event is persisted to storage.
-          if (ev.type === "tool") void addStep(ctx, { phase: "tool", name: ev.name, at: Date.now() });
-          else if (ev.type === "turn") void addStep(ctx, { phase: "turn", turn: ev.turn, at: Date.now() });
-          else if (ev.type === "text-delta") setText(ctx, ev.text);
-          else if (ev.type === "done") void addStep(ctx, { phase: "done", at: Date.now() });
-          else if (ev.type === "error") void addStep(ctx, { phase: "error", text: ev.message, at: Date.now() });
-        },
-      })
+      let run = await save(ctx, { ...EMPTY, goal, startedAt: Date.now() }, { status: "running" });
+
+      void ctx
+        .agent(goal, {
+          signal: ac.signal,
+          maxIterations: 12,
+          // ⭐ every text-delta / tool / turn event is mirrored to the UI as ctx.push("agent", event)
+          streamTo: "agent",
+          onEvent: async (ev) => {
+            // onEvent still runs — use it to keep the durable snapshot, not to feed the UI
+            if (ev.type !== "tool" && ev.type !== "turn" && ev.type !== "done" && ev.type !== "error") {
+              return;
+            }
+            const step: Step =
+              ev.type === "tool"
+                ? { phase: "tool", name: ev.name, at: Date.now() }
+                : ev.type === "turn"
+                  ? { phase: "turn", turn: ev.turn, at: Date.now() }
+                  : ev.type === "done"
+                    ? { phase: "done", at: Date.now() }
+                    : { phase: "error", text: ev.message, at: Date.now() };
+            run = { ...run, steps: [...run.steps, step] };
+            await ctx.storage.set("run", run);
+          },
+        })
         .then(async (text) => {
-          const cur = (await ctx.storage.get("run")) || run;
-          await ctx.storage.set("run", { ...cur, status: "done", result: text.slice(-4000), steps: cur.steps || [] });
+          const cur = await load(ctx);
+          await save(ctx, cur, { status: "done", result: text.slice(-4000) });
           if (currentAbort === ac) currentAbort = null;
         })
         .catch(async (cause) => {
           const msg = String((cause as Error)?.message || cause);
-          const cur = (await ctx.storage.get("run")) || run;
-          await ctx.storage.set("run", { ...cur, status: "error", result: msg, steps: cur.steps || [] });
+          const cur = await load(ctx);
+          await save(ctx, cur, { status: "error", result: msg });
           if (currentAbort === ac) currentAbort = null;
         });
+
       return { ok: true, started: true };
     },
 
     async cancel(ctx) {
       currentAbort?.abort();
       currentAbort = null;
-      const cur = (await ctx.storage.get("run")) || { goal: "", status: "idle", steps: [], result: "", startedAt: 0 };
-      await ctx.storage.set("run", { ...cur, status: "cancelled" });
+      await save(ctx, await load(ctx), { status: "cancelled" });
       return { ok: true };
     },
   },
 });
-
-async function setText(ctx, delta: string) {
-  const cur = (await ctx.storage.get("run")) || { goal: "", status: "running", steps: [], result: "", startedAt: Date.now() };
-  cur.result = (cur.result || "") + delta;
-  await ctx.storage.set("run", { ...cur, steps: cur.steps || [] });
-}

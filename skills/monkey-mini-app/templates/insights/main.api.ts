@@ -31,11 +31,14 @@ function parseDigest(raw: string): Digest {
 }
 
 // ⭐ key: long-running task — run a sample to prove the full pipeline (first 8 items here), cap the batch,
-//         and check ctx.signal between steps (hitting Stop aborts). Progress is exposed via storage for the UI to poll.
+//         and check ctx.signal between steps (hitting Stop aborts). Progress is PUSHED to the UI (ctx.push);
+//         storage keeps the snapshot so a cold-open app still shows the last state.
 async function runRefresh(ctx): Promise<Payload> {
   const items = SAMPLE_ITEMS.slice(0, 8);
   const report = async (partial: Partial<Progress>) => {
-    await ctx.storage.set("progress", { running: true, step: "refresh", done: 0, total: 3, ...partial });
+    const next: Progress = { running: true, step: "refresh", done: 0, total: 3, ...partial };
+    await ctx.storage.set("progress", next);
+    ctx.push("progress", next); // useApp().on("progress", …) — no polling
   };
   try {
     // 1) sample fetch (built-in samples here; in real use swap in ctx.http pulling RSS)
@@ -55,11 +58,16 @@ async function runRefresh(ctx): Promise<Payload> {
 
     const payload: Payload = { items, digest, at: Date.now() };
     await ctx.storage.set("latest", payload);
-    await ctx.storage.set("progress", { running: false, step: "done", done: 3, total: 3 });
+    const done: Progress = { running: false, step: "done", done: 3, total: 3 };
+    await ctx.storage.set("progress", done);
+    ctx.push("progress", done);
+    ctx.push("latest", payload);
     return payload;
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
-    await ctx.storage.set("progress", { running: false, step: "failed", done: 0, total: 3, error: message });
+    const failed: Progress = { running: false, step: "failed", done: 0, total: 3, error: message };
+    await ctx.storage.set("progress", failed);
+    ctx.push("progress", failed);
     throw new Error("摘要失败：" + message);
   }
 }
@@ -72,7 +80,7 @@ export default defineApp({
       return (await ctx.storage.get("latest")) || { items: SAMPLE_ITEMS, digest: null, at: 0 };
     },
 
-    // fire-and-forget: returns "started" immediately, the actual work runs in background, UI polls scanStatus
+    // fire-and-forget: returns "started" immediately; the background work pushes progress
     async scan(ctx) {
       void runRefresh(ctx);
       return { ok: true };
@@ -82,7 +90,7 @@ export default defineApp({
       return (await ctx.storage.get("progress")) || { running: false, step: "idle", done: 0, total: 3 };
     },
 
-    // can also be awaited directly (no background polling)
+    // can also be awaited directly (no background job at all)
     async refresh(ctx) {
       return runRefresh(ctx);
     },
