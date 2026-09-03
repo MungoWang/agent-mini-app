@@ -89,6 +89,14 @@ describe("createPanelActions + FakePanelHost", () => {
     expect(host.calls.closePanel).toBe(1);
   });
 
+  it("setAppearance persists the `system` preference, not the resolved mode", () => {
+    const { host, actions } = actionsFor();
+    actions.setAppearance({ theme: "system", palette: "default" }, "global");
+    // storing light/dark here is what made "follow system" revert after a reload
+    expect(host.calls.persistTheme).toEqual([{ theme: "system", palette: "default" }]);
+    expect(getPanelState().theme).toBe("system");
+  });
+
   it("setAppearance persists global theme on the host", () => {
     const { host, actions } = actionsFor();
     actions.setAppearance({ theme: "dark", palette: "tokyo" }, "global");

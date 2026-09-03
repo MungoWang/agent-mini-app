@@ -142,6 +142,72 @@ describe("HttpGateway", () => {
     expect(JSON.stringify(body)).not.toMatch(/secret|apiKey|token/i);
   });
 
+  it("POST /api/host-config keeps theme=system as a preference (not the resolved mode)", async () => {
+    const services = await startHost();
+    const res = await fetch(`${origin()}/api/host-config`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ theme: "system" }),
+    });
+    await expect(res.json()).resolves.toMatchObject({ ok: true, theme: "system" });
+
+    // what actually landed in host.json must still be "system"
+    const raw = JSON.parse(
+      await import("node:fs/promises").then((fs) => fs.readFile(services.paths.hostConfigFile(), "utf8")),
+    ) as { theme: string };
+    expect(raw.theme).toBe("system");
+    // and it must survive a re-parse (THEME_PREF_IDS, not THEME_IDS)
+    const get = await fetch(`${origin()}/api/host-config`);
+    await expect(get.json()).resolves.toMatchObject({ theme: "system" });
+  });
+
+  it("GET /api/about reports adapter + platform package versions", async () => {
+    let services: HostServices | undefined;
+    host = createHost(fakeCapabilities(), { attach: (_c, s) => { services = s; } }, {
+      config: validConfig(),
+      about: { adapter: "testhost", packageName: "@monkey-mini-app/host", env: "test" },
+    });
+    await host.apply();
+    expect(services).toBeDefined();
+
+    const res = await fetch(`${origin()}/api/about`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      ok: boolean;
+      adapter: string;
+      env: string;
+      packages: { name: string; version: string }[];
+    };
+    expect(body).toMatchObject({ ok: true, adapter: "testhost", env: "test" });
+    expect(body.packages.some((pkg) => pkg.name === "@monkey-mini-app/host")).toBe(true);
+    expect(body.packages.every((pkg) => typeof pkg.version === "string")).toBe(true);
+  });
+
+  it("GET /api/updates answers without hitting the network when the registry is unreachable", async () => {
+    let services: HostServices | undefined;
+    host = createHost(fakeCapabilities(), { attach: (_c, s) => { services = s; } }, {
+      config: validConfig(),
+      about: { adapter: "testhost", packageName: "@monkey-mini-app/host", env: "test" },
+    });
+    await host.apply();
+    expect(services).toBeDefined();
+
+    const real = globalThis.fetch;
+    // only the npm registry hop is offline; the gateway call itself must still work
+    const spy = vi.spyOn(globalThis, "fetch").mockImplementation((input, init) =>
+      String(input).includes("registry.npmjs.org")
+        ? Promise.reject(new Error("offline"))
+        : real(input as RequestInfo, init),
+    );
+    const res = await real(`${origin()}/api/updates`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.ok).toBe(true);
+    expect(body.name).toBe("@monkey-mini-app/host");
+    expect(body.updateAvailable).toBe(false);
+    spy.mockRestore();
+  });
+
   it("POST /api/host-config persists theme and palette to host.json", async () => {
     const services = await startHost();
     const res = await fetch(`${origin()}/api/host-config`, {

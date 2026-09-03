@@ -52,12 +52,21 @@ export function appRunnerHtml(appId: string, themeCss = ""): string {
       }
     }
   }
+  // "system" is a storable preference; an iframe can only render light or dark.
+  function concrete(mode) {
+    if (mode !== "system") return mode;
+    try {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    } catch (e) {
+      return "light";
+    }
+  }
   var q = new URLSearchParams(location.search);
-  apply(q.get("theme") || "light", q.get("palette") || "default", q.get("dock") || "fill");
+  apply(concrete(q.get("theme") || "light"), q.get("palette") || "default", q.get("dock") || "fill");
   window.addEventListener("message", function (ev) {
     var d = ev.data;
     if (!d || d.type !== "mma-set-env") return;
-    apply(d.theme, d.palette, d.dock, d.vars);
+    apply(concrete(d.theme), d.palette, d.dock, d.vars);
   });
 })();
 </script>

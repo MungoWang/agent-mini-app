@@ -5,8 +5,8 @@ import {
   type LlmConfig,
   LOCALE_IDS,
   type LocaleId,
-  THEME_IDS,
-  type ThemeId,
+  THEME_PREF_IDS,
+  type ThemePref,
 } from "../types.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -81,7 +81,7 @@ export function parseHostConfig(raw: unknown): HostConfig {
   return {
     runtimeRoot,
     hostPort: parseHostPort(requireField(raw, "hostPort")),
-    theme: parseEnum<ThemeId>(requireField(raw, "theme"), "theme", THEME_IDS),
+    theme: parseEnum<ThemePref>(requireField(raw, "theme"), "theme", THEME_PREF_IDS),
     palette: parsePalette(requireField(raw, "palette")),
     locale: parseEnum<LocaleId>(requireField(raw, "locale"), "locale", LOCALE_IDS),
     chatLanguage: parseEnum<LocaleId>(

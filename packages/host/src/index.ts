@@ -107,5 +107,6 @@ export type {
   LocaleId,
   PaletteId,
   ThemeId,
+  ThemePref,
 } from "./types.ts";
-export { LOCALE_IDS, PALETTE_IDS, THEME_IDS } from "./types.ts";
+export { LOCALE_IDS, PALETTE_IDS, THEME_IDS, THEME_PREF_IDS } from "./types.ts";

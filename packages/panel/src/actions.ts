@@ -96,14 +96,11 @@ export function createPanelActions(
           });
         }
       } else {
-        // host.json / iframe env get the resolved light|dark; localStorage keeps the preference
-        // (may be "system") so we rewrite it after persistTheme which stores the resolved mode.
-        host.persistTheme?.(resolved, palette);
-        try {
-          localStorage.setItem("mma-theme-mode", theme);
-        } catch {
-          /* ignore */
-        }
+        // Persist the **preference** (may be "system") everywhere: host.json, localStorage
+        // and the iframe env all take it as-is, and the runner resolves "system" to a
+        // concrete mode. Storing the resolved value here is what made "follow system"
+        // come back as a fixed light/dark on the next open.
+        host.persistTheme?.(theme, palette);
       }
       host.frame.syncEnv?.();
     },
