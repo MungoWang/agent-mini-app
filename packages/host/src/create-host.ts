@@ -29,8 +29,16 @@ export function createHost(
   const config = parseHostConfig(options.config);
   const paths = new WorkspacePaths(config.runtimeRoot);
   const git = new GitHistory();
-  const apps = new AppsManager(paths, capabilities, git, config);
   const events = new HostEventBus();
+  // ctx.push is host-internal: bound to the event bus here so adapters keep
+  // implementing only what is genuinely theirs (bash / llm / agent / tool / mcp).
+  const caps: HostCapabilities = {
+    ...capabilities,
+    push: (ctx, name, data) => {
+      events.pushApp(ctx.appId, name, data);
+    },
+  };
+  const apps = new AppsManager(paths, caps, git, config);
   const tools = new ToolFacade(apps, git, paths, events);
   const compiler = new UiCompiler(paths);
   apps.setUiCompiler(compiler);
@@ -48,6 +56,6 @@ export function createHost(
     (port) => lifecycle.onHostPortChanged?.(port),
     options.about ?? { adapter: "host" },
   );
-  const services: HostServices = { apps, git, tools, paths, config };
-  return new Host(capabilities, lifecycle, paths, config, services, http);
+  const services: HostServices = { apps, git, tools, paths, config, events };
+  return new Host(caps, lifecycle, paths, config, services, http);
 }

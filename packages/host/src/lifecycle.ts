@@ -1,4 +1,5 @@
 import type { AppsManager } from "./apps/apps-manager.ts";
+import type { HostEventBus } from "./events/host-events.ts";
 import type { GitHistory } from "./git/git-history.ts";
 import type { WorkspacePaths } from "./paths/workspace-paths.ts";
 import type { ToolFacade } from "./tools/tool-facade.ts";
@@ -13,6 +14,8 @@ export type HostServices = {
   tools: ToolFacade;
   paths: WorkspacePaths;
   config: HostConfig;
+  /** Host → browser SSE bus (`ctx.push` lands here). */
+  events: HostEventBus;
 };
 
 /** Host calls these; the agent plugin implements. */

@@ -22,6 +22,11 @@ export interface HostCapabilities {
   /** May later scope by app/call; pass ctx even if unused today. */
   config?(ctx: AppCallContext): Record<string, unknown>;
   listTools?(ctx: AppCallContext): unknown[];
+  /**
+   * Fire one UI event to this app's open views (SSE). Injected by `createHost`,
+   * so adapters do not implement it.
+   */
+  push?(ctx: AppCallContext, name: string, data?: unknown): void;
 }
 
 /**
@@ -37,10 +42,38 @@ export type BoundHostCapabilities = {
   credentials(): Record<string, string>;
   config(): Record<string, unknown>;
   listTools(): unknown[];
+  /** Push one event to the app's UI (`useApp().on(name, cb)`); never throws. */
+  push(name: string, data?: unknown): void;
 };
 
 function missingCap(name: string): never {
   throw new HostError("CAPABILITY_UNAVAILABLE", `${name}: host capability not available`);
+}
+
+/**
+ * Wrap `opts.streamTo` into a real `onEvent` that mirrors agent progress onto the
+ * app's UI channel, so an adapter never has to know about the event bus.
+ * The caller's own `onEvent` (if any) still runs first.
+ */
+export function withAgentStreamBridge(
+  ctx: AppCallContext,
+  caps: HostCapabilities,
+  opts?: AgentRunOptions,
+): AgentRunOptions | undefined {
+  if (!opts?.streamTo || !caps.push) return opts;
+  const channel = opts.streamTo;
+  const userOnEvent = opts.onEvent;
+  return {
+    ...opts,
+    onEvent: (event) => {
+      try {
+        userOnEvent?.(event);
+      } catch {
+        /* a broken observer must not abort the run */
+      }
+      caps.push?.(ctx, channel, event);
+    },
+  };
 }
 
 /**
@@ -56,11 +89,22 @@ export function bindCapsToContext(
   return {
     bash: async (command) => (caps.bash ? caps.bash(ctx, command) : missingCap("bash")),
     llm: async (prompt, opts) => (caps.llm ? caps.llm(ctx, prompt, opts) : missingCap("llm")),
-    agent: async (goal, opts) => (caps.agent ? caps.agent(ctx, goal, opts) : missingCap("agent")),
+    agent: async (goal, opts) =>
+      caps.agent
+        ? caps.agent(ctx, goal, withAgentStreamBridge(ctx, caps, opts))
+        : missingCap("agent"),
     tool: async (name, args) => (caps.tool ? caps.tool(ctx, name, args) : missingCap("tool")),
     mcp: async (name, args) => (caps.mcp ? caps.mcp(ctx, name, args) : missingCap("mcp")),
     credentials: () => (caps.credentials ? caps.credentials(ctx) : {}),
     config: () => (caps.config ? caps.config(ctx) : {}),
     listTools: () => (caps.listTools ? caps.listTools(ctx) : []),
+    push: (name, data) => {
+      try {
+        caps.push?.(ctx, name, data);
+      } catch (err) {
+        // Progress events are best-effort: never fail the API call over one.
+        console.warn("[ctx.push] failed", err);
+      }
+    },
   };
 }

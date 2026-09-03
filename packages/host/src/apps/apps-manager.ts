@@ -681,9 +681,7 @@ export class AppsManager {
       log: (...a: unknown[]) => {
         console.log("[mini-api]", ...a);
       },
-      push: (_method: string, _params?: unknown) => {
-        /* UI event bus extension */
-      },
+      // ctx.push comes from capMethods (host capability, bound in bindCapsToContext).
       ...capMethods,
       http: (url: string | HttpRequest, opts?: Omit<HttpRequest, "url">): Promise<HttpResponse> =>
         httpRequest(url, { ...opts, signal: box.signal }),

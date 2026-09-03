@@ -72,7 +72,11 @@ export { writeHostConfig } from "./config/write.ts";
 export { createHost } from "./create-host.ts";
 export { HostConfigError, HostError } from "./errors.ts";
 export type { HostEvent, HostEventListener } from "./events/host-events.ts";
-export { formatSse,HostEventBus } from "./events/host-events.ts";
+export {
+  APP_EVENT_BUFFER,
+  formatSse,
+  HostEventBus,
+} from "./events/host-events.ts";
 export type {
   Commit,
   CommitNode,

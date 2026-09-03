@@ -39,6 +39,11 @@ export interface AgentRunOptions extends ModelCallOptions {
   /** Optional live projection of the agent run (does not change the string return). */
   onEvent?: AgentEventHandler;
   /**
+   * Mirror every progress event onto the app's UI channel via `ctx.push(streamTo, event)`.
+   * Bridged by `bindCapsToContext`, so no adapter has to know about the event bus.
+   */
+  streamTo?: string;
+  /**
    * Working-directory mode for the agent session (default `"process"`).
    * - app: current mini-app directory (from AppRuntime.appDir)
    * - process: dsh process.cwd()

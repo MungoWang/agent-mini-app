@@ -72,6 +72,11 @@ export type AppAgentEvent =
 export type AppAgentOptions = AppModelOptions & {
   maxIterations?: number;
   onEvent?: (event: AppAgentEvent) => void;
+  /**
+   * Mirror every progress event to the UI as `ctx.push(streamTo, event)` — so a
+   * run started before the panel opened still streams (the host replays it).
+   */
+  streamTo?: string;
   cwdType?: "app" | "process" | "temp" | "custom";
   cwd?: string;
 };
@@ -86,7 +91,13 @@ export type AppCtx = {
   state: Record<string, unknown>;
   credentials: Record<string, string>;
   log(...args: unknown[]): void;
-  push(method: string, params?: unknown): void;
+  /**
+   * Push one event to this app's open views; the UI reads it with
+   * `useApp().on(name, cb)`. Fire-and-forget: never throws, and `params` must be
+   * JSON-serialisable (unsuitable payloads are dropped with a host warning).
+   * Buffered per app (last 200) so a reconnecting or late-opening UI replays.
+   */
+  push(name: string, params?: unknown): void;
   mcp(name: string, args?: Record<string, unknown>): Promise<any>;
   /** Tool result as a **string** (the host serialises tool output). */
   tool(name: string, args?: Record<string, unknown>): Promise<any>;

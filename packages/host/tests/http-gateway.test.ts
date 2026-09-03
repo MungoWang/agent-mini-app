@@ -79,6 +79,35 @@ async function startHost(themes?: ThemeResource): Promise<HostServices> {
   return services;
 }
 
+
+/** Read an SSE body until `stop(buf)` matches (or the stream ends). */
+async function readSse(
+  res: Response,
+  stop: (buf: string) => boolean,
+  ms = 4000,
+): Promise<string> {
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  const done = (async () => {
+    while (true) {
+      const { value, done: fin } = await reader.read();
+      if (fin) break;
+      buf += decoder.decode(value, { stream: true });
+      if (stop(buf)) break;
+    }
+    return buf;
+  })();
+  return Promise.race([done, new Promise<string>((r) => setTimeout(() => r(buf), ms))]);
+}
+
+function openStream(url: string, lastEventId?: string) {
+  const controller = new AbortController();
+  const headers = lastEventId ? { "Last-Event-ID": lastEventId } : undefined;
+  const res = fetch(url, { signal: controller.signal, headers });
+  return { controller, res };
+}
+
 describe("HttpGateway", () => {
   it("GET /api/apps returns 200 JSON from AppsManager.list", async () => {
     const invoke = vi.spyOn(ToolFacade.prototype, "invoke");
@@ -140,6 +169,99 @@ describe("HttpGateway", () => {
     expect(body.hostPort).toBe(host!.port);
     expect(body).not.toHaveProperty("runtimeRoot");
     expect(JSON.stringify(body)).not.toMatch(/secret|apiKey|token/i);
+  });
+
+  it("GET /api/app/:id/events streams that app's ctx.push events", async () => {
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pingApi,
+    });
+    const { controller, res } = openStream(`${origin()}/api/app/com.example.todo/events`);
+    expect((await res).status).toBe(200);
+
+    services.events.pushApp("com.example.todo", "progress", { pct: 40 });
+    const stream = await readSse(
+      (await res),
+      (b) => b.includes("event: app:event") && b.includes('"pct":40'),
+    );
+    expect(stream).toContain('data: {"name":"progress","data":{"pct":40},"seq":1}');
+    controller.abort();
+  });
+
+  it("GET /api/app/:id/events never leaks another app's events", async () => {
+    const services = await startHost();
+    const { controller, res } = openStream(`${origin()}/api/app/com.a/events`);
+    const opened = await res;
+
+    services.events.pushApp("com.b", "secret", { value: "nope" });
+    services.events.pushApp("com.a", "visible", { value: "yes" });
+    const stream = await readSse(opened, (b) => b.includes('"visible"'));
+
+    expect(stream).toContain('"visible"');
+    expect(stream).not.toContain("secret");
+    expect(stream).not.toContain("com.b");
+    controller.abort();
+  });
+
+  it("GET /api/app/:id/events replays after Last-Event-ID and flags a gap", async () => {
+    const services = await startHost();
+    for (let i = 1; i <= 3; i++) services.events.pushApp("com.a", "tick", i);
+
+    const again = openStream(`${origin()}/api/app/com.a/events`, "1");
+    const stream = await readSse(await again.res, (b) => b.includes('"seq":3'));
+    expect(stream).toContain('"name":"tick","data":2');
+    expect(stream).toContain('"name":"tick","data":3');
+    expect(stream).not.toContain('"data":1,');
+    again.controller.abort();
+
+    // a cursor older than the ring buffer: replay what survives + an app:gap frame
+    // 207 pushes > APP_EVENT_BUFFER: seq 1..7 have been evicted, 8..207 survive
+    for (let i = 4; i <= 210; i++) services.events.pushApp("com.b", "tick", i);
+    const stale = openStream(`${origin()}/api/app/com.b/events`, "1");
+    // read past the gap frame to prove the surviving tail is still replayed
+    const gapped = await readSse(await stale.res, (b) => b.includes('"seq":207'));
+    expect(gapped).toContain("event: app:gap");
+    expect(gapped).toContain('"seq":207');
+    // evicted frames are not offered as if they were still there
+    expect(gapped).not.toContain('"seq":7,"data"');
+    expect(gapped).toContain('"seq":8');
+    stale.controller.abort();
+  });
+
+  it("ctx.push inside an api call reaches the app's stream end to end", async () => {
+    const pushApi = `import { defineApp } from "@monkey-mini-app/api";
+export default defineApp({
+  name: "Pusher",
+  description: "pushes",
+  api: {
+    go: async (ctx) => {
+      ctx.push("tick", { at: "inside-call" });
+      return "ok";
+    },
+  },
+});
+`;
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pushApi,
+    });
+    const { controller, res } = openStream(`${origin()}/api/app/com.example.todo/events`);
+    const opened = await res;
+
+    const call = await fetch(`${origin()}/api/call`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ appId: "com.example.todo", method: "go", args: {} }),
+    });
+    await expect(call.json()).resolves.toMatchObject({ ok: true, value: "ok" });
+
+    const stream = await readSse(opened, (b) => b.includes("inside-call"));
+    expect(stream).toContain('"name":"tick"');
+    controller.abort();
   });
 
   it("POST /api/host-config keeps theme=system as a preference (not the resolved mode)", async () => {

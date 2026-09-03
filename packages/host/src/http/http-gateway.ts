@@ -41,6 +41,9 @@ import {
 } from "../types.ts";
 import { appRunnerHtml } from "./app-runner-html.ts";
 
+/** Comment frame interval that keeps idle proxies from closing an SSE stream. */
+const SSE_HEARTBEAT_MS = 25_000;
+
 /** Resolve a @fontsource-variable/geist font file (walk up from the ui dist). */
 function geistFontPath(name: string): string {
   for (let dir = resolveUiDistDir(); dir !== path.dirname(dir); dir = path.dirname(dir)) {
@@ -281,6 +284,75 @@ export class HttpGateway {
     app.get("/api/host-config", (c) =>
       c.json({ ok: true, ...publicHostConfig(this.config, this.boundPort) }),
     );
+
+    // Per-app event stream: `ctx.push(name, data)` → `useApp().on(name, cb)`.
+    // Filtered by appId **server-side** — a mini-app must never receive another
+    // app's events, so the browser cannot be the one doing the filtering.
+    app.get("/api/app/:appId/events", (c) => {
+      const bus = this.events;
+      if (!bus) {
+        return c.text("events bus unavailable", 503);
+      }
+      const appId = c.req.param("appId") || "";
+      const seen = Number.parseInt(c.req.header("last-event-id") ?? "", 10);
+      const since = Number.isFinite(seen) ? seen : 0;
+      const { events: missed, gap } = bus.replay(appId, since);
+      const signal = c.req.raw.signal;
+      const enc = new TextEncoder();
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          const send = (frame: string) => {
+            try {
+              controller.enqueue(enc.encode(frame));
+              return true;
+            } catch {
+              return false;
+            }
+          };
+          // `retry` so a dropped stream comes back quickly; heartbeat keeps idle
+          // proxies from closing it.
+          send("retry: 2000\n\n");
+          if (gap) {
+            // Ring buffer already evicted some: tell the UI to refetch a snapshot.
+            send(`event: app:gap\ndata: ${JSON.stringify({ appId, since })}\n\n`);
+          }
+          for (const event of missed) {
+            if (event.type !== "app:event") continue;
+            send(formatSse(event, event.seq));
+          }
+          const unsub = bus.subscribe((event) => {
+            if (event.type !== "app:event" || event.appId !== appId) return;
+            if (!send(formatSse(event, event.seq))) unsub();
+          });
+          const heartbeat = setInterval(() => {
+            send(": ping\n\n");
+          }, SSE_HEARTBEAT_MS);
+          const close = () => {
+            clearInterval(heartbeat);
+            unsub();
+            try {
+              controller.close();
+            } catch {
+              /* already closed */
+            }
+          };
+          if (signal.aborted) {
+            close();
+            return;
+          }
+          signal.addEventListener("abort", close, { once: true });
+        },
+      });
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream; charset=utf-8",
+          // One stream per app: never let a cache share it across apps.
+          "Cache-Control": "no-cache, no-transform",
+          "X-Accel-Buffering": "no",
+          Connection: "keep-alive",
+        },
+      });
+    });
 
     app.get("/api/about", (c) => c.json({ ok: true, ...resolveAboutInfo(this.about) }));
 
