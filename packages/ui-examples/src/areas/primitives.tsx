@@ -1,191 +1,91 @@
-import * as React from "react";
-
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Alert, AlertDescription, AlertTitle, AspectRatio, Attachment, AttachmentContent, AttachmentDescription, AttachmentTitle, Avatar, AvatarFallback, Badge, Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, Bubble, BubbleContent, Button, ButtonGroup, Calendar, Card, CardContent, CardHeader, CardTitle, Collapsible, CollapsibleContent, CollapsibleTrigger, Empty, EmptyDescription, EmptyHeader, EmptyTitle, InputGroup, InputGroupAddon, InputGroupInput, Item, ItemContent, ItemDescription, ItemTitle, Kbd, Marker, MarkerContent, Message, MessageContent, Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, Progress, ResizableHandle, ResizablePanel, ResizablePanelGroup, ScrollArea, Separator, Skeleton, Spinner, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, Toggle, ToggleGroup, ToggleGroupItem } from "@monkey-mini-app/ui";
-
+import Alert01Example from "../components/alert/alert-01";
+import AspectRatio01Example from "../components/aspect-ratio/aspect-ratio-01";
+import Attachment01Example from "../components/attachment/attachment-01";
+import Breadcrumb01Example from "../components/breadcrumb/breadcrumb-01";
+import Bubble01Example from "../components/bubble/bubble-01";
+import ButtonGroup01Example from "../components/button-group/button-group-01";
+import Card01Example from "../components/card/card-01";
+import Empty01Example from "../components/empty/empty-01";
+import Item01Example from "../components/item/item-01";
+import Marker01Example from "../components/marker/marker-01";
+import MiscPrimitives01Example from "../components/misc-primitives/misc-primitives-01";
+import MiscPrimitives02Example from "../components/misc-primitives/misc-primitives-02";
+import MiscPrimitives03Example from "../components/misc-primitives/misc-primitives-03";
+import Pagination01Example from "../components/pagination/pagination-01";
+import Progress01Example from "../components/progress/progress-01";
+import Separator01Example from "../components/separator/separator-01";
+import Skeleton01Example from "../components/skeleton/skeleton-01";
+import Spinner01Example from "../components/spinner/spinner-01";
+import Table01Example from "../components/table/table-01";
+import Toggle01Example from "../components/toggle/toggle-01";
+import ToggleGroup01Example from "../components/toggle-group/toggle-group-01";
 import { Example } from "../shared/example";
 
 export function PrimitiveExamples() {
-  const [open, setOpen] = React.useState(false);
-  const [pressed, setPressed] = React.useState(false);
-  const [align, setAlign] = React.useState("left");
-  const [page, setPage] = React.useState(1);
-
   return (
     <>
       <Example id="button" title="Button / ButtonGroup">
-        <div className="flex flex-wrap gap-2">
-          <Button data-testid="primitive-button">Default</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button variant="destructive">Destructive</Button>
-          <ButtonGroup>
-            <Button variant="outline">One</Button>
-            <Button variant="outline">Two</Button>
-          </ButtonGroup>
-        </div>
+        <ButtonGroup01Example />
       </Example>
       <Example id="badge-avatar-kbd" title="Badge / Avatar / Kbd">
-        <div className="flex items-center gap-2">
-          <Badge>New</Badge>
-          <Badge variant="secondary">Secondary</Badge>
-          <Avatar className="size-8">
-            <AvatarFallback>AD</AvatarFallback>
-          </Avatar>
-          <Kbd>⌘K</Kbd>
-        </div>
+        <MiscPrimitives01Example />
       </Example>
-      <Example id="alert-empty-skeleton" title="Alert / Empty / Skeleton / Spinner / Progress">
-        <div className="flex max-w-lg flex-col gap-3">
-          <Alert>
-            <AlertTitle>Heads up</AlertTitle>
-            <AlertDescription>Something needs attention.</AlertDescription>
-          </Alert>
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>Nothing here</EmptyTitle>
-              <EmptyDescription>Create the first item.</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-          <Skeleton className="h-6 w-48" />
-          <Spinner />
-          <Progress value={48} />
-        </div>
+      <Example id="alert-empty-skeleton-alert" title="Alert">
+        <Alert01Example />
+      </Example>
+      <Example id="alert-empty-skeleton-empty" title="Empty">
+        <Empty01Example />
+      </Example>
+      <Example id="alert-empty-skeleton-skeleton" title="Skeleton">
+        <Skeleton01Example />
+      </Example>
+      <Example id="alert-empty-skeleton-spinner" title="Spinner">
+        <Spinner01Example />
+      </Example>
+      <Example id="alert-empty-skeleton-progress" title="Progress">
+        <Progress01Example />
       </Example>
       <Example id="tabs-accordion-collapsible" title="Tabs / Accordion / Collapsible">
-        <div className="flex max-w-lg flex-col gap-4">
-          <Tabs defaultValue="one">
-            <TabsList>
-              <TabsTrigger value="one">One</TabsTrigger>
-              <TabsTrigger value="two">Two</TabsTrigger>
-            </TabsList>
-            <TabsContent value="one">First panel</TabsContent>
-            <TabsContent value="two">Second panel</TabsContent>
-          </Tabs>
-          <Accordion>
-            <AccordionItem value="a">
-              <AccordionTrigger>What is this?</AccordionTrigger>
-              <AccordionContent>An interactive accordion.</AccordionContent>
-            </AccordionItem>
-          </Accordion>
-          <Collapsible open={open} onOpenChange={setOpen}>
-            <CollapsibleTrigger render={<Button variant="outline" size="sm" />}>
-              {open ? "Hide" : "Show"} extra
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-2 text-sm">Hidden details</CollapsibleContent>
-          </Collapsible>
-        </div>
+        <MiscPrimitives02Example />
       </Example>
-      <Example id="toggle" title="Toggle / ToggleGroup">
-        <div className="flex flex-wrap gap-3">
-          <Toggle pressed={pressed} onPressedChange={setPressed}>
-            Bold
-          </Toggle>
-          <ToggleGroup value={[align]} onValueChange={(v) => v[0] && setAlign(v[0])}>
-            <ToggleGroupItem value="left">Left</ToggleGroupItem>
-            <ToggleGroupItem value="center">Center</ToggleGroupItem>
-            <ToggleGroupItem value="right">Right</ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+      <Example id="toggle-toggle" title="Toggle">
+        <Toggle01Example />
       </Example>
-      <Example id="table-card-separator" title="Table / Card / Separator / Breadcrumb">
-        <div className="flex max-w-lg flex-col gap-3">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="#">Home</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Demo</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <Card>
-            <CardHeader>
-              <CardTitle>Card</CardTitle>
-            </CardHeader>
-            <CardContent>Interactive container.</CardContent>
-          </Card>
-          <Separator />
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Col</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>Row</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+      <Example id="toggle-toggle-group" title="ToggleGroup">
+        <ToggleGroup01Example />
+      </Example>
+      <Example id="table-card-separator-breadcrumb" title="Breadcrumb">
+        <Breadcrumb01Example />
+      </Example>
+      <Example id="table-card-separator-card" title="Card">
+        <Card01Example />
+      </Example>
+      <Example id="table-card-separator-separator" title="Separator">
+        <Separator01Example />
+      </Example>
+      <Example id="table-card-separator-table" title="Table">
+        <Table01Example />
       </Example>
       <Example id="pagination" title="Pagination">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); setPage((p) => Math.max(1, p - 1)); }} />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#" isActive>
-                {page}
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); setPage((p) => p + 1); }} />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <Pagination01Example />
       </Example>
-      <Example id="chat-surface" title="Bubble / Marker / Attachment / Item">
-        <div className="flex max-w-md flex-col gap-2">
-          <Bubble>
-            <BubbleContent>Can you rerun login-spec?</BubbleContent>
-          </Bubble>
-          <Marker>
-            <MarkerContent>Explored 4 files</MarkerContent>
-          </Marker>
-          <Attachment>
-            <AttachmentContent>
-              <AttachmentTitle>report.pdf</AttachmentTitle>
-              <AttachmentDescription>PDF · 120 KB</AttachmentDescription>
-            </AttachmentContent>
-          </Attachment>
-          <Item variant="outline">
-            <ItemContent>
-              <ItemTitle>Notification</ItemTitle>
-              <ItemDescription>Build finished</ItemDescription>
-            </ItemContent>
-          </Item>
-        </div>
+      <Example id="chat-surface-bubble" title="Bubble">
+        <Bubble01Example />
+      </Example>
+      <Example id="chat-surface-marker" title="Marker">
+        <Marker01Example />
+      </Example>
+      <Example id="chat-surface-attachment" title="Attachment">
+        <Attachment01Example />
+      </Example>
+      <Example id="chat-surface-item" title="Item">
+        <Item01Example />
       </Example>
       <Example id="aspect-ratio" title="AspectRatio">
-        <div className="w-48">
-          <AspectRatio ratio={16 / 9} className="rounded-lg bg-muted" />
-        </div>
+        <AspectRatio01Example />
       </Example>
       <Example id="scroll-resizable" title="ScrollArea / Resizable / InputGroup / Calendar / Message">
-        <div className="flex flex-col gap-4">
-          <ScrollArea className="h-24 rounded-lg border p-2 text-sm">
-            {Array.from({ length: 20 }, (_, i) => (
-              <div key={i}>Row {i + 1}</div>
-            ))}
-          </ScrollArea>
-          <ResizablePanelGroup orientation="horizontal" className="min-h-24 rounded-lg border">
-            <ResizablePanel defaultSize={50}>Left</ResizablePanel>
-            <ResizableHandle />
-            <ResizablePanel>Right</ResizablePanel>
-          </ResizablePanelGroup>
-          <InputGroup className="max-w-xs">
-            <InputGroupAddon>@</InputGroupAddon>
-            <InputGroupInput placeholder="username" />
-          </InputGroup>
-          <Calendar mode="single" />
-          <Message>
-            <MessageContent>Assistant reply</MessageContent>
-          </Message>
-        </div>
+        <MiscPrimitives03Example />
       </Example>
     </>
   );

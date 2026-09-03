@@ -1,162 +1,31 @@
-import * as React from "react";
-
-import { Button, CodeEditor, DiffViewer, JiraWiki, JqlInput, MarkdownEditor, RichTextEditor, Textarea } from "@monkey-mini-app/ui";
-
+import CodeEditor01Example from "../components/code-editor/code-editor-01";
+import JqlInput01Example from "../components/jql-input/jql-input-01";
+import MarkdownEditor01Example from "../components/markdown-editor/markdown-editor-01";
+import MiscEditors01Example from "../components/misc-editors/misc-editors-01";
+import MiscEditors02Example from "../components/misc-editors/misc-editors-02";
+import RichTextEditor01Example from "../components/rich-text-editor/rich-text-editor-01";
 import { Example } from "../shared/example";
-import { JIRA_WIKI_SAMPLE } from "../shared/jira-wiki-sample";
-
-const DIFFS = {
-  "src/products/data-grid.tsx": {
-    original: `export function DataGrid({ columns, data }) {
-  const [sorting, setSorting] = React.useState([])
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
-
-  return (
-    <div>
-      <Table>
-        <TableHeader>{/* headers */}</TableHeader>
-        <TableBody>{/* rows */}</TableBody>
-      </Table>
-    </div>
-  )
-}
-`,
-    modified: `export function DataGrid({ columns, data, features }) {
-  const [sorting, setSorting] = React.useState([])
-  const [columnFilters, setColumnFilters] = React.useState([])
-  const [globalFilter, setGlobalFilter] = React.useState("")
-  const table = useReactTable({
-    data,
-    columns,
-    state: { sorting, columnFilters, globalFilter },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  })
-
-  return (
-    <div data-testid="data-grid">
-      <Toolbar table={table} />
-      <Table>
-        <TableHeader>{/* sortable headers */}</TableHeader>
-        <TableBody>{/* virtualized rows */}</TableBody>
-      </Table>
-      <Pagination table={table} />
-    </div>
-  )
-}
-`,
-  },
-  "src/products/kanban.tsx": {
-    original: `export type KanbanCard = {
-  id: string
-  title: string
-  columnId: string
-}
-`,
-    modified: `export type KanbanCard = {
-  id: string
-  title: string
-  columnId: string
-  key?: string
-  assignee?: string
-  tags?: string[]
-  priority?: string
-  comments?: KanbanComment[]
-}
-`,
-  },
-};
-
-function DiffPlayground() {
-  const files = Object.keys(DIFFS) as (keyof typeof DIFFS)[];
-  const [file, setFile] = React.useState<(typeof files)[number]>(files[0]);
-  const [mode, setMode] = React.useState<"unified" | "split">("unified");
-  const current = DIFFS[file];
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-1">
-        {files.map((name) => (
-          <Button
-            key={name}
-            size="sm"
-            variant={file === name ? "default" : "outline"}
-            onClick={() => setFile(name)}
-          >
-            {name.split("/").at(-1)}
-          </Button>
-        ))}
-        <Button
-          size="sm"
-          variant="outline"
-          className="ml-auto"
-          data-testid="diff-mode-toggle"
-          onClick={() => setMode((m) => (m === "unified" ? "split" : "unified"))}
-        >
-          {mode}
-        </Button>
-      </div>
-      <DiffViewer
-        fileName={file}
-        original={current.original}
-        modified={current.modified}
-        mode={mode}
-      />
-    </div>
-  );
-}
 
 export function EditorExamples() {
-  const [html, setHtml] = React.useState("<p>Write a <strong>run note</strong>.</p>");
-  const [code, setCode] = React.useState("export const n = 1\n");
-  const [md, setMd] = React.useState(
-    "# Title\n\n**bold**, a [link](https://example.com), and a task:\n\n- [x] Review grid\n- [ ] Ship demo\n"
-  );
-  const [mdMode, setMdMode] = React.useState<"edit" | "split" | "preview">("split");
-  const [jql, setJql] = React.useState('project = TMS AND status = "In Progress" ORDER BY updated DESC');
-  const [wiki, setWiki] = React.useState(JIRA_WIKI_SAMPLE);
-
   return (
     <>
       <Example id="rich-text-editor" title="RichTextEditor" hint="Tiptap — toolbar is live">
-        <RichTextEditor value={html} onChange={setHtml} />
+        <RichTextEditor01Example />
       </Example>
       <Example id="code-editor" title="CodeEditor" hint="CodeMirror 6">
-        <CodeEditor value={code} onChange={setCode} language="ts" />
+        <CodeEditor01Example />
       </Example>
-      <Example
-        id="markdown-editor"
-        title="MarkdownEditor"
-        hint="Left CodeMirror, right live GFM preview"
-      >
-        <MarkdownEditor value={md} onChange={setMd} mode={mdMode} onModeChange={setMdMode} />
+      <Example id="markdown-editor" title="MarkdownEditor" hint="Left CodeMirror, right live GFM preview">
+        <MarkdownEditor01Example />
       </Example>
       <Example id="diff-viewer" title="DiffViewer" hint="PR-style hunks, line numbers, unified/split">
-        <DiffPlayground />
+        <MiscEditors01Example />
       </Example>
       <Example id="jira-wiki" title="JiraWiki" hint="Left markup, right live preview">
-        <div className="overflow-hidden rounded-xl border bg-card">
-          <div className="grid min-h-[280px] md:grid-cols-2">
-            <Textarea
-              value={wiki}
-              onChange={(event) => setWiki(event.target.value)}
-              spellCheck={false}
-              className="min-h-[280px] resize-none rounded-none border-0 border-b font-mono md:border-r md:border-b-0"
-            />
-            <div className="overflow-auto p-3">
-              <JiraWiki>{wiki}</JiraWiki>
-            </div>
-          </div>
-        </div>
+        <MiscEditors02Example />
       </Example>
       <Example id="jql-input" title="JqlInput" hint="CodeMirror JQL · type to complete fields">
-        <JqlInput value={jql} onChange={setJql} />
-        <p className="text-muted-foreground mt-2 font-mono text-xs">{jql}</p>
+        <JqlInput01Example />
       </Example>
     </>
   );
