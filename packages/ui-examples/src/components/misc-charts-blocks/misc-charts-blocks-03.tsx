@@ -8,8 +8,9 @@ import { DonutChart, RadarChart, StackedBarChart } from "@monkey-mini-app/ui";
 export default function MiscChartsBlocks03Example() {
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid items-center gap-4 md:grid-cols-3">
         <DonutChart
+          size={190}
           center="128"
           config={{
             pass: { label: "Pass", color: "var(--chart-1)" },
@@ -32,6 +33,7 @@ export default function MiscChartsBlocks03Example() {
           ]}
         />
         <RadarChart
+          size={190}
           config={{ value: { label: "Score", color: "var(--chart-1)" } }}
           data={[
             { label: "A", value: 80 },
