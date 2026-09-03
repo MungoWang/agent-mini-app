@@ -5,12 +5,20 @@
  *   sdk.js     — UI kit + useApp; react* is external → /mma/runtime.js
  *   (served as /mma/runtime.js and /mma/sdk.js — href names kept for stability)
  *
- * Requires packages/ui/dist/index.js (run build:ui first). Needs network once per version.
+ * Requires packages/ui/dist/index.js (run build:ui first). esm.sh is fetched **once per
+ * React version** and kept in a persistent cache, so rebuilds and `npm publish` work
+ * offline; a content fingerprint of the built kit skips the whole step when nothing moved.
  *
- * Inputs:       packages/ui/dist (flat kit), packages/ui/src, esm.sh
- * Writes:       packages/ui/dist/{runtime.js,sdk.js}
+ * Flags:        --force    rebuild even when the fingerprint matches (still cached)
+ *               --refresh  also ignore the cache and re-download from esm.sh
+ *               --offline  never touch the network; fail if something is uncached
+ *
+ * Inputs:       packages/ui/dist (flat kit + src), esm.sh (cached)
+ * Writes:       packages/ui/dist/{runtime.js,sdk.js},
+ *               node_modules/.cache/monkey-mini-app/{esm.sh/**,iframe-stamp.json}
  * Run as:       pnpm build:sdk — also part of @monkey-mini-app/ui prepack
  */
+import crypto from "node:crypto";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -21,9 +29,16 @@ const root = path.resolve(__dirname, "..", "..");
 const uiRoot = path.join(root, "packages/ui");
 const uiDist = path.join(uiRoot, "dist");
 const distDir = uiDist; // iframe bundles live next to the kit flat export
-const vendorDir = path.join(distDir, ".esm");
+const vendorDir = path.join(distDir, ".esm"); // scratch copy of this build's modules
+const cacheDir = path.join(root, "node_modules/.cache/monkey-mini-app/esm.sh"); // persistent
+const stampFile = path.join(root, "node_modules/.cache/monkey-mini-app/iframe-stamp.json");
 const RUNTIME_HREF = "/mma/runtime.js";
 const ESM_ORIGIN = "https://esm.sh";
+
+const flags = new Set(process.argv.slice(2));
+const FORCE = flags.has("--force");
+const REFRESH = flags.has("--refresh");
+const OFFLINE = flags.has("--offline");
 
 function reactVersion() {
   const req = createRequire(path.join(uiRoot, "package.json"));
@@ -42,10 +57,44 @@ function localName(url) {
   return `${safe || "mod"}.js`;
 }
 
+let cacheHits = 0;
+let cacheMisses = 0;
+
+function cacheFile(url) {
+  return path.join(cacheDir, localName(url));
+}
+
+/** Transient CDN/proxy blips must not kill a publish: back off and retry. */
 async function fetchText(url) {
-  const res = await fetch(url, { redirect: "follow" });
-  if (!res.ok) throw new Error(`[build-sdk] GET ${url} → ${res.status}`);
-  return res.text();
+  const cf = cacheFile(url);
+  if (!REFRESH && fs.existsSync(cf)) {
+    cacheHits++;
+    return fs.readFileSync(cf, "utf8");
+  }
+  if (OFFLINE) {
+    throw new Error(
+      `[build-sdk] --offline and ${url} is not cached\n` +
+        `  warm the cache once on a networked machine: pnpm build:sdk --force`,
+    );
+  }
+  cacheMisses++;
+  let last;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(30_000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      fs.mkdirSync(cacheDir, { recursive: true });
+      fs.writeFileSync(cf, text);
+      return text;
+    } catch (cause) {
+      last = cause;
+      const wait = 500 * 2 ** attempt;
+      console.warn(`[build-sdk] GET ${url} attempt ${attempt}/3 failed (${cause.cause?.code || cause.message}); retrying in ${wait}ms`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  throw new Error(`[build-sdk] GET ${url} failed after 3 attempts: ${last?.cause?.code || last?.message || last}`);
 }
 
 function isStub(text) {
@@ -226,18 +275,67 @@ async function buildSdk(esbuild) {
   return fs.statSync(outfile).size;
 }
 
+/** Everything that can change the iframe output: the built kit barrel + its sources. */
+function fingerprint() {
+  const h = crypto.createHash("sha256");
+  h.update(fs.readFileSync(path.join(uiDist, "index.js")));
+  const walk = (dir) => {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) walk(full);
+      else {
+        h.update(ent.name);
+        h.update(fs.readFileSync(full));
+      }
+    }
+  };
+  const srcDir = path.join(uiDist, "src");
+  if (fs.existsSync(srcDir)) walk(srcDir);
+  return h.digest("hex");
+}
+
+function stampIsCurrent(fp, ver) {
+  if (FORCE) return false;
+  if (!fs.existsSync(path.join(distDir, "runtime.js")) || !fs.existsSync(path.join(distDir, "sdk.js"))) return false;
+  try {
+    const s = JSON.parse(fs.readFileSync(stampFile, "utf8"));
+    return s.fingerprint === fp && s.reactVersion === ver;
+  } catch {
+    return false;
+  }
+}
+
 async function main() {
   if (!fs.existsSync(path.join(uiDist, "index.js"))) {
     throw new Error("[build-sdk] packages/ui/dist missing — run: node scripts/build/ui.mjs");
   }
   fs.mkdirSync(distDir, { recursive: true });
   const ver = reactVersion();
+  if (REFRESH) {
+    fs.rmSync(cacheDir, { recursive: true, force: true });
+    console.log("[build-sdk] --refresh: esm.sh cache cleared");
+  }
+
+  const fp = fingerprint();
+  if (stampIsCurrent(fp, ver)) {
+    const kb = (f) => (fs.statSync(path.join(distDir, f)).size / 1024).toFixed(0);
+    console.log(
+      `[build-sdk] up to date (react@${ver}, ${kb("runtime.js")}KB + ${kb("sdk.js")}KB) — skipped; --force to rebuild`,
+    );
+    return;
+  }
   const esbuild = await import("esbuild");
   const t0 = Date.now();
   const runtimeBytes = await buildRuntime(esbuild, ver);
   const sdkBytes = await buildSdk(esbuild);
+  fs.mkdirSync(path.dirname(stampFile), { recursive: true });
+  fs.writeFileSync(
+    stampFile,
+    JSON.stringify({ fingerprint: fp, reactVersion: ver, builtAt: new Date().toISOString() }, null, 2) + "\n",
+  );
   console.log(
-    `[build-sdk] react@${ver} runtime.js ${(runtimeBytes / 1024 / 1024).toFixed(2)}MB · sdk.js ${(sdkBytes / 1024 / 1024).toFixed(2)}MB in ${Date.now() - t0}ms`,
+    `[build-sdk] react@${ver} runtime.js ${(runtimeBytes / 1024 / 1024).toFixed(2)}MB · sdk.js ${(sdkBytes / 1024 / 1024).toFixed(2)}MB in ${Date.now() - t0}ms` +
+      ` · esm.sh ${cacheHits} cached / ${cacheMisses} fetched`,
   );
 }
 
