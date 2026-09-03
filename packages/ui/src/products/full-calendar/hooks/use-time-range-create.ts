@@ -39,18 +39,26 @@ export function useTimeRangeCreate() {
     moved: boolean
     pointerId: number
   } | null>(null)
-  const colRef = useRef<HTMLElement | null>(null)
+  /**
+   * Column geometry, captured at pointerdown. While dragging, the column stays
+   * connected we re-read its rect (so an ancestor scroll is followed); if the
+   * node was replaced by a re-render we keep the last good top. A detached
+   * element reports an all-zero DOMRect, and `clientY - 0` counts minutes from
+   * the top of the viewport — which drags a few pixels into a multi-hour range.
+   */
+  const geomRef = useRef<{ el: HTMLElement; top: number } | null>(null)
 
   const updateSelection = useCallback((next: Selection | null) => {
     selectionRef.current = next
     setSelection(next)
   }, [])
 
-  const yToMinutes = useCallback((clientY: number, el: HTMLElement) => {
+  const yToMinutes = useCallback((clientY: number) => {
+    const geom = geomRef.current
+    if (!geom) return 0
     // getBoundingClientRect tracks scroll of ancestors; do not add scrollTop again.
-    const rect = el.getBoundingClientRect()
-    const y = clientY - rect.top
-    return clamp(snapMinutes((y / HOUR_HEIGHT_PX) * 60), 0, 24 * 60)
+    if (geom.el.isConnected) geom.top = geom.el.getBoundingClientRect().top
+    return clamp(snapMinutes(((clientY - geom.top) / HOUR_HEIGHT_PX) * 60), 0, 24 * 60)
   }, [])
 
   const onPointerDown = useCallback(
@@ -61,9 +69,9 @@ export function useTimeRangeCreate() {
       if (target?.closest("[data-calendar-event],button,a,input,textarea")) return
 
       e.preventDefault()
-      columnEl.setPointerCapture(e.pointerId)
-      colRef.current = columnEl
-      const originMin = yToMinutes(e.clientY, columnEl)
+      columnEl.setPointerCapture?.(e.pointerId)
+      geomRef.current = { el: columnEl, top: columnEl.getBoundingClientRect().top }
+      const originMin = yToMinutes(e.clientY)
       dragRef.current = { day, originMin, moved: false, pointerId: e.pointerId }
       updateSelection({ day, startMin: originMin, endMin: originMin + 30 })
     },
@@ -73,9 +81,8 @@ export function useTimeRangeCreate() {
   const onPointerMove = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
       const drag = dragRef.current
-      const el = colRef.current
-      if (!drag || !el) return
-      const mins = yToMinutes(e.clientY, el)
+      if (!drag || !geomRef.current) return
+      const mins = yToMinutes(e.clientY)
       if (Math.abs(mins - drag.originMin) >= 15) drag.moved = true
       const startMin = Math.min(drag.originMin, mins)
       const endMin = Math.max(drag.originMin, mins)
@@ -92,7 +99,7 @@ export function useTimeRangeCreate() {
     const drag = dragRef.current
     const sel = selectionRef.current
     dragRef.current = null
-    colRef.current = null
+    geomRef.current = null
     updateSelection(null)
     if (!drag || !sel) return
 

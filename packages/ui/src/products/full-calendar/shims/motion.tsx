@@ -24,12 +24,42 @@ function make(tag: React.ElementType) {
   return El
 }
 
+/**
+ * One component per tag, cached.
+ *
+ * Without the cache `motion.div` returns a NEW component type on every property
+ * access, so React sees a different `type` each render and tears the subtree down:
+ * DOM refs held across renders (pointer capture, `getBoundingClientRect` during a
+ * drag) then point at detached nodes, and every `motion.*` descendant remounts on
+ * each state change. Keep this memoised.
+ */
+const byTag = new Map<string, React.ElementType>()
+const byComponent = new Map<React.ElementType, React.ElementType>()
+
+function forTag(tag: string): React.ElementType {
+  let el = byTag.get(tag)
+  if (!el) {
+    el = make(tag as React.ElementType)
+    byTag.set(tag, el)
+  }
+  return el
+}
+
+function forComponent(comp: React.ElementType): React.ElementType {
+  let el = byComponent.get(comp)
+  if (!el) {
+    el = make(comp)
+    byComponent.set(comp, el)
+  }
+  return el
+}
+
 export const motion = new Proxy(
-  { create: (comp: React.ElementType) => make(comp) },
+  { create: (comp: React.ElementType) => forComponent(comp) },
   {
     get(target, key) {
       if (key === "create") return target.create
-      if (typeof key === "string") return make(key as unknown as React.ElementType)
+      if (typeof key === "string") return forTag(key)
       return undefined
     },
   },

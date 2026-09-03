@@ -134,6 +134,7 @@ export function CalendarDayView({ singleDayEvents, multiDayEvents }: IProps) {
             <div className="relative flex-1 border-l">
               <div
                 className="relative touch-none select-none"
+                data-testid="calendar-day-column"
                 onPointerDown={(e) => onPointerDown(e, selectedDate, e.currentTarget)}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
@@ -174,6 +175,7 @@ export function CalendarDayView({ singleDayEvents, multiDayEvents }: IProps) {
                 {overlayStyle ? (
                   <div
                     className="pointer-events-none absolute inset-x-1 z-10 rounded-md border border-primary/40 bg-primary/15"
+                    data-testid="calendar-selection-overlay"
                     style={overlayStyle}
                   />
                 ) : null}

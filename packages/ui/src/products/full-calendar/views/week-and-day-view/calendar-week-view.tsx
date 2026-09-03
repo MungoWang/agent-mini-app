@@ -158,6 +158,8 @@ export function CalendarWeekView({singleDayEvents, multiDayEvents}: IProps) {
                                         <motion.div
                                             key={day.toISOString()}
                                             className="relative touch-none select-none"
+                                            data-testid="calendar-day-column"
+                                            data-day={day.toISOString()}
                                             initial={{opacity: 0}}
                                             animate={{opacity: 1}}
                                             transition={{delay: dayIndex * 0.1, ...transition}}
@@ -206,6 +208,7 @@ export function CalendarWeekView({singleDayEvents, multiDayEvents}: IProps) {
                                             {showOverlay ? (
                                                 <div
                                                     className="pointer-events-none absolute inset-x-0.5 z-10 rounded-md border border-primary/40 bg-primary/15"
+                                                    data-testid="calendar-selection-overlay"
                                                     style={overlayStyle}
                                                 />
                                             ) : null}
