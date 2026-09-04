@@ -28,11 +28,15 @@ function renderTree(ui: React.ReactNode): void {
   // Same nesting the host's compiled wrapper produces.
   act(() => {
     root.render(
-      createElement(
-        AppRuntime,
-        { appId: APP_ID },
-        createElement(UiProvider, { locale: "en" }, createElement(AppErrorBoundary, null, ui))
-      )
+      // `children` goes in the props object: with both components declaring children as
+      // required, the rest-argument overload is not the one TS picks.
+      createElement(AppRuntime, {
+        appId: APP_ID,
+        children: createElement(UiProvider, {
+          locale: "en",
+          children: createElement(AppErrorBoundary, null, ui),
+        }),
+      })
     );
   });
 }

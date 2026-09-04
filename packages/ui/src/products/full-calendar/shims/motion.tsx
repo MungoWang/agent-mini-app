@@ -54,6 +54,31 @@ function forComponent(comp: React.ElementType): React.ElementType {
   return el
 }
 
+/** Props the shim swallows rather than forwarding to the DOM. */
+export type MotionProps = {
+  initial?: unknown
+  animate?: unknown
+  exit?: unknown
+  variants?: unknown
+  transition?: unknown
+  whileHover?: unknown
+  whileTap?: unknown
+  layout?: unknown
+  scrollPosition?: unknown
+}
+
+/**
+ * `motion.div` has to type as a component taking **the real element's props** plus the motion
+ * ones. Typed as a bare `React.ElementType` (or a `Record<string, unknown>` props bag), every
+ * handler at a call site becomes an implicit any — that is how the week view's
+ * `onPointerDown={(e) => …}` lost its `e`.
+ */
+export type MotionComponents = {
+  [K in keyof React.JSX.IntrinsicElements]: React.ComponentType<
+    React.ComponentProps<K> & MotionProps
+  >
+}
+
 export const motion = new Proxy(
   { create: (comp: React.ElementType) => forComponent(comp) },
   {
@@ -63,7 +88,7 @@ export const motion = new Proxy(
       return undefined
     },
   },
-) as unknown as { create: (comp: React.ElementType) => React.ElementType } & Record<string, React.ElementType>
+) as unknown as { create: (comp: React.ElementType) => React.ElementType } & MotionComponents
 
 export function AnimatePresence({ children }: { children?: React.ReactNode; initial?: boolean; mode?: string }) {
   return <>{children}</>

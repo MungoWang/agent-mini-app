@@ -106,11 +106,22 @@ function loadCore(): Promise<CmCore> {
  * Stream tokenizer: `"quoted"` / `'quoted'`, numbers, dates, relative intervals,
  * operators, keywords, then a word is a **field** when an operator follows it.
  */
+/**
+ * The subset of CodeMirror's `StringStream` this tokenizer touches. `StreamLanguage` arrives
+ * as `any` (the module is loaded from a CDN at runtime), so without this the `token`
+ * parameter silently degrades to an implicit any and the guard calls go unchecked.
+ */
+type TokenStream = {
+  eatSpace(): boolean
+  next(): string | false
+  match(re: RegExp, consume?: boolean): RegExpMatchArray | null
+}
+
 function jqlLanguage(core: CmCore) {
   const kw = new Set(KEYWORDS)
   return core.StreamLanguage.define({
     name: "jql",
-    token(stream) {
+    token(stream: TokenStream) {
       if (stream.eatSpace()) return null
       if (stream.match(/^'[^']*'/) || stream.match(/^"[^"]*"/)) return "string"
       if (stream.match(/^[+-]?\d+(h|d|w|mo|q|y)\b/)) return "number"

@@ -82,7 +82,7 @@ describe("useTimeRangeCreate", () => {
     // minimum block a press without dragging gets).
     act(() => result.current.onPointerMove(event("pointermove", 31 + 100)))
     expect(result.current.selection?.startMin).toBe(scrolled?.startMin)
-    expect(result.current.selection?.endMin).toBe(scrolled?.startMin + 30)
+    expect(result.current.selection?.endMin).toBe((scrolled?.startMin ?? 0) + 30)
     col.remove()
   })
 

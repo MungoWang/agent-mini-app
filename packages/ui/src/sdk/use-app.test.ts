@@ -60,7 +60,8 @@ function mount(appId = `com.example.probe${(mountSeq += 1)}`) {
       }),
     );
   });
-  return api as AppApi;
+  // Assigned inside `act`, which TS cannot see: the closure write is real, the narrowing is not.
+  return api as unknown as AppApi;
 }
 
 function Probe(props: { onApi: (api: AppApi) => void }) {

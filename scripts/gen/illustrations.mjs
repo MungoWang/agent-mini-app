@@ -69,10 +69,33 @@ const PALETTE = [
   ["#fed253", "color-mix(in oklch, var(--primary) 30%, var(--card))"],
 ];
 
+/**
+ * SVG carries inline styles as strings (`style="isolation:isolate"`); React's `style` prop
+ * wants an object, so a verbatim pass-through emits a file that does not typecheck. Vendored
+ * sources are third-party markup, so convert generally rather than special-casing the one
+ * declaration that happens to appear today.
+ */
+function styleAttrToJsx(svg) {
+  return svg.replace(/style="([^"]*)"/g, (_all, decl) => {
+    const parts = String(decl)
+      .split(";")
+      .map((d) => d.trim())
+      .filter(Boolean)
+      .map((d) => {
+        const i = d.indexOf(":");
+        if (i < 0) return null;
+        const key = d.slice(0, i).trim().replace(/-([a-z])/g, (_m, c) => c.toUpperCase());
+        return `${JSON.stringify(key)}: ${JSON.stringify(d.slice(i + 1).trim())}`;
+      })
+      .filter(Boolean);
+    return parts.length ? `style={{ ${parts.join(", ")} }}` : "";
+  });
+}
+
 function tokenize(svg) {
   let out = svg;
   for (const [from, to] of PALETTE) out = out.split(from).join(to);
-  return out;
+  return styleAttrToJsx(out);
 }
 
 function toName(slug) {
