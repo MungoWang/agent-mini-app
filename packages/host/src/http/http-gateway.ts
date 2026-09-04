@@ -16,7 +16,7 @@ import {
 import { readAppTheme, writeAppTheme } from "../apps/app-theme.ts";
 import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
 import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
-import { asAppId } from "../brand.ts";
+import { asAppId, isAppId } from "../brand.ts";
 import type { AppCssCompiler } from "../compile/app-css.ts";
 import {
   resolveSdkDistDir,
@@ -28,7 +28,7 @@ import {
 } from "../compile/ui-compiler.ts";
 import { writeHostConfig } from "../config/write.ts";
 import { HostError } from "../errors.ts";
-import { formatSse, type HostEventBus } from "../events/host-events.ts";
+import { APP_SNAPSHOT_BYTES,type AppDomSnapshot, formatSse, type HostEventBus } from "../events/host-events.ts";
 import type { GitHistory } from "../git/git-history.ts";
 import { WorkspacePaths } from "../paths/workspace-paths.ts";
 import { EMPTY_THEME_RESOURCE, type ThemeResource } from "../theme-resource.ts";
@@ -648,6 +648,79 @@ export class HttpGateway {
           return c.text(`app ui.css failed: ${errorMessage(cause)}`, 500);
         }
       }
+    });
+
+    /* ---------------------------------------------------- runtime diagnostics
+       Reported by the app iframe itself: the panel that embeds it is cross-origin, so
+       nothing else can see inside a running app. These always answer 204 — a failing
+       diagnostic endpoint would only add a second error to a page that is already broken. */
+
+    app.post("/api/app/:appId/errors", async (c) => {
+      const bus = this.events;
+      const appId = c.req.param("appId") || "";
+      if (!bus || !isAppId(appId)) return c.body(null, 204);
+      let body: unknown;
+      try {
+        body = await c.req.json();
+      } catch {
+        return c.body(null, 204);
+      }
+      if (!isRecord(body)) return c.body(null, 204);
+      bus.reportAppError(appId, {
+        kind: typeof body.kind === "string" ? body.kind : undefined,
+        message: typeof body.message === "string" ? body.message : undefined,
+        file: typeof body.file === "string" ? body.file : undefined,
+        line: typeof body.line === "number" ? body.line : undefined,
+        column: typeof body.column === "number" ? body.column : undefined,
+        stack: typeof body.stack === "string" ? body.stack : undefined,
+        componentStack:
+          typeof body.componentStack === "string" ? body.componentStack : undefined,
+      });
+      return c.body(null, 204);
+    });
+
+    app.get("/api/app/:appId/errors", (c) => {
+      const bus = this.events;
+      const appId = c.req.param("appId") || "";
+      if (!bus || !isAppId(appId)) return c.json({ ok: true, errors: [], lastSeq: 0, dropped: 0 });
+      const sinceRaw = Number(c.req.query("since"));
+      const since = Number.isFinite(sinceRaw) && sinceRaw > 0 ? sinceRaw : 0;
+      return c.json({ ok: true, ...bus.appErrorsFor(appId, since) });
+    });
+
+    app.post("/api/app/:appId/snapshot", async (c) => {
+      const bus = this.events;
+      const appId = c.req.param("appId") || "";
+      if (!bus || !isAppId(appId)) return c.body(null, 204);
+      let body: unknown;
+      try {
+        body = await c.req.json();
+      } catch {
+        return c.body(null, 204);
+      }
+      if (!isRecord(body) || body.dom === undefined) return c.body(null, 204);
+      let bytes = 0;
+      try {
+        bytes = JSON.stringify(body.dom).length;
+      } catch {
+        return c.body(null, 204);
+      }
+      // Reject an oversized outline rather than keep a silently half-truncated tree.
+      if (bytes > APP_SNAPSHOT_BYTES) return c.body(null, 204);
+      const viewport = isRecord(body.viewport) ? (body.viewport as AppDomSnapshot["viewport"]) : undefined;
+      bus.reportAppSnapshot(appId, {
+        dom: body.dom,
+        truncated: body.truncated === true,
+        ...(viewport ? { viewport } : {}),
+      });
+      return c.body(null, 204);
+    });
+
+    app.get("/api/app/:appId/snapshot", (c) => {
+      const bus = this.events;
+      const appId = c.req.param("appId") || "";
+      if (!bus || !isAppId(appId)) return c.json({ ok: true, snapshot: null });
+      return c.json({ ok: true, snapshot: bus.appSnapshot(appId) });
     });
 
     // Geist 字体（@fontsource-variable/geist）由 winocss @font-face url 引用，host 在这里直接吐文件

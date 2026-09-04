@@ -86,6 +86,63 @@ export function appFrameUrl(
   return `${origin}/app/${encodeURIComponent(appId)}?${new URLSearchParams(query).toString()}`;
 }
 
+/** What the host pushes on `GET /api/events`. */
+export type HostEventHandlers = {
+  onOpen?: (appId: string, title?: string) => void;
+  /** Sources were recompiled: an already-open iframe must refetch, not keep old code. */
+  onReload?: (appId: string) => void;
+};
+
+/**
+ * Subscribe to the host event stream. Returns an unsubscribe function.
+ *
+ * Lives here rather than in each adapter so every host gets the same freshness
+ * semantics for free. A missing/blocked stream is not fatal — it only costs live
+ * refresh, so failures degrade to the old behaviour and stay silent.
+ */
+export function subscribeHostEvents(origin: string, handlers: HostEventHandlers): () => void {
+  if (typeof EventSource === "undefined") return () => {};
+  let es: EventSource | null = null;
+  const listen = (fn: (data: Record<string, unknown>) => void) => {
+    return (raw: Event) => {
+      const e = raw as MessageEvent<string>;
+      let data: unknown;
+      try {
+        data = JSON.parse(e.data || "{}");
+      } catch {
+        return;
+      }
+      if (!data || typeof data !== "object") return;
+      fn(data as Record<string, unknown>);
+    };
+  };
+  try {
+    es = new EventSource(`${origin.replace(/\/$/, "")}/api/events`);
+    es.addEventListener(
+      "app:open",
+      listen((d) => {
+        if (typeof d.appId === "string") handlers.onOpen?.(d.appId, typeof d.title === "string" ? d.title : undefined);
+      }),
+    );
+    es.addEventListener(
+      "app:reload",
+      listen((d) => {
+        if (typeof d.appId === "string") handlers.onReload?.(d.appId);
+      }),
+    );
+  } catch {
+    return () => {};
+  }
+  return () => {
+    try {
+      es?.close();
+    } catch {
+      /* ignore */
+    }
+    es = null;
+  };
+}
+
 function parseAppTheme(raw: unknown): AppItem["theme"] {
   if (raw === null) return null;
   if (!isRecord(raw)) return undefined;

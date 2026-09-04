@@ -238,6 +238,17 @@ export const en = {
     hoursAgo: (n: number) => `${n}h ago`,
     daysAgo: (n: number) => `${n}d ago`,
   },
+  appError: {
+    title: "This mini-app hit an error",
+    renderHint: "A component threw while rendering. Nothing else in the panel is affected.",
+    moduleHint: "The UI bundle did not load — it usually needs recompiling.",
+    uncaughtHint: "An unhandled error stopped this view.",
+    asyncHint: "A background task failed without being handled.",
+    retry: "Retry",
+    details: "Show details",
+    hideDetails: "Hide details",
+    reported: "Reported to the host",
+  },
 }
 
 export type UiMessages = typeof en

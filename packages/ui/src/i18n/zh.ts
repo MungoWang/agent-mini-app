@@ -224,4 +224,15 @@ export const zh: UiMessages = {
     hoursAgo: (n: number) => `${n} 小时前`,
     daysAgo: (n: number) => `${n} 天前`,
   },
+  appError: {
+    title: "这个小程序出错了",
+    renderHint: "某个组件在渲染时抛出异常，面板其他部分不受影响。",
+    moduleHint: "UI 代码没有加载成功，通常需要重新编译。",
+    uncaughtHint: "一个未被捕获的错误中断了当前视图。",
+    asyncHint: "一个后台任务失败且未被处理。",
+    retry: "重试",
+    details: "查看详情",
+    hideDetails: "收起详情",
+    reported: "已上报宿主",
+  },
 }

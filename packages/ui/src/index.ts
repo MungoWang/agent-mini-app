@@ -1,4 +1,5 @@
 export { AppRuntime, useApp } from "./sdk/use-app"
+export { AppErrorBoundary, reportAppError } from "./sdk/app-error-boundary"
 export * from "./lib/utils"
 export * from "./lib/icons"
 export * from "./i18n/context"

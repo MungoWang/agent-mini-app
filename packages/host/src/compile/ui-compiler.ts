@@ -316,7 +316,7 @@ export class UiCompiler {
     const appId = JSON.stringify(appIdOf(appDir));
     const wrapper = `
 import { createRoot } from "react-dom/client";
-import { AppRuntime, UiProvider } from "@monkey-mini-app/ui";
+import { AppRuntime, AppErrorBoundary, UiProvider } from "@monkey-mini-app/ui";
 import Ui from "./${uiRel}";
 const rootEl = document.getElementById("root");
 if (rootEl) {
@@ -326,7 +326,9 @@ if (rootEl) {
   rootEl.replaceChildren();
   createRoot(rootEl).render(
     <AppRuntime appId={${appId}}>
-      <UiProvider locale=${JSON.stringify(locale)}><Ui /></UiProvider>
+      <UiProvider locale=${JSON.stringify(locale)}>
+        <AppErrorBoundary><Ui /></AppErrorBoundary>
+      </UiProvider>
     </AppRuntime>
   );
 }
@@ -351,6 +353,10 @@ if (rootEl) {
         jsx: "automatic",
         define: { "process.env.NODE_ENV": '"production"' },
         minify: true,
+        // Error-boundary `componentStack` and stack traces name components. Plain
+        // `minify` rewrites them to `e`/`Pye`, which throws away the one thing an agent
+        // reads to find the broken component. keepNames costs a little size, not correctness.
+        keepNames: true,
         legalComments: "none",
         logLevel: "silent",
       });

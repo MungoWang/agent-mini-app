@@ -1,12 +1,11 @@
 import {
-  createContext,
   createElement,
   type ReactNode,
   useCallback,
   useContext,
 } from "react";
 
-const AppIdContext = createContext("");
+import { AppIdContext } from "./app-id";
 
 export function AppRuntime(props: { appId: string; children: ReactNode }) {
   return createElement(AppIdContext.Provider, { value: props.appId }, props.children);

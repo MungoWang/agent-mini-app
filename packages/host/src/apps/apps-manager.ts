@@ -9,8 +9,10 @@ import type { AppCallContext } from "../app-runtime.ts";
 import { type AbsolutePath, type AppId,asAppId, isAppId } from "../brand.ts";
 import type { HostCapabilities } from "../capabilities.ts";
 import { bindCapsToContext } from "../capabilities.ts";
+import { checkAppSources, formatFinding } from "../compile/static-check.ts";
 import type { UiCompiler } from "../compile/ui-compiler.ts";
 import { HostError } from "../errors.ts";
+import { HostEventBus } from "../events/host-events.ts";
 import type { GitHistory } from "../git/git-history.ts";
 import type { LlmRunOptions } from "../model-call.ts";
 import { WorkspacePaths } from "../paths/workspace-paths.ts";
@@ -228,16 +230,44 @@ export type AfterMutateOptions = {
   commit?: boolean;
 };
 
+/**
+ * Why the auto-commit did or did not happen. `null` used to mean three different
+ * things (compile failed / nothing to commit / commit errored), which an agent
+ * cannot act on — so the outcome is explicit.
+ *
+ * - `committed` — a new commit was created (`commitId` set)
+ * - `clean`     — nothing to commit; the worktree already matches HEAD
+ * - `skipped`   — the caller opted out (`commit: false`)
+ * - `failed`    - a commit was attempted and errored (`reason` set)
+ */
+export type CommitStatus = "committed" | "clean" | "skipped" | "failed";
+
+export type CommitOutcome = {
+  status: CommitStatus;
+  /** Short commit id, only set when `status === "committed"`. */
+  commitId?: string;
+  message?: string;
+  /** Human/agent-readable cause for `failed`; `reason` for the other non-committed states is in `note`. */
+  reason?: string;
+  note?: string;
+};
+
 export type AfterMutateResult = {
-  committed: { commitId: string; message: string } | null;
+  committed: CommitOutcome;
 };
 
 export type ReloadResult = {
   ok: boolean;
   errors: string[];
+  /**
+   * Non-blocking findings from the static pass (P0-2). Reported so the agent can
+   * act on them, but they never flip `ok` — a false positive here must not make
+   * a working app uncompilable.
+   */
+  notices?: string[];
   path: string;
   compiled?: { api: boolean; ui: boolean };
-  committed?: { commitId: string; message: string } | null;
+  committed?: CommitOutcome;
 };
 
 /** Loads, registers, and executes mini-apps under WorkspacePaths.appsDir(). */
@@ -250,6 +280,8 @@ export class AppsManager {
     private readonly capabilities: HostCapabilities,
     private readonly git: GitHistory,
     private readonly config: HostConfig,
+    /** Own bus when a host constructs us without one (tests, adapters). */
+    private readonly events: HostEventBus = new HostEventBus(),
   ) {}
 
   /** Wire UI compiler for invalidate + reload (createHost calls this). */
@@ -446,31 +478,73 @@ export class AppsManager {
       errors.push("ui compiler not wired");
     }
 
+    // Static pass: only meaningful once both layers transpiled, otherwise we would
+    // pile guesses on top of a file the compiler already rejected.
+    const notices: string[] = [];
+    if (errors.length === 0) {
+      try {
+        const { findings, errorsByLayer, unavailable } = await checkAppSources(dir);
+        if (unavailable) {
+          notices.push("undefined-identifier check skipped: the TypeScript parser is not resolvable in this host install");
+        }
+        for (const [layer, list] of errorsByLayer) {
+          for (const f of list) errors.push(`${layer}: ${formatFinding(f)}`);
+        }
+        for (const f of findings) {
+          if (f.severity === "notice") notices.push(formatFinding(f));
+        }
+      } catch {
+        /* a broken checker must never break reload itself */
+      }
+    }
+
     const ok = errors.length === 0;
-    let committed: { commitId: string; message: string } | null = null;
-    if (ok) {
+    let committed: CommitOutcome;
+    if (!ok) {
+      // Nothing was committed because the app is still broken — say so, do not
+      // collapse this into the same `null` as "already committed by the edit".
+      committed = { status: "skipped", note: "compile failed; nothing was committed" };
+    } else {
       await this.git.init(dir);
-      if (await this.git.isDirty(dir)) {
+      if (!(await this.git.isDirty(dir))) {
+        committed = {
+          status: "clean",
+          note: "worktree already matches HEAD (mini_app_edit auto-commits)",
+        };
+      } else {
         try {
           const { commitId } = await this.git.commit(dir, "reload");
-          committed = { commitId, message: "reload" };
+          committed =
+            commitId != null
+              ? { status: "committed", commitId, message: "reload" }
+              : { status: "clean", note: "nothing to commit" };
         } catch (cause) {
           const message = cause instanceof Error ? cause.message : String(cause);
           errors.push(`commit: ${message}`);
+          committed = { status: "failed", reason: message };
           return {
             ok: false,
             errors,
+            ...(notices.length ? { notices } : {}),
             path: dir,
             compiled: { api: apiOk, ui: uiOk },
-            committed: null,
+            committed,
           };
         }
       }
     }
 
+    // A successful reload means the browser copy is stale: tell every connected
+    // panel so an already-open iframe re-fetches instead of showing old code.
+    if (ok) {
+      this.events.emit({ type: "app:reload", appId });
+      this.events.forgetErrors(appId);
+    }
+
     return {
-      ok: errors.length === 0,
+      ok,
       errors,
+      ...(notices.length ? { notices } : {}),
       path: dir,
       compiled: { api: apiOk, ui: uiOk },
       committed,
@@ -481,13 +555,19 @@ export class AppsManager {
     this.invalidate(appDir);
     await this.git.init(appDir);
     if (opts.commit === false) {
-      return { committed: null };
+      return { committed: { status: "skipped", note: "commit: false" } };
+    }
+    if (!(await this.git.isDirty(appDir))) {
+      return { committed: { status: "clean", note: "nothing to commit" } };
     }
     try {
       const { commitId } = await this.git.commit(appDir, opts.commitMessage);
-      return { committed: { commitId, message: opts.commitMessage } };
-    } catch {
-      return { committed: null };
+      return commitId != null
+        ? { committed: { status: "committed", commitId, message: opts.commitMessage } }
+        : { committed: { status: "clean", note: "nothing to commit" } };
+    } catch (cause) {
+      const reason = cause instanceof Error ? cause.message : String(cause);
+      return { committed: { status: "failed", reason } };
     }
   }
 

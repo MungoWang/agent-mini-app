@@ -95,6 +95,43 @@ function parseReadRange(args: Record<string, unknown>): {
 
 const APP_ID_SCHEMA = { type: "string" } as const;
 
+/** Legend for the compact snapshot keys, returned alongside the tree so it is self-describing. */
+const OUTLINE_KEY_DOC =
+  "t=tag i=id c=class r=role al=aria-label x=text ph=placeholder w/h=pixel size " +
+  "s=applied styles {d:display c:color bg:background fz:font-size fw:font-weight fd:flex-direction gap:gap op:opacity} " +
+  "k=children empty=leaf with no text/size (usually a class that did not apply)";
+
+type OutlineNode = Record<string, unknown>;
+
+function isOutlineNode(value: unknown): value is OutlineNode {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Re-trim an outline for the caller: depth is bounded again, and `textOnly` drops the
+ * structural wrappers so an agent can read a page without paying for every div.
+ */
+function trimOutline(node: unknown, maxDepth: number, textOnly: boolean): unknown {
+  if (!isOutlineNode(node)) return node;
+  const out: OutlineNode = {};
+  for (const [k, v] of Object.entries(node)) {
+    if (k !== "k") out[k] = v;
+  }
+  const kids = Array.isArray(node.k) ? node.k : undefined;
+  if (kids && maxDepth > 1) {
+    const kept = kids
+      .map((child) => trimOutline(child, maxDepth - 1, textOnly))
+      .filter((child) => {
+        if (!textOnly) return true;
+        return isOutlineNode(child) && (child.x !== undefined || child.ph !== undefined || child.r !== undefined || child.k !== undefined);
+      });
+    if (kept.length) out.k = kept;
+  } else if (kids && textOnly) {
+    out.kidsDropped = kids.length;
+  }
+  return out;
+}
+
 /** Host chat tools: `mini_app_list`, `mini_app_read`, … and `mini_app_list_ctx_tools`. */
 export function isMiniAppToolName(name: string): boolean {
   return name.startsWith("mini_app_");
@@ -266,7 +303,7 @@ export class ToolFacade {
       {
         name: "mini_app_open",
         description:
-          "Open the mini-app in the dsh 小程序 side panel. The web Host will pop open and focus this app.",
+          "Open the mini-app in the 小程序 side panel and report whether a panel actually received it. `panel: \"no-panel-connected\"` means no browser is attached to /api/events — the app is fine, nobody is watching, so tell the user to open the panel.",
         inputSchema: {
           type: "object",
           properties: {
@@ -280,17 +317,56 @@ export class ToolFacade {
       {
         name: "mini_app_call",
         description:
-          "Call a mini-app api method. args is a plain object. Do not curl the host HTTP API.",
+          "Smoke-test a mini-app api method. args is a plain object. For a set of calls, pass calls: [{ method, args }] instead of method — they run in order and every entry gets its own result, so one failure does not hide the others. Do not curl the host HTTP API.",
         inputSchema: {
           type: "object",
           properties: {
             appId: APP_ID_SCHEMA,
-            method: { type: "string" },
+            method: { type: "string", description: "Single call (legacy shape)." },
             args: { type: "object" },
+            calls: {
+              type: "array",
+              description: "Batch shape: up to 20 calls, run sequentially.",
+              items: {
+                type: "object",
+                properties: { method: { type: "string" }, args: { type: "object" } },
+                required: ["method"],
+              },
+            },
           },
-          required: ["appId", "method"],
+          required: ["appId"],
         },
         execute: (args, signal) => this.invoke("mini_app_call", args, signal),
+      },
+      {
+        name: "mini_app_errors",
+        description:
+          "Read runtime errors the app iframe reported to the host — the only way to see a UI that compiled fine and then crashed in the browser. Kinds: render (error boundary, has componentStack) / module (bundle failed to load) / uncaught / async. Runtime errors need a live iframe, so call mini_app_open first, then read again after the view has had a moment to render. Pass since (last returned lastSeq) to poll only for new ones, or clear:true to empty the ring.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            appId: APP_ID_SCHEMA,
+            since: { type: "number", description: "Return only errors after this sequence id." },
+            clear: { type: "boolean", description: "Empty the ring before reading." },
+          },
+          required: ["appId"],
+        },
+        execute: (args, signal) => this.invoke("mini_app_errors", args, signal),
+      },
+      {
+        name: "mini_app_dom_snapshot",
+        description:
+          "Read the last DOM outline the app iframe reported: tag / class / role / text / measured size, plus the styles that actually applied (color, background, font-size, display, gap, opacity) on text and interactive nodes. This is how you check whether a Tailwind class or theme token really took effect instead of guessing — it is **not** a screenshot, and it is only as fresh as the last render, so mini_app_open first. Nodes are keyed t/i/c/r/al/x/ph/w/h/s/k (see the skill).",
+        inputSchema: {
+          type: "object",
+          properties: {
+            appId: APP_ID_SCHEMA,
+            depth: { type: "number", description: "Trim the outline to N levels (default 8)." },
+            textOnly: { type: "boolean", description: "Keep only nodes carrying text or a control." },
+          },
+          required: ["appId"],
+        },
+        execute: (args, signal) => this.invoke("mini_app_dom_snapshot", args, signal),
       },
       {
         name: "mini_app_history_commit",
@@ -375,6 +451,10 @@ export class ToolFacade {
         return this.handleOpen(args);
       case "mini_app_call":
         return this.handleCall(args, signal);
+      case "mini_app_errors":
+        return this.handleErrors(args);
+      case "mini_app_dom_snapshot":
+        return this.handleDomSnapshot(args);
       case "mini_app_history_commit":
         return this.handleHistoryCommit(args);
       case "mini_app_history_list":
@@ -471,7 +551,14 @@ export class ToolFacade {
     }
     const title = typeof args.title === "string" && args.title ? args.title : app.name;
     this.events?.emit({ type: "app:open", appId: app.id, title });
-    return { ok: true, appId: app.id, title };
+    return {
+      ok: true,
+      appId: app.id,
+      title,
+      // A delivery receipt beats telling the user "it should be open": the host knows
+      // whether any browser is actually attached to /api/events.
+      panel: this.events && this.events.listenerCount() > 0 ? "notified" : "no-panel-connected",
+    };
   }
 
   private async handleCall(
@@ -479,8 +566,39 @@ export class ToolFacade {
     signal?: AbortSignal,
   ): Promise<unknown> {
     const appId = requireString(args, "appId");
+
+    // Batch shape: one round trip for a whole CRUD smoke test.
+    if (args.calls !== undefined) {
+      if (!Array.isArray(args.calls) || args.calls.length === 0) {
+        throw new HostError("INVALID_TOOL_ARGS", "calls must be a non-empty array");
+      }
+      if (args.calls.length > 20) {
+        throw new HostError("INVALID_TOOL_ARGS", "calls accepts at most 20 entries");
+      }
+      const results: unknown[] = [];
+      for (const [i, raw] of args.calls.entries()) {
+        if (!isRecord(raw) || typeof raw.method !== "string" || !raw.method) {
+          throw new HostError("INVALID_TOOL_ARGS", `calls[${i}] requires a method string`);
+        }
+        const callArgs = isRecord(raw.args) ? raw.args : {};
+        results.push({ method: raw.method, ...(await this.callOne(appId, raw.method, callArgs, signal)) });
+        if (signal?.aborted) break;
+      }
+      const failed = results.filter((r) => (r as { ok?: boolean }).ok === false).length;
+      return { ok: failed === 0, results, failed };
+    }
+
     const method = requireString(args, "method");
     const callArgs = isRecord(args.args) ? args.args : args.args === undefined ? {} : args.args;
+    return this.callOne(appId, method, callArgs, signal);
+  }
+
+  private async callOne(
+    appId: string,
+    method: string,
+    callArgs: unknown,
+    signal?: AbortSignal,
+  ): Promise<Record<string, unknown>> {
     try {
       const value = await this.apps.call(appId, method, callArgs, signal);
       return { ok: true, value };
@@ -491,6 +609,61 @@ export class ToolFacade {
       const message = cause instanceof Error ? cause.message : String(cause);
       return { ok: false, error: message };
     }
+  }
+
+  private handleErrors(args: Record<string, unknown>): unknown {
+    const appId = requireString(args, "appId");
+    if (!this.events) {
+      return { ok: false, error: "this host has no event bus — runtime errors are unavailable" };
+    }
+    const sinceRaw = args.since;
+    const since = typeof sinceRaw === "number" && Number.isFinite(sinceRaw) && sinceRaw > 0 ? sinceRaw : 0;
+    if (args.clear === true) this.events.forgetErrors(appId);
+    const { errors, lastSeq, dropped } = this.events.appErrorsFor(appId, args.clear === true ? 0 : since);
+    return {
+      ok: true,
+      appId,
+      errors,
+      lastSeq,
+      ...(dropped > 0 ? { dropped, note: `${dropped} older error(s) already evicted from the ring` } : {}),
+      ...(errors.length === 0
+        ? {
+            emptyHint:
+              "no errors reported yet — the iframe posts these only while it is open and rendering; if you just reloaded, call mini_app_open and read again",
+          }
+        : {}),
+    };
+  }
+
+  private handleDomSnapshot(args: Record<string, unknown>): unknown {
+    const appId = requireString(args, "appId");
+    if (!this.events) {
+      return { ok: false, error: "this host has no event bus — snapshots are unavailable" };
+    }
+    const snap = this.events.appSnapshot(appId);
+    if (!snap) {
+      return {
+        ok: true,
+        appId,
+        snapshot: null,
+        hint: "the app iframe has not reported a DOM outline yet — call mini_app_open and read again once it has rendered",
+      };
+    }
+    const depthRaw = args.depth;
+    const maxDepth = typeof depthRaw === "number" && Number.isFinite(depthRaw) && depthRaw > 0
+      ? Math.min(Math.floor(depthRaw), 24)
+      : 8;
+    const dom = trimOutline(snap.dom, maxDepth, args.textOnly === true);
+    return {
+      ok: true,
+      appId,
+      at: snap.at,
+      ageMs: Date.now() - snap.at,
+      viewport: snap.viewport,
+      truncated: snap.truncated === true,
+      keys: OUTLINE_KEY_DOC,
+      dom,
+    };
   }
 
   private async handleHistoryCommit(args: Record<string, unknown>): Promise<unknown> {

@@ -95,6 +95,19 @@ function subscribeAppOpen(current: DshShell): void {
         if (app) current.bindPanel().actions.openAppTab(app);
       });
     });
+    // Recompiled sources: an iframe the user already has open is running stale bytes.
+    es.addEventListener("app:reload", (e: MessageEvent<string>) => {
+      let appId = "";
+      try {
+        const d: unknown = JSON.parse(e.data || "{}");
+        if (d && typeof d === "object" && typeof (d as { appId: unknown }).appId === "string") {
+          appId = (d as { appId: string }).appId;
+        }
+      } catch {
+        return;
+      }
+      if (appId && current.frames.map.has(appId)) current.frames.reload(appId);
+    });
   } catch (err) {
     console.warn("[monkey-mini-app-client] sse subscribe failed", err);
   }

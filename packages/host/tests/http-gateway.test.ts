@@ -619,3 +619,100 @@ export default defineApp({
     expect(host!.port).toBe(free);
   }, 15_000);
 });
+
+  it("POST /api/app/:appId/errors accepts a report and answers 204 even for garbage", async () => {
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pingApi,
+    });
+    const url = `${origin()}/api/app/com.example.todo/errors`;
+
+    const ok = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind: "render", message: "greeting is not defined", componentStack: "\n    at Ui" }),
+    });
+    expect(ok.status).toBe(204);
+
+    // A diagnostic endpoint that 500s would add a second error to a broken page.
+    for (const body of ["not json", JSON.stringify([1, 2]), JSON.stringify({ kind: "weird" })]) {
+      const res = await fetch(url, { method: "POST", body });
+      expect(res.status).toBe(204);
+    }
+
+    const got = await fetch(url).then((r) => r.json());
+    expect(got.errors.map((e: { message: string }) => e.message)).toEqual([
+      "greeting is not defined",
+      "(no message)",
+    ]);
+  });
+
+  it("GET /api/app/:appId/errors filters by `since`", async () => {
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pingApi,
+    });
+    const url = `${origin()}/api/app/com.example.todo/errors`;
+    await fetch(url, { method: "POST", body: JSON.stringify({ kind: "uncaught", message: "one" }) });
+    const all = await fetch(url).then((r) => r.json());
+    await fetch(url, { method: "POST", body: JSON.stringify({ kind: "uncaught", message: "two" }) });
+
+    const since = await fetch(`${url}?since=${all.lastSeq}`).then((r) => r.json());
+    expect(since.errors.map((e: { message: string }) => e.message)).toEqual(["two"]);
+  });
+
+  it("error routes ignore a malformed appId without throwing", async () => {
+    await startHost();
+    const res = await fetch(`${origin()}/api/app/not-an-id/errors`, {
+      method: "POST",
+      body: JSON.stringify({ kind: "render", message: "x" }),
+    });
+    expect(res.status).toBe(204);
+    await expect(fetch(`${origin()}/api/app/not-an-id/errors`).then((r) => r.json())).resolves.toEqual(
+      { ok: true, errors: [], lastSeq: 0, dropped: 0 },
+    );
+  });
+
+  it("POST /api/app/:appId/snapshot keeps only the newest outline and drops oversized ones", async () => {
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pingApi,
+    });
+    const url = `${origin()}/api/app/com.example.todo/snapshot`;
+
+    await fetch(url, { method: "POST", body: JSON.stringify({ dom: { t: "div", x: "first" } }) });
+    await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({ dom: { t: "div", x: "second" }, viewport: { width: 800, height: 600 } }),
+    });
+    const got = await fetch(url).then((r) => r.json());
+    expect(got.snapshot.dom).toEqual({ t: "div", x: "second" });
+    expect(got.snapshot.viewport).toEqual({ width: 800, height: 600 });
+
+    // Oversized beats half a tree stored silently.
+    const big = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({ dom: { t: "div", x: "y".repeat(70_000) } }),
+    });
+    expect(big.status).toBe(204);
+    const still = await fetch(url).then((r) => r.json());
+    expect(still.snapshot.dom.x).toBe("second");
+  });
+
+  it("runner HTML wires the error and snapshot channels", async () => {
+    await startHost();
+    const html = await fetch(`${origin()}/app/com.example.todo`).then((r) => r.text());
+    expect(html).toContain("/errors");
+    expect(html).toContain("/snapshot");
+    expect(html).toContain("unhandledrejection");
+    expect(html).toContain("getComputedStyle");
+    // A module-load crash must name the app and the stage, not just dump a stack.
+    expect(html).toContain("mma-crash");
+    expect(html).toContain("mini_app_errors");
+  });

@@ -177,10 +177,12 @@ describe("ToolFacade", () => {
       path: "ui.tsx",
       edits: [{ oldText: "hello", newText: "world" }],
       commit: false,
-    })) as { ok: boolean; diff?: string; committed: null };
+    })) as { ok: boolean; diff?: string; committed: { status: string; note?: string } };
     expect(edited.ok).toBe(true);
     expect(edited.diff).toContain("world");
-    expect(edited.committed).toBeNull();
+    // `commit: false` is an explicit opt-out, not "nothing to do" — the two used to
+    // collapse into the same `null`.
+    expect(edited.committed.status).toBe("skipped");
     expect(await git.isDirty(apps.dirOf(appId))).toBe(true);
 
     const written = (await tools.invoke("mini_app_write", {
@@ -196,14 +198,24 @@ describe("ToolFacade", () => {
       ok: boolean;
       errors: string[];
       compiled?: { api: boolean; ui: boolean };
-      committed?: { commitId: string; message: string } | null;
+      committed?: { status: string; message?: string; note?: string };
     };
     expect(reloaded.errors).toEqual([]);
     expect(reloaded.ok).toBe(true);
     expect(reloaded.compiled?.api).toBe(true);
     expect(reloaded.compiled?.ui).toBe(true);
+    expect(reloaded.committed?.status).toBe("committed");
     expect(reloaded.committed?.message).toBe("reload");
     expect(await git.isDirty(apps.dirOf(appId))).toBe(false);
+
+    // A second reload has nothing to commit. `clean` must be distinguishable from
+    // `skipped` (compile failed) and `failed` — an agent decides what to do next off this.
+    const again = (await tools.invoke("mini_app_reload", { appId })) as {
+      ok: boolean;
+      committed?: { status: string };
+    };
+    expect(again.ok).toBe(true);
+    expect(again.committed?.status).toBe("clean");
 
     const after = (await tools.invoke("mini_app_read", { appId, path: "ui.tsx" })) as {
       content: string;
@@ -290,8 +302,14 @@ describe("ToolFacade", () => {
     const opened = (await tools.invoke("mini_app_open", {
       appId: "com.example.open",
       title: "自定义标题",
-    })) as { ok: boolean; appId: string; title: string };
-    expect(opened).toEqual({ ok: true, appId: "com.example.open", title: "自定义标题" });
+    })) as { ok: boolean; appId: string; title: string; panel: string };
+    expect(opened).toEqual({
+      ok: true,
+      appId: "com.example.open",
+      title: "自定义标题",
+      // The subscriber above is a connected panel, so the receipt is real.
+      panel: "notified",
+    });
     expect(seen).toEqual([{ type: "app:open", appId: "com.example.open", title: "自定义标题" }]);
     const missing = (await tools.invoke("mini_app_open", { appId: "com.missing.app" })) as {
       ok: boolean;
@@ -320,5 +338,178 @@ describe("ToolFacade", () => {
     })) as { ok: boolean; error: string };
     expect(out.ok).toBe(false);
     expect(out.error).toBeTruthy();
+  });
+});
+
+describe("ToolFacade.mini_app_errors", () => {
+  it("returns what the iframe reported, newest cursor included", async () => {
+    const { tools, events } = boot();
+    events.reportAppError("com.example.err", {
+      kind: "render",
+      message: "greeting is not defined",
+      componentStack: "\n    at Ui",
+    });
+    const res = (await tools.invoke("mini_app_errors", { appId: "com.example.err" })) as {
+      ok: boolean;
+      errors: { kind: string; message: string; componentStack?: string }[];
+      lastSeq: number;
+    };
+    expect(res.ok).toBe(true);
+    expect(res.errors).toHaveLength(1);
+    expect(res.errors[0]).toMatchObject({
+      kind: "render",
+      message: "greeting is not defined",
+      componentStack: "\n    at Ui",
+    });
+    expect(res.lastSeq).toBeGreaterThan(0);
+  });
+
+  it("polls only new errors with `since`, and says so when the ring is empty", async () => {
+    const { tools, events } = boot();
+    const first = events.reportAppError("com.example.err", { kind: "uncaught", message: "a" });
+    events.reportAppError("com.example.err", { kind: "uncaught", message: "b" });
+
+    const res = (await tools.invoke("mini_app_errors", { appId: "com.example.err", since: first })) as {
+      errors: { message: string }[];
+    };
+    expect(res.errors.map((e) => e.message)).toEqual(["b"]);
+
+    const empty = (await tools.invoke("mini_app_errors", { appId: "com.example.other" })) as {
+      errors: unknown[];
+      emptyHint?: string;
+    };
+    expect(empty.errors).toEqual([]);
+    // An empty ring is not "no bugs" — it usually means nobody opened the app.
+    expect(empty.emptyHint).toMatch(/mini_app_open/);
+  });
+
+  it("clear:true empties the ring", async () => {
+    const { tools, events } = boot();
+    events.reportAppError("com.example.err", { kind: "render", message: "a" });
+    const res = (await tools.invoke("mini_app_errors", { appId: "com.example.err", clear: true })) as {
+      errors: unknown[];
+    };
+    expect(res.errors).toEqual([]);
+  });
+});
+
+describe("ToolFacade.mini_app_dom_snapshot", () => {
+  it("reads the last reported outline with a self-describing key legend", async () => {
+    const { tools, events } = boot();
+    events.reportAppSnapshot("com.example.snap", {
+      dom: { t: "div", c: "flex gap-3", w: 400, h: 80, k: [{ t: "button", x: "Save", s: { d: "inline-flex", c: "rgb(17,17,17)" } }] },
+      viewport: { width: 900, height: 600 },
+    });
+    const res = (await tools.invoke("mini_app_dom_snapshot", { appId: "com.example.snap" })) as {
+      ok: boolean;
+      dom: { t: string; k?: unknown[] };
+      keys: string;
+      viewport?: { width: number };
+      ageMs: number;
+    };
+    expect(res.ok).toBe(true);
+    expect(res.dom.t).toBe("div");
+    expect(res.keys).toContain("t=tag");
+    expect(res.viewport?.width).toBe(900);
+  });
+
+  it("trims by depth instead of dumping the whole tree", async () => {
+    const { tools, events } = boot();
+    events.reportAppSnapshot("com.example.snap", {
+      dom: { t: "div", k: [{ t: "div", k: [{ t: "div", k: [{ t: "span", x: "deep" }] }] }] },
+    });
+    const res = (await tools.invoke("mini_app_dom_snapshot", {
+      appId: "com.example.snap",
+      depth: 2,
+    })) as { dom: { k?: { k?: unknown }[] } };
+    expect(res.dom.k?.[0].k).toBeUndefined();
+  });
+
+  it("tells the agent to open the app rather than returning a bare null", async () => {
+    const { tools } = boot();
+    const res = (await tools.invoke("mini_app_dom_snapshot", { appId: "com.example.none" })) as {
+      snapshot: null;
+      hint?: string;
+    };
+    expect(res.snapshot).toBeNull();
+    expect(res.hint).toMatch(/mini_app_open/);
+  });
+});
+
+describe("ToolFacade.mini_app_call batch", () => {
+  const crudApi = `import { defineApp } from "@monkey-mini-app/api";
+export default defineApp({
+  name: "CRUD",
+  description: "crud",
+  api: {
+    async list(ctx) { return await ctx.storage.get("items"); },
+    async add(ctx, args) { await ctx.storage.set("items", [args]); return args; },
+    async boom() { throw new Error("nope"); },
+  },
+});
+`;
+
+  async function bootCrud() {
+    const b = boot();
+    await b.tools.invoke("mini_app_register", {
+      appId: "com.example.crud",
+      files: {
+        "manifest.json": JSON.stringify({
+          id: "com.example.crud",
+          name: "CRUD",
+          version: "1.0.0",
+          entry: "ui.tsx",
+        }),
+        "main.api.ts": crudApi,
+        "ui.tsx": "export default function Ui(){return null}",
+      },
+    });
+    return b;
+  }
+
+  it("runs a whole smoke test in one round trip", async () => {
+    const { tools } = await bootCrud();
+    const res = (await tools.invoke("mini_app_call", {
+      appId: "com.example.crud",
+      calls: [{ method: "add", args: { title: "t" } }, { method: "list" }],
+    })) as { ok: boolean; failed: number; results: { method: string; ok: boolean; value?: unknown }[] };
+    expect(res.ok).toBe(true);
+    expect(res.failed).toBe(0);
+    expect(res.results.map((r) => r.method)).toEqual(["add", "list"]);
+    expect(res.results[0].value).toEqual({ title: "t" });
+  });
+
+  it("keeps going after one method throws, so one failure does not hide the rest", async () => {
+    const { tools } = await bootCrud();
+    const res = (await tools.invoke("mini_app_call", {
+      appId: "com.example.crud",
+      calls: [{ method: "add", args: { title: "t" } }, { method: "boom" }, { method: "list" }],
+    })) as { ok: boolean; failed: number; results: { method: string; ok: boolean }[] };
+    expect(res.ok).toBe(false);
+    expect(res.failed).toBe(1);
+    expect(res.results.map((r) => r.ok)).toEqual([true, false, true]);
+  });
+
+  it("still accepts the single-method shape", async () => {
+    const { tools } = await bootCrud();
+    const res = (await tools.invoke("mini_app_call", {
+      appId: "com.example.crud",
+      method: "add",
+      args: { title: "one" },
+    })) as { ok: boolean; value: unknown };
+    expect(res).toEqual({ ok: true, value: { title: "one" } });
+  });
+
+  it("rejects an empty or absurd batch", async () => {
+    const { tools } = await bootCrud();
+    await expect(
+      tools.invoke("mini_app_call", { appId: "com.example.crud", calls: [] }),
+    ).rejects.toBeInstanceOf(HostError);
+    await expect(
+      tools.invoke("mini_app_call", {
+        appId: "com.example.crud",
+        calls: Array.from({ length: 21 }, () => ({ method: "list" })),
+      }),
+    ).rejects.toBeInstanceOf(HostError);
   });
 });

@@ -18,4 +18,39 @@ describe("appRunnerHtml", () => {
     const html = appRunnerHtml("com.example.todo", 'html[data-theme="dark"]{--background:#111}');
     expect(html).toContain('html[data-theme="dark"]{--background:#111}');
   });
+
+  // A string-interpolated IIFE is invisible to tsc: one misplaced quote produced
+  // `var APP_ID = ""com.x""`, every `includes` assertion still passed, and the whole
+  // diagnostics script silently failed to parse in the browser. So parse it for real.
+  it("emits classic scripts that actually parse", () => {
+    const html = appRunnerHtml("com.example.todo");
+    const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    for (const [i, js] of blocks.entries()) {
+      expect(() => new Function(js), `script block ${i} is not valid JS`).not.toThrow();
+    }
+  });
+
+  it("embeds the app id in the diagnostics script as one valid literal", () => {
+    const html = appRunnerHtml(`com.exa"mple`);
+    const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    const diagnostics = blocks[blocks.length - 1];
+    const embedded = /var APP_ID = (.*?);$/m.exec(diagnostics);
+    expect(embedded).not.toBeNull();
+    // Evaluating the literal is the only honest check: the doubled-quote bug parsed as two
+    // tokens, and the module script kept working, so string matching alone missed it.
+    const value = new Function(`return (${embedded![1]});`)();
+    expect(value).toBe(`com.exa"mple`);
+  });
+
+  it("wires both diagnostic channels and the outline collector", () => {
+    const html = appRunnerHtml("com.example.todo");
+    expect(html).toContain("/errors");
+    expect(html).toContain("/snapshot");
+    expect(html).toContain("unhandledrejection");
+    expect(html).toContain("getComputedStyle");
+    // A module-load crash names the app + stage instead of dumping a bare stack.
+    expect(html).toContain("mma-crash");
+    expect(html).toContain("mini_app_errors");
+  });
 });

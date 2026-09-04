@@ -33,6 +33,8 @@ export type {
   AppItem,
   AppMethod,
   AppStorage,
+  CommitOutcome,
+  CommitStatus,
   ReloadResult,
 } from "./apps/apps-manager.ts";
 export { AppsManager } from "./apps/apps-manager.ts";
@@ -55,6 +57,13 @@ export {
 } from "./brand.ts";
 export type { BoundHostCapabilities, HostCapabilities } from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
+export type { StaticCheckResult, StaticFinding } from "./compile/static-check.ts";
+export {
+  checkAppSources,
+  formatFinding,
+  layerOfRel,
+  staticCheckAvailable,
+} from "./compile/static-check.ts";
 export type { UiBuildFile, UiCompileOptions } from "./compile/ui-compiler.ts";
 export {
   resolveSdkDistDir,
@@ -71,9 +80,17 @@ export { parseHostConfig } from "./config/parse.ts";
 export { writeHostConfig } from "./config/write.ts";
 export { createHost } from "./create-host.ts";
 export { HostConfigError, HostError } from "./errors.ts";
-export type { HostEvent, HostEventListener } from "./events/host-events.ts";
+export type {
+  AppDomSnapshot,
+  AppErrorInput,
+  AppRuntimeError,
+  HostEvent,
+  HostEventListener,
+} from "./events/host-events.ts";
 export {
+  APP_ERROR_BUFFER,
   APP_EVENT_BUFFER,
+  APP_SNAPSHOT_BUFFER,
   formatSse,
   HostEventBus,
 } from "./events/host-events.ts";

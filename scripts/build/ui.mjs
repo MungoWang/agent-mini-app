@@ -56,6 +56,7 @@ function listComponentFiles() {
     "i18n/zh",
     "hooks/use-mobile",
     "sdk/use-app",
+    "sdk/app-error-boundary",
   ];
   for (const rel of extra) {
     const relTsx = rel + ".tsx";

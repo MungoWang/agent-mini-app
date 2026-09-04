@@ -25,8 +25,10 @@ Writing `~/.monkey-mini-app/runtime/**` directly is refused by the sandbox — a
 | Delete one file | `mini_app_delete({ appId, path })` | `manifest.json` cannot be deleted |
 | Create a whole app | `mini_app_register({ appId, files })` | `files` keys are relative paths, values full text; must include `manifest.json` |
 | Validate + compile + warm cache | `mini_app_reload({ appId })` | After every round of edits — see below |
-| Smoke-test one api method | `mini_app_call({ appId, method, args })` | `args` is a plain object |
-| Show it to the user | `mini_app_open({ appId })` | |
+| Smoke-test api methods | `mini_app_call({ appId, method, args })` | Or `calls: [{ method, args }]` for a whole set in one round trip |
+| Show it to the user | `mini_app_open({ appId })` | Returns whether a panel actually received it |
+| **Read runtime errors** | `mini_app_errors({ appId, since? })` | The only way to see a UI that compiled and then crashed |
+| **See what rendered** | `mini_app_dom_snapshot({ appId })` | DOM outline + the styles that actually applied |
 | Confirm the plugin is alive | `mini_app_list()` | |
 
 `mini_app_register` shape (`ui.tsx` + `main.api.ts` are the two entries; add `ui/…` / `api/…` / `shared/…` as needed — `..` and absolute paths are rejected):
@@ -51,15 +53,41 @@ Mutating tools **auto-commit** by default; pass `commit: false` to batch a few e
 
 ### What `mini_app_reload` returns
 
-`{ ok, errors, compiled, committed? }`. The **prefix** of each `errors[i]` names the failing layer — fix that layer, don't shotgun:
+`{ ok, errors, notices?, compiled, committed }`. The **prefix** of each `errors[i]` names the failing layer — fix that layer, don't shotgun:
 
 | Prefix | Meaning | Next step |
 |---|---|---|
 | `appId must be reverse-DNS` | Bad id shape | Use `com.<you>.<thing>` |
 | `app not registered` | Nothing on disk yet | `mini_app_register` first |
 | `manifest: …` | Missing key / broken JSON | Needs `id` `name` `version` `entry` |
-| `main.api: …` | Backend compile or relative-import resolution failed | Read the rest of the message |
-| `ui: …` | UI bundle failed | Usually a disallowed import |
+| `main.api: …` | Backend compile, relative-import resolution, or an undefined name | Read the rest of the message |
+| `ui: …` | UI bundle failed, or an undefined name/component | Usually a disallowed import or a typo'd identifier |
+| `shared: …` | Undefined name in `shared/**` (used by both sides) | Fix in `shared/` |
+| `commit: …` | Compiled fine, auto-commit failed | Commit explicitly with `mini_app_history_commit` |
+
+`committed.status` is explicit, because "nothing happened" and "I could not commit" need different follow-ups:
+
+| `status` | Meaning |
+|---|---|
+| `committed` | New commit (`commitId` set) |
+| `clean` | Nothing to commit — `mini_app_edit` already auto-committed it |
+| `skipped` | Compile failed, so no commit was attempted |
+| `failed` | Commit itself errored (`reason`; also in `errors[]`) |
+
+**Compile green is not "it runs".** `errors[]` from an undefined identifier *is* caught now (`"greeting()" is called but never defined or imported`, often with a `did you mean`), and `notices[]` carries lower-confidence findings — read them, they are cheap. What no compile step can see is anything that only fails at render time, so finish the loop:
+
+### Debug loop (this is the part that used to need a human)
+
+```
+edit → mini_app_reload → mini_app_open → mini_app_errors → mini_app_dom_snapshot
+```
+
+1. `mini_app_reload` until `ok: true`.
+2. `mini_app_open` — the iframe mounts and streams back anything it throws. `panel: "no-panel-connected"` means no browser is attached: the app is fine, nobody is looking, so tell the user to open the panel.
+3. Give it a moment to render, then `mini_app_errors`. Empty + never opened ≠ clean; the hint says when to re-read.
+4. `mini_app_dom_snapshot` to confirm the visual actually landed — see `s.c` / `s.bg` to check a colour resolved, `empty: true` to spot a node that rendered to nothing.
+
+`mini_app_errors` polls with `since: <lastSeq>`; a reload clears the ring, so errors after a reload are only from the new build.
 
 More symptoms → [references/troubleshoot.md](references/troubleshoot.md).
 
@@ -123,6 +151,8 @@ export default function Ui() {
 ```
 
 - **Layout is Tailwind** (`flex flex-col gap-3 p-4 grid md:grid-cols-3 w-full space-y-4`)
+- **Tailwind is compiled per app from your source** — variants (`hover:` `group-hover:` `md:`), the default palette (`bg-rose-500`) and arbitrary values (`w-[437px]`) all work, so **do not fall back to inline `style` out of caution**. The one trap: class names must be complete literals — `` `bg-${x}-500` `` generates nothing, silently → **[references/styling.md](references/styling.md)**
+- **Colour is tokens, never hex** — the user's palette rewrites token values under `<html>`, a literal breaks dark mode → **[references/theme.md](references/theme.md)** (generated token table)
 - **Icons**: `import { Icon } from "@monkey-mini-app/ui"`, then `Icon.HelpCircle` (any lucide name works); **curated subset + when to use** → **[references/icons.md](references/icons.md)** (don't page through a thousand names)
 - **Empty-state illustrations** — exactly these 10, the names are not guessable: `IlluEmpty` `IlluNoData` `IlluSearch` `IlluLoading` `IlluServerStatus` `IlluAccessDenied` `IlluPageNotFound` `IlluDataProcessing` `IlluBugFixing` `IlluCodeReview`
 - Component index (props + types) → **[references/catalog.md](references/catalog.md)** and **[references/contracts/](references/contracts/)** (generated; after changing a component run `pnpm gen:skill`).
@@ -204,6 +234,8 @@ export default defineApp({
 | When | Open |
 |------|------|
 | Component props / types | [references/catalog.md](references/catalog.md) → [references/contracts/](references/contracts/) |
+| **Which Tailwind classes work / how to colour** | [references/styling.md](references/styling.md) |
+| **Theme token table** | [references/theme.md](references/theme.md) (generated — do not hand-edit) |
 | **A runnable starting point for one component** | contract's `## Examples` → [references/examples/](references/examples/) (each file = one scenario: `@title` + `@scenario`; layout/pattern recipes in `examples/<group>.md`) |
 | Icon subset (`Icon` namespace, when to use) | [references/icons.md](references/icons.md) |
 | Full `ctx.*` contract (incl. agent `onEvent` shapes) | [references/ctx.md](references/ctx.md) (use `ctx.http`, not bash curl) |
@@ -232,7 +264,8 @@ For plain storage CRUD **start from the skeleton above** — don't read the whol
 
 - [ ] New app via `mini_app_register`; edits via `mini_app_get` / `mini_app_list_files` + `mini_app_read` + `mini_app_edit` (or `write`)
 - [ ] Started from the closest template(s), lifted patterns/structure rather than pasting whole files
-- [ ] `mini_app_reload` compiles (located the failure by `errors[i]` prefix)
-- [ ] `mini_app_call` smoke test passes (not curl)
-- [ ] `mini_app_open`
+- [ ] `mini_app_reload` compiles (located the failure by `errors[i]` prefix) and `notices[]` was read
+- [ ] `mini_app_call` smoke test passes (not curl) — batch with `calls: []` instead of N round trips
+- [ ] `mini_app_open`, then `mini_app_errors` — **compile green ≠ it renders**; do not stop at the build
+- [ ] `mini_app_dom_snapshot` confirms the styling actually applied (no hardcoded hex, no composed class names)
 - [ ] `call` keys ⊆ `api` keys; no fetch / secrets / llm in the UI; compound part names taken from a contract, not memory

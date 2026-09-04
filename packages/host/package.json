@@ -27,12 +27,12 @@
     "i18next": "^25.4.0",
     "isomorphic-git": "^1.29.0",
     "sucrase": "^3.35.1",
+    "typescript": "^5.7.3",
     "@monkey-mini-app/api": "workspace:^"
   },
   "devDependencies": {
     "@types/diff": "^8.0.0",
     "@types/node": "^22",
-    "typescript": "^5.7.3",
     "tsup": "^8"
   },
   "engines": {

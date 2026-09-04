@@ -1,6 +1,25 @@
 # Troubleshooting
 
-Match the **literal message** you got. `mini_app_reload` prefixes each `errors[]` entry with the failing layer; `mini_app_call` surfaces runtime messages.
+Match the **literal message** you got. `mini_app_reload` prefixes each `errors[]` entry with the failing layer; `mini_app_call` surfaces backend runtime messages; `mini_app_errors` surfaces **UI** runtime messages (the ones no compile step can see).
+
+## The UI is blank / wrong and the build was green
+
+That is expected: a bundle can compile and still throw at render. The loop is
+
+```
+mini_app_reload → mini_app_open → mini_app_errors → mini_app_dom_snapshot
+```
+
+`mini_app_errors` returns `kind` + `message` + `componentStack`. `componentStack` names the component that threw, which a raw browser stack does not.
+
+| `kind` | Meaning | Typical cause |
+|---|---|---|
+| `render` | Thrown while React was rendering — caught by the app's error boundary | undefined name, bad props, a hook called conditionally |
+| `module` | The compiled bundle never evaluated | bad import, SDK missing, entry mismatch |
+| `uncaught` | Threw outside render | an event handler, a timer callback |
+| `async` | A promise rejected with no handler | `call()` without a `catch`, un-awaited fetch |
+
+If the ring is empty you probably never opened it — the hint says so. An app that renders **but looks wrong** is a `mini_app_dom_snapshot` question, not an error question.
 
 ## `mini_app_reload` → `errors[i]` prefix
 
@@ -14,9 +33,22 @@ Match the **literal message** you got. `mini_app_reload` prefixes each `errors[]
 | `manifest: manifest id is not a valid AppId` | `manifest.id` differs from appId or is malformed | They must be equal |
 | `missing main.api.ts` | No backend entry | Create `main.api.ts` (a single `list` method is fine) |
 | `main.api: …` | Backend compile failed / relative import unresolved | Read the tail; see "backend messages" below |
+| `main.api: "x()" is called but never defined or imported` | Typo or missing import in the backend | Fix the name; reload re-checks |
 | `ui: …` | UI bundle failed | Read the tail; see "UI messages" below |
+| `ui: JSX component <X /> is not defined or imported` | Used a component you never imported | Add it to the `@monkey-mini-app/ui` import |
+| `ui: hook "useX" is called but not imported` | Hook used without `import { useX } from "react"` | Import it — hooks are never globals |
+| `shared: …` | Undefined name in `shared/**` | Fix in `shared/` — both sides import from there |
 | `ui compiler not wired` | The host has no UI compiler attached | Host install problem, not an app problem ("Host-side" section) |
 | `commit: …` | Compiled fine, the auto-commit failed | Changes are on disk; commit explicitly with `mini_app_history_commit` |
+
+### `committed.status` after a reload
+
+| `status` | Meaning | Do |
+|---|---|---|
+| `committed` | A new commit was made | — |
+| `clean` | Nothing changed since your last `mini_app_edit` (it auto-commits) | Nothing — this is normal |
+| `skipped` | Compile failed, so nothing was committed | Fix `errors[]` first |
+| `failed` | Commit itself errored (`reason`) | `mini_app_history_commit`, or check the git dir |
 
 ## Runtime / smoke-test messages
 
@@ -47,6 +79,11 @@ Match the **literal message** you got. `mini_app_reload` prefixes each `errors[]
 
 | Symptom | Check first | Note |
 |---|---|---|
+| A class did nothing | Whether the class name is a **complete literal** | Tailwind scans source text: `` `bg-${x}-500` `` generates **no CSS and no error**. Full names only → [styling.md](styling.md) |
+| Colours wrong in dark mode | Any hardcoded hex | Use tokens → [theme.md](theme.md); the user's palette rewrites token values |
+| `mini_app_dom_snapshot` shows `empty: true` | That node rendered with no text and no size | Usually the class that did not apply, or a conditional that never matched |
+| `s.c` / `s.bg` in a snapshot look like the default | The utility never compiled | Check the literal rule before checking the token name |
+| Panel still shows the old app after a fix | It should have refreshed on its own (`app:reload`) | If the browser was not attached to `/api/events`, use the panel's reload button |
 | The iframe is a thin strip | **Not an app problem** | Host iframe height; refresh or reopen the panel |
 | Blank page, no console error | Whether `#root.boot` gets cleared | That is load art only; it must be gone before mount |
 | Editor missing / code not highlighted | `CodeEditor` `CodeBlock` `DiffViewer` | They fetch CodeMirror / shiki from `esm.sh` on demand; on a blocked network they degrade. **Do not** `pnpm add` them and do not `import @codemirror/*` / `shiki` |

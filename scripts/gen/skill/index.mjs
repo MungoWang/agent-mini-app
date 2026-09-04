@@ -23,6 +23,7 @@ import { loadFamilies } from "./families.mjs"
 import { buildRecords } from "./extract.mjs"
 import { loadExamples, writeSkillExamples } from "./examples.mjs"
 import { renderCatalog, renderCatalogJson, renderContract, renderFamilyContract } from "./render.mjs"
+import { generateThemeDoc } from "./theme.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const uiRoot = path.join(repoRoot, "packages/ui")
@@ -127,12 +128,13 @@ function main() {
  JSON.stringify(renderCatalogJson(entries, families), null, 2) + "\n"
 )
 
+ const tokenCount = generateThemeDoc()
  const withTypes = components.filter((c) => c.types?.length).length
  const parts = primitives.reduce((n, f) => n + f.parts.length + f.helpers.length, 0)
  console.log(
  `monkey-mini-app skill: ${entries.length} components in ${families.length} families ` +
  `(${components.length} contracts, ${withTypes} with related types; ${primitives.length} L1 files, ${parts} parts) ` +
- `→ skills/monkey-mini-app/references/`
+ `→ skills/monkey-mini-app/references/ (+ theme.md: ${tokenCount} tokens)`
 )
  if (badFamily.length) process.exitCode = 1
 }

@@ -12,7 +12,7 @@
 import { createFrameController, type FrameController } from "./frame.ts";
 import { createMiniAppPanel, type PanelInstance } from "./panel.tsx";
 import type { PanelHost } from "./panel-host.ts";
-import { appFrameUrl,createRestPanelHost } from "./rest.ts";
+import { appFrameUrl,createRestPanelHost, subscribeHostEvents } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
 import { applyThemeTo, type CustomPaletteMap, resolveMode, themeCssVars } from "./themes.ts";
 import type { CardStyle, DockId } from "./types.ts";
@@ -95,6 +95,21 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
     envOf: (appId) => envFor(appId),
   });
 
+  /**
+   * Host → shell freshness. After `mini_app_reload` the bytes changed on disk, but an
+   * iframe the user already has open keeps running the old bundle — without this the
+   * agent says "refresh if it still errors" because nothing else tells the page.
+   */
+  let unsubEvents: (() => void) | null = null;
+  function bindHostEvents(): void {
+    unsubEvents?.();
+    unsubEvents = subscribeHostEvents(currentOrigin, {
+      onReload: (appId) => {
+        if (frame.map.has(appId)) frame.reload(appId);
+      },
+    });
+  }
+
   function envFor(appId: string): { theme: string; palette: string; dock: string; vars: Record<string, string> } {
     const s = getPanelState();
     const app = s.apps.find((a) => a.id === appId);
@@ -126,6 +141,7 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
       /* ignore */
     }
     opts.onHostChange?.(origin);
+    bindHostEvents();
     for (const id of [...frame.map.keys()]) frame.reload(id);
   }
 
@@ -201,6 +217,7 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
       containerEl.setAttribute("data-ready", "1");
       containerEl.setAttribute("data-dock", getPanelState().dock);
       containerEl.setAttribute("data-cardstyle", themePrefs.cardStyle);
+      bindHostEvents();
       Object.assign(containerEl.style, {
         position: "fixed",
         top: "0",
@@ -234,6 +251,8 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
       void this.panel.actions.fetchApps();
     },
     unmount() {
+      unsubEvents?.();
+      unsubEvents = null;
       panel?.unmount();
       panel = null;
       frame.unmountAll();

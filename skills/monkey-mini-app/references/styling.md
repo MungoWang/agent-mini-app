@@ -1,0 +1,100 @@
+# Styling a mini-app
+
+Two things are decided for you and cannot be changed: **Tailwind is compiled per app at
+reload time**, and **colours come from theme tokens**. Everything below follows from that.
+
+## Tailwind is real JIT over your own source — not a fixed safelist
+
+The host runs Tailwind v4 against the app directory on every compile
+(`@import "tailwindcss" source(none)` + `@source` globs over your `.ts`/`.tsx`), and serves
+the result as the app's own stylesheet next to the shared base. So the answer to "is this
+class available?" is:
+
+| You write | Works? | Why |
+|---|---|---|
+| `hover:bg-muted` `group-hover:opacity-100` `focus-visible:ring-2` | ✅ | variants are generated from your source |
+| `md:grid-cols-3` `dark:border` | ✅ | responsive + the host's `dark` class |
+| `bg-rose-500` `text-emerald-300` | ✅ | the default palette is emitted with the sheet |
+| `w-[437px]` `grid-cols-[1fr_auto]` `top-[7px]` | ✅ | arbitrary values are compiled like any other class |
+| `bg-card text-muted-foreground` | ✅ | semantic tokens → [theme.md](theme.md) |
+| `` className={`bg-${c}-500`} `` | ❌ **silently** | see below |
+
+**The one real trap: class names must appear as complete literals in your source.**
+Tailwind reads source text, it does not evaluate your template strings. A composed name
+produces no CSS and no error — the element just renders unstyled, which is how "my class
+did not work" usually turns out to be a build-time string problem.
+
+```tsx
+// ✗ no CSS is generated for the composed names
+<span className={`bg-${tone}-100 text-${tone}-700`} />
+
+// ✓ literal, one branch per case
+const map = {
+  ok: "bg-emerald-100 text-emerald-700",
+  warn: "bg-amber-100 text-amber-700",
+  bad: "bg-rose-100 text-rose-700",
+} as const;
+<span className={map[tone]} />
+```
+
+Because of this, **do not fall back to inline `style` "to be safe"**. That is strictly
+worse: you lose variants, dark mode, and the theme tokens, and you gain nothing — arbitrary
+values and variants already compile.
+
+## Colour: tokens, not literals
+
+Never hardcode hex. The user picks a palette in the panel and the host rewrites the token
+values under `<html>`; a literal colour sits outside that system and looks broken in dark
+mode. Full table → **[theme.md](theme.md)** (generated from the real stylesheet).
+
+```tsx
+// ✗ follows no palette
+<div style={{ background: "#0b1220", color: "#e2e8f0" }}>
+
+// ✓ adapts to mode and palette
+<div className="bg-card text-card-foreground">
+```
+
+Raw `var(--token)` is correct only where a utility cannot reach: SVG `fill`/`stroke`,
+gradients, `color-mix()`, or a colour you hand to a chart component.
+
+```tsx
+<svg><path fill="var(--primary)" /></svg>
+```
+
+The accent colour for SVG is `--primary`; `Illu*` illustrations already map themselves.
+
+## Layout
+
+There is no `Stack` / `Text` / `Box` component — layout is Tailwind classes on plain
+elements or on a component's `className` (every component takes `className` and `style`).
+
+```tsx
+<div className="flex flex-col gap-3 p-4 w-full">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">…</div>
+</div>
+```
+
+The iframe fills its panel and the app scrolls inside it, so size against the viewport
+(`h-full`, `min-h-0`, `overflow-auto`) rather than a fixed pixel height.
+
+## Animation
+
+A motion library is being decided for the platform. Until it lands, keep it simple:
+transition with Tailwind utilities (`transition`, `duration-200`, `ease-out`,
+`animate-pulse`), and **do not inject your own `<style>` block with `@keyframes`** — it
+fights inline `opacity` and `animation-fill-mode` and is the kind of thing that looks
+right once and wrong after a theme switch.
+
+## What is actually on disk
+
+`.autogen/` inside an app holds the generated Tailwind output. It is overwritten on the
+next compile — never edit it, and never import from it.
+
+## Checklist
+
+- [ ] every class name is a complete literal in the source (no `` `bg-${x}-500` ``)
+- [ ] no hex / rgb literals for themeable colour — tokens only
+- [ ] sized against the viewport, not a fixed height
+- [ ] no injected `<style>`/`@keyframes`
+- [ ] hover the result with `mini_app_dom_snapshot` and check `s.c` / `s.bg` actually resolved

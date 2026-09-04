@@ -2,6 +2,8 @@
 
 export type HostEvent =
   | { type: "app:open"; appId: string; title?: string }
+  /** Sources recompiled: an already-open iframe must refetch, not keep stale code. */
+  | { type: "app:reload"; appId: string }
   | {
       type: "app:event";
       appId: string;
@@ -17,17 +19,96 @@ export type HostEventListener = (event: HostEvent) => void;
 /** How many app events to keep per app for reconnect replay. */
 export const APP_EVENT_BUFFER = 200;
 
+/** How many runtime errors to keep per app for `mini_app_errors`. */
+export const APP_ERROR_BUFFER = 50;
+
+/** How many DOM snapshots to keep per app (the newest is what agents read). */
+export const APP_SNAPSHOT_BUFFER = 3;
+
+/**
+ * A runtime failure reported by the app iframe. These never reach `mini_app_reload`
+ * (compile is green by definition at that point), so without this ring the only
+ * witness is a human reading the browser console.
+ */
+export type AppRuntimeError = {
+  /** Monotonic id across all apps; the cursor `mini_app_errors` pages with. */
+  seq: number;
+  /** Host-side receive time (ms epoch). */
+  at: number;
+  /**
+   * `render`  — caught by the app's error boundary (component tree available)
+   * `module`  — the UI bundle failed to load/evaluate
+   * `uncaught`— window error handler
+   * `async`   — unhandled promise rejection
+   */
+  kind: "render" | "module" | "uncaught" | "async";
+  message: string;
+  file?: string;
+  line?: number;
+  column?: number;
+  stack?: string;
+  /** React component stack — names the offending component, which a stack alone does not. */
+  componentStack?: string;
+};
+
+/**
+ * What an iframe may report. Deliberately loose on `kind` — the host is receiving this
+ * from a browser, so it normalises rather than rejects (`reportAppError` falls back to
+ * `uncaught` for anything unknown).
+ */
+export type AppErrorInput = {
+  kind?: string;
+  message?: string;
+  file?: string;
+  line?: number;
+  column?: number;
+  stack?: string;
+  componentStack?: string;
+};
+
+/** DOM outline reported by the app iframe for `mini_app_dom_snapshot`. */
+export type AppDomSnapshot = {
+  at: number;
+  /** Serialized outline (see the runner's collector for the shape). */
+  dom: unknown;
+  /** Viewport the outline was taken at, so the agent knows what it is looking at. */
+  viewport?: { width: number; height: number };
+  truncated?: boolean;
+};
+
+/** Max accepted sizes, so a chatty app cannot grow an unbounded ring. */
+export const APP_ERROR_TEXT_LIMIT = 4000;
+export const APP_SNAPSHOT_BYTES = 60_000;
+
 export class HostEventBus {
   private readonly listeners = new Set<HostEventListener>();
   private seq = 0;
   private readonly appSeq = new Map<string, number>();
   private readonly appLog = new Map<string, HostEvent[]>();
+  private readonly appErrors = new Map<string, AppRuntimeError[]>();
+  private readonly appSnapshots = new Map<string, AppDomSnapshot[]>();
+  /** Monotonic, so `since` can page through errors without clock skew. */
+  private errorSeq = 0;
+  /**
+   * Total errors ever reported **per app**. `dropped` must be measured against this,
+   * not against the global `errorSeq` — otherwise one app's cursor would count another
+   * app's reports as evicted.
+   */
+  private readonly appErrorTotal = new Map<string, number>();
 
   subscribe(listener: HostEventListener): () => void {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  /**
+   * Live browser subscribers. `mini_app_open` uses this to say honestly whether anyone
+   * received the event instead of assuming a panel is open.
+   */
+  listenerCount(): number {
+    return this.listeners.size;
   }
 
   emit(event: HostEvent): void {
@@ -90,6 +171,70 @@ export class HostEventBus {
   forget(appId: string): void {
     this.appLog.delete(appId);
     this.appSeq.delete(appId);
+    this.appErrors.delete(appId);
+    this.appErrorTotal.delete(appId);
+    this.appSnapshots.delete(appId);
+  }
+
+  /**
+   * Record one runtime error reported by an app iframe. Returns its sequence id.
+   * Reporting is fire-and-forget from the caller's point of view — a diagnostic
+   * channel must never be able to fail an app.
+   */
+  reportAppError(appId: string, input: AppErrorInput): number {
+    const message = clamp(input.message, APP_ERROR_TEXT_LIMIT) || "(no message)";
+    const kind = KINDS.has(input.kind as AppRuntimeError["kind"]) ? (input.kind as AppRuntimeError["kind"]) : "uncaught";
+    const seq = ++this.errorSeq;
+    const err: AppRuntimeError = {
+      seq,
+      at: Date.now(),
+      kind,
+      message,
+      ...(input.file ? { file: clamp(input.file, 400) } : {}),
+      ...(Number.isFinite(input.line) ? { line: Number(input.line) } : {}),
+      ...(Number.isFinite(input.column) ? { column: Number(input.column) } : {}),
+      ...(input.stack ? { stack: clamp(input.stack, APP_ERROR_TEXT_LIMIT) } : {}),
+      ...(input.componentStack
+        ? { componentStack: clamp(input.componentStack, APP_ERROR_TEXT_LIMIT) }
+        : {}),
+    };
+    this.appErrorTotal.set(appId, (this.appErrorTotal.get(appId) ?? 0) + 1);
+    const log = this.appErrors.get(appId) ?? [];
+    log.push(err);
+    if (log.length > APP_ERROR_BUFFER) log.splice(0, log.length - APP_ERROR_BUFFER);
+    this.appErrors.set(appId, log);
+    return seq;
+  }
+
+  /**
+   * Errors retained for `appId`, those with `seq > since`. `lastSeq` is the newest seq the
+   * host has for this app (poll cursor); `dropped` counts the ones already evicted from
+   * the ring, so a caller can tell a clean tail from a truncated one.
+   */
+  appErrorsFor(appId: string, since = 0): { errors: AppRuntimeError[]; lastSeq: number; dropped: number } {
+    const log = this.appErrors.get(appId) ?? [];
+    const total = this.appErrorTotal.get(appId) ?? 0;
+    const lastSeq = log.length ? log[log.length - 1].seq : 0;
+    return { errors: log.filter((e) => e.seq > since), lastSeq, dropped: Math.max(0, total - log.length) };
+  }
+
+  /** Latest DOM snapshot for `appId`, or null when the app has never reported one. */
+  appSnapshot(appId: string): AppDomSnapshot | null {
+    const log = this.appSnapshots.get(appId);
+    return log && log.length ? log[log.length - 1] : null;
+  }
+
+  reportAppSnapshot(appId: string, snap: Omit<AppDomSnapshot, "at">): void {
+    const log = this.appSnapshots.get(appId) ?? [];
+    log.push({ at: Date.now(), ...snap });
+    if (log.length > APP_SNAPSHOT_BUFFER) log.splice(0, log.length - APP_SNAPSHOT_BUFFER);
+    this.appSnapshots.set(appId, log);
+  }
+
+  /** Clear the error ring (used by `mini_app_reload` and `mini_app_errors` clear). */
+  forgetErrors(appId: string): void {
+    this.appErrors.delete(appId);
+    this.appErrorTotal.delete(appId);
   }
 
   /** Monotonic id for SSE `id:` fields. */
@@ -104,7 +249,17 @@ function sseData(event: HostEvent): string {
   if (event.type === "app:open") {
     return JSON.stringify({ appId: event.appId, title: event.title });
   }
+  if (event.type === "app:reload") {
+    return JSON.stringify({ appId: event.appId });
+  }
   return JSON.stringify({ name: event.name, data: event.data, seq: event.seq });
+}
+
+const KINDS = new Set<AppRuntimeError["kind"]>(["render", "module", "uncaught", "async"]);
+
+function clamp(s: string | undefined, max: number): string {
+  if (typeof s !== "string") return "";
+  return s.length > max ? `${s.slice(0, max)}…` : s;
 }
 
 export function formatSse(event: HostEvent, id: number): string {

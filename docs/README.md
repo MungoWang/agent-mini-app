@@ -25,6 +25,7 @@
 - [contracts/inapp-agent.md](./contracts/inapp-agent.md) — `ctx.agent` / one-shot
 - [contracts/file-tools.md](./contracts/file-tools.md) — mini_app file tools
 - [contracts/app-events.md](./contracts/app-events.md) — `ctx.push` → `useApp().on` SSE, per-app scoping, replay buffer
+- [contracts/runtime-diagnostics.md](./contracts/runtime-diagnostics.md) — how a UI that compiled green still reports its own crash + DOM outline back to the agent
 - [contracts/skill-sync.md](./contracts/skill-sync.md) — how the skill is generated, the `@family`/`componentType` taxonomy, prop-provenance rule, and what `pnpm check:skill` blocks
 - [rfcs/pi-extension-port.md](./rfcs/pi-extension-port.md) — next host (pi / pi-web), **not implemented**
 - [rfcs/authoring-protocol.md](./rfcs/authoring-protocol.md) — **landed**: one author package (`@monkey-mini-app/ui`), `defineApp`, `ui`/`api`/`shared` import bounds

@@ -39,6 +39,7 @@ export default defineConfig([
       "@deepseek-ai/dsh-subagent",
       "@deepseek-ai/dsh-tools",
       "sucrase",
+      "typescript",
       "i18next",
     ],
     noExternal: [],
