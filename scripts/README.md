@@ -38,6 +38,7 @@ No file sits directly under `scripts/`. If you are about to add one, pick a stag
 | `gen/illustrations.mjs` | manual — only when changing illustrations | `packages/ui/src/lib/illustrations.tsx` | repo tracked source |
 | `check/skill.mjs` | `pnpm check:skill` | nothing | exit 1 on drift |
 | `check/templates.mts` | `pnpm check:templates` | `packages/dsh/.tpl-check/` (deleted after) | temp dir |
+| `check/typecheck-all.mjs` | `pnpm typecheck` | nothing | exit 1 if any tsconfig disagrees (root aggregate + every package + skill templates) |
 | `check/verify.mjs` | `pnpm verify` | build dists + may rewrite skill contracts | repo build + skill gen |
 | `dev/react-host.mts` | `pnpm dev:host` | temp runtime dirs | two local processes |
 | `dev/demo-templates.mts` | internal (spawned by `dev/react-host`) | OS temp workspace | host process on a port |

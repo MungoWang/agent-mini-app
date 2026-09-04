@@ -117,11 +117,13 @@ pnpm skill           # gen:skill + check:skill
 pnpm check:templates
 pnpm test
 pnpm test:coverage   # host/panel/dsh lines ≥85% (also: pnpm verify:coverage)
-pnpm typecheck       # tsc -b
+pnpm typecheck       # every tsconfig in the repo (root aggregate + each package's own)
 pnpm --filter @monkey-mini-app/dsh-mini-app build
 ```
 
-`tsc -b` includes `src` **and** `tests`. **Do not** put `**/*.test.ts` in exclude: orphan tests fall into an inferred (non-strict) project — IDE red, CI green. Before claiming types are clean, run root `pnpm exec tsc -b`.
+`pnpm typecheck` runs the root aggregate **and every `packages/<name>/tsconfig.json`**, each with its own options. That is deliberate: an editor's TS server loads the *nearest* config, so a bare `tsc -b` can be green while the file you are looking at is red — it had missed a missing `DOM` lib in `host`, 64 × ts(6059) in `dsh` (inferred `rootDir` vs base `paths` → sibling source), and `packages/ui`, which was in no CI config at all. Adding a package with a `tsconfig.json` is picked up automatically; do not replace the walk with a hand-kept list.
+
+Every package config includes `src` **and** `tests`. **Do not** put `**/*.test.ts` in exclude: orphan tests fall into an inferred (non-strict) project — IDE red, CI green. Before claiming types are clean, run `pnpm typecheck` (not `tsc -b` alone). Known gap: `packages/ui` is typechecked but **not linted** — `eslint.config.js` has no block matching it, so `pnpm lint` silently skips it.
 
 ## Verify
 

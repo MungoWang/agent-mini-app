@@ -9,7 +9,7 @@
     "test:coverage": "vitest run --coverage packages/host/tests packages/panel/tests packages/dsh/tests",
     "lint": "eslint packages/host packages/api packages/panel packages/dsh packages/ui-examples",
     "lint:fix": "eslint packages/host packages/api packages/panel packages/dsh packages/ui-examples --fix",
-    "typecheck": "tsc -b --pretty false",
+    "typecheck": "node scripts/check/typecheck-all.mjs",
     "smoke": "vitest run packages/smoke-test",
     "build:ui": "node scripts/build/ui.mjs",
     "build:sdk": "node scripts/build/sdk.mjs",

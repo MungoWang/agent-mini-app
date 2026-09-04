@@ -24,13 +24,9 @@ const STEPS = [
   { name: "check:templates", cmd: "pnpm", args: ["check:templates"] },
   { name: "lint", cmd: "pnpm", args: ["lint"] },
   { name: "check:format (ui-examples)", cmd: "pnpm", args: ["check:format"] },
-  { name: "typecheck (tsc -b)", cmd: "pnpm", args: ["typecheck"] },
-  { name: "typecheck ui-examples", cmd: "pnpm", args: ["exec", "tsc", "-p", "packages/ui-examples", "--pretty", "false"] },
-  {
-    name: "typecheck skill templates",
-    cmd: "pnpm",
-    args: ["exec", "tsc", "-p", "skills/monkey-mini-app", "--pretty", "false"],
-  },
+  // One step: every tsconfig in the repo, each with its own options (the aggregate misses
+  // packages/ui entirely, and package configs are what editors actually load).
+  { name: "typecheck (all configs)", cmd: "pnpm", args: ["typecheck"] },
   { name: "test", cmd: "pnpm", args: ["test"] },
   // dsh's dts build reads @monkey-mini-app/{host,panel} **dist** types, so those must
   // be rebuilt first — publishing gets this for free from per-package prepack ordering.

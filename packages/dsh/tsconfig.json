@@ -2,6 +2,13 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "lib",
+    /* tsconfig.base.json maps @monkey-mini-app/* to sibling **source**, so this program
+       legitimately contains files outside packages/dsh. Left unspecified, the TS server
+       infers rootDir from `include` and flags every one of them (ts 6059 — 64 squiggles on
+       the panel imports); the CLI never noticed because it infers rootDir from the resolved
+       file set. tsc is typecheck-only here (noEmit; tsup builds), so widening it is free.
+       Do not "fix" by pointing paths at dist/ — that reintroduces stale-dist typing. */
+    "rootDir": "../..",
     "jsx": "react-jsx",
     "lib": [
       "ES2022",
