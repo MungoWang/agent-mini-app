@@ -79,12 +79,28 @@ export function isHostUnreachable(e: unknown): e is HostUnreachableError {
   return e instanceof HostUnreachableError;
 }
 
+/**
+ * The frame URL carries exactly what the runner reads back out of `location.search`
+ * (`http/app-runner-html.ts`: theme / palette / dock). CSS variables do **not** travel here —
+ * they go over the `mma-set-env` postMessage.
+ *
+ * Callers hand us the whole app env, which also holds a `vars` map. Letting that reach
+ * `URLSearchParams` stringifies it to `[object Object]` and puts the junk in every iframe src,
+ * and TypeScript cannot catch it: excess-property checks apply to fresh literals, and this
+ * arrives as a variable. Picking the keys here keeps the invariant in one place, so a future
+ * caller cannot reintroduce it.
+ */
 export function appFrameUrl(
   origin: string,
   appId: string,
   query: { theme: string; palette: string; dock: string },
 ): string {
-  return `${origin}/app/${encodeURIComponent(appId)}?${new URLSearchParams(query).toString()}`;
+  const params = new URLSearchParams();
+  for (const key of ["theme", "palette", "dock"] as const) {
+    const value = query[key];
+    if (value) params.set(key, value);
+  }
+  return `${origin}/app/${encodeURIComponent(appId)}?${params.toString()}`;
 }
 
 /** What the host pushes on `GET /api/events`. */

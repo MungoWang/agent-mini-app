@@ -155,6 +155,16 @@ describe("createHostShell", () => {
     expect(s.frames.map.size).toBe(0);
   });
 
+  it("builds the frame src from the app env without leaking the CSS variable map", async () => {
+    const s = await booted();
+    act(() => s.host.frame.mount(todo.id));
+    const src = (shellEl().querySelector("#mma-frames iframe") as HTMLIFrameElement).src;
+    // envFor() returns { theme, palette, dock, vars }; vars is a whole token map and must
+    // reach the frame over mma-set-env, not as `[object Object]` glued onto every URL.
+    expect(src).not.toContain("vars=");
+    expect(src).toContain("theme=");
+  });
+
   it("relays a host view query into the open iframe", async () => {
     const s = await booted();
     act(() => s.host.frame.mount(todo.id));

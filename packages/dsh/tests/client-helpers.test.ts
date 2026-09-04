@@ -61,6 +61,22 @@ describe("apps host / frame url", () => {
     expect(url).toContain("dock=side");
   });
 
+  it("puts nothing in the URL that the runner cannot read back", () => {
+    // The real call sites pass the whole app env, which also carries a `vars` CSS map.
+    // URLSearchParams would stringify that to `[object Object]` in every iframe src.
+    const env = {
+      theme: "dark",
+      palette: "tokyo",
+      dock: "side",
+      vars: { "--primary": "#0a0", "--background": "#111" },
+    };
+    const url = appFrameUrl("http://127.0.0.1:19001", "com.example.todo", env);
+    expect(url).not.toContain("vars=");
+    expect(url).not.toContain("object%20Object");
+    // Exactly the three readable keys — nothing else may ride along.
+    expect([...new URL(url).searchParams.keys()].sort()).toEqual(["dock", "palette", "theme"]);
+  });
+
   it("resolves stored origin before the fallback port", () => {
     const storage = memoryStorage({ [APPS_HOST_KEY]: "http://127.0.0.1:19001/" });
     expect(readStoredAppsOrigin(storage)).toBe("http://127.0.0.1:19001/");
