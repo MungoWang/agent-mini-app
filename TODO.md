@@ -6,8 +6,10 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 
 ## 小程序作者闭环：静态检查 + 运行时回流（2026-09-04 dsh 实测反馈）
 
-> **状态：P0/P1/P2 已全部落地并实测通过**（`pnpm verify` 14/14，真实 Chrome 跑通
-> 「crash → 卡片 → host → 工具」全链路）。P2-10 按决定推迟，P3 挂起。
+> **状态**：P0-1 / P0-2 / P0-3 / P1-4 / P1-6 / P1-7 / P2-8 已落地并实测通过
+> （`pnpm verify` 14/14，真实 Chrome 跑通「crash → 卡片 → host → 工具」全链路），见 commit `12f16c1`。
+> **P2-9 取数形态已定稿为 `mini_app_view_eval`，尚未实现** —— 当前在库的是将被替换的推送式快照，见该节。
+> P2-10 按决定推迟，P3 挂起。
 > 实施中额外发现并修复 2 个原反馈未提到的 bug：
 > ① 诊断脚本因模板占位符嵌在引号内而生成语法错误（`var APP_ID = ""com.x""`），
 >    整段静默不执行 —— 已把「脚本必须能被解析」做成门禁（`new Function` + 求值 app id）；
@@ -94,42 +96,164 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 
 现在 schema 单 `method` + 单 `args`，测一套 CRUD 要五个来回。加 `calls: [{ method, args }]`，逐项返回结果（一项失败不中断其余），保留单 `method` 向后兼容。
 
-### 🟡 P2-9 `mini_app_dom_snapshot` — 功能已落地可用，但**取数形态未定稿，见下方「待决」**
+### ✅ P2-9 定稿：`mini_app_dom_snapshot` → 换成 `mini_app_view_eval`（**方案已定，未实现**）
 
-命名先定 `mini_app_dom_snapshot`，把 `ui_snapshot` 让出来给以后的真截图。
+推送式快照整体作废，改成一个「在渲染出的视图里执行 agent 自己写的 JS」的通用工具。
+理由：任何我们预先设计的查询形态（选哪些节点、报哪些字段、默认视图长什么样）都是在**猜 agent 会问什么**，
+猜不全就变成永无止境的 feature request；而它本来就会写 JS。
 
-明确不做截图：平台是 Hono server + iframe，无任何 headless browser 依赖，dsh 侧也是纯前端插件；为这个功能引 puppeteer/playwright 与「不往 host 漏 dsh、重依赖 external」的方向相反。DOM 摘要能命中真实痛点（不知道 hover / 主题类 / 对比度到底生效没有），像素解决的是另一个没被提出的需求。且受 P0-1 的跨源结论约束，采集必须发生在 iframe 内部。
+#### 判据（后续任何增删都按这两条裁）
 
-做法：iframe 侧自采裁剪后的 DOM 大纲（tag / role / 文本摘要 / 实际生效的 color·bg·font-size / 是否 `initial` / 文本-背景对比度），`POST /api/app/:appId/snapshot` 存最近一份；`mini_app_dom_snapshot({ appId })` 读。
+1. **能力轴只有两个真问题**：谁拥有遍历（我们 / agent）、返回到什么尺寸（护栏）。
+   其余一切——选点、投影、谓语——都是场景预设，**不进 API**。
+2. **注入面只放两类东西**：(a) 必须由我们保证单一实现来源的；(b) 全行业通用、模型不看文档也用对的。
+   我们自己的缩写一律不进。每多一个特殊名字，就多一份要常驻模型注意力的记忆负担。
 
-### 🔎 待决：DOM 快照的取数形态（2026-09-04 讨论结论，**未实现**）
+#### 工具签名
 
-当前落地的是**推送式**：iframe 在开屏后 300/1200/3000ms 各采一次全量 outline，host 每 app 存 3 份，
-工具只能整份读回。功能可用（已实测），但有三处公认缺陷：
+```ts
+mini_app_view_eval({ appId, code?, maxBytes? })   // maxBytes 硬顶 6144，min(…, 6144)
+```
 
-1. **无条件采集** —— 每个 app 每次开屏都遍历全树，即使没有任何 agent 会读；采集器每节点调
-   `getComputedStyle` 会强制样式解析，而挂载后正是页面最忙的时刻。
-2. **不能框 scope** —— 只能拿完整树，复杂 app 一次几百节点全进 context。
-3. **缓存占内存** —— 每 app 3 份完整 outline（60KB×3），且超时回落读到的是**上一次别的 selector** 的结果，反而误导。
+- `code` 是 **async 函数体**，不是表达式 —— **必须 `return`**，否则结果 `undefined`
+- 缺省 `code` = `mma.$("#root")`（返回一棵浅树，最便宜的起手式）
+- 三种模式 / 枚举 / 预设：**没有**。`mode` 在讨论中先由 3 收到 2、再收到 0
 
-讨论已经排除掉的方向（不要再走回头路）：
+#### 注入面（就这三个，别加第四个）
 
-- ❌ **iframe 自己开第二条 SSE 收查询指令** —— 宿主页（dsh client / panel host-shell）**本来就有**一条
-  `/api/events`，应该复用它：host 在已有流上发查询 → shell `postMessage` 进 iframe → iframe 采集 →
-  同源 POST 回 host。iframe 侧新增连接数为 **0**。
-- ❌ **开屏自动采一份 depth 2 骨架给 agent 当 selector 地图** —— 站不住：`ui.tsx` 是 agent 自己写的，
-  它知道所有 class/id；真正不知道的只有「库组件 render 出的内部结构」，而那个缺口**拿一次 snapshot 就补上了**，
-  不值得为它在默认路径上放一次强制样式解析。（顺带否掉：给契约生成 `Renders:` 一行，同样没必要。）
-- ❌ **由宿主直接读 iframe DOM** —— 跨源，物理上做不到；采集器必须活在 iframe 里，换触发方式也改变不了这点。
+```
+mma.$(sel, root?)     Element | null
+mma.$$(sel, root?)    Array<Element>  ← 原生数组，不是 jQuery 对象
+mma.selector(el)      可直接回填 mma.$() 的 CSS 选择器
+```
 
-倾向方案（等用户拍板）：**纯 pull** —— 默认 `{appId}` 从 `#root` 起 depth 2 不带样式（几百字节轮廓），
-`selector`/`depth`/`styles` 逐级加深；缓存整个删掉（host 侧 DOM 常驻内存归零），超时不兜旧数据。
-配套要留一个**存活标记** `viewEpoch(appId)`（一个时间戳而已），否则「采不到」分不清是
-没开 / runner 脚本没执行 / 页面卡住 —— 这三者必须是三种不同的返回值，不能都叫 timeout。
-（这不是假设风险：本轮就真踩过 runner 诊断脚本因模板占位符语法错误而整段未执行。）
+- `mma.selector` 是唯一的 (a) 类：标准 JS 写得出 nth-chain，但**格式必须只有一个来源**，
+  否则 agent 自己写的和输出里的对不上，"拿地址粘回去继续查"这条主路径就断了
+- `mma.$` / `mma.$$` 属 (b) 类（jQuery 先验），省的不只是字符，是 `querySelectorAll` 的拼写出错面
+- 宿主侧数据不做包装：同源 `fetch('/api/app/'+APP_ID+'/errors')` 就能拿 —— **任何宿主侧能力都离一次
+  fetch 这么近，这是通用逃生口**，不需要逐个包成函数
+- 不注入 `render`：护栏在执行层（见下），序列化默认就有，`render` 只剩"自选投影参数"，
+  而那张参数表正是我们要消灭的东西
+- 不提供"展开到 N 层"旋钮：agent 自己写遍历（标准 JS、少数场景）。等 `truncated`/代码长度分布
+  显示人人都在手搓，再按证据加
 
-`postMessage` 落地时必须锁三点：`targetOrigin` 用 host origin（顺手把现有 `postEnv` 的 `"*"` 一起收紧）、
-iframe 侧校验 `event.origin` + `event.source === window.parent`、`requestId` 由 host 签发并绑定 appId 一次性消费。
+**不做 hint 映射表**：`$$` 的返回类型写在 description 里一行即可；jQuery 误用会自然抛
+`... is not a function`，那已经是可读的错误。
+
+#### 护栏在执行层，不在 `render` 里
+
+任何返回值（字符串 / 数字 / 对象 / Element / Element[]）都过同一个序列化器，四道硬闸**先到先停、无法关闭**：
+
+| 闸 | 为什么必须独立存在 |
+|---|---|
+| 字节 `min(maxBytes, 6144)` | 边序列化边累计，不是事后 `slice` |
+| 节点计数 | 字节要拼出来才知道，计数能**提前**刹车（`return mma.$$('*')` 该在拼第一个字符串前就停） |
+| 递归深度 | agent 返回自引用结构 |
+| 墙钟超时 | `view` 侧 1.5s |
+
+配套：cycle-safe（`parent`↔`children` 互指）；`return mma.$$(".x")` 与显式序列化走同一实现，
+所以**忘了调用只会少个选项，不会绕过约束**。
+
+拦不住的：**同步死循环**（`while(true)`）执行层拿不到控制权，唯一逃生口是重载 iframe。
+这条必须写进 SKILL.md —— 不写等于承诺了我们做不到的事。
+
+#### 输出契约：含义必须随输出传递
+
+凡是需要图例才能读懂的字段，要么换成模型本来就认识的名字（`.class`、`display:none`、`color=` 都来自
+CSS 语料，免费），要么**在结果头部声明一次**。不写进文档要求它背。
+
+```
+# 12 shown of 87 in subtree · depth 2 · coords: viewport px (scrolls with page) · viewport 1728x941 · 0.7KB
+div.panel.flex.flex-col.gap-4  x=16 y=64 w=380 h=812  (4 children)
+  div.panel-head  x=16 y=64 w=380 h=48  (2 children)
+    h2.title  x=16 y=64 w=200 h=24  "面板"
+    button.btn  x=320 y=70 w=76 h=32  "刷新"
+  aside.notes  x=16 y=564 w=380 h=212  (6 children)  display:none
+    +2 deeper levels not shown
+```
+
+- 容器只报 `(N children)`，**不拼 `textContent`** —— 面板的文本是整页文字，是最大噪声源兼爆炸源
+- 叶子才给引号文本
+- `x= y= w= h=` 带标签（裸 `16,124 120x96` 会把 `16` 读成宽度）；"哪个坐标系"靠头部一行声明，
+  因为这是唯一无法靠命名自明的信息
+- `[display:none]` / `[detached]` 保留：它们没有 rect，不标就会让 agent 去修一个不存在的布局 bug
+- **截断必须可见**（`+N deeper` / `+N more` / `truncated` / `stoppedBy`）—— 静默截断会被读成完整
+- 纯 2 空格缩进，不用 `├─`：制表符每行多花 1–2 token 而缩进已足够表达父子关系
+- 返回值形态规则：单个 Element → 浅树（默认 depth 2）；数组 → 每行一个不带子节点
+
+返回信封：
+```
+{ ok, view, tookMs, bytes, truncated, stoppedBy, visited, matched, dropped?, result }
+```
+`stoppedBy` 让 agent 知道被哪道闸拦的 —— 字节截断要收窄查询，节点截断要缩 `rootSelector`，是两种下一步。
+
+错误只分四类，**必须可区分**，否则 agent 会去改一段没写错的 JS：
+`syntax`（行号要减掉 preamble 偏移，并回显出错那行源码 + caret）· `runtime` · `timeout` ·
+`view`（`not-open` / `runner-not-booted`，不是代码问题）。
+
+#### 通道与安全
+
+```
+tool → host 查 viewEpoch → 在【宿主已有的】/api/events 上发查询 → shell postMessage 进目标 iframe
+     → iframe 执行并同源 POST 回 → host 按 requestId 唤醒（默认 1.5s 超时）
+```
+
+- **iframe 自己不开第二条 SSE**：宿主页（dsh client / panel host-shell）本来就有 `/api/events`
+- `view` 四态靠一个**存活标记** `viewEpoch(appId)`（一个时间戳）区分：没开 / runner 脚本没执行 / 页面卡住 / 活着。
+  这不是假想风险 —— 本轮就真踩过 runner 诊断脚本因模板占位符语法错误而**整段未执行**
+- `postMessage` 三点必锁：`targetOrigin` 用 host origin（顺手把现有 `postEnv` 的 `"*"` 一起收紧）、
+  iframe 侧校验 `event.origin` + `event.source === window.parent`、`requestId` 由 host 签发 + 绑 appId + 一次性消费
+- **宿主直读 iframe DOM 物理上做不到**（跨源）：采集代码必须活在 iframe 里，换触发方式也改变不了这点
+
+#### 文档怎么喂（这条决定成本）
+
+| 位置 | 谁付 token |
+|---|---|
+| SKILL.md 正文 | 每个小程序任务都付，包括 99% 不用它的 |
+| `references/eval.md` 按需 | 决定要用才付 |
+| **工具 schema 的 `description`** | **不调用零成本，调用时正好在眼前** |
+
+所以：schema description 装 6 行封顶（async 函数体必须 `return` · 返回类型不是 jQuery · 注入面三行 ·
+缺省行为 · 死循环会冻页面）；`references/eval.md` 只装**判断类**内容（什么时候该用、标准 DOM 查法示例、
+`view` 四态分别怎么办）；SKILL.md 只加 read-on-demand 一行。**文档里标准 API 优先、简写标注为 shorthand**，
+否则 recipes 会变成我们的方言样本。
+
+#### 明确不做（这一路逐条否掉的，别再走回头路）
+
+1. ❌ **像素/截图**（html2canvas 之类）：能取到像素 ≠ 能评估"好不好看/有点歪"，判断仍是人和 AI 来回截图的事，性价比太低。
+   真截图的名字 `ui_snapshot` 仍然留着不占用
+2. ❌ **jQuery 兼容层**：实现著名 API 的部分子集比不实现更糟 —— 模型越熟越会**自信地调用我们没有的方法**，
+   且 jQuery `.offset()` 是文档坐标（不含 scroll），拿它判"视口外"会静默得到错误结论
+3. ❌ **谓语/筛选枚举**（`offscreen`、`zero-area`、`invisible-text`、`paint-invisible`…）：机械可判定 ≠ 无立场，
+   "哪些条件值得内置"本身就是观点
+4. ❌ **开屏自动采骨架当 selector 地图**：`ui.tsx` 是 agent 自己写的，它知道所有 class/id；
+   唯一不知道的（库组件内部结构）拿一次 eval 就补上了
+5. ❌ **给契约生成 `Renders:` 一行**：同上，一次 eval 就够，不值得建生成机制
+6. ❌ **`code` 传数组做多查询**：一个函数体 `return {a, b, c}` 就是同一能力且更好 —— 数组是 n 次遍历、
+   串行 IO、按下标认不出结果、还要新发明部分失败协议
+7. ❌ **`mode` 分层 / `summary` 独立层 / 缓存兜旧数据**：都在讨论中被否掉，缓存整个删掉（host 侧 DOM 常驻内存归零）
+
+#### 移除范围（实现时）
+
+- `packages/host/src/events/host-events.ts`：`AppDomSnapshot` / `appSnapshot` / `reportAppSnapshot` /
+  `APP_SNAPSHOT_BUFFER` / `APP_SNAPSHOT_BYTES`
+- `packages/host/src/http/http-gateway.ts`：`GET|POST /api/app/:appId/snapshot` 两条路由；
+  新增 `POST /api/app/:appId/view/eval` 回传 + `POST /api/app/:appId/alive`（`viewEpoch`）
+- `packages/host/src/tools/tool-facade.ts`：`mini_app_dom_snapshot` 定义 + `handleDomSnapshot` +
+  `trimOutline` / `OUTLINE_KEY_DOC`（采集后才裁是**假优化**：DOM 遍历和 payload 的钱已经花掉）
+- `packages/host/src/http/app-runner-html.ts`：开屏 300/1200/3000ms 定时采集 + 全树 walk；
+  换成 message listener + 序列化器 + 护栏（**错误上报保持推送**：崩溃无法事后轮询，且它和 SSE 是不同传输）
+- `packages/panel/src/*`、`packages/dsh/src/client/index.ts`：新增查询事件的转发（复用 `subscribeHostEvents`）
+- skill：`SKILL.md` 工具表 + checklist 里的 `mini_app_dom_snapshot` 全部换成 `mini_app_view_eval`；
+  `troubleshoot.md` 对应行改写
+- 相关测试同步删改
+
+**先删后建放同一个 PR**：留着它意味着同时维护两条通道，而它的默认采集行为正是我们判定不该做的事。
+
+#### 落地后要观察的指标（"基于结果做结构性优化"的证据来源）
+
+`code` 长度分布 · `bytes`/`maxBytes` 占比 · `truncated`+`stoppedBy` 频率 · `view` 非 live 的比例 ·
+超时率。没有这些记录，下一次就还是在猜。
 
 ### ⏸ P2-10 首次种子数据 —— **推迟**
 
