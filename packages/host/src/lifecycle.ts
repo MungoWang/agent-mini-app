@@ -18,9 +18,15 @@ export type HostServices = {
   events: HostEventBus;
 };
 
-/** Host calls these; the agent plugin implements. */
+/**
+ * Host calls these; the agent plugin implements.
+ *
+ * Every hook is invoked **on this object** (`lifecycle.detach()`), never pulled out and
+ * called bare — so a class may implement them as methods and rely on `this`.
+ */
 export interface HostLifecycle {
   attach(ctx: unknown, services: HostServices): void | Promise<void>;
+  /** Teardown. Called with the lifecycle as receiver; may use `this`. */
   detach?(): void | Promise<void>;
   onHostPortChanged?(port: number): void;
   log?(level: LogLevel, message: string, meta?: unknown): void;

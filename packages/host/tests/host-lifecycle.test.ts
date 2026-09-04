@@ -148,6 +148,37 @@ describe("Host.start / stop", () => {
     expect(detach).toHaveBeenCalledTimes(1);
   });
 
+  it("calls a detach implemented as a class method with its receiver intact", async () => {
+    /**
+     * `HostLifecycle.detach` is declared as a method, so adapters are entitled to use `this`.
+     * The shipped dsh adapter does (`this.disposers.splice(...)`), and host used to pull the
+     * function off the object and call it bare — which threw `Cannot read properties of
+     * undefined` only for class-shaped adapters, and only on a stop during load. Object
+     * literals of `vi.fn()`s (every other test here) could never catch it.
+     */
+    class AdapterLifecycle implements HostLifecycle {
+      readonly disposers: Array<() => void> = [];
+      detached = 0;
+
+      attach(): void {
+        this.disposers.push(() => {
+          this.detached += 1;
+        });
+      }
+
+      async detach(): Promise<void> {
+        for (const d of this.disposers.splice(0, this.disposers.length)) d();
+      }
+    }
+
+    const lifecycle = new AdapterLifecycle();
+    host = createHost(fakeCapabilities(), lifecycle, { config: validConfig() });
+    await host.apply();
+    expect(lifecycle.disposers).toHaveLength(1);
+    await host.stop();
+    expect(lifecycle.detached).toBe(1);
+  });
+
   it("rethrows HostError from listen and wraps other listen failures", async () => {
     const config = validConfig();
     const paths = new WorkspacePaths(config.runtimeRoot);

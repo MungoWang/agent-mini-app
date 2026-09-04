@@ -63,10 +63,13 @@ export class Host {
     try {
       await this.http.close();
     } finally {
-      const detach = this.lifecycle.detach;
+      // Keep the receiver: `detach` is declared as a method on HostLifecycle, so a class
+      // implementation is entitled to use `this`. Pulling it out of the object and calling it
+      // bare silently broke every such adapter (dsh's detach clears `this.disposers`).
+      const { lifecycle } = this;
       this.attached = false;
-      if (detach) {
-        await detach();
+      if (lifecycle.detach) {
+        await lifecycle.detach();
       }
     }
   }
