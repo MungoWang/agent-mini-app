@@ -21,7 +21,7 @@
     "dev:dsh-debug": "tsx scripts/dev/dsh-switch.mts debug",
     "dev:dsh-prod": "tsx scripts/dev/dsh-switch.mts prod",
     "dsh-host": "pnpm --filter @monkey-mini-app/dsh-host start",
-    "test:dsh": "pnpm --filter @monkey-mini-app/dsh-host test:e2e",
+    "test:dsh": "pnpm -C apps/dsh-host install && pnpm --filter @monkey-mini-app/dsh-host test:e2e",
     "publish:prep": "pnpm build:ui && pnpm build:sdk && pnpm build:api && pnpm skill && pnpm gen:examples && pnpm --filter @monkey-mini-app/dsh-mini-app build",
     "publish": "pnpm publish:prep && pnpm -r publish",
     "publish:packages": "tsx scripts/release/publish.mts",

@@ -29,6 +29,13 @@ const HOST_PORT = 17880;
 const DSH_HOME = path.join(appDir, ".dsh");
 const RUNTIME = path.join(appDir, "mma-runtime");
 const PROFILE = path.join(DSH_HOME, "profiles", "web");
+/**
+ * dsh web ≥ 0.1.2 authenticates the browser with a launch token: only the printed
+ * `http://127.0.0.1:<port>/?token=…` URL is reachable, and following it mints a 30-day
+ * HttpOnly cookie. Everything else answers `401 dsh web authentication required`, which a
+ * test sees as "our footer button does not exist". Capture that URL for the specs here.
+ */
+const BOOT_URL_FILE = path.join(DSH_HOME, "web-url");
 const ORDER = ["ui", "api", "host", "panel", "dsh"] as const;
 
 const children: ChildProcess[] = [];
@@ -275,7 +282,9 @@ function startWeb(overlay: string): ChildProcess {
     [dshBin(), "--profile", "web", "--patch", overlay, "--no-open", "--port", String(WEB_PORT)],
     {
       cwd: repoRoot,
-      stdio: "inherit",
+      // piped (not "inherit") only so the tokenized boot URL can be captured; the output is
+      // echoed straight back below, so `pnpm dsh-host` still shows everything.
+      stdio: ["ignore", "pipe", "pipe"],
       env: {
         ...process.env,
         DSH_HOME,
@@ -284,6 +293,19 @@ function startWeb(overlay: string): ChildProcess {
     },
   );
   children.push(child);
+  writeFileSync(BOOT_URL_FILE, "");
+  let bootUrlSeen = false;
+  for (const stream of [child.stdout, child.stderr]) {
+    stream?.on("data", (chunk: Buffer) => {
+      process.stdout.write(chunk);
+      const hit = /http:\/\/127\.0\.0\.1:3088\/\?token=[^\s"']+/.exec(chunk.toString());
+      if (hit && !bootUrlSeen) {
+        bootUrlSeen = true;
+        writeFileSync(BOOT_URL_FILE, hit[0]);
+        log(`web boot url → ${path.relative(appDir, BOOT_URL_FILE)}`);
+      }
+    });
+  }
   child.on("exit", (code) => {
     teardown();
     process.exit(code ?? 1);
@@ -306,7 +328,20 @@ async function main(): Promise<void> {
   startWeb(overlay);
   await waitHttp(`http://127.0.0.1:${WEB_PORT}/`, 120_000);
   await waitHttp(`http://127.0.0.1:${HOST_PORT}/health`, 60_000);
+  // A 401 already proves the web server is listening; the token can trail it by a moment.
+  const until = Date.now() + 15_000;
+  while (!readFileSyncOpt(BOOT_URL_FILE) && Date.now() < until) {
+    await new Promise((r) => setTimeout(r, 200));
+  }
   log(`ready  web http://127.0.0.1:${WEB_PORT}  apps http://127.0.0.1:${HOST_PORT}`);
+}
+
+function readFileSyncOpt(file: string): string {
+  try {
+    return readFileSync(file, "utf8").trim();
+  } catch {
+    return "";
+  }
 }
 
 main().catch((err) => {
