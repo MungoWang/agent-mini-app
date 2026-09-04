@@ -1,18 +1,9 @@
 "use client";
 
 import { motion } from "../shims/motion";
-import {
-  CalendarRange,
-  Columns,
-  Grid2X2,
-  Grid3X3,
-  LayoutList,
-  List,
-  Plus,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@monkey-mini-app/ui/components/button";
-import { ButtonGroup } from "@monkey-mini-app/ui/components/button-group";
 import { useLabels } from "@monkey-mini-app/ui/i18n/context";
 import {
   slideFromLeft,

@@ -6,20 +6,6 @@
  */
 import { Avatar, AvatarFallback, type ColumnDef, DataGrid, Progress, StatusBadge } from "@monkey-mini-app/ui";
 
-type Run = { id: string; name: string; owner: string; duration: string; status: string };
-
-const columns: ColumnDef<Run>[] = [
-  { accessorKey: "name", header: "Name", meta: { sort: true, search: "text" } },
-  { accessorKey: "owner", header: "Owner", meta: { sort: true, search: "text" } },
-  { accessorKey: "duration", header: "Duration", meta: { sort: true, search: "text" } },
-  {
-    accessorKey: "status",
-    header: "Status",
-    meta: { sort: true, search: "text" },
-    cell: ({ getValue }) => <StatusBadge status={String(getValue())} />,
-  },
-];
-
 type Ticket = {
   id: string;
   key: string;

@@ -1,3 +1,4 @@
+/// <reference path="./cdn-modules.d.ts" />
 export { AppRuntime, useApp } from "./sdk/use-app"
 export { AppErrorBoundary, reportAppError } from "./sdk/app-error-boundary"
 export * from "./lib/utils"

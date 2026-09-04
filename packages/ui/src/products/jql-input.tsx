@@ -196,7 +196,7 @@ function optionFor(name: string, kind: string): Opt {
 /**
  * Field names → operators → values, based on what precedes the cursor.
  */
-function complete(core: CmCore, fields: JqlSuggestItem[]) {
+function complete(fields: JqlSuggestItem[]) {
   const fieldNames = fields.map((f) => f.name)
   const byName = new Map(fields.map((f) => [f.name, f]))
   const WORD = /([\w."'-]*)$/
@@ -305,7 +305,7 @@ export function JqlInput({
               activateOnTyping: true,
               icons: false,
               defaultTable: undefined,
-              override: [complete(core, fieldsRef.current)],
+              override: [complete(fieldsRef.current)],
             }),
             core.keymap.of(core.completionKeymap),
             core.EditorView.updateListener.of((u: any) => {
