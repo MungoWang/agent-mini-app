@@ -287,7 +287,7 @@ iframe 侧校验 `event.origin` + `event.source === window.parent`、`requestId`
 
 **按判据没做的事**：没有 `render` / `mode` / 层级旋钮 / selector 地图 / hint 映射表 / 结果缓存；像素截图仍然不做；`ui_snapshot` 这个名字继续留着不占。
 
-**指标还没落地**：本节末尾要求的 `code` 长度分布 / `bytes`÷`maxBytes` / `truncated`+`stoppedBy` 频率 / `view` 非 live 比例 / 超时率 —— 单次数据都在信封里，但 host 侧**没有聚合记录**。下一轮结构性优化之前得先有这个东西，否则还是在猜。
+**指标已沉底为 RFC**：[`docs/rfcs/view-eval-metrics.md`](docs/rfcs/view-eval-metrics.md)。单次数据都在信封里，host 侧暂无聚合；RFC 写清了看什么、只能记计数不得把常驻内存买回来、以及三个「什么时候值得开工」的触发条件。在那之前**不动 `mini_app_view_eval` 的形态**。
 
 ### ⏸ P2-10 首次种子数据 —— **推迟**
 
