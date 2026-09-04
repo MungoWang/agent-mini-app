@@ -11,6 +11,10 @@
    4.2. paradigms 目前不够专业，要使用专业的 ui ux skill 重新设计。 
    4.3. 提供常见的 OR 复杂点的 layouts presets。
 
-5. 实测 Agent 生成 app 的效率。
+5. 安全性和安全边界，以及 readme 声明和免责。
 
-6. 搞一个 tauri mini app ? OR base 在一个开源的 pi desktop 上？给开源 pi desktop 增加插件化能力？
+6. 加入如何 build 自定义 mini-app theme的引导
+
+6. 实测 Agent 生成 app 的效率。
+
+7. 搞一个 tauri mini app ? OR base 在一个开源的 pi desktop 上？给开源 pi desktop 增加插件化能力？
