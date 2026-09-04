@@ -7,7 +7,7 @@ Match the **literal message** you got. `mini_app_reload` prefixes each `errors[]
 That is expected: a bundle can compile and still throw at render. The loop is
 
 ```
-mini_app_reload → mini_app_open → mini_app_errors → mini_app_dom_snapshot
+mini_app_reload → mini_app_open → mini_app_errors → mini_app_view_eval
 ```
 
 `mini_app_errors` returns `kind` + `message` + `componentStack`. `componentStack` names the component that threw, which a raw browser stack does not.
@@ -19,7 +19,18 @@ mini_app_reload → mini_app_open → mini_app_errors → mini_app_dom_snapshot
 | `uncaught` | Threw outside render | an event handler, a timer callback |
 | `async` | A promise rejected with no handler | `call()` without a `catch`, un-awaited fetch |
 
-If the ring is empty you probably never opened it — the hint says so. An app that renders **but looks wrong** is a `mini_app_dom_snapshot` question, not an error question.
+If the ring is empty you probably never opened it — the hint says so. An app that renders **but looks wrong** is a `mini_app_view_eval` question, not an error question.
+
+### `mini_app_view_eval` did not answer
+
+| `view` | Meaning | Next step |
+|---|---|---|
+| `not-open` | no browser is attached, or nothing is showing this app | `mini_app_open`, then retry |
+| `runner-not-booted` | the iframe exists but its script never ran | `mini_app_errors` (a `module` error), then `mini_app_open` |
+| `stuck` | the script ran, then stopped answering — the thread is blocked | a `while (true)` in your own `code` does this, and it wedges the panel page too: tell the user to reload the tab |
+| `live` + `ok: false` | the view is fine, **your query** failed | `error.line` / `error.source` point into your JS |
+
+More → [eval.md](eval.md).
 
 ## `mini_app_reload` → `errors[i]` prefix
 
@@ -81,8 +92,8 @@ If the ring is empty you probably never opened it — the hint says so. An app t
 |---|---|---|
 | A class did nothing | Whether the class name is a **complete literal** | Tailwind scans source text: `` `bg-${x}-500` `` generates **no CSS and no error**. Full names only → [styling.md](styling.md) |
 | Colours wrong in dark mode | Any hardcoded hex | Use tokens → [theme.md](theme.md); the user's palette rewrites token values |
-| `mini_app_dom_snapshot` shows `empty: true` | That node rendered with no text and no size | Usually the class that did not apply, or a conditional that never matched |
-| `s.c` / `s.bg` in a snapshot look like the default | The utility never compiled | Check the literal rule before checking the token name |
+| A node rendered to nothing | Its box and its classes, from the view | `mini_app_view_eval({ appId, code: 'return mma.$$("#root *").filter(n => !n.getBoundingClientRect().width).map(mma.selector)' })` — usually a class that never compiled, or a condition that never matched |
+| A token looks unset | The **computed** value, not the class name | `const cs = getComputedStyle(mma.$(".x")); return { color: cs.color, bg: cs.backgroundColor };` → [styling.md](styling.md) |
 | Panel still shows the old app after a fix | It should have refreshed on its own (`app:reload`) | If the browser was not attached to `/api/events`, use the panel's reload button |
 | The iframe is a thin strip | **Not an app problem** | Host iframe height; refresh or reopen the panel |
 | Blank page, no console error | Whether `#root.boot` gets cleared | That is load art only; it must be gone before mount |

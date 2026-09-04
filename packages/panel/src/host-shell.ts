@@ -12,7 +12,7 @@
 import { createFrameController, type FrameController } from "./frame.ts";
 import { createMiniAppPanel, type PanelInstance } from "./panel.tsx";
 import type { PanelHost } from "./panel-host.ts";
-import { appFrameUrl,createRestPanelHost, subscribeHostEvents } from "./rest.ts";
+import { appFrameUrl,createRestPanelHost, relayViewEval, subscribeHostEvents } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
 import { applyThemeTo, type CustomPaletteMap, resolveMode, themeCssVars } from "./themes.ts";
 import type { CardStyle, DockId } from "./types.ts";
@@ -104,9 +104,21 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
   function bindHostEvents(): void {
     unsubEvents?.();
     unsubEvents = subscribeHostEvents(currentOrigin, {
+      // `mini_app_open` asked to show an app. Without this the panel opens on the list and
+      // the agent's follow-up (`mini_app_errors`, `mini_app_view_eval`) waits on a view that
+      // was never mounted — the dsh client already does this in its own stream handler.
+      onOpen: (appId, title) => {
+        optOnOpen();
+        void host.fetchApps().then((apps) => {
+          const app = apps.find((a) => a.id === appId);
+          if (app) panelRef()?.actions.openAppTab(app);
+          else if (title) console.warn(`[mma] opened app ${appId} is not registered on this host`);
+        });
+      },
       onReload: (appId) => {
         if (frame.map.has(appId)) frame.reload(appId);
       },
+      onEval: (query) => relayViewEval(currentOrigin, frame, query),
     });
   }
 
@@ -180,6 +192,12 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
   let panel: PanelInstance | null = null;
   let containerEl: HTMLElement | null = null;
 
+  /** The panel instance, created on demand — a host event can arrive before anyone mounted. */
+  function panelRef(): PanelInstance {
+    if (!panel) panel = createMiniAppPanel(host);
+    return panel;
+  }
+
   function optOnOpen(): void {
     setPanelState({ visible: true });
     opts.onOpen?.();
@@ -205,8 +223,7 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
     host,
     frames: frame,
     get panel(): PanelInstance {
-      if (!panel) panel = createMiniAppPanel(host);
-      return panel;
+      return panelRef();
     },
     mount(el) {
       // The panel chrome CSS is scoped to #mma-host; create a fixed dock container so

@@ -539,6 +539,9 @@ export class AppsManager {
     if (ok) {
       this.events.emit({ type: "app:reload", appId });
       this.events.forgetErrors(appId);
+      // The browser copy is thrown away with it, so its proof of life goes too: the new
+      // document has to check in before a query can trust it is executing.
+      this.events.forgetView(appId);
     }
 
     return {

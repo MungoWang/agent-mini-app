@@ -31,26 +31,38 @@ describe("appRunnerHtml", () => {
     }
   });
 
-  it("embeds the app id in the diagnostics script as one valid literal", () => {
+  it("embeds the app id in every injected script as one valid literal", () => {
     const html = appRunnerHtml(`com.exa"mple`);
     const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
-    const diagnostics = blocks[blocks.length - 1];
+    const diagnostics = blocks.find((b) => b.includes("var APP_ID = "))!;
     const embedded = /var APP_ID = (.*?);$/m.exec(diagnostics);
     expect(embedded).not.toBeNull();
     // Evaluating the literal is the only honest check: the doubled-quote bug parsed as two
     // tokens, and the module script kept working, so string matching alone missed it.
     const value = new Function(`return (${embedded![1]});`)();
     expect(value).toBe(`com.exa"mple`);
+    // The view runtime receives the id the same way — a broken one answers no query.
+    expect(blocks.some((b) => b.includes(JSON.stringify(`com.exa"mple`)))).toBe(true);
   });
 
-  it("wires both diagnostic channels and the outline collector", () => {
+  it("wires the error channel and the view query runtime", () => {
     const html = appRunnerHtml("com.example.todo");
     expect(html).toContain("/errors");
-    expect(html).toContain("/snapshot");
     expect(html).toContain("unhandledrejection");
-    expect(html).toContain("getComputedStyle");
+    // The view runtime, not a push snapshot: pull-based queries plus the liveness beat.
+    expect(html).toContain("mma-view-eval");
+    expect(html).toContain("/view/eval");
+    expect(html).toContain("/alive");
+    expect(html).not.toContain("/snapshot");
     // A module-load crash names the app + stage instead of dumping a bare stack.
     expect(html).toContain("mma-crash");
     expect(html).toContain("mini_app_errors");
+  });
+
+  it("ships the view runtime with its caps substituted", () => {
+    const html = appRunnerHtml("com.example.todo");
+    // Placeholders left behind would mean the runtime silently runs against 0-byte budgets.
+    expect(html).not.toMatch(/__CAP__|__MAX_NODES__|__APP_ID__/);
+    expect(html).toContain('"cap":6144');
   });
 });

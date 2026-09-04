@@ -16,6 +16,7 @@ import {
   type HostServices,
   type ThemeResource,
   ToolFacade,
+  VIEW_EVAL_BYTE_CAP,
 } from "@monkey-mini-app/host";
 
 function validConfig(): HostConfig {
@@ -677,41 +678,81 @@ export default defineApp({
     );
   });
 
-  it("POST /api/app/:appId/snapshot keeps only the newest outline and drops oversized ones", async () => {
+  it("POST /api/app/:appId/alive marks the view live and never fails", async () => {
     const services = await startHost();
     await services.apps.register("com.example.todo", {
       "manifest.json": manifest,
       "ui.tsx": simpleUi,
       "main.api.ts": pingApi,
     });
-    const url = `${origin()}/api/app/com.example.todo/snapshot`;
-
-    await fetch(url, { method: "POST", body: JSON.stringify({ dom: { t: "div", x: "first" } }) });
-    await fetch(url, {
-      method: "POST",
-      body: JSON.stringify({ dom: { t: "div", x: "second" }, viewport: { width: 800, height: 600 } }),
-    });
-    const got = await fetch(url).then((r) => r.json());
-    expect(got.snapshot.dom).toEqual({ t: "div", x: "second" });
-    expect(got.snapshot.viewport).toEqual({ width: 800, height: 600 });
-
-    // Oversized beats half a tree stored silently.
-    const big = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify({ dom: { t: "div", x: "y".repeat(70_000) } }),
-    });
-    expect(big.status).toBe(204);
-    const still = await fetch(url).then((r) => r.json());
-    expect(still.snapshot.dom.x).toBe("second");
+    expect(services.events.viewAlive("com.example.todo")).toBe(0);
+    const res = await fetch(`${origin()}/api/app/com.example.todo/alive`, { method: "POST", body: "{}" });
+    expect(res.status).toBe(204);
+    expect(services.events.viewAlive("com.example.todo")).toBeGreaterThan(0);
+    // A bad appId is ignored, not an error: the caller is a page that is already broken.
+    expect((await fetch(`${origin()}/api/app/not-an-id/alive`, { method: "POST" })).status).toBe(204);
   });
 
-  it("runner HTML wires the error and snapshot channels", async () => {
+  it("POST /api/app/:appId/view/eval wakes the tool that asked", async () => {
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pingApi,
+    });
+    const url = `${origin()}/api/app/com.example.todo/view/eval`;
+
+    // Unsolicited and malformed replies are dropped rather than thrown at the caller.
+    expect((await fetch(url, { method: "POST", body: JSON.stringify({ requestId: "nope", ok: true }) })).status).toBe(204);
+    expect((await fetch(url, { method: "POST", body: "not json" })).status).toBe(204);
+
+    // Same seam the browser's event stream drives: emit → answer → the blocked tool resolves.
+    let requestId = "";
+    services.events.subscribe((e) => {
+      if (e.type === "app:eval") requestId = e.requestId;
+    });
+    const pending = services.tools.invoke("mini_app_view_eval", { appId: "com.example.todo", code: "return 1" }) as Promise<{
+      ok: boolean;
+      view: string;
+      result: string;
+    }>;
+    await vi.waitFor(() => expect(requestId).not.toBe(""));
+    expect((await fetch(url, { method: "POST", body: JSON.stringify({ requestId, ok: true, result: "# 1 line\ndiv", bytes: 12, visited: 1 }) })).status).toBe(204);
+    await expect(pending).resolves.toMatchObject({ ok: true, view: "live", result: "# 1 line\ndiv" });
+  });
+
+  it("truncates an oversized answer on the way in", async () => {
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pingApi,
+    });
+    let requestId = "";
+    services.events.subscribe((e) => {
+      if (e.type === "app:eval") requestId = e.requestId;
+    });
+    const pending = services.tools.invoke("mini_app_view_eval", { appId: "com.example.todo" }) as Promise<{
+      result: string;
+      truncated: boolean;
+    }>;
+    await vi.waitFor(() => expect(requestId).not.toBe(""));
+    await fetch(`${origin()}/api/app/com.example.todo/view/eval`, {
+      method: "POST",
+      body: JSON.stringify({ requestId, ok: true, result: "y".repeat(40_000), bytes: 40_000 }),
+    });
+    const res = await pending;
+    expect(res.truncated).toBe(true);
+    expect(res.result.length).toBeLessThanOrEqual(2 * VIEW_EVAL_BYTE_CAP);
+  });
+
+  it("runner HTML wires the error channel and the view runtime", async () => {
     await startHost();
     const html = await fetch(`${origin()}/app/com.example.todo`).then((r) => r.text());
     expect(html).toContain("/errors");
-    expect(html).toContain("/snapshot");
-    expect(html).toContain("unhandledrejection");
-    expect(html).toContain("getComputedStyle");
+    expect(html).toContain("/alive");
+    expect(html).toContain("mma-view-eval");
+    expect(html).not.toContain("/snapshot");
     // A module-load crash must name the app and the stage, not just dump a stack.
     expect(html).toContain("mma-crash");
     expect(html).toContain("mini_app_errors");

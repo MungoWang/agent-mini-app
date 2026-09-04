@@ -1,15 +1,19 @@
 import { RUNTIME_HREF, SDK_HREF } from "../compile/ui-compiler.ts";
+import { viewEvalRuntime } from "./app-view-eval.ts";
 
 /**
  * Iframe entry HTML for a compiled mini-app UI bundle.
  *
- * Beyond bootstrapping the app, this document owns the two channels that did not exist
+ * Beyond bootstrapping the app, this document owns the channels that did not exist
  * before: the panel embedding the iframe is **cross-origin**, so neither the panel nor the
- * host agent can see inside a running app. Everything the agent needs therefore has to be
- * pushed out by the iframe itself, to its own same-origin host:
+ * host agent can see inside a running app. Everything the agent needs therefore has to
+ * leave the iframe on its own initiative, to its own same-origin host:
  *
- *   POST /api/app/:id/errors     — render / module-load / uncaught / async failures
- *   POST /api/app/:id/snapshot   — DOM outline + the styles that actually applied
+ *   POST /api/app/:id/errors     — render / module-load / uncaught / async failures.
+ *                                  Stays push: a crash cannot be polled after the fact.
+ *   POST /api/app/:id/alive      — "this document's script really executed"
+ *   …/view/eval                  — the answer to a query the agent asked; see
+ *                                  `app-view-eval.ts`, injected right below this script.
  *
  * The diagnostics script is plain JS on purpose: it has to work when the SDK itself
  * failed to load, which is one of the cases it reports.
@@ -25,7 +29,8 @@ const CRASH_CSS = `.mma-crash{box-sizing:border-box;margin:24px;padding:16px 18p
 .mma-crash pre{margin:0;padding:10px 12px;border-radius:8px;background:var(--muted,#f3f4f6);white-space:pre-wrap;word-break:break-word;font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace);font-size:12px;max-height:260px;overflow:auto}
 .mma-crash .ft{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:11px;color:var(--muted-foreground,#6b7280)}`;
 
-/** Diagnostics + snapshot collector, injected as a classic script before the app module. */
+/** Error reporting. Injected as a classic script before the app module, so it survives a
+ *  bundle that never evaluated. */
 const DIAGNOSTICS = `(function () {
   var APP_ID = __APP_ID__;
   var base = "/api/app/" + encodeURIComponent(APP_ID);
@@ -81,140 +86,8 @@ const DIAGNOSTICS = `(function () {
     });
   });
 
-  /* ------------------------------------------------ DOM outline + applied styles */
-
-  var MAX_NODES = 420;
-  var MAX_DEPTH = 16;
-  var SKIP = { SCRIPT: 1, STYLE: 1, LINK: 1, META: 1, TITLE: 1, NOSCRIPT: 1, HEAD: 1 };
-  var INTERACTIVE = {
-    A: 1, BUTTON: 1, INPUT: 1, SELECT: 1, TEXTAREA: 1, LABEL: 1,
-    OPTION: 1, DETAILS: 1, SUMMARY: 1, DIALOG: 1, TR: 1, LI: 1,
-  };
-  var OUTLINE_TAGS = {
-    H1: 1, H2: 1, H3: 1, H4: 1, P: 1, TABLE: 1, THEAD: 1, TBODY: 1, UL: 1, OL: 1,
-    NAV: 1, MAIN: 1, HEADER: 1, FOOTER: 1, ASIDE: 1, SECTION: 1, FORM: 1, CANVAS: 1,
-  };
-
-  function ownText(el) {
-    var out = "";
-    for (var n = el.firstChild; n; n = n.nextSibling) {
-      if (n.nodeType === 3) out += n.nodeValue;
-    }
-    out = out.replace(/\\s+/g, " ").trim();
-    return out.length > 90 ? out.slice(0, 90) + "\\u2026" : out;
-  }
-
-  // Computed styles are cached per element for the duration of one walk only.
-  var CS = new WeakMap();
-
-  function interesting(el, depth) {
-    var tag = el.tagName;
-    if (SKIP[tag]) return false;
-    var cs = CS.get(el);
-    if (cs && (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0")) return false;
-    return true;
-  }
-
-  /** Sample only what tells an agent whether their styling actually landed. */
-  function applied(cs, el) {
-    var s = {};
-    s.d = cs.display;
-    if (cs.fontSize) s.fz = cs.fontSize;
-    if (cs.fontWeight && cs.fontWeight !== "400") s.fw = cs.fontWeight;
-    s.c = cs.color;
-    if (cs.backgroundColor && cs.backgroundColor !== "rgba(0, 0, 0, 0)") s.bg = cs.backgroundColor;
-    if (el.tagName === "DIV" || el.tagName === "SPAN" || el.tagName === "SECTION") {
-      // Layout mode is the single most common "my CSS did not apply" question.
-      if (cs.display === "flex" || cs.display === "grid") {
-        s.fd = cs.flexDirection || "";
-        if (cs.gap && cs.gap !== "normal") s.gap = cs.gap;
-      }
-    }
-    var op = parseFloat(cs.opacity);
-    if (op < 1) s.op = cs.opacity;
-    return s;
-  }
-
-  function walk(el, depth, budget) {
-    if (budget.n <= 0 || !el || el.nodeType !== 1) return null;
-    var cs = window.getComputedStyle(el);
-    CS.set(el, cs);
-    if (!interesting(el, depth)) return null;
-    budget.n--;
-
-    var tag = el.tagName.toLowerCase();
-    if (tag === "svg") return { t: "svg" }; // never walk icon internals
-
-    var text = ownText(el);
-    var node = { t: tag };
-    var id = el.id;
-    if (id) node.i = id;
-    var cls = typeof el.className === "string" ? el.className.trim() : "";
-    if (cls) node.c = cls.slice(0, 160);
-    var role = el.getAttribute && el.getAttribute("role");
-    if (role) node.r = role;
-    var aria = el.getAttribute && el.getAttribute("aria-label");
-    if (aria) node.al = String(aria).slice(0, 80);
-    if (text) node.x = text;
-    var ph = el.getAttribute && el.getAttribute("placeholder");
-    if (ph) node.ph = String(ph).slice(0, 60);
-
-    var rect = el.getBoundingClientRect();
-    node.w = Math.round(rect.width);
-    node.h = Math.round(rect.height);
-    // Depth cap keeps the outline shallow without dropping named/interactive nodes.
-    var deep = depth >= MAX_DEPTH && !text && !INTERACTIVE[el.tagName] && !OUTLINE_TAGS[el.tagName];
-
-    var kids = [];
-    if (!deep) {
-      for (var c = el.firstElementChild; c; c = c.nextElementSibling) {
-        var k = walk(c, depth + 1, budget);
-        if (k) kids.push(k);
-      }
-    }
-    if (kids.length) node.k = kids;
-    else if (!text && !INTERACTIVE[el.tagName] && !OUTLINE_TAGS[el.tagName]) node.empty = true;
-
-    // Sample styles where they answer a question: text and controls (did my colour
-    // land?), structural nodes (did flex/grid apply?), and **sized leaf boxes** — a
-    // swatch, bar or status dot has no text and is exactly the node whose background
-    // an agent needs to verify. Skipping those made the outline useless for its
-    // primary purpose.
-    var leafBox = kids.length === 0 && (node.w > 0 || node.h > 0);
-    if (text || INTERACTIVE[el.tagName] || OUTLINE_TAGS[el.tagName] || leafBox) {
-      node.s = applied(cs, el);
-    }
-    return node;
-  }
-
-  function snapshot() {
-    var root = document.getElementById("root") || document.body;
-    var budget = { n: MAX_NODES };
-    var dom;
-    try {
-      dom = walk(root, 0, budget);
-    } catch (e) {
-      return;
-    }
-    if (!dom) return;
-    post("/snapshot", {
-      dom: dom,
-      truncated: budget.n <= 0,
-      viewport: { width: window.innerWidth, height: window.innerHeight },
-      title: (document.title || "").slice(0, 120),
-    });
-  }
-
-  // The app renders async (data on mount), so take a settling series; the host keeps the
-  // newest, which is the one the user is actually looking at.
-  window.__mmaSnapshot = snapshot;
   // The module script needs this: an import failure never reaches window.onerror.
   window.__mmaReport = function (kind, message, stack) { report(kind, message, { stack: stack }); };
-  window.addEventListener("load", function () {
-    setTimeout(snapshot, 300);
-    setTimeout(snapshot, 1200);
-    setTimeout(snapshot, 3000);
-  });
 })();`;
 
 function diagnosticsScript(appId: string): string {
@@ -324,6 +197,7 @@ export function appRunnerHtml(appId: string, themeCss = ""): string {
   </div>
 </div>
 <script>${diagnosticsScript(appId)}</script>
+<script>${viewEvalRuntime(appId)}</script>
 <script type="module">
 const APP_ID = ${safe};
 // App utilities first, then shared /ui.css. Both sheets use @layer theme/base/utilities;

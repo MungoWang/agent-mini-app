@@ -2,6 +2,7 @@ import type { AppsManager } from "../apps/apps-manager.ts";
 import { HostError } from "../errors.ts";
 import type { HostEventBus } from "../events/host-events.ts";
 import type { GitHistory } from "../git/git-history.ts";
+import { VIEW_EVAL_BYTE_CAP } from "../http/app-view-eval.ts";
 import type { WorkspacePaths } from "../paths/workspace-paths.ts";
 
 export type ToolDefinition = {
@@ -95,42 +96,21 @@ function parseReadRange(args: Record<string, unknown>): {
 
 const APP_ID_SCHEMA = { type: "string" } as const;
 
-/** Legend for the compact snapshot keys, returned alongside the tree so it is self-describing. */
-const OUTLINE_KEY_DOC =
-  "t=tag i=id c=class r=role al=aria-label x=text ph=placeholder w/h=pixel size " +
-  "s=applied styles {d:display c:color bg:background fz:font-size fw:font-weight fd:flex-direction gap:gap op:opacity} " +
-  "k=children empty=leaf with no text/size (usually a class that did not apply)";
-
-type OutlineNode = Record<string, unknown>;
-
-function isOutlineNode(value: unknown): value is OutlineNode {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 /**
- * Re-trim an outline for the caller: depth is bounded again, and `textOnly` drops the
- * structural wrappers so an agent can read a page without paying for every div.
+ * What each unreachable view means and what to do about it. Kept next to the tool because
+ * four failure states without four next steps would just move the guessing to the reader.
  */
-function trimOutline(node: unknown, maxDepth: number, textOnly: boolean): unknown {
-  if (!isOutlineNode(node)) return node;
-  const out: OutlineNode = {};
-  for (const [k, v] of Object.entries(node)) {
-    if (k !== "k") out[k] = v;
-  }
-  const kids = Array.isArray(node.k) ? node.k : undefined;
-  if (kids && maxDepth > 1) {
-    const kept = kids
-      .map((child) => trimOutline(child, maxDepth - 1, textOnly))
-      .filter((child) => {
-        if (!textOnly) return true;
-        return isOutlineNode(child) && (child.x !== undefined || child.ph !== undefined || child.r !== undefined || child.k !== undefined);
-      });
-    if (kept.length) out.k = kept;
-  } else if (kids && textOnly) {
-    out.kidsDropped = kids.length;
-  }
-  return out;
-}
+const VIEW_HINTS: Record<string, string> = {
+  "not-open":
+    "nothing is rendering this app — call mini_app_open({ appId }), wait a moment, then retry",
+  "runner-not-booted":
+    "the iframe is open but its script never ran, so the bundle or the host page is broken — read mini_app_errors, then mini_app_open again",
+  // Nothing host-side recovers this: the blocked iframe takes the panel page with it
+  // (measured in Chrome — the tab stops answering CDP entirely), so the fix is a human one.
+  stuck:
+    "the view stopped answering and nothing can interrupt it — a synchronous loop (in this query, or in the app) also freezes the panel page around it, so ask the user to reload the browser tab, then mini_app_open",
+  live: "the view answered with an error: fix the JS in `code` and retry",
+};
 
 /** Host chat tools: `mini_app_list`, `mini_app_read`, … and `mini_app_list_ctx_tools`. */
 export function isMiniAppToolName(name: string): boolean {
@@ -354,19 +334,27 @@ export class ToolFacade {
         execute: (args, signal) => this.invoke("mini_app_errors", args, signal),
       },
       {
-        name: "mini_app_dom_snapshot",
+        name: "mini_app_view_eval",
         description:
-          "Read the last DOM outline the app iframe reported: tag / class / role / text / measured size, plus the styles that actually applied (color, background, font-size, display, gap, opacity) on text and interactive nodes. This is how you check whether a Tailwind class or theme token really took effect instead of guessing — it is **not** a screenshot, and it is only as fresh as the last render, so mini_app_open first. Nodes are keyed t/i/c/r/al/x/ph/w/h/s/k (see the skill).",
+          "Run JS against the app's rendered view and get the answer back — how you check what actually rendered. " +
+          "`code` is an async function body, so it must `return`; no `code` returns the `#root` subtree. " +
+          "Injected: mma.$(sel, root?) → Element|null · mma.$$(sel, root?) → Array<Element> (a real array, not jQuery) · mma.selector(el) → a CSS selector to pass back to mma.$(). " +
+          "Everything else is standard DOM; host-side data is one same-origin fetch('/api/app/<appId>/errors') away. " +
+          "Reply is capped at min(maxBytes, 6144) and says when it stopped (`truncated` + `stoppedBy` = bytes|nodes|depth|timeout) — never silently. " +
+          "Needs an open iframe (mini_app_open first); `view` then says not-open / runner-not-booted / stuck if it cannot answer. A synchronous infinite loop wedges the view and the page around it — no tool recovers that, the user must reload.",
         inputSchema: {
           type: "object",
           properties: {
             appId: APP_ID_SCHEMA,
-            depth: { type: "number", description: "Trim the outline to N levels (default 8)." },
-            textOnly: { type: "boolean", description: "Keep only nodes carrying text or a control." },
+            code: {
+              type: "string",
+              description: "Async function body. Must `return`. `mma` is in scope.",
+            },
+            maxBytes: { type: "number", description: "Reply budget (hard ceiling 6144)." },
           },
           required: ["appId"],
         },
-        execute: (args, signal) => this.invoke("mini_app_dom_snapshot", args, signal),
+        execute: (args, signal) => this.invoke("mini_app_view_eval", args, signal),
       },
       {
         name: "mini_app_history_commit",
@@ -453,8 +441,8 @@ export class ToolFacade {
         return this.handleCall(args, signal);
       case "mini_app_errors":
         return this.handleErrors(args);
-      case "mini_app_dom_snapshot":
-        return this.handleDomSnapshot(args);
+      case "mini_app_view_eval":
+        return this.handleViewEval(args);
       case "mini_app_history_commit":
         return this.handleHistoryCommit(args);
       case "mini_app_history_list":
@@ -635,34 +623,44 @@ export class ToolFacade {
     };
   }
 
-  private handleDomSnapshot(args: Record<string, unknown>): unknown {
+  /**
+   * Ask the rendered view a question by running the agent's own JS in it.
+   *
+   * Deliberately not `mini_app_errors`-shaped: that ring is a push buffer a crash writes to,
+   * while this is a live request that can fail for four different reasons, each needing a
+   * different next step. `view` says which one it was.
+   */
+  private async handleViewEval(args: Record<string, unknown>): Promise<unknown> {
     const appId = requireString(args, "appId");
     if (!this.events) {
-      return { ok: false, error: "this host has no event bus — snapshots are unavailable" };
+      return { ok: false, view: "not-open", error: "this host has no event bus — the view is unreachable" };
     }
-    const snap = this.events.appSnapshot(appId);
-    if (!snap) {
+    const code = typeof args.code === "string" ? args.code : "";
+    const maxBytesRaw = args.maxBytes;
+    const maxBytes =
+      typeof maxBytesRaw === "number" && Number.isFinite(maxBytesRaw) && maxBytesRaw > 0
+        ? Math.min(Math.floor(maxBytesRaw), VIEW_EVAL_BYTE_CAP)
+        : VIEW_EVAL_BYTE_CAP;
+    const reply = await this.events.requestViewEval(appId, code, maxBytes);
+    const base: Record<string, unknown> = { view: reply.view, tookMs: reply.tookMs };
+    if (reply.ok) {
       return {
+        ...base,
         ok: true,
-        appId,
-        snapshot: null,
-        hint: "the app iframe has not reported a DOM outline yet — call mini_app_open and read again once it has rendered",
+        result: reply.result ?? "",
+        bytes: reply.bytes ?? 0,
+        truncated: reply.truncated === true,
+        stoppedBy: reply.stoppedBy || "",
+        visited: reply.visited ?? 0,
+        matched: reply.matched ?? 0,
+        ...(reply.dropped ? { dropped: reply.dropped } : {}),
       };
     }
-    const depthRaw = args.depth;
-    const maxDepth = typeof depthRaw === "number" && Number.isFinite(depthRaw) && depthRaw > 0
-      ? Math.min(Math.floor(depthRaw), 24)
-      : 8;
-    const dom = trimOutline(snap.dom, maxDepth, args.textOnly === true);
     return {
-      ok: true,
-      appId,
-      at: snap.at,
-      ageMs: Date.now() - snap.at,
-      viewport: snap.viewport,
-      truncated: snap.truncated === true,
-      keys: OUTLINE_KEY_DOC,
-      dom,
+      ...base,
+      ok: false,
+      ...(reply.error ? { error: reply.error } : {}),
+      hint: reply.hint ?? VIEW_HINTS[reply.view],
     };
   }
 

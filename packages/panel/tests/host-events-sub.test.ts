@@ -89,6 +89,26 @@ describe("subscribeHostEvents", () => {
     expect(onReload).not.toHaveBeenCalled();
   });
 
+  it("routes app:eval with the query an iframe needs to answer", () => {
+    const onEval = vi.fn();
+    subscribeHostEvents("http://h", { onEval });
+    last().emit("app:eval", { appId: "com.example.todo", requestId: "v1", code: "return 1", maxBytes: 512 });
+    expect(onEval).toHaveBeenCalledWith({
+      appId: "com.example.todo",
+      requestId: "v1",
+      code: "return 1",
+      maxBytes: 512,
+    });
+  });
+
+  it("drops an app:eval frame it cannot address (no id, nothing to answer to)", () => {
+    const onEval = vi.fn();
+    subscribeHostEvents("http://h", { onEval });
+    last().emit("app:eval", { appId: "com.example.todo" });
+    last().emit("app:eval", { requestId: "v1" });
+    expect(onEval).not.toHaveBeenCalled();
+  });
+
   it("is inert when the engine has no EventSource (a UI must still render)", () => {
     vi.stubGlobal("EventSource", undefined);
     expect(() => subscribeHostEvents("http://h", { onOpen: vi.fn() })).not.toThrow();

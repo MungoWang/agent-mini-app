@@ -59,6 +59,49 @@ describe("createFrameController", () => {
     expect(ctl.map.size).toBe(1);
   });
 
+  it("relays a view query into the iframe, addressed to the host origin", () => {
+    const container = makeContainer();
+    const posted: Array<{ msg: unknown; target: string }> = [];
+    const ctl = createFrameController({
+      container,
+      urlOf: (id) => `http://127.0.0.1:17880/app/${id}`,
+      envOf: () => env,
+    });
+    ctl.mount("com.example.todo");
+    const iframe = container.querySelector("iframe") as HTMLIFrameElement & {
+      contentWindow: { postMessage(m: unknown, t: string): void } | null;
+    };
+    // jsdom gives an unattached iframe no contentWindow, so stand in for the real one.
+    const win = { postMessage: (msg: unknown, target: string) => posted.push({ msg, target }) };
+    Object.defineProperty(iframe, "contentWindow", { value: win, configurable: true });
+
+    expect(
+      ctl.postViewEval({ requestId: "v1", appId: "com.example.todo", code: "return 1", maxBytes: 512 }),
+    ).toBe(true);
+    expect(posted[0].msg).toMatchObject({ type: "mma-view-eval", requestId: "v1", code: "return 1" });
+    // "*" would leak the payload to whatever the frame navigated to; name the host instead.
+    expect(posted[0].target).toBe("http://127.0.0.1:17880");
+
+    ctl.unmount("com.example.todo");
+    expect(ctl.postViewEval({ requestId: "v2", appId: "com.example.todo" })).toBe(false);
+  });
+
+  it("addresses mma-set-env at the host origin too", () => {
+    const container = makeContainer();
+    const targets: string[] = [];
+    const ctl = createFrameController({
+      container,
+      urlOf: (id) => `http://127.0.0.1:17880/app/${id}`,
+      envOf: () => env,
+    });
+    ctl.mount("com.example.todo");
+    const iframe = container.querySelector("iframe") as HTMLIFrameElement;
+    const win = { postMessage: (_m: unknown, t: string) => targets.push(t) };
+    Object.defineProperty(iframe, "contentWindow", { value: win, configurable: true });
+    ctl.postEnv("com.example.todo");
+    expect(targets).toEqual(["http://127.0.0.1:17880"]);
+  });
+
   it("computes urls via urlOf", () => {
     const ctl = createFrameController({
       urlOf: (id) => `http://127.0.0.1:17880/app/${id}`,

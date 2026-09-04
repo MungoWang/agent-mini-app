@@ -28,7 +28,7 @@ Writing `~/.monkey-mini-app/runtime/**` directly is refused by the sandbox — a
 | Smoke-test api methods | `mini_app_call({ appId, method, args })` | Or `calls: [{ method, args }]` for a whole set in one round trip |
 | Show it to the user | `mini_app_open({ appId })` | Returns whether a panel actually received it |
 | **Read runtime errors** | `mini_app_errors({ appId, since? })` | The only way to see a UI that compiled and then crashed |
-| **See what rendered** | `mini_app_dom_snapshot({ appId })` | DOM outline + the styles that actually applied |
+| **Ask the rendered view** | `mini_app_view_eval({ appId, code? })` | Run JS in the live DOM — what actually rendered, at what size, with which styles |
 | Confirm the plugin is alive | `mini_app_list()` | |
 
 `mini_app_register` shape (`ui.tsx` + `main.api.ts` are the two entries; add `ui/…` / `api/…` / `shared/…` as needed — `..` and absolute paths are rejected):
@@ -79,15 +79,15 @@ Mutating tools **auto-commit** by default; pass `commit: false` to batch a few e
 ### Debug loop (this is the part that used to need a human)
 
 ```
-edit → mini_app_reload → mini_app_open → mini_app_errors → mini_app_dom_snapshot
+edit → mini_app_reload → mini_app_open → mini_app_errors → mini_app_view_eval
 ```
 
 1. `mini_app_reload` until `ok: true`.
 2. `mini_app_open` — the iframe mounts and streams back anything it throws. `panel: "no-panel-connected"` means no browser is attached: the app is fine, nobody is looking, so tell the user to open the panel.
 3. Give it a moment to render, then `mini_app_errors`. Empty + never opened ≠ clean; the hint says when to re-read.
-4. `mini_app_dom_snapshot` to confirm the visual actually landed — see `s.c` / `s.bg` to check a colour resolved, `empty: true` to spot a node that rendered to nothing.
+4. `mini_app_view_eval({ appId })` (no `code` = the `#root` subtree) to see what actually drew — then ask it anything in JS: did that class apply, which node has no width, is that subtree `display:none`.
 
-`mini_app_errors` polls with `since: <lastSeq>`; a reload clears the ring, so errors after a reload are only from the new build.
+`mini_app_errors` polls with `since: <lastSeq>`; a reload clears the ring, so errors after a reload are only from the new build. `mini_app_view_eval` needs a live view and says which of `not-open` / `runner-not-booted` / `stuck` it hit when it does not get one → **[references/eval.md](references/eval.md)**.
 
 More symptoms → [references/troubleshoot.md](references/troubleshoot.md).
 
@@ -235,6 +235,7 @@ export default defineApp({
 |------|------|
 | Component props / types | [references/catalog.md](references/catalog.md) → [references/contracts/](references/contracts/) |
 | **Which Tailwind classes work / how to colour** | [references/styling.md](references/styling.md) |
+| **What actually rendered (live DOM query)** | [references/eval.md](references/eval.md) — recipes, output format, the four `view` states |
 | **Theme token table** | [references/theme.md](references/theme.md) (generated — do not hand-edit) |
 | **A runnable starting point for one component** | contract's `## Examples` → [references/examples/](references/examples/) (each file = one scenario: `@title` + `@scenario`; layout/pattern recipes in `examples/<group>.md`) |
 | Icon subset (`Icon` namespace, when to use) | [references/icons.md](references/icons.md) |
@@ -267,5 +268,5 @@ For plain storage CRUD **start from the skeleton above** — don't read the whol
 - [ ] `mini_app_reload` compiles (located the failure by `errors[i]` prefix) and `notices[]` was read
 - [ ] `mini_app_call` smoke test passes (not curl) — batch with `calls: []` instead of N round trips
 - [ ] `mini_app_open`, then `mini_app_errors` — **compile green ≠ it renders**; do not stop at the build
-- [ ] `mini_app_dom_snapshot` confirms the styling actually applied (no hardcoded hex, no composed class names)
+- [ ] `mini_app_view_eval` confirms the styling actually applied (no hardcoded hex, no composed class names)
 - [ ] `call` keys ⊆ `api` keys; no fetch / secrets / llm in the UI; compound part names taken from a contract, not memory

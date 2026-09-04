@@ -1,6 +1,7 @@
 import { createElement, type ReactElement } from "react";
 
-import { defaultHideThemePop, getPanelState, subscribePanel } from "@monkey-mini-app/panel";
+import type { ViewEvalQuery } from "@monkey-mini-app/panel";
+import { defaultHideThemePop, getPanelState, relayViewEval, subscribePanel } from "@monkey-mini-app/panel";
 
 import { installFootCss } from "./css.ts";
 import { DshShell } from "./shell.ts";
@@ -79,15 +80,7 @@ function subscribeAppOpen(current: DshShell): void {
     const es = new EventSource(`${current.origin}/api/events`);
     sse = es;
     es.addEventListener("app:open", (e: MessageEvent<string>) => {
-      let appId = "";
-      try {
-        const d: unknown = JSON.parse(e.data || "{}");
-        if (d && typeof d === "object" && "appId" in d && typeof (d as { appId: unknown }).appId === "string") {
-          appId = (d as { appId: string }).appId;
-        }
-      } catch {
-        return;
-      }
+      const appId = readAppId(e.data);
       if (!appId) return;
       current.openPanel();
       void current.host.fetchApps().then((apps) => {
@@ -97,19 +90,46 @@ function subscribeAppOpen(current: DshShell): void {
     });
     // Recompiled sources: an iframe the user already has open is running stale bytes.
     es.addEventListener("app:reload", (e: MessageEvent<string>) => {
-      let appId = "";
-      try {
-        const d: unknown = JSON.parse(e.data || "{}");
-        if (d && typeof d === "object" && typeof (d as { appId: unknown }).appId === "string") {
-          appId = (d as { appId: string }).appId;
-        }
-      } catch {
-        return;
-      }
+      const appId = readAppId(e.data);
       if (appId && current.frames.map.has(appId)) current.frames.reload(appId);
+    });
+    // A view query from the host. This one cannot wait for a click: the host is blocked on
+    // the answer, and only this page can cross into the iframe to get it.
+    es.addEventListener("app:eval", (e: MessageEvent<string>) => {
+      const query = readEvalQuery(e.data);
+      if (query) relayViewEval(current.origin, current.frames, query);
     });
   } catch (err) {
     console.warn("[monkey-mini-app-client] sse subscribe failed", err);
+  }
+}
+
+/** Parse the one field three handlers need, without throwing into the SSE stream. */
+function readAppId(raw: string): string {
+  try {
+    const d: unknown = JSON.parse(raw || "{}");
+    return d && typeof d === "object" && typeof (d as { appId?: unknown }).appId === "string"
+      ? (d as { appId: string }).appId
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+function readEvalQuery(raw: string): ViewEvalQuery | null {
+  try {
+    const d: unknown = JSON.parse(raw || "{}");
+    if (!d || typeof d !== "object") return null;
+    const q = d as { requestId?: unknown; appId?: unknown; code?: unknown; maxBytes?: unknown };
+    if (typeof q.requestId !== "string" || typeof q.appId !== "string") return null;
+    return {
+      requestId: q.requestId,
+      appId: q.appId,
+      code: typeof q.code === "string" ? q.code : "",
+      maxBytes: typeof q.maxBytes === "number" ? q.maxBytes : 0,
+    };
+  } catch {
+    return null;
   }
 }
 

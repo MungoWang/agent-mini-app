@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   AppsManager,
@@ -14,6 +14,7 @@ import {
   HostEventBus,
   ToolFacade,
   UiCompiler,
+  VIEW_EVAL_BYTE_CAP,
   WorkspacePaths,
 } from "@monkey-mini-app/host";
 
@@ -393,46 +394,127 @@ describe("ToolFacade.mini_app_errors", () => {
   });
 });
 
-describe("ToolFacade.mini_app_dom_snapshot", () => {
-  it("reads the last reported outline with a self-describing key legend", async () => {
+/** Reach into the bus for the in-flight requestId, the way a browser would have learned it. */
+function eventsRequestId(events: HostEventBus): string {
+  const box = events as unknown as { viewPending: Map<string, { appId: string }> };
+  for (const [id, pending] of box.viewPending) if (pending.appId) return id;
+  return "";
+}
+
+describe("ToolFacade.mini_app_view_eval", () => {
+  it("asks the view and returns the answer with its guard counters", async () => {
     const { tools, events } = boot();
-    events.reportAppSnapshot("com.example.snap", {
-      dom: { t: "div", c: "flex gap-3", w: 400, h: 80, k: [{ t: "button", x: "Save", s: { d: "inline-flex", c: "rgb(17,17,17)" } }] },
-      viewport: { width: 900, height: 600 },
+    let requestId = "";
+    events.subscribe((e) => {
+      if (e.type === "app:eval") requestId = e.requestId;
     });
-    const res = (await tools.invoke("mini_app_dom_snapshot", { appId: "com.example.snap" })) as {
+
+    const pending = tools.invoke("mini_app_view_eval", {
+      appId: "com.example.view",
+      code: 'return mma.$("#root");',
+    }) as Promise<Record<string, unknown>>;
+    await vi.waitFor(() => expect(requestId).not.toBe(""));
+    events.reportViewEval("com.example.view", {
+      requestId,
+      ok: true,
+      result: "# 2 lines\ndiv#root\n  b \"hi\"",
+      bytes: 40,
+      truncated: true,
+      stoppedBy: "bytes",
+      visited: 2,
+      matched: 1,
+      dropped: 9,
+    });
+
+    await expect(pending).resolves.toMatchObject({
+      ok: true,
+      view: "live",
+      truncated: true,
+      stoppedBy: "bytes",
+      visited: 2,
+      matched: 1,
+      dropped: 9,
+    });
+  });
+
+  it("caps maxBytes at the hard ceiling before asking the view", async () => {
+    const { tools, events } = boot();
+    const asked: number[] = [];
+    events.subscribe((e) => {
+      if (e.type === "app:eval") asked.push(e.maxBytes);
+    });
+    const pending = tools.invoke("mini_app_view_eval", { appId: "com.example.view", maxBytes: 999_999 });
+    await vi.waitFor(() => expect(asked.length).toBe(1));
+    expect(asked[0]).toBe(VIEW_EVAL_BYTE_CAP);
+    const id = eventsRequestId(events);
+    events.reportViewEval("com.example.view", { requestId: id, ok: true, result: "x" });
+    await expect(pending).resolves.toMatchObject({ ok: true, result: "x" });
+  });
+
+  it("names the four ways a view can be unreachable, each with a next step", async () => {
+    const { tools, events } = boot();
+
+    // 1. no browser attached at all
+    const closed = (await tools.invoke("mini_app_view_eval", { appId: "com.example.view" })) as {
       ok: boolean;
-      dom: { t: string; k?: unknown[] };
-      keys: string;
-      viewport?: { width: number };
-      ageMs: number;
+      view: string;
+      hint: string;
     };
-    expect(res.ok).toBe(true);
-    expect(res.dom.t).toBe("div");
-    expect(res.keys).toContain("t=tag");
-    expect(res.viewport?.width).toBe(900);
-  });
+    expect(closed).toMatchObject({ ok: false, view: "not-open" });
+    expect(closed.hint).toMatch(/mini_app_open/);
 
-  it("trims by depth instead of dumping the whole tree", async () => {
-    const { tools, events } = boot();
-    events.reportAppSnapshot("com.example.snap", {
-      dom: { t: "div", k: [{ t: "div", k: [{ t: "div", k: [{ t: "span", x: "deep" }] }] }] },
+    // 2/3. a browser is attached, but the view cannot answer
+    events.subscribe(() => {});
+    const noRunner = (await tools.invoke("mini_app_view_eval", {
+      appId: "com.example.view",
+      code: "return 1",
+      maxBytes: 10,
+    })) as { view: string; hint: string };
+    expect(noRunner.view).toBe("runner-not-booted");
+    expect(noRunner.hint).toMatch(/mini_app_errors/);
+
+    events.reportViewAlive("com.example.view");
+    const stuck = (await tools.invoke("mini_app_view_eval", { appId: "com.example.view" })) as {
+      view: string;
+      hint: string;
+    };
+    expect(stuck.view).toBe("stuck");
+    expect(stuck.hint).toMatch(/reload the browser tab/);
+
+    // 4. the view answered, and the agent's own JS was the thing that failed
+    let requestId = "";
+    events.subscribe((e) => {
+      if (e.type === "app:eval") requestId = e.requestId;
     });
-    const res = (await tools.invoke("mini_app_dom_snapshot", {
-      appId: "com.example.snap",
-      depth: 2,
-    })) as { dom: { k?: { k?: unknown }[] } };
-    expect(res.dom.k?.[0].k).toBeUndefined();
+    const bad = tools.invoke("mini_app_view_eval", { appId: "com.example.view" }) as Promise<{
+      ok: boolean;
+      view: string;
+      error: Record<string, unknown>;
+    }>;
+    await vi.waitFor(() => expect(requestId).not.toBe(""));
+    events.reportViewEval("com.example.view", {
+      requestId,
+      ok: false,
+      error: { kind: "syntax", message: "Unexpected token", line: 1 },
+    });
+    const res = await bad;
+    // The view is alive here — telling the agent to reopen it would send them to wrong file.
+    expect(res).toMatchObject({ ok: false, view: "live" });
+    expect(res.error.kind).toBe("syntax");
   });
 
-  it("tells the agent to open the app rather than returning a bare null", async () => {
-    const { tools } = boot();
-    const res = (await tools.invoke("mini_app_dom_snapshot", { appId: "com.example.none" })) as {
-      snapshot: null;
-      hint?: string;
+  it("reports an unavailable view instead of throwing when the host has no bus", async () => {
+    const root = mkdtempSync(path.join(tmpdir(), "mma-tools-nobus-"));
+    const config = bootstrapHostConfig({ runtimeRoot: root, hostPort: 0 });
+    const paths = new WorkspacePaths(config.runtimeRoot);
+    const git = new GitHistory();
+    const apps = new AppsManager(paths, {}, git, config);
+    const tools = new ToolFacade(apps, git, paths);
+    const res = (await tools.invoke("mini_app_view_eval", { appId: "com.example.view" })) as {
+      ok: boolean;
+      view: string;
     };
-    expect(res.snapshot).toBeNull();
-    expect(res.hint).toMatch(/mini_app_open/);
+    expect(res).toMatchObject({ ok: false, view: "not-open" });
   });
 });
 

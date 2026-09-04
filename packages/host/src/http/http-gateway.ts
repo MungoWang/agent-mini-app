@@ -28,7 +28,7 @@ import {
 } from "../compile/ui-compiler.ts";
 import { writeHostConfig } from "../config/write.ts";
 import { HostError } from "../errors.ts";
-import { APP_SNAPSHOT_BYTES,type AppDomSnapshot, formatSse, type HostEventBus } from "../events/host-events.ts";
+import { formatSse, type HostEventBus } from "../events/host-events.ts";
 import type { GitHistory } from "../git/git-history.ts";
 import { WorkspacePaths } from "../paths/workspace-paths.ts";
 import { EMPTY_THEME_RESOURCE, type ThemeResource } from "../theme-resource.ts";
@@ -40,6 +40,7 @@ import {
   type ThemePref,
 } from "../types.ts";
 import { appRunnerHtml } from "./app-runner-html.ts";
+import { VIEW_EVAL_BYTE_CAP } from "./app-view-eval.ts";
 
 /** Comment frame interval that keeps idle proxies from closing an SSE stream. */
 const SSE_HEARTBEAT_MS = 25_000;
@@ -688,7 +689,25 @@ export class HttpGateway {
       return c.json({ ok: true, ...bus.appErrorsFor(appId, since) });
     });
 
-    app.post("/api/app/:appId/snapshot", async (c) => {
+    /**
+     * "The runner script in this app's iframe is executing." The only way to tell a dead
+     * bundle apart from a wedged page when a query goes unanswered — and a real failure
+     * mode, not a hypothetical: a template placeholder once produced a syntax error here
+     * and the whole diagnostics script silently did nothing.
+     */
+    app.post("/api/app/:appId/alive", (c) => {
+      const bus = this.events;
+      const appId = c.req.param("appId") || "";
+      if (bus && isAppId(appId)) bus.reportViewAlive(appId);
+      return c.body(null, 204);
+    });
+
+    /**
+     * The answer to a `mini_app_view_eval` query, reported by the iframe that ran it.
+     * Unknown / already-consumed / wrong-app requestIds are dropped: the host issued the id,
+     * so the host decides which pending query it belongs to, and only once.
+     */
+    app.post("/api/app/:appId/view/eval", async (c) => {
       const bus = this.events;
       const appId = c.req.param("appId") || "";
       if (!bus || !isAppId(appId)) return c.body(null, 204);
@@ -698,29 +717,14 @@ export class HttpGateway {
       } catch {
         return c.body(null, 204);
       }
-      if (!isRecord(body) || body.dom === undefined) return c.body(null, 204);
-      let bytes = 0;
-      try {
-        bytes = JSON.stringify(body.dom).length;
-      } catch {
-        return c.body(null, 204);
+      if (!isRecord(body)) return c.body(null, 204);
+      // The runtime caps its own output, but this is a browser: bound it again on the way in.
+      if (typeof body.result === "string" && body.result.length > VIEW_EVAL_BYTE_CAP * 2) {
+        body.result = body.result.slice(0, VIEW_EVAL_BYTE_CAP * 2);
+        body.truncated = true;
       }
-      // Reject an oversized outline rather than keep a silently half-truncated tree.
-      if (bytes > APP_SNAPSHOT_BYTES) return c.body(null, 204);
-      const viewport = isRecord(body.viewport) ? (body.viewport as AppDomSnapshot["viewport"]) : undefined;
-      bus.reportAppSnapshot(appId, {
-        dom: body.dom,
-        truncated: body.truncated === true,
-        ...(viewport ? { viewport } : {}),
-      });
+      bus.reportViewEval(appId, body);
       return c.body(null, 204);
-    });
-
-    app.get("/api/app/:appId/snapshot", (c) => {
-      const bus = this.events;
-      const appId = c.req.param("appId") || "";
-      if (!bus || !isAppId(appId)) return c.json({ ok: true, snapshot: null });
-      return c.json({ ok: true, snapshot: bus.appSnapshot(appId) });
     });
 
     // Geist 字体（@fontsource-variable/geist）由 winocss @font-face url 引用，host 在这里直接吐文件

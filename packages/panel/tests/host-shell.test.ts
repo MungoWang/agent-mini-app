@@ -60,7 +60,7 @@ let shell: HostShellInstance | null = null;
 beforeEach(() => {
   FakeEventSource.instances = [];
   vi.stubGlobal("EventSource", FakeEventSource);
-  globalThis.fetch = (async (input: unknown) => {
+  globalThis.fetch = vi.fn(async (input: unknown) => {
     const url = String(input);
     if (url.endsWith("/api/apps")) {
       return new Response(JSON.stringify({ apps: [todo] }), {
@@ -78,7 +78,7 @@ beforeEach(() => {
       status: 200,
       headers: { "content-type": "application/json" },
     });
-  }) as typeof fetch;
+  }) as unknown as typeof fetch;
 });
 
 afterEach(() => {
@@ -152,6 +152,48 @@ describe("createHostShell", () => {
     expect(() =>
       FakeEventSource.instances[0].emit("app:reload", { appId: "com.not.mounted" })
     ).not.toThrow();
+    expect(s.frames.map.size).toBe(0);
+  });
+
+  it("relays a host view query into the open iframe", async () => {
+    const s = await booted();
+    act(() => s.host.frame.mount(todo.id));
+    const iframe = shellEl().querySelector("#mma-frames iframe") as HTMLIFrameElement;
+    const posted: Array<{ msg: unknown; target: string }> = [];
+    const win = { postMessage: (msg: unknown, target: string) => posted.push({ msg, target }) };
+    Object.defineProperty(iframe, "contentWindow", { value: win, configurable: true });
+
+    await act(async () => {
+      FakeEventSource.instances[0].emit("app:eval", {
+        appId: todo.id,
+        requestId: "v7",
+        code: "return 1",
+        maxBytes: 2048,
+      });
+    });
+    expect(posted[0].msg).toMatchObject({ type: "mma-view-eval", requestId: "v7" });
+    // Never "*": the answer is only deliverable to the host that asked.
+    expect(posted[0].target).toBe("http://127.0.0.1:17880");
+  });
+
+  it("answers not-open for an app no iframe is showing, instead of timing out", async () => {
+    const s = await booted();
+    const calls = (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    const before = calls.length;
+
+    await act(async () => {
+      FakeEventSource.instances[0].emit("app:eval", {
+        appId: "com.never.mounted",
+        requestId: "v8",
+        code: "return 1",
+        maxBytes: 2048,
+      });
+    });
+    const posted = calls
+      .slice(before)
+      .map((c) => String(c[0]))
+      .filter((u) => u.includes("/view/eval"));
+    expect(posted).toEqual(["http://127.0.0.1:17880/api/app/com.never.mounted/view/eval"]);
     expect(s.frames.map.size).toBe(0);
   });
 

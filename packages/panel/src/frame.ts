@@ -13,6 +13,25 @@ export type FrameEnv = {
   vars?: Record<string, string>;
 };
 
+/**
+ * A `mini_app_view_eval` query the host asked a rendered view to run. It arrives on the
+ * shell's existing event stream, and only the shell can cross into the iframe with it.
+ */
+export type ViewEvalQuery = {
+  requestId: string;
+  appId: string;
+  code?: string;
+  maxBytes?: number;
+};
+
+export type ViewEvalAnswer = {
+  requestId: string;
+  /** Set instead of `ok` when the shell holds no frame for the app. */
+  view?: "not-open";
+  ok?: boolean;
+  error?: Record<string, unknown>;
+};
+
 export type FrameRecord = { wrap: HTMLElement; iframe: HTMLIFrameElement };
 
 export type FrameController = {
@@ -23,6 +42,11 @@ export type FrameController = {
   reload(appId: string): void;
   postEnv(appId: string): void;
   postEnvAll(): void;
+  /**
+   * Relay a view query into an app iframe. False means this shell holds no frame for the
+   * app — the caller must answer `not-open` rather than let the host wait out its timeout.
+   */
+  postViewEval(query: ViewEvalQuery): boolean;
   /** Set/rebind the container the app iframes mount into (e.g. the panel's #mma-frames). */
   setContainer(el: HTMLElement): void;
   readonly map: Map<string, FrameRecord>;
@@ -78,6 +102,19 @@ export function createFrameController(opts: FrameControllerOptions): FrameContro
   let container: HTMLElement | null = initial ?? null;
   const map = new Map<string, FrameRecord>();
 
+  /**
+   * The iframe is served by the host, which is **not** this page's origin, so every message
+   * into it must name the host origin — `"*"` would hand the payload (and any future
+   * executable one) to whatever that frame ends up navigated to.
+   */
+  function targetOrigin(appId: string, rec?: FrameRecord): string {
+    try {
+      return new URL(rec?.iframe.src || urlOf(appId)).origin;
+    } catch {
+      return "";
+    }
+  }
+
   return {
     map,
     url: (appId) => urlOf(appId),
@@ -89,10 +126,12 @@ export function createFrameController(opts: FrameControllerOptions): FrameContro
       const w = rec?.iframe.contentWindow;
       if (!w) return;
       const env = envOf(appId);
+      const target = targetOrigin(appId, rec);
+      if (!target) return;
       try {
         w.postMessage(
           { type: "mma-set-env", theme: env.theme, palette: env.palette, dock: env.dock, vars: env.vars },
-          "*",
+          target,
         );
       } catch {
         /* ignore */
@@ -138,6 +177,27 @@ export function createFrameController(opts: FrameControllerOptions): FrameContro
       if (!rec) return;
       if (!rec.wrap.querySelector(".mma-load")) rec.wrap.insertAdjacentHTML("afterbegin", loadingMarkup());
       rec.iframe.src = `${urlOf(appId)}&_=${Date.now()}`;
+    },
+    postViewEval(query) {
+      const rec = map.get(query.appId);
+      const w = rec?.iframe.contentWindow;
+      const target = rec ? targetOrigin(query.appId, rec) : "";
+      if (!w || !target) return false;
+      try {
+        w.postMessage(
+          {
+            type: "mma-view-eval",
+            requestId: query.requestId,
+            appId: query.appId,
+            code: query.code ?? "",
+            maxBytes: query.maxBytes ?? 0,
+          },
+          target,
+        );
+        return true;
+      } catch {
+        return false;
+      }
     },
   };
 }

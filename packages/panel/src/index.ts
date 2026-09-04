@@ -12,7 +12,7 @@ export { ThemePop } from "./components/ThemePop.tsx";
 export { Toolbar } from "./components/Toolbar.tsx";
 export { PanelProvider, usePanelActions, usePanelI18n } from "./context.tsx";
 export { PanelError } from "./errors.ts";
-export type { FrameController, FrameControllerOptions, FrameEnv, FrameRecord } from "./frame.ts";
+export type { FrameController, FrameControllerOptions, FrameEnv, FrameRecord, ViewEvalAnswer, ViewEvalQuery } from "./frame.ts";
 export { createFrameController } from "./frame.ts";
 export type { HostShellInstance, HostShellOptions } from "./host-shell.ts";
 export { createHostShell } from "./host-shell.ts";
@@ -24,7 +24,7 @@ export { createMiniAppPanel } from "./panel.tsx";
 export type { Palette, PanelHost } from "./panel-host.ts";
 export { capabilitiesOf } from "./panel-host.ts";
 export type { HostEventHandlers,RestOptions } from "./rest.ts";
-export { appFrameUrl, createRestPanelHost, formToHostConfigBody, hostConfigToForm, HostUnreachableError, isHostUnreachable, parseAppsResponse, parseCommitDetail, parseCommitList, parsePalettes, parseStorageTables, readJson, subscribeHostEvents } from "./rest.ts";
+export { appFrameUrl, createRestPanelHost, formToHostConfigBody, hostConfigToForm, HostUnreachableError, isHostUnreachable, parseAppsResponse, parseCommitDetail, parseCommitList, parsePalettes, parseStorageTables, readJson, relayViewEval, subscribeHostEvents } from "./rest.ts";
 export {
   getPanelState,
   resetPanelState,

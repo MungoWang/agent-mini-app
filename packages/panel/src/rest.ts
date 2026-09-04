@@ -7,6 +7,7 @@
  * the same `PanelHost` by wrapping this. All data/HTTP logic lives here; the panel
  * never contains /api strings.
  */
+import type { FrameController, ViewEvalAnswer, ViewEvalQuery } from "./frame.ts";
 import type {
   AboutInfo,
   Palette,
@@ -91,7 +92,34 @@ export type HostEventHandlers = {
   onOpen?: (appId: string, title?: string) => void;
   /** Sources were recompiled: an already-open iframe must refetch, not keep old code. */
   onReload?: (appId: string) => void;
+  /**
+   * The host wants an answer from a rendered view. Only the shell can deliver it: the iframe
+   * is cross-origin, so `postMessage` is the one door from this page into that one.
+   */
+  onEval?: (query: ViewEvalQuery) => void;
 };
+
+/**
+ * Relay one host view query into the iframe that renders `appId`, or answer on the app's
+ * behalf when no shell here is showing it.
+ *
+ * Answering `not-open` immediately is what makes the distinction real: without it the host
+ * can only see "nobody replied" and has to guess between a closed app and a wedged one.
+ * Reused by every adapter (panel shell, dsh client) so hosts get identical freshness
+ * semantics instead of subtly different ones.
+ */
+export function relayViewEval(origin: string, frames: FrameController, query: ViewEvalQuery): void {
+  if (!query.requestId || !query.appId) return;
+  if (frames.postViewEval(query)) return;
+  const body: ViewEvalAnswer & { appId: string } = { appId: query.appId, requestId: query.requestId, view: "not-open" };
+  fetch(`${origin.replace(/\/$/, "")}/api/app/${encodeURIComponent(query.appId)}/view/eval`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  }).catch(() => {
+    /* the host's own timeout says the same thing, later and less precisely */
+  });
+}
 
 /**
  * Subscribe to the host event stream. Returns an unsubscribe function.
@@ -128,6 +156,18 @@ export function subscribeHostEvents(origin: string, handlers: HostEventHandlers)
       "app:reload",
       listen((d) => {
         if (typeof d.appId === "string") handlers.onReload?.(d.appId);
+      }),
+    );
+    es.addEventListener(
+      "app:eval",
+      listen((d) => {
+        if (typeof d.requestId !== "string" || typeof d.appId !== "string") return;
+        handlers.onEval?.({
+          requestId: d.requestId,
+          appId: d.appId,
+          code: typeof d.code === "string" ? d.code : "",
+          maxBytes: typeof d.maxBytes === "number" ? d.maxBytes : 0,
+        });
       }),
     );
   } catch {

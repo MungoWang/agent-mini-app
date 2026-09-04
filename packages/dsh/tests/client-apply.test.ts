@@ -163,6 +163,36 @@ describe("client apply / FooterButton", () => {
     expect(es?.closed).toBe(true);
   });
 
+  it("answers a host view query with not-open when no frame is showing the app", async () => {
+    const ctx = {
+      slots: {
+        inject: () => () => undefined,
+        register: () => undefined,
+      },
+    };
+    const stop = apply(ctx as never);
+    const es = FakeEventSource.last;
+    expect(es).toBeTruthy();
+    (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.length = 0;
+
+    // Malformed frames must not throw into the stream, and must not POST anything either.
+    es!.emit("app:eval", "not json");
+    es!.emit("app:eval", JSON.stringify({ appId: "com.example.todo" }));
+    es!.emit("app:eval", JSON.stringify({ requestId: "v1" }));
+    expect((globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls).toHaveLength(0);
+
+    await act(async () => {
+      es!.emit("app:eval", JSON.stringify({ requestId: "v2", appId: "com.example.todo", code: "return 1", maxBytes: 512 }));
+    });
+    const posts = (globalThis.fetch as unknown as { mock: { calls: unknown[][] } })
+      .mock.calls.map((c) => String(c[0]))
+      .filter((u) => u.endsWith("/view/eval"));
+    // One stream, no second EventSource: the client already had this connection open.
+    expect(posts).toHaveLength(1);
+    expect(posts[0]).toContain("/api/app/com.example.todo/view/eval");
+    stop();
+  });
+
   it("still binds UI events when slots.inject throws", () => {
     const stop = apply({
       slots: {

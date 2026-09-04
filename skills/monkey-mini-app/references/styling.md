@@ -97,4 +97,4 @@ next compile — never edit it, and never import from it.
 - [ ] no hex / rgb literals for themeable colour — tokens only
 - [ ] sized against the viewport, not a fixed height
 - [ ] no injected `<style>`/`@keyframes`
-- [ ] hover the result with `mini_app_dom_snapshot` and check `s.c` / `s.bg` actually resolved
+- [ ] ask the live view what won: `mini_app_view_eval({ appId, code: 'const cs = getComputedStyle(mma.$(".your-class")); return { color: cs.color, bg: cs.backgroundColor };' })` → [eval.md](eval.md)

@@ -81,18 +81,20 @@ export { writeHostConfig } from "./config/write.ts";
 export { createHost } from "./create-host.ts";
 export { HostConfigError, HostError } from "./errors.ts";
 export type {
-  AppDomSnapshot,
   AppErrorInput,
   AppRuntimeError,
   HostEvent,
   HostEventListener,
+  ViewEvalInput,
+  ViewEvalReply,
+  ViewState,
 } from "./events/host-events.ts";
 export {
   APP_ERROR_BUFFER,
   APP_EVENT_BUFFER,
-  APP_SNAPSHOT_BUFFER,
   formatSse,
   HostEventBus,
+  VIEW_EVAL_TIMEOUT_MS,
 } from "./events/host-events.ts";
 export type {
   Commit,
@@ -104,6 +106,16 @@ export type {
 export { GitHistory } from "./git/git-history.ts";
 export { Host } from "./host.ts";
 export { appRunnerHtml } from "./http/app-runner-html.ts";
+export type { ViewEvalLimits } from "./http/app-view-eval.ts";
+export {
+  VIEW_EVAL_BYTE_CAP,
+  LIMITS as VIEW_EVAL_LIMITS,
+  VIEW_EVAL_MAX_NODES,
+  VIEW_EVAL_SELF_TIMEOUT_MS,
+  VIEW_EVAL_TREE_DEPTH,
+  viewEvalClient,
+  viewEvalRuntime,
+} from "./http/app-view-eval.ts";
 export { HttpGateway } from "./http/http-gateway.ts";
 export type { HostI18n, I18nParams } from "./i18n/index.ts";
 export { createHostI18n } from "./i18n/index.ts";

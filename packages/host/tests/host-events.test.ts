@@ -208,13 +208,99 @@ describe("HostEventBus runtime error ring", () => {
     expect(bus.appErrorsFor("com.a").errors).toEqual([]);
   });
 
-  it("keeps only the newest snapshots", () => {
+  /* ------------------------------------------------ view queries (mini_app_view_eval) */
+
+  /** A bus with one browser attached, remembering the requestId of the query it was sent. */
+  function withBrowser(): { bus: HostEventBus; requestId: () => string } {
     const bus = new HostEventBus();
-    bus.reportAppSnapshot("com.a", { dom: { t: "div", n: 1 } });
-    bus.reportAppSnapshot("com.a", { dom: { t: "div", n: 2 }, viewport: { width: 800, height: 600 } });
-    expect(bus.appSnapshot("com.a")).toMatchObject({ viewport: { width: 800, height: 600 } });
-    expect((bus.appSnapshot("com.a")!.dom as { n: number }).n).toBe(2);
-    expect(bus.appSnapshot("com.none")).toBeNull();
+    let last = "";
+    bus.subscribe((e) => {
+      if (e.type === "app:eval") last = e.requestId;
+    });
+    return { bus, requestId: () => last };
+  }
+
+  it("refuses a view query with nothing attached, instead of burning the timeout", async () => {
+    const bus = new HostEventBus();
+    const reply = await bus.requestViewEval("com.a", "return 1", 2048);
+    expect(reply).toMatchObject({ view: "not-open", ok: false });
+    expect(reply.hint).toMatch(/mini_app_open/);
+  });
+
+  it("asks the browser for an answer and resolves it once", async () => {
+    const { bus, requestId } = withBrowser();
+    const pending = bus.requestViewEval("com.a", 'return mma.$("#root")', 1024, 2_000);
+    expect(requestId()).toMatch(/^v\d+$/);
+
+    expect(
+      bus.reportViewEval("com.a", {
+        requestId: requestId(),
+        ok: true,
+        result: "# 1 line",
+        bytes: 8,
+        visited: 1,
+      }),
+    ).toBe(true);
+    await expect(pending).resolves.toMatchObject({ view: "live", ok: true, result: "# 1 line", visited: 1 });
+    expect(bus.viewPendingCount()).toBe(0);
+  });
+
+  it("takes only its own requestId, for the app that asked", () => {
+    const { bus, requestId } = withBrowser();
+    void bus.requestViewEval("com.a", "return 1", 512, 5_000);
+    const id = requestId();
+    // A reply is not a credential: wrong id, wrong app, or already consumed must all miss.
+    expect(bus.reportViewEval("com.a", { requestId: "nope", ok: true, result: "x" })).toBe(false);
+    expect(bus.reportViewEval("com.b", { requestId: id, ok: true, result: "x" })).toBe(false);
+    expect(bus.reportViewEval("com.a", { requestId: id, ok: true, result: "x" })).toBe(true);
+    expect(bus.reportViewEval("com.a", { requestId: id, ok: true, result: "y" })).toBe(false);
+  });
+
+  it("reports `stuck` only when the view had proved it runs", async () => {
+    const { bus } = withBrowser();
+    expect((await bus.requestViewEval("com.a", "return 1", 512, 5)).view).toBe("runner-not-booted");
+
+    bus.reportViewAlive("com.a");
+    expect(bus.viewAlive("com.a")).toBeGreaterThan(0);
+    expect((await bus.requestViewEval("com.a", "return 1", 512, 5)).view).toBe("stuck");
+
+    // forgetView is what a reload calls: the old document cannot vouch for the next one.
+    bus.forgetView("com.a");
+    expect((await bus.requestViewEval("com.a", "return 1", 512, 5)).view).toBe("runner-not-booted");
+  });
+
+  it("accepts a shell's immediate not-open instead of waiting it out", async () => {
+    const { bus, requestId } = withBrowser();
+    bus.reportViewAlive("com.a"); // it *was* open; the frame is gone now
+    const pending = bus.requestViewEval("com.a", "return 1", 512, 5_000);
+    expect(bus.reportViewEval("com.a", { requestId: requestId(), view: "not-open" })).toBe(true);
+
+    const reply = await pending;
+    // Liveness said "stuck"; the shell knowing it holds no frame is the more specific truth.
+    expect(reply.view).toBe("not-open");
+    expect(reply.hint).toMatch(/mini_app_open/);
+  });
+
+  it("settles an in-flight query when the app goes away", async () => {
+    const { bus } = withBrowser();
+    const pending = bus.requestViewEval("com.a", "return 1", 512, 5_000);
+    bus.forget("com.a");
+    await expect(pending).resolves.toMatchObject({ view: "not-open", ok: false });
+    expect(bus.viewPendingCount()).toBe(0);
+  });
+
+  it("carries a code error back without dressing it up as a view failure", async () => {
+    const { bus, requestId } = withBrowser();
+    const pending = bus.requestViewEval("com.a", "return 1", 512, 5_000);
+    bus.reportViewEval("com.a", {
+      requestId: requestId(),
+      ok: false,
+      error: { kind: "syntax", message: "Unexpected token" },
+    });
+
+    const reply = await pending;
+    expect(reply).toMatchObject({ view: "live", ok: false });
+    expect(reply.error).toMatchObject({ kind: "syntax" });
   });
 });
 
@@ -222,6 +308,21 @@ describe("formatSse app:reload", () => {
   it("tells every connected panel that the bundle changed", () => {
     const frame = formatSse({ type: "app:reload", appId: "com.example.todo" }, 4);
     expect(frame).toBe('id: 4\nevent: app:reload\ndata: {"appId":"com.example.todo"}\n\n');
+  });
+});
+
+describe("formatSse app:eval", () => {
+  it("carries the whole query, since only the shell can reach the iframe", () => {
+    const frame = formatSse(
+      { type: "app:eval", appId: "com.example.todo", requestId: "v1", code: "return 1", maxBytes: 6144 },
+      9,
+    );
+    expect(JSON.parse(/data: (.*)\n\n/.exec(frame)![1])).toEqual({
+      appId: "com.example.todo",
+      requestId: "v1",
+      code: "return 1",
+      maxBytes: 6144,
+    });
   });
 });
 

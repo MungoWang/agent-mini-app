@@ -6,9 +6,9 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 
 ## 小程序作者闭环：静态检查 + 运行时回流（2026-09-04 dsh 实测反馈）
 
-> **状态**：P0-1 / P0-2 / P0-3 / P1-4 / P1-6 / P1-7 / P2-8 已落地并实测通过
-> （`pnpm verify` 14/14，真实 Chrome 跑通「crash → 卡片 → host → 工具」全链路），见 commit `12f16c1`。
-> **P2-9 取数形态已定稿为 `mini_app_view_eval`，尚未实现** —— 当前在库的是将被替换的推送式快照，见该节。
+> **状态**：P0-1 / P0-2 / P0-3 / P1-4 / P1-6 / P1-7 / P2-8 / **P2-9** 已落地并实测通过
+> （`pnpm verify` 14/14 + 覆盖率门禁，真实 Chrome × 真实 host 跑通「crash → 卡片 → host → 工具」
+> 与「tool → SSE → shell → iframe → 同源 POST → 工具」全链路）。
 > P2-10 按决定推迟，P3 挂起。
 > 实施中额外发现并修复 2 个原反馈未提到的 bug：
 > ① 诊断脚本因模板占位符嵌在引号内而生成语法错误（`var APP_ID = ""com.x""`），
@@ -16,17 +16,17 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 > ② `esbuild minify` 把组件名压成 `e`/`Pye`，`componentStack` 失去定位价值 —— 改 `keepNames`。
 > 同时补了 `host-shell.ts` 的测试（原 1% 覆盖，是把 panel 压到 85% 线下的原因）。
 
-
-
 来源：agent 完整跑通「注册 → 编译 → 冒烟 → 上线 → 翻车 → 修复」后的实测反馈。结论：编写/后端验证闭环已经顺，短板集中在 **UI 侧的「检查—观察」回路**。
 
 ### 全局约束（每条都要遵守）
 
 - **iframe 与 panel 跨源**：iframe src = `${hostOrigin}/app/…`，parent = 宿主页面 origin（dsh）。父页面**读不到** iframe DOM，`postMessage` 只能 iframe → parent 单向传，且需要指定 targetOrigin。所以运行时报错 / DOM 快照一律走 **iframe → 同源 host HTTP 上报 → host ring buffer → agent tool 读取**，不要让宿主去抓 iframe。
-- **先注册工具再写文档**：`scripts/check/skill.mjs` 的 tool-catalog 规则要求文档里出现的每个 `mini_app_*` 必须已在 `packages/host/src/tools/tool-facade.ts`（或 `packages/dsh/src/lifecycle.ts`）注册，否则 `pnpm check:skill` fail；反之代码里有、文档没提是 warn。
-- **`packages/ui` 新增用户可见文案必须过 `useLabels` + `en.ts`/`zh.ts` 同批加键**（AGENTS.md 硬规则）。
-- **动 host 运行时依赖时，dsh `tsup.config.ts` 同步加 external**（约束 #10）。
+- **先注册工具再写文档**：`scripts/check/skill.mjs` 的 tool-catalog 规则要求文档里出现的每个 `mini_app_`* 必须已在 `packages/host/src/tools/tool-facade.ts`（或 `packages/dsh/src/lifecycle.ts`）注册，否则 `pnpm check:skill` fail；反之代码里有、文档没提是 warn。
+- `packages/ui` **新增用户可见文案必须过** `useLabels` **+** `en.ts`**/**`zh.ts` **同批加键**（AGENTS.md 硬规则）。
+- **动 host 运行时依赖时，dsh** `tsup.config.ts` **同步加 external**（约束 #10）。
 - 工具返回结构变化 = 契约变化：`docs/contracts/` + skill `SKILL.md`/`references/troubleshoot.md` 同一批改完。
+
+
 
 ### ✅ P0-1 运行时错误回流（`mini_app_errors`）— 已落地
 
@@ -69,10 +69,12 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 
 新页 `skills/monkey-mini-app/references/styling.md`（或并入现有参考），必须写清：
 
-- JIT 按**源码文本**扫描 → `` `bg-${c}-500` `` 拼出来的类名会**静默不生成 CSS 且不报错**。这才是唯一真坑，也是它退化成 inline style 的根因。类名必须完整字面量出现。
+- JIT 按**源码文本**扫描 → ``bg-${c}-500`` 拼出来的类名会**静默不生成 CSS 且不报错**。这才是唯一真坑，也是它退化成 inline style 的根因。类名必须完整字面量出现。
 - 默认调色板 / 任意值 / 全部变体可用 —— 明确「**不要**因为拿不准就退回 inline style」。
 - `.autogen/` 是生成产物，手改下次 compile 被覆盖。
 - SKILL.md 的 read-on-demand 表 + UI 段落各加一行指路。
+
+
 
 ### ✅ P1-4 theme token 表（生成，禁止手写）— 已落地
 
@@ -96,18 +98,20 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 
 现在 schema 单 `method` + 单 `args`，测一套 CRUD 要五个来回。加 `calls: [{ method, args }]`，逐项返回结果（一项失败不中断其余），保留单 `method` 向后兼容。
 
-### ✅ P2-9 定稿：`mini_app_dom_snapshot` → 换成 `mini_app_view_eval`（**方案已定，未实现**）
+### ✅ P2-9 定稿并落地：`mini_app_dom_snapshot` → `mini_app_view_eval`
 
-推送式快照整体作废，改成一个「在渲染出的视图里执行 agent 自己写的 JS」的通用工具。
+推送式快照已整体删除（含 `AppDomSnapshot` / `reportAppSnapshot` / `/snapshot` 两条路由 / `trimOutline` / 开屏 300-1200-3000ms 定时采集），换成「在渲染出的视图里执行 agent 自己写的 JS」的通用工具。
 理由：任何我们预先设计的查询形态（选哪些节点、报哪些字段、默认视图长什么样）都是在**猜 agent 会问什么**，
 猜不全就变成永无止境的 feature request；而它本来就会写 JS。
 
 #### 判据（后续任何增删都按这两条裁）
 
 1. **能力轴只有两个真问题**：谁拥有遍历（我们 / agent）、返回到什么尺寸（护栏）。
-   其余一切——选点、投影、谓语——都是场景预设，**不进 API**。
+  其余一切——选点、投影、谓语——都是场景预设，**不进 API**。
 2. **注入面只放两类东西**：(a) 必须由我们保证单一实现来源的；(b) 全行业通用、模型不看文档也用对的。
-   我们自己的缩写一律不进。每多一个特殊名字，就多一份要常驻模型注意力的记忆负担。
+  我们自己的缩写一律不进。每多一个特殊名字，就多一份要常驻模型注意力的记忆负担。
+
+
 
 #### 工具签名
 
@@ -115,9 +119,11 @@ Platform runtime/SDK, react-host, and the dsh-host install gate are landed. See 
 mini_app_view_eval({ appId, code?, maxBytes? })   // maxBytes 硬顶 6144，min(…, 6144)
 ```
 
-- `code` 是 **async 函数体**，不是表达式 —— **必须 `return`**，否则结果 `undefined`
+- `code` 是 **async 函数体**，不是表达式 —— **必须** `return`，否则结果 `undefined`
 - 缺省 `code` = `mma.$("#root")`（返回一棵浅树，最便宜的起手式）
 - 三种模式 / 枚举 / 预设：**没有**。`mode` 在讨论中先由 3 收到 2、再收到 0
+
+
 
 #### 注入面（就这三个，别加第四个）
 
@@ -128,14 +134,14 @@ mma.selector(el)      可直接回填 mma.$() 的 CSS 选择器
 ```
 
 - `mma.selector` 是唯一的 (a) 类：标准 JS 写得出 nth-chain，但**格式必须只有一个来源**，
-  否则 agent 自己写的和输出里的对不上，"拿地址粘回去继续查"这条主路径就断了
+否则 agent 自己写的和输出里的对不上，"拿地址粘回去继续查"这条主路径就断了
 - `mma.$` / `mma.$$` 属 (b) 类（jQuery 先验），省的不只是字符，是 `querySelectorAll` 的拼写出错面
 - 宿主侧数据不做包装：同源 `fetch('/api/app/'+APP_ID+'/errors')` 就能拿 —— **任何宿主侧能力都离一次
-  fetch 这么近，这是通用逃生口**，不需要逐个包成函数
+fetch 这么近，这是通用逃生口**，不需要逐个包成函数
 - 不注入 `render`：护栏在执行层（见下），序列化默认就有，`render` 只剩"自选投影参数"，
-  而那张参数表正是我们要消灭的东西
+而那张参数表正是我们要消灭的东西
 - 不提供"展开到 N 层"旋钮：agent 自己写遍历（标准 JS、少数场景）。等 `truncated`/代码长度分布
-  显示人人都在手搓，再按证据加
+显示人人都在手搓，再按证据加
 
 **不做 hint 映射表**：`$$` 的返回类型写在 description 里一行即可；jQuery 误用会自然抛
 `... is not a function`，那已经是可读的错误。
@@ -144,12 +150,14 @@ mma.selector(el)      可直接回填 mma.$() 的 CSS 选择器
 
 任何返回值（字符串 / 数字 / 对象 / Element / Element[]）都过同一个序列化器，四道硬闸**先到先停、无法关闭**：
 
-| 闸 | 为什么必须独立存在 |
-|---|---|
-| 字节 `min(maxBytes, 6144)` | 边序列化边累计，不是事后 `slice` |
-| 节点计数 | 字节要拼出来才知道，计数能**提前**刹车（`return mma.$$('*')` 该在拼第一个字符串前就停） |
-| 递归深度 | agent 返回自引用结构 |
-| 墙钟超时 | `view` 侧 1.5s |
+
+| 闸                        | 为什么必须独立存在                                                |
+| ------------------------ | -------------------------------------------------------- |
+| 字节 `min(maxBytes, 6144)` | 边序列化边累计，不是事后 `slice`                                     |
+| 节点计数                     | 字节要拼出来才知道，计数能**提前**刹车（`return mma.$$('*')` 该在拼第一个字符串前就停） |
+| 递归深度                     | agent 返回自引用结构                                            |
+| 墙钟超时                     | `view` 侧 1.5s                                            |
+
 
 配套：cycle-safe（`parent`↔`children` 互指）；`return mma.$$(".x")` 与显式序列化走同一实现，
 所以**忘了调用只会少个选项，不会绕过约束**。
@@ -172,19 +180,21 @@ div.panel.flex.flex-col.gap-4  x=16 y=64 w=380 h=812  (4 children)
     +2 deeper levels not shown
 ```
 
-- 容器只报 `(N children)`，**不拼 `textContent`** —— 面板的文本是整页文字，是最大噪声源兼爆炸源
+- 容器只报 `(N children)`，**不拼** `textContent` —— 面板的文本是整页文字，是最大噪声源兼爆炸源
 - 叶子才给引号文本
 - `x= y= w= h=` 带标签（裸 `16,124 120x96` 会把 `16` 读成宽度）；"哪个坐标系"靠头部一行声明，
-  因为这是唯一无法靠命名自明的信息
+因为这是唯一无法靠命名自明的信息
 - `[display:none]` / `[detached]` 保留：它们没有 rect，不标就会让 agent 去修一个不存在的布局 bug
 - **截断必须可见**（`+N deeper` / `+N more` / `truncated` / `stoppedBy`）—— 静默截断会被读成完整
 - 纯 2 空格缩进，不用 `├─`：制表符每行多花 1–2 token 而缩进已足够表达父子关系
 - 返回值形态规则：单个 Element → 浅树（默认 depth 2）；数组 → 每行一个不带子节点
 
 返回信封：
+
 ```
 { ok, view, tookMs, bytes, truncated, stoppedBy, visited, matched, dropped?, result }
 ```
+
 `stoppedBy` 让 agent 知道被哪道闸拦的 —— 字节截断要收窄查询，节点截断要缩 `rootSelector`，是两种下一步。
 
 错误只分四类，**必须可区分**，否则 agent 会去改一段没写错的 JS：
@@ -200,18 +210,22 @@ tool → host 查 viewEpoch → 在【宿主已有的】/api/events 上发查询
 
 - **iframe 自己不开第二条 SSE**：宿主页（dsh client / panel host-shell）本来就有 `/api/events`
 - `view` 四态靠一个**存活标记** `viewEpoch(appId)`（一个时间戳）区分：没开 / runner 脚本没执行 / 页面卡住 / 活着。
-  这不是假想风险 —— 本轮就真踩过 runner 诊断脚本因模板占位符语法错误而**整段未执行**
+这不是假想风险 —— 本轮就真踩过 runner 诊断脚本因模板占位符语法错误而**整段未执行**
 - `postMessage` 三点必锁：`targetOrigin` 用 host origin（顺手把现有 `postEnv` 的 `"*"` 一起收紧）、
-  iframe 侧校验 `event.origin` + `event.source === window.parent`、`requestId` 由 host 签发 + 绑 appId + 一次性消费
+iframe 侧校验 `event.origin` + `event.source === window.parent`、`requestId` 由 host 签发 + 绑 appId + 一次性消费
 - **宿主直读 iframe DOM 物理上做不到**（跨源）：采集代码必须活在 iframe 里，换触发方式也改变不了这点
+
+
 
 #### 文档怎么喂（这条决定成本）
 
-| 位置 | 谁付 token |
-|---|---|
-| SKILL.md 正文 | 每个小程序任务都付，包括 99% 不用它的 |
-| `references/eval.md` 按需 | 决定要用才付 |
-| **工具 schema 的 `description`** | **不调用零成本，调用时正好在眼前** |
+
+| 位置                            | 谁付 token              |
+| ----------------------------- | --------------------- |
+| SKILL.md 正文                   | 每个小程序任务都付，包括 99% 不用它的 |
+| `references/eval.md` 按需       | 决定要用才付                |
+| **工具 schema 的** `description` | **不调用零成本，调用时正好在眼前**   |
+
 
 所以：schema description 装 6 行封顶（async 函数体必须 `return` · 返回类型不是 jQuery · 注入面三行 ·
 缺省行为 · 死循环会冻页面）；`references/eval.md` 只装**判断类**内容（什么时候该用、标准 DOM 查法示例、
@@ -221,31 +235,33 @@ tool → host 查 viewEpoch → 在【宿主已有的】/api/events 上发查询
 #### 明确不做（这一路逐条否掉的，别再走回头路）
 
 1. ❌ **像素/截图**（html2canvas 之类）：能取到像素 ≠ 能评估"好不好看/有点歪"，判断仍是人和 AI 来回截图的事，性价比太低。
-   真截图的名字 `ui_snapshot` 仍然留着不占用
+  真截图的名字 `ui_snapshot` 仍然留着不占用
 2. ❌ **jQuery 兼容层**：实现著名 API 的部分子集比不实现更糟 —— 模型越熟越会**自信地调用我们没有的方法**，
-   且 jQuery `.offset()` 是文档坐标（不含 scroll），拿它判"视口外"会静默得到错误结论
+  且 jQuery `.offset()` 是文档坐标（不含 scroll），拿它判"视口外"会静默得到错误结论
 3. ❌ **谓语/筛选枚举**（`offscreen`、`zero-area`、`invisible-text`、`paint-invisible`…）：机械可判定 ≠ 无立场，
-   "哪些条件值得内置"本身就是观点
+  "哪些条件值得内置"本身就是观点
 4. ❌ **开屏自动采骨架当 selector 地图**：`ui.tsx` 是 agent 自己写的，它知道所有 class/id；
-   唯一不知道的（库组件内部结构）拿一次 eval 就补上了
-5. ❌ **给契约生成 `Renders:` 一行**：同上，一次 eval 就够，不值得建生成机制
-6. ❌ **`code` 传数组做多查询**：一个函数体 `return {a, b, c}` 就是同一能力且更好 —— 数组是 n 次遍历、
-   串行 IO、按下标认不出结果、还要新发明部分失败协议
-7. ❌ **`mode` 分层 / `summary` 独立层 / 缓存兜旧数据**：都在讨论中被否掉，缓存整个删掉（host 侧 DOM 常驻内存归零）
+  唯一不知道的（库组件内部结构）拿一次 eval 就补上了
+5. ❌ **给契约生成** `Renders:` **一行**：同上，一次 eval 就够，不值得建生成机制
+6. ❌ `code` **传数组做多查询**：一个函数体 `return {a, b, c}` 就是同一能力且更好 —— 数组是 n 次遍历、
+  串行 IO、按下标认不出结果、还要新发明部分失败协议
+7. ❌ `mode` **分层 /** `summary` **独立层 / 缓存兜旧数据**：都在讨论中被否掉，缓存整个删掉（host 侧 DOM 常驻内存归零）
 
-#### 移除范围（实现时）
+
+
+#### 移除范围（已按此执行）
 
 - `packages/host/src/events/host-events.ts`：`AppDomSnapshot` / `appSnapshot` / `reportAppSnapshot` /
-  `APP_SNAPSHOT_BUFFER` / `APP_SNAPSHOT_BYTES`
+`APP_SNAPSHOT_BUFFER` / `APP_SNAPSHOT_BYTES`
 - `packages/host/src/http/http-gateway.ts`：`GET|POST /api/app/:appId/snapshot` 两条路由；
-  新增 `POST /api/app/:appId/view/eval` 回传 + `POST /api/app/:appId/alive`（`viewEpoch`）
+新增 `POST /api/app/:appId/view/eval` 回传 + `POST /api/app/:appId/alive`（`viewEpoch`）
 - `packages/host/src/tools/tool-facade.ts`：`mini_app_dom_snapshot` 定义 + `handleDomSnapshot` +
-  `trimOutline` / `OUTLINE_KEY_DOC`（采集后才裁是**假优化**：DOM 遍历和 payload 的钱已经花掉）
+`trimOutline` / `OUTLINE_KEY_DOC`（采集后才裁是**假优化**：DOM 遍历和 payload 的钱已经花掉）
 - `packages/host/src/http/app-runner-html.ts`：开屏 300/1200/3000ms 定时采集 + 全树 walk；
-  换成 message listener + 序列化器 + 护栏（**错误上报保持推送**：崩溃无法事后轮询，且它和 SSE 是不同传输）
+换成 message listener + 序列化器 + 护栏（**错误上报保持推送**：崩溃无法事后轮询，且它和 SSE 是不同传输）
 - `packages/panel/src/*`、`packages/dsh/src/client/index.ts`：新增查询事件的转发（复用 `subscribeHostEvents`）
 - skill：`SKILL.md` 工具表 + checklist 里的 `mini_app_dom_snapshot` 全部换成 `mini_app_view_eval`；
-  `troubleshoot.md` 对应行改写
+`troubleshoot.md` 对应行改写
 - 相关测试同步删改
 
 **先删后建放同一个 PR**：留着它意味着同时维护两条通道，而它的默认采集行为正是我们判定不该做的事。
@@ -254,6 +270,24 @@ tool → host 查 viewEpoch → 在【宿主已有的】/api/events 上发查询
 
 `code` 长度分布 · `bytes`/`maxBytes` 占比 · `truncated`+`stoppedBy` 频率 · `view` 非 live 的比例 ·
 超时率。没有这些记录，下一次就还是在猜。
+
+### P2-9 落地记录（真实 Chrome × 真实 host，不是单测）
+
+落点：`packages/host/src/http/app-view-eval.ts`（新）· `events/host-events.ts`（viewEpoch + pending + `app:eval`）· `http/http-gateway.ts`（`POST …/alive` + `POST …/view/eval`，删两条 snapshot）· `tools/tool-facade.ts` · `panel/src/frame.ts` + `rest.ts`（`relayViewEval`）+ `host-shell.ts` · `dsh/src/client/index.ts` · `docs/contracts/runtime-diagnostics.md` · skill `references/eval.md`（新）。
+
+实测结果：默认 `#root` 查询 **1–4ms** 返回；`{label, sel, display, radius}` 投影里 `radius: "8px"` 直接证明 Tailwind 类落地；`return (;` → `kind:"syntax"`；`const a=1; return null.x;` → `kind:"runtime", line:2, source, caret`（真实浏览器里 V8 偏移正确）；`while(true)` → `view:"stuck"` @1501ms；shell 无 frame 时 `not-open` 立即返回（1–2ms），不烧 timeout。
+
+**浏览器检查抓到 3 个单测原理上抓不到的 bug**（`.toString()` 注入这套写作的代价，必须记录）：
+
+1. **`__name is not defined` 把整个 runtime 打死**。tsup/esbuild 的 `keepNames` 会在函数体**内部**追加 `__name(find,"find")`，而那个 helper 只存在于 bundle 的 module scope —— 字符串注入到 iframe 后 ReferenceError，脚本一行都没跑（25 处调用）。所有 `new Function(js)` 解析断言、所有 includes 断言全绿。**修法**：`viewEvalRuntime()` 把注入体包进一个块，块里先 `var __name = t => t;`；门禁加一条「运行时源码里出现的每个 `__xxx(` 都必须被 wrapper 自己声明」。这是原反馈里「诊断脚本因占位符语法错误整段未执行」的同类复发，换了个更隐蔽的触发点。
+2. **`el.tagName === "SVG"` 永不成立**：SVG 元素的 `tagName` 是小写 `svg`，所以「不进图标内部」这条从来没生效过；顺带发现对象键下的 function 会把**整个函数源码**打出来（最容易撑爆字节预算的单一来源）。两处都已修，且都在 Chrome 里复核过（`svg … (3 children)` 不再下钻、`fn: [Function named]`）。
+3. **我自己写的提示是假的**：`stuck` 的下一步原本写「`mini_app_open` 会重载 iframe」——错。`mount()` 按 P1-6 的决定**不重载已存在的 frame**，而且真 Chrome 下卡死的 iframe 会连**宿主页一起冻住**（CDP 对整个 tab 超时，连 close_page 都失败）。已改成实话：「没有任何工具能救，请让用户刷新浏览器标签页」。写进 SKILL/contract/troubleshoot 的同一批位置。
+
+**顺带修掉一个真实缺口**：`createHostShell` 从来没订阅 `app:open`，所以在参考宿主 react-host 上 `mini_app_open` 只把面板打开到列表页、**不挂 iframe**，后续 `mini_app_errors` / `mini_app_view_eval` 全都在等一个不存在的 view（dsh client 早就在自己的 handler 里做了）。现已在 shell 里接上，dsh 保持单条 SSE 不动。同时 `postEnv` 的 `targetOrigin` 从 `"*"` 收紧成 host origin。
+
+**按判据没做的事**：没有 `render` / `mode` / 层级旋钮 / selector 地图 / hint 映射表 / 结果缓存；像素截图仍然不做；`ui_snapshot` 这个名字继续留着不占。
+
+**指标还没落地**：本节末尾要求的 `code` 长度分布 / `bytes`÷`maxBytes` / `truncated`+`stoppedBy` 频率 / `view` 非 live 比例 / 超时率 —— 单次数据都在信封里，但 host 侧**没有聚合记录**。下一轮结构性优化之前得先有这个东西，否则还是在猜。
 
 ### ⏸ P2-10 首次种子数据 —— **推迟**
 
@@ -265,14 +299,16 @@ tool → host 查 viewEpoch → 在【宿主已有的】/api/events 上发查询
 
 ### 实测记录（真实 Chrome + 真实 host）
 
-| 验证项 | 结果 |
-|---|---|
+
+| 验证项                                    | 结果                                                                                                                |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | P0-2 拦住 `greet()` 定义 / `greeting()` 调用 | `reload` → `ui: "greeting()" is called but never defined or imported — ui.tsx:3:43`，且 `committed.status: skipped` |
-| P0-1 编译通过但 render 期崩溃（`null.map`）| 浏览器显示卡片（中文，跟随 host locale），host 收到 `kind: "render"` + `componentStack: at Ui (…)` |
-| P2-9 `w-[137px] h-[41px] bg-rose-500` | 快照实测 `137x41` + `bg: oklch(0.645 0.246 16.439)` —— 任意值类与调色板类都有可验证证据 |
-| P1-7 二次 reload 无改动 | `committed.status: "clean"`（正是原反馈遇到的歧义场景） |
-| P2-8 批量 CRUD | 一次往返 3 个方法，中途抛错不阻断其余，`failed: 1` |
-| `mini_app_open` 回执 | 无浏览器连接时如实返回 `panel: "no-panel-connected"` |
+| P0-1 编译通过但 render 期崩溃（`null.map`）      | 浏览器显示卡片（中文，跟随 host locale），host 收到 `kind: "render"` + `componentStack: at Ui (…)`                                 |
+| P2-9 `w-[137px] h-[41px] bg-rose-500`  | 快照实测 `137x41` + `bg: oklch(0.645 0.246 16.439)` —— 任意值类与调色板类都有可验证证据                                               |
+| P1-7 二次 reload 无改动                     | `committed.status: "clean"`（正是原反馈遇到的歧义场景）                                                                         |
+| P2-8 批量 CRUD                           | 一次往返 3 个方法，中途抛错不阻断其余，`failed: 1`                                                                                  |
+| `mini_app_open` 回执                     | 无浏览器连接时如实返回 `panel: "no-panel-connected"`                                                                         |
+
 
 **结论修正**：原反馈里「Tailwind 有 safelist 限制」是误判 —— 真 JIT 一直可用；缺的只是说明。
 
@@ -284,11 +320,13 @@ tool → host 查 viewEpoch → 在【宿主已有的】/api/events 上发查询
 4. reload 开全量 strict 类型检查 —— 噪音淹没信号（P0-2）。
 
 
-## Authoring protocol unification
 
-硬切完成：两侧统一 `@monkey-mini-app/ui`（backend 注入 `defineApp`）、`ui/` `api/` `shared/` 互斥 + app 根边界、旧名（`@monkeyagent/*` / `defineDashboard` / `useDashboardApi`）删除。见 [`docs/rfcs/authoring-protocol.md`](docs/rfcs/authoring-protocol.md)。
+## Authoring protocol unification - 老任务已落地
+
+硬切完成：两侧统一 `@monkey-mini-app/ui`（backend 注入 `defineApp`）、`ui/` `api/` `shared/` 互斥 + app 根边界、旧名（`@monkeyagent/*` / `defineDashboard` / `useDashboardApi`）删除。见 `[docs/rfcs/authoring-protocol.md](docs/rfcs/authoring-protocol.md)`。
 
 **阶段 2（约定未开工，另开干净 PR）— S2 包面拆分：**
+
 - 前端作者面 → `@monkey-mini-app/ui`（合并今天的 sdk：`useApp` + kit + iframe bundle）
 - 后端作者面 → 新包 `@monkey-mini-app/api`（只 `defineApp` + 类型；运行时 host 注入或 esbuild 打包）
 - 然后后端执行层改为 esbuild 打包（删 require 沙箱）→ 命名导出编译期失败，类型洞彻底堵上
@@ -303,10 +341,9 @@ tool → host 查 viewEpoch → 在【宿主已有的】/api/events 上发查询
 
 ---
 
-**Skill ↔ code 同步**：契约见 [`docs/contracts/skill-sync.md`](docs/contracts/skill-sync.md)（生成器 + `pnpm check:skill` 门禁）。待平台侧决定：`mini_app_unregister`（整 app 删除工具）；`packages/ui/src/index.ts` 未 re-export `lib/illustrations`（只靠 `build-ui.mjs` 注入 dist）；`manifest.permissions` 被 parse 但不校验。
+**Skill ↔ code 同步**：契约见 `[docs/contracts/skill-sync.md](docs/contracts/skill-sync.md)`（生成器 + `pnpm check:skill` 门禁）。待平台侧决定：`mini_app_unregister`（整 app 删除工具）；`packages/ui/src/index.ts` 未 re-export `lib/illustrations`（只靠 `build-ui.mjs` 注入 dist）；`manifest.permissions` 被 parse 但不校验。
 
 Publish with `pnpm publish:packages` (runs `pnpm test:dsh` first; emergency `--skip-e2e`).
-
 
 ## ui-examples package (Phase 1 landed)
 
@@ -315,9 +352,11 @@ enforced by eslint `no-restricted-imports`; typechecked in `pnpm verify`. Compon
 the `@exampleOf` JSDoc tag, not the folder name.
 
 Phase 2 (not started):
+
 - decompose `areas/*.tsx` showcases into `components/<Name>/<name>-NN.tsx`
 - Icon-ize `apps/demo-host/.../paradigms` and move them in (drops lucide)
 - `gen/skill`: copy examples into `references/examples/`, link from `contracts/<slug>.md`
-  (inline if small, else link — respect the 8KB contract cap), build `examples/<group>.md`
-  for `@group` files; validate `@exampleOf` resolves in `check:skill`
+(inline if small, else link — respect the 8KB contract cap), build `examples/<group>.md`
+for `@group` files; validate `@exampleOf` resolves in `check:skill`
 - `gen/examples`: byte-copy selected files into `com.example.kit/lib/` for dsh e2e
+
