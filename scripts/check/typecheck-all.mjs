@@ -12,38 +12,124 @@
  *     editor and green in CI
  *   - `packages/dsh` left `rootDir` unspecified → the TS server inferred `packages/dsh`, and
  *     `tsconfig.base.json`'s `paths` mapping `@monkey-mini-app/*` to sibling **source** pulled
- *     `packages/panel/src` outside it: 64 × ts(6059) in the editor, 0 in CI
+ *     `packages/panel/src` outside it: 64 × ts(6059) in the editor, 0 in CLI (which infers
+ *     rootDir from the resolved file set)
  *   - `packages/ui` was in neither the aggregate `include` nor `eslint`'s paths, so nothing
- *     at all typechecked it: 86 latent errors (mostly jest-dom matchers, whose augmentation
- *     lands on an interface vitest 2.x only re-exports)
+ *     typechecked it at all: 86 latent errors
+ *   - `apps/*` were in no config either, and `apps/demo-host/tsconfig.json` is a **solution**
+ *     file (`files: []` + `references`) — running `tsc -p` on it checks nothing and exits 0
  *
- * So: run each config with the settings its own users get. A new package with a
- * `tsconfig.json` is picked up automatically — that is the point, and it is why this walks the
- * tree instead of repeating a list.
+ * So: walk the tree, expand solution configs into their references, and run each result with
+ * the options its own users get. A new package/app with a tsconfig is covered without anyone
+ * remembering — that is why this walks instead of repeating a list.
  *
- * Inputs:       the root tsconfig.json, plus every packages/<name>/tsconfig.json and
- *               skills/<name>/tsconfig.json that exists
+ * Inputs:       the root tsconfig.json, plus every packages/<name>, apps/<name> and
+ *               skills/<name> that owns one (solution configs are expanded, never trusted)
  * Writes:       nothing
  * Side effects: none — exit 1 means some config disagrees
  * Run as:       pnpm typecheck (and inside `pnpm verify`)
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
+/**
+ * tsconfig accepts comments and trailing commas, so `JSON.parse` alone cannot read one. This
+ * strips both outside string literals — enough for the keys we inspect, with no dependency.
+ */
+function readJsonc(file) {
+  const text = readFileSync(file, "utf8");
+  let out = "";
+  let inString = false;
+  let inLine = false;
+  let inBlock = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const next = text[i + 1];
+    if (inLine) {
+      if (ch === "\n") inLine = false;
+      continue;
+    }
+    if (inBlock) {
+      if (ch === "*" && next === "/") {
+        inBlock = false;
+        i++;
+      }
+      continue;
+    }
+    if (inString) {
+      if (ch === "\\") {
+        out += ch + (next ?? "");
+        i++;
+      } else {
+        if (ch === '"') inString = false;
+        out += ch;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      out += ch;
+      continue;
+    }
+    if (ch === "/" && next === "/") {
+      inLine = true;
+      continue;
+    }
+    if (ch === "/" && next === "*") {
+      inBlock = true;
+      continue;
+    }
+    out += ch;
+  }
+  return JSON.parse(out.replace(/,\s*([}\]])/g, "$1"));
+}
+
 /** @type {{ label: string, project: string, build?: boolean }[]} */
 const projects = [{ label: "root (aggregate)", project: ".", build: true }];
 
-for (const dir of ["packages", "skills"]) {
+/**
+ * Register one directory's config. A solution file contributes **its references**, never
+ * itself: `tsc -p` on a solution config is a silent pass, and a green row that checked nothing
+ * is worse than no row.
+ */
+function collect(dirRel, seen) {
+  const cfgAbs = path.join(root, dirRel, "tsconfig.json");
+  if (!existsSync(cfgAbs)) return;
+
+  let cfg;
+  try {
+    cfg = readJsonc(cfgAbs);
+  } catch (e) {
+    // Unreadable still has to be attempted by tsc itself, which will report the real error.
+    projects.push({ label: `${dirRel} (unparseable: ${e.message})`, project: dirRel });
+    return;
+  }
+
+  const refs = Array.isArray(cfg.references) ? cfg.references : [];
+  const ownsFiles = (cfg.files?.length ?? 0) > 0 || (cfg.include?.length ?? 0) > 0;
+  if (ownsFiles) {
+    projects.push({ label: dirRel, project: dirRel });
+    return;
+  }
+  for (const ref of refs) {
+    const target = path.normalize(path.join(dirRel, ref.path));
+    if (seen.has(target)) continue;
+    seen.add(target);
+    projects.push({ label: target, project: target });
+  }
+}
+
+const seen = new Set();
+for (const dir of ["packages", "apps", "skills"]) {
   const base = path.join(root, dir);
+  if (!existsSync(base)) continue;
   for (const name of readdirSync(base).sort()) {
-    const rel = path.join(dir, name);
     if (!statSync(path.join(base, name)).isDirectory()) continue;
-    if (!existsSync(path.join(root, rel, "tsconfig.json"))) continue;
-    projects.push({ label: rel, project: rel });
+    collect(path.join(dir, name), seen);
   }
 }
 
@@ -83,7 +169,9 @@ if (failed.length) {
   console.log(
     `\ntypecheck FAILED — ${failed.length}/${projects.length} config(s) disagree (${total}s)`,
   );
-  console.log("each config is what an editor's TS server uses for those files; fix the config or the code, not this gate");
+  console.log(
+    "each config is what an editor's TS server uses for those files; fix the config or the code, not this gate",
+  );
   process.exit(1);
 }
 console.log(`\ntypecheck ok — ${projects.length} configs in ${total}s`);

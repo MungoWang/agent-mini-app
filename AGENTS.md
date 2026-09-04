@@ -81,7 +81,7 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 
 ## Style (eslint, autofix)
 
-`packages/host|sdk|panel|dsh`:
+`packages/host|panel|api|dsh` (`packages/ui` is linted for **invariants only** — no style rules; see the comment in `eslint.config.js`):
 
 - Double quotes + semicolons
 - `import type { … }` split from value imports
@@ -98,6 +98,7 @@ pnpm lint
 
 **Publish:**
 - `pnpm publish:packages` (`scripts/release/publish.mts`): `pnpm test:dsh` first (Verdaccio + real dsh web), then npm publish ui → sdk → host → panel → dsh. Emergency skip: `--skip-e2e`.
+- `apps/dsh-host` is its **own pnpm workspace** (`pnpm-workspace.yaml` + lockfile there): the dsh plugin tree needs isolated linking so each plugin resolves its own peer copy — under the root's hoisted install `dsh web` cannot boot. `pnpm test:dsh` installs it first; a root `pnpm install` alone is not enough. Keep dsh on exact pins, one train across `dsh` / `dsh-llm` / `dsh-session` / `dsh-subagent` (never `latest`).
 - Package hooks: ui `prepack` → build-ui; sdk `prepack` → runtime/sdk.js; host `prepack` → tsup `dist/`; dsh `prepublishOnly` → ui+sdk + `gen:skill` + tsup (**no** `prepare`; `dsh plugin add` does not compile on the user machine).
 
 ## Gates
@@ -123,7 +124,7 @@ pnpm --filter @monkey-mini-app/dsh-mini-app build
 
 `pnpm typecheck` runs the root aggregate **and every `packages/<name>/tsconfig.json`**, each with its own options. That is deliberate: an editor's TS server loads the *nearest* config, so a bare `tsc -b` can be green while the file you are looking at is red — it had missed a missing `DOM` lib in `host`, 64 × ts(6059) in `dsh` (inferred `rootDir` vs base `paths` → sibling source), and `packages/ui`, which was in no CI config at all. Adding a package with a `tsconfig.json` is picked up automatically; do not replace the walk with a hand-kept list.
 
-Every package config includes `src` **and** `tests`. **Do not** put `**/*.test.ts` in exclude: orphan tests fall into an inferred (non-strict) project — IDE red, CI green. Before claiming types are clean, run `pnpm typecheck` (not `tsc -b` alone). Known gap: `packages/ui` is typechecked but **not linted** — `eslint.config.js` has no block matching it, so `pnpm lint` silently skips it.
+Every package config includes `src` **and** `tests`. **Do not** put `**/*.test.ts` in exclude: orphan tests fall into an inferred (non-strict) project — IDE red, CI green. Before claiming types are clean, run `pnpm typecheck` (not `tsc -b` alone). `packages/ui` is linted for **invariants only** (no style rules) — see `eslint.config.js` for why.
 
 ## Verify
 

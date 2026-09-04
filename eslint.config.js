@@ -60,7 +60,6 @@ export default tseslint.config(
       "**/lib/**",
       "coverage/**",
       "apps/**",
-      "packages/ui/**",
       "packages/smoke-test/**",
       "docs/**",
     ],
@@ -171,6 +170,47 @@ export default tseslint.config(
     ],
     rules: {
       "no-restricted-syntax": "off",
+    },
+  },
+  {
+    /**
+     * `packages/ui` is linted for **invariants only**. Its house style is deliberately left
+     * alone: the package is semicolon-free and largely adapted from upstream component sources
+     * (shadcn / full-calendar), so enabling the shared style block there would be a 2 842-edit
+     * mechanical commit (2 709 of them `semi`) that makes every future upstream merge painful.
+     * Zero cost today either way — the two rules below are what actually protect the seams.
+     */
+    files: ["packages/ui/**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: { ecmaVersion: "latest", sourceType: "module", ecmaFeatures: { jsx: true } },
+    },
+    plugins: { "@typescript-eslint": tseslint.plugin },
+    rules: {
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      // The UI kit is the iframe-side author package. host / panel / dsh are Node or shell
+      // sides and must never be reachable from here (host and panel each guard the same edge
+      // in their own block; this was the one left open).
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            { name: "@monkey-mini-app/host", message: "ui kit must not import host" },
+            { name: "@monkey-mini-app/panel", message: "ui kit must not import panel" },
+            { name: "@monkey-mini-app/dsh-mini-app", message: "ui kit must not import dsh" },
+          ],
+          patterns: [
+            {
+              group: ["@monkey-mini-app/host/*", "@monkey-mini-app/api", "@monkey-mini-app/api/*", "**/packages/host/**", "**/packages/panel/**", "**/packages/dsh/**"],
+              message:
+                "ui kit may not import host/panel/dsh or the backend author package (@monkey-mini-app/api is backend-only; UI imports react + this package)",
+            },
+          ],
+        },
+      ],
+      // Paths belong to WorkspacePaths in host, never to a component.
+      "no-restricted-syntax": monkeyMiniAppStringRule,
     },
   },
   {
