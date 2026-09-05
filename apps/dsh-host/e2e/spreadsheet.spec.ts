@@ -85,12 +85,17 @@ test.describe("spreadsheet sample (per-app npm package)", () => {
     const frame = await upload(page);
     await frame.getByRole("button", { name: "生成摘要" }).click();
 
-    // Model configured → the digest card. Not configured (headless CI) → the app's own banner.
-    // Either way the iframe stays interactive; a blank view is the failure this asserts against.
+    // A missing **provider** in this harness profile is a legitimate outcome (the app surfaces
+    // the host's own `llm: …` message). A missing **capability** never is: `ctx.llm` is host
+    // wiring, and "host capability not available" means the adapter's methods were erased —
+    // a platform bug, which is what this pair of assertions is for.
+    // (Do not match on 模型 alone: the page's own subtitle contains it and would pass anything.)
+    await expect(frame.locator("body")).not.toContainText("host capability not available");
+
     const digest = frame.getByText("由宿主模型基于整表的数值汇总生成");
-    const banner = frame.getByText(/llm|模型/i).first();
+    const hostLlmError = frame.getByText(/^llm: /); // e.g. "llm: no dsh model service bound (ctx.llm)"
     await expect
-      .poll(async () => (await digest.count()) + (await banner.count()) > 0, { timeout: 40_000 })
+      .poll(async () => (await digest.count()) + (await hostLlmError.count()) > 0, { timeout: 40_000 })
       .toBe(true);
     await expectFrameAlive(page);
   });

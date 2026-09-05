@@ -8,6 +8,7 @@ import { HttpGateway } from "./http/http-gateway.ts";
 import { WorkspacePaths } from "./paths/workspace-paths.ts";
 import { ToolFacade } from "./tools/tool-facade.ts";
 import type { HostAboutMeta } from "./about.ts";
+import type { AppCallContext } from "./app-runtime.ts";
 import type { HostCapabilities } from "./capabilities.ts";
 import { Host } from "./host.ts";
 import type { HostLifecycle, HostServices } from "./lifecycle.ts";
@@ -32,12 +33,22 @@ export function createHost(
   const events = new HostEventBus();
   // ctx.push is host-internal: bound to the event bus here so adapters keep
   // implementing only what is genuinely theirs (bash / llm / agent / tool / mcp).
-  const caps: HostCapabilities = {
-    ...capabilities,
-    push: (ctx, name, data) => {
-      events.pushApp(ctx.appId, name, data);
+  //
+  // ⚠ Do **not** build this with `{ ...capabilities }`. Adapters pass class instances
+  // (e.g. dsh's `DshCapabilities`), whose methods live on the **prototype**, and object
+  // spread copies own enumerable properties only — every capability would silently vanish
+  // and every `ctx.*` call would fail with "host capability not available". A plain object
+  // literal (tests, react-host) hides that, which is why this regressed once already.
+  // Object.create keeps the prototype chain and shadows only `push`.
+  const caps = Object.create(capabilities, {
+    push: {
+      value: (ctx: AppCallContext, name: string, data?: unknown): void => {
+        events.pushApp(ctx.appId, name, data);
+      },
+      enumerable: true,
+      writable: true,
     },
-  };
+  }) as HostCapabilities;
   const apps = new AppsManager(paths, caps, git, config);
   const tools = new ToolFacade(apps, git, paths, events);
   const compiler = new UiCompiler(paths);
