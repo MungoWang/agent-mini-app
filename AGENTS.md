@@ -17,7 +17,8 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
  - Personal / working notes (`TODO.md`, `LOCAL.md`, scratch RFCs) may stay Chinese if that is faster for the author; anything published or read by agents should be English.
 - Architecture → `docs/architecture/`; contracts → `docs/contracts/`; unshipped research → `docs/rfcs/`.
 - **Do not** add long essays at repo root or `docs/` root (`docs/README.md` excepted).
-- `docs/archive/**` is read-only; not an implementation source.
+- `TODO.md` lists **only current or in-progress work**. When a task lands, move its record to `docs/archive/tasks/<short-desc>-<YYYY-MM-DD>.md` with a header stating archive date + original location — do not let finished tasks pile up in `TODO.md`.
+- `docs/archive/**` (including `tasks/`) is history; not an implementation source.
 - Skill contract source of truth: `skills/monkey-mini-app/` (not an npm package; `scripts/gen/skill/copy.mjs` copies into adapters on pack).
 - `references/catalog.md` + `references/contracts/**` are **generated** — never hand-edit; add JSDoc `@when` / `@example` on the component instead, then `pnpm gen:skill`. `pnpm check:skill` fails on legacy UI specifiers, invented `ctx.*` / `mini_app_*` names, inherited-prop dumps, and broken tables.
 

@@ -9,7 +9,7 @@
 | [`architecture/`](./architecture/) | Live architecture (short, executable) | Layer / seam / install-path changes |
 | [`contracts/`](./contracts/) | Long-lived behavior | `ctx.agent`, file tools, other public protocol |
 | [`rfcs/`](./rfcs/) | Unshipped research | New ideas, host ports; fold into the two columns above after landing |
-| [`archive/`](./archive/) | History, read-only | **Do not stack new design here** |
+| [`archive/`](./archive/) | History, read-only (`archive/tasks/` = finished task records moved out of `TODO.md`) | **Do not stack new design here** |
 | [`assets/`](./assets/) | Previews / HTML / CSS samples | Non-contract material |
 
 ## Do not
