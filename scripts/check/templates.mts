@@ -38,6 +38,11 @@ try {
     `declare module "https://esm.sh/*";\n`,
   );
 
+  // `types: ["node"]` below: a backend template may legitimately use Node globals
+  // (`Buffer` for a dropped file, `process.env`-free of course). The host's own static
+  // pass already whitelists them for main.api.ts; without them the gate is stricter
+  // than the runtime.
+
   const tsconfig = {
     compilerOptions: {
       target: "esnext",
@@ -51,7 +56,7 @@ try {
       resolveJsonModule: true,
       esModuleInterop: true,
       allowSyntheticDefaultImports: true,
-      types: [],
+      types: ["node"],
       baseUrl: ".",
       paths: {
         "@monkey-mini-app/ui": [path.join(uiSrc, "index.ts")],

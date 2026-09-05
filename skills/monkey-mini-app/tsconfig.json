@@ -9,7 +9,10 @@
     "noImplicitAny": false,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": [],
+    // main.api.ts runs on Node: Buffer/process are part of the backend authoring surface
+    // (the host's own static check whitelists the same names). exceljs and friends come
+    // from the repo's devDependencies so a template that names one still type-checks here.
+    "types": ["node"],
     "paths": {
       "@monkey-mini-app/api": ["../../packages/api/src/index.ts"],
       "@monkey-mini-app/ui": ["../../packages/ui/src/index.ts"],

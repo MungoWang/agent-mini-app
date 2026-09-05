@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { startHost, readTemplate, templateId, TEMPLATES } from "./fixture.ts";
+import { startHost, readTemplate, templateId, TEMPLATES, NEEDS_PACKAGES } from "./fixture.ts";
 
 // ⭐ 每个模板的"代表调用"：S1 的目标是证明【注册 → 编译 → 调用真实 api 键】全链路通。
 // 断言每个模板至少能编译出 UI、且其声明的一个 api 方法可调用并返回对象。
@@ -12,6 +12,7 @@ const PROBE: Record<string, { method: string; args?: Record<string, unknown>; ch
   insights: { method: "latest", check: (v) => Array.isArray((v as { items?: unknown })?.items) },
   agentrun: { method: "runStatus", check: (v) => typeof (v as { status?: string })?.status === "string" },
   jira: { method: "list", check: (v) => Array.isArray((v as { issues?: unknown })?.issues) },
+  spreadsheet: { method: "list", check: (v) => Array.isArray(v) },
 };
 
 describe("S1 · every skill template registers + compiles + answers a real call", () => {
@@ -20,6 +21,11 @@ describe("S1 · every skill template registers + compiles + answers a real call"
     const { host, services } = await startHost();
     try {
       await services.apps.register(id, readTemplate(name));
+      for (const [pkgName, spec] of Object.entries(NEEDS_PACKAGES)) {
+        if (pkgName !== name) continue;
+        const out = await services.apps.installPackages(id, { packages: spec });
+        expect(out.ok, `mini_app_install for ${name}: ${out.error ?? ""}`).toBe(true);
+      }
 
       // compile check: the UI bundle must build (no bad import / missing component)
       const url = `http://127.0.0.1:${host.port}/api/app/${encodeURIComponent(id)}/ui/entry.js`;

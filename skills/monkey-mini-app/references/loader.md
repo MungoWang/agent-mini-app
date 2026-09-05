@@ -28,6 +28,7 @@ DOM, no `ctx`, no Node builtins.
 
 - `import { defineApp } from "@monkey-mini-app/api"`; the host injects the runtime `defineApp` when it loads the file, so nothing React-ish is pulled into the backend
 - `import { groupBy, debounce } from "lodash"` (or `lodash-es`) — full lodash, host-injected; same module as the UI vendor bundle
+- A Node library this app genuinely needs: `mini_app_install({ appId, packages: [{ name: "exceljs" }] })` first, then `import ExcelJS from "exceljs"`. It lands in **this app's** `node_modules` (`--ignore-scripts`, lockfile committed, `node_modules` not). `package.json` in the app dir is owned by that tool — do not hand-write it. Anything outside the app's own `node_modules` (the plugin's, the repo's) is refused.
 - `import { parseFeed } from "./api/feed"`, `import { SAMPLE } from "./shared/sample"` — any relative path inside the app dir; subfolder names beyond the convention above are up to you
 - TypeScript freely (sucrase: parameter types, `{ title: string }`, `catch (e: any)` all fine)
 - `export default defineApp(...)`
@@ -41,11 +42,11 @@ DOM, no `ctx`, no Node builtins.
 - `import { fmt } from "./shared/format"` — app-relative, bundled with the UI
 - Layout via Tailwind classes (`flex flex-col gap-3`, …)
 
-UI: `@monkey-mini-app/ui` + `react` + `lodash`. Backend: `@monkey-mini-app/api` + `lodash`. Nothing else resolves — pre-unification names fail to compile. Rewrite them; do not work around them.
+UI: `@monkey-mini-app/ui` + `react` + `lodash`. Backend: `@monkey-mini-app/api` + `lodash` + packages installed by `mini_app_install`. Nothing else resolves — pre-unification names fail to compile. Rewrite them; do not work around them.
 
 ## Forbidden (compile error — do not work around it)
 
-- npm packages: `recharts`, `lucide-react`, `rss-parser`, `openai`, `node-fetch`, `axios`, `ramda`, `dayjs`, … (`lodash` is the exception — platform vendor, full API)
+- npm packages: `recharts`, `lucide-react`, `rss-parser`, `openai`, `node-fetch`, `axios`, `ramda`, `dayjs`, … in `ui.tsx` (`lodash` is the exception — platform vendor, full API; backend-only libs go through `mini_app_install`)
 - Node builtins: `fs`, `http`, `path`, …
 - `../` escaping the app directory (both sides)
 - UI ↔ `api/**`, backend ↔ `ui/**` (see Layout)

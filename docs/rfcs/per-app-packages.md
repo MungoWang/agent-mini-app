@@ -134,6 +134,12 @@ A **first-run approve/reject UI** for extra packages is a later idea (§7). Inte
 3. Skill paragraph (when / when not). One template **does not** need a sample `package.json` until a scenario actually uses a lib — do not add an eighth template for this.
 4. Tests: install a tiny pure-JS dep in a temp app dir, `call` a method that imports it; unknown spec still fails; denylist rejected; UI import of that spec still fails.
 
+## 5.1 What shipped with it
+
+`templates/spreadsheet/` — the eighth template, and the reason this exists as a product story rather than a loader detail: it is the thing a chat-generated HTML page cannot do. A dropped `.xlsx` is parsed **locally** by `exceljs` (installed into the app), aggregated over **every** row with platform `lodash`, summarised by **the host's model** with `schema`, and the result **survives reload** in `ctx.storage.table`. The UI only ever sees JSON.
+
+It ships **without** `package.json`: `mini_app_install` is the single writer of that file (it records the version npm resolved and the lockfile). `smoke-test/templates-sweep.test.ts` and `scripts/dev/demo-templates.mts` install it the same way an agent would, via a `NEEDS_PACKAGES` map — so an offline `pnpm verify` is a loud failure, not a silently skipped app.
+
 ## 6. Acceptance
 
 - `minimal` / `todo` still have no `package.json` and do not hit the network on reload.

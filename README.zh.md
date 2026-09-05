@@ -20,6 +20,7 @@ Agent 早就能写出漂亮的 HTML，也能拉起一个连数据库的 Flask/Fa
 | 按钮跑一轮**真 agent** | 不能 | 自己搓 tool loop | `ctx.agent` — 一次性、和聊天会话隔离，进度流进 app |
 | 用你已经接好的 SKILL/ MCP / 工具 | 不能 | 每个 app 重新鉴权 | `ctx.tool` / `ctx.mcp` / `ctx.listTools()` — 宿主现成的工具带 |
 | 本机 / 网络 | 不能 | 自己管 `requests` 和密钥 | `ctx.bash` / `ctx.http`，身份就是机主 |
+| 需要一个真的库（表格格式、消息队列客户端、厂商 SDK） | 困在浏览器里 | 一堆你得一直维护的依赖 | `mini_app_install` 只装进**这个 app** 的 `node_modules`（不跑生命周期脚本，lockfile 进它的历史） |
 | 不用自造技术栈的 UI | 随机 Tailwind | 随机 CSS | SDK 里的套件 + 模型被教会的 theme token |
 | 很多个 app，就在对话旁边 | 一堆浏览器标签 | 一堆端口 | 画廊、钉住、左右停靠 |
 

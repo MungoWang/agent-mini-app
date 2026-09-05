@@ -15,7 +15,13 @@ import { bootstrapHostConfig, createHost, type HostCapabilities } from "@monkey-
 
 const port = Number(process.argv[2] || 17900);
 const base = path.resolve("skills/monkey-mini-app/templates");
-const TEMPLATES = ["minimal", "todo", "monitor", "review", "insights", "agentrun", "jira"];
+const TEMPLATES = ["minimal", "todo", "monitor", "review", "insights", "agentrun", "jira", "spreadsheet"];
+
+// Templates that need a library outside the platform surface (mini_app_install).
+// The demo host installs them so `call("list")` on first paint does not hit BACKEND_IMPORT.
+const NEEDS_PACKAGES: Record<string, { name: string }[]> = {
+  spreadsheet: [{ name: "exceljs" }],
+};
 
 function readTemplate(name: string) {
   const files: Record<string, string> = {};
@@ -72,6 +78,15 @@ for (const name of TEMPLATES) {
   const id = JSON.parse(readFileSync(path.join(base, name, "manifest.json"), "utf8")).id;
   await services.apps.register(id, readTemplate(name));
   // mini-app 的存储种子内置在 api 里，无需额外 seed
+  const needs = NEEDS_PACKAGES[name];
+  if (needs) {
+    try {
+      const out = await services.apps.installPackages(id, { packages: needs });
+      if (!out.ok) console.warn(`[demo] ${name}: install failed — ${out.error ?? ""}`.slice(0, 200));
+    } catch (cause) {
+      console.warn(`[demo] ${name}: ${cause instanceof Error ? cause.message : String(cause)}`);
+    }
+  }
 }
 
 console.log("\n==============================================");

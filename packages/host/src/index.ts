@@ -23,6 +23,13 @@ export type {
 } from "./agent-events.ts";
 export type { AppCallContext } from "./app-runtime.ts";
 export { effectiveSignal } from "./app-runtime.ts";
+export type { AppPackageManifest, InstallOutcome } from "./apps/app-packages.ts";
+export {
+  installAppPackages,
+  readAppManifest,
+  requireFromAppPackages,
+  writeAppManifest,
+} from "./apps/app-packages.ts";
 export type { AppTheme } from "./apps/app-theme.ts";
 export { readAppTheme, writeAppTheme } from "./apps/app-theme.ts";
 export type {

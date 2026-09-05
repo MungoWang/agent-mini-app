@@ -109,8 +109,7 @@ export default function Ui() {
     expect(js).not.toMatch(/from\s*["']axios["']/);
   });
 
-  it("rewrites lodash/groupBy to a default export of the vendor file", async () => {
-    const { compiler, appDir } = makeApp(`
+  it("rewrites lodash/groupBy to a default export of the vendor file", async () => {    const { compiler, appDir } = makeApp(`
 import groupBy from "lodash/groupBy";
 export default function Ui() {
   return <div>{typeof groupBy}</div>;
@@ -118,5 +117,15 @@ export default function Ui() {
 `);
     const js = entryJs(await compiler.compile(appDir, { locale: "zh-CN" }));
     expect(js).toContain("/mma/vendors/lodash.js");
+  });
+
+  it("keeps app-installed backend packages out of the UI bundle", async () => {
+    const { compiler, appDir } = makeApp(`
+import ExcelJS from "exceljs";
+export default function Ui() {
+  return <div>{typeof ExcelJS}</div>;
+}
+`);
+    await expect(compiler.compile(appDir, { locale: "zh-CN" })).rejects.toThrow(/Could not resolve|cannot import/);
   });
 });

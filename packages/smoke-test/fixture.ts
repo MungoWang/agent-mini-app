@@ -25,7 +25,16 @@ export function readTemplate(name: string): TemplateFiles {
   return files;
 }
 
-export const TEMPLATES = ["minimal", "todo", "monitor", "review", "insights", "agentrun", "jira"] as const;
+export const TEMPLATES = ["minimal", "todo", "monitor", "review", "insights", "agentrun", "jira", "spreadsheet"] as const;
+
+/**
+ * Templates whose `main.api.ts` imports a library outside the platform surface.
+ * The sweep installs them the same way an agent would (mini_app_install), otherwise
+ * even a trivial call fails at module evaluation.
+ */
+export const NEEDS_PACKAGES: Record<string, { name: string }[]> = {
+  spreadsheet: [{ name: "exceljs" }],
+};
 
 export function templateId(name: string): string {
   const m = JSON.parse(readFileSync(path.join(templateDir(name), "manifest.json"), "utf8"));

@@ -156,6 +156,38 @@ export class ToolFacade {
         execute: (args, signal) => this.invoke("mini_app_reload", args, signal),
       },
       {
+        name: "mini_app_install",
+        description:
+          "Add or remove npm packages for ONE mini-app backend (installed into that app's directory with --ignore-scripts). Use only when main.api.ts must import a Node library the platform does not ship — a real file format, a binary protocol, a vendor SDK. Do NOT use it for lodash (already a platform module), for HTTP (use ctx.http), for shell (use ctx.bash), or for anything the host's ctx.tool / ctx.mcp already covers. A UI file (ui.tsx) can never import these packages; call() the backend instead. Empty request = read the app's current dependencies.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            appId: APP_ID_SCHEMA,
+            packages: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: true,
+                properties: {
+                  name: { type: "string", description: "npm package name, e.g. exceljs" },
+                  version: { type: "string", description: "Optional range; omit for latest" },
+                },
+                required: ["name"],
+              },
+              description: "Dependencies to add",
+            },
+            remove: {
+              type: "array",
+              items: { type: "string" },
+              description: "Package names to uninstall",
+            },
+            commit: { type: "boolean" },
+          },
+          required: ["appId"],
+        },
+        execute: (args, signal) => this.invoke("mini_app_install", args, signal),
+      },
+      {
         name: "mini_app_register",
         description:
           "Create a mini-app scaffold under runtime/apps/<appId>/. Prefer this for NEW apps (requires manifest.json). For edits to an existing app, use mini_app_read + mini_app_edit (or mini_app_write). files keys are relative paths (manifest.json, ui.tsx, main.api.ts, ui/..., api/..., shared/...). No .. or absolute paths.",
@@ -177,8 +209,7 @@ export class ToolFacade {
       },
       {
         name: "mini_app_list_files",
-        description: "List source files in a mini-app (relative paths + sizes). Skips .git/storage/node_modules.",
-        inputSchema: {
+        description: "List source files in a mini-app (relative paths + sizes). Skips .git/storage/node_modules.",        inputSchema: {
           type: "object",
           properties: { appId: APP_ID_SCHEMA },
           required: ["appId"],
@@ -423,6 +454,8 @@ export class ToolFacade {
         return this.handleGet(args);
       case "mini_app_reload":
         return this.handleReload(args);
+      case "mini_app_install":
+        return this.handleInstall(args);
       case "mini_app_register":
         return this.handleRegister(args);
       case "mini_app_list_files":
@@ -468,6 +501,15 @@ export class ToolFacade {
   private async handleReload(args: Record<string, unknown>): Promise<unknown> {
     const appId = requireString(args, "appId");
     return this.apps.reload(appId);
+  }
+
+  private async handleInstall(args: Record<string, unknown>): Promise<unknown> {
+    const appId = requireString(args, "appId");
+    return this.apps.installPackages(appId, {
+      packages: args.packages,
+      remove: args.remove,
+      commit: typeof args.commit === "boolean" ? args.commit : undefined,
+    });
   }
 
   private async handleRegister(args: Record<string, unknown>): Promise<unknown> {

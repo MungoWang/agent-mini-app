@@ -69,7 +69,10 @@ More → [eval.md](eval.md).
 | `main.api must export defineApp({ name, description, api })` | Missing `export default defineApp({...})` | Add the default export |
 | `defineApp requires name and description` | One of them is missing | Provide both |
 | `defineApp.api must be an object` | `api` written as a function or array | `api: { async list(ctx) {…} }` |
-| `backend cannot import '<spec>'. Backend may import @monkey-mini-app/api, lodash, and relative paths inside the app dir` | Backend imported an npm package or a Node builtin | Backend: `@monkey-mini-app/api` (`defineApp`) + `lodash` + relative paths only |
+| `backend cannot import '<spec>'. Install it first: mini_app_install(...)` | The app needs that library but it is not in its own `node_modules` | Run `mini_app_install({ appId, packages: [{ name: "<spec>" }] })`, then `mini_app_reload`. Do **not** move the import into `ui.tsx` |
+| `backend cannot import '<spec>' (no package.json)` | Same, and nothing has ever been installed for this app | `mini_app_install` creates the manifest — never hand-write `package.json` |
+| `backend cannot import '<spec>': it resolves outside this app's node_modules` | The app is reaching the plugin's/repo's dependency tree | Reinstall the package into the app; a host dependency is not an app dependency |
+| `Cannot find package '<x>'`-style npm failure from `mini_app_install` | Typo, no network, or the name is not on the registry | Fix the name/version; report the npm stderr to the user rather than inventing a substitute |
 | `backend cannot import '<spec>': ui/** is UI-only` | Backend reached into the UI tree | Move the shared logic to `shared/**` |
 | `backend import escapes app dir: <spec>` | Backend imported `../` past the app root | Keep every import inside the app dir |
 | `unsafe relative path: <rel>` | Path contained `..` or was absolute | `mini_app_*` `path` values are app-relative |

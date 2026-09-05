@@ -346,6 +346,54 @@ export default defineApp({
     await expect(apps.call("com.example.lodash", "ping", {})).resolves.toEqual({ a: 1 });
   });
 
+  it("loads a backend package installed into the app directory", async () => {
+    const { apps } = boot();
+    const id = "com.example.vendor";
+    await apps.register(id, {
+      "manifest.json": JSON.stringify({ id, name: "Vendor", version: "1.0.0", entry: "ui.tsx" }),
+      "ui.tsx": "export default function Ui() { return null; }\n",
+      "main.api.ts": `import { stamp } from "fake-mma-lib";
+import { defineApp } from "@monkey-mini-app/api";
+export default defineApp({ name: "Vendor", description: "d", api: { ping: async () => stamp() } });
+`,
+    });
+    // Not installed yet → the error must name the tool that fixes it.
+    await expect(apps.call(id, "ping", {})).rejects.toThrow(/mini_app_install/);
+
+    const dir = apps.dirOf(id);
+    mkdirSync(path.join(dir, "node_modules", "fake-mma-lib"), { recursive: true });
+    writeFileSync(
+      path.join(dir, "package.json"),
+      JSON.stringify({ private: true, name: id, version: "0.0.0", dependencies: { "fake-mma-lib": "^1.0.0" } }),
+    );
+    writeFileSync(
+      path.join(dir, "node_modules", "fake-mma-lib", "package.json"),
+      JSON.stringify({ name: "fake-mma-lib", version: "1.0.0", main: "index.js" }),
+    );
+    writeFileSync(
+      path.join(dir, "node_modules", "fake-mma-lib", "index.js"),
+      "module.exports = { stamp: () => 'from-app-node-modules' };\n",
+    );
+    apps.invalidate(String(dir));
+
+    await expect(apps.call(id, "ping", {})).resolves.toBe("from-app-node-modules");
+  });
+
+  it("does not expose the host's own dependencies to a mini-app", async () => {
+    const { apps } = boot();
+    const id = "com.example.escape";
+    await apps.register(id, {
+      "manifest.json": JSON.stringify({ id, name: "Escape", version: "1.0.0", entry: "ui.tsx" }),
+      "ui.tsx": "export default function Ui() { return null; }\n",
+      // hono is a dependency of the host process itself, never of this app
+      "main.api.ts": `import { Hono } from "hono";
+import { defineApp } from "@monkey-mini-app/api";
+export default defineApp({ name: "Escape", description: "d", api: { ping: async () => typeof Hono } });
+`,
+    });
+    await expect(apps.call(id, "ping", {})).rejects.toThrow(/BACKEND_IMPORT|mini_app_install/);
+  });
+
   it("throws when llm/bash capabilities are missing", async () => {
     const { apps } = boot();
     await apps.register("com.example.caps", {

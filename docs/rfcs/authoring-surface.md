@@ -241,7 +241,7 @@ Keep the seven names — the capability axes in `templates/README.md` are alread
   | `jira` | flagship: `Kanban` + `DataGrid` + `DetailPanel` + llm confirm |
 
 - Teaching comments stay `// ⭐`. Product copy stays Chinese in the samples (host default locale). Instructions/comments stay English.
-- No eighth template in this RFC. New scenarios go through "does an existing axis already cover this?".
+- No ninth template without a new capability axis. A new scenario goes through "does an existing axis already cover this?". (The rule exists to stop look-alike samples, not to forbid growth: `spreadsheet/` was added later because it is the only template that teaches `mini_app_install` — see [`per-app-packages.md`](./per-app-packages.md).)
 
 ### 5.2 Paradigms
 

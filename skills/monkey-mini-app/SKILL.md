@@ -25,6 +25,7 @@ Writing `~/.monkey-mini-app/runtime/**` directly is refused by the sandbox — a
 | Delete one file | `mini_app_delete({ appId, path })` | `manifest.json` cannot be deleted |
 | Create a whole app | `mini_app_register({ appId, files })` | `files` keys are relative paths, values full text; must include `manifest.json` |
 | Validate + compile + warm cache | `mini_app_reload({ appId })` | After every round of edits — see below |
+| **Add a backend npm library** | `mini_app_install({ appId, packages: [{ name: "exceljs" }] })` | Only when `main.api.ts` must `import` a real Node library. Never for `lodash` / `axios` / `react`. Not importable from `ui.tsx`. |
 | Smoke-test api methods | `mini_app_call({ appId, method, args })` | Or `calls: [{ method, args }]` for a whole set in one round trip |
 | Show it to the user | `mini_app_open({ appId })` | Returns whether a panel actually received it |
 | **Read runtime errors** | `mini_app_errors({ appId, since? })` | The only way to see a UI that compiled and then crashed |
@@ -155,6 +156,7 @@ export default function Ui() {
 - **Tailwind is compiled per app from your source** — variants (`hover:` `group-hover:` `md:`), the default palette (`bg-rose-500`) and arbitrary values (`w-[437px]`) all work, so **do not fall back to inline `style` out of caution**. The one trap: class names must be complete literals — `` `bg-${x}-500` `` generates nothing, silently → **[references/styling.md](references/styling.md)**
 - **Colour is tokens, never hex** — the user's palette rewrites token values under `<html>`, a literal breaks dark mode → **[references/theme.md](references/theme.md)** (generated token table). **Do not invent a theme in `ui.tsx`.** A host-global custom palette (`themes/theme-<id>.css`) only when the user asks — same page, *Custom host theme file*.
 - **`lodash` is a platform module** on UI and backend (`import { groupBy, debounce } from "lodash"`). Prefer it over hand-rolled `groupBy` / `uniqBy` / `pick` / `debounce`. Bare `axios` / `ramda` / `dayjs` still fail.
+- **Need a library the platform does not ship** (a real file format, a binary protocol, a vendor SDK): `mini_app_install({ appId, packages: [{ name: "exceljs" }] })`, then `import ExcelJS from "exceljs"` in `main.api.ts`. Order of preference: `ctx.http` → `ctx.bash` / `ctx.tool` → install. Backend only — the UI still gets JSON through `call`.
 - **Icons**: `import { Icon } from "@monkey-mini-app/ui"`, then `Icon.HelpCircle` (any lucide name works); **curated subset + when to use** → **[references/icons.md](references/icons.md)** (don't page through a thousand names)
 - **Empty-state illustrations** — exactly these 10, the names are not guessable: `IlluEmpty` `IlluNoData` `IlluSearch` `IlluLoading` `IlluServerStatus` `IlluAccessDenied` `IlluPageNotFound` `IlluDataProcessing` `IlluBugFixing` `IlluCodeReview`
 - Component index (props + types) → **[references/catalog.md](references/catalog.md)** and **[references/contracts/](references/contracts/)** (generated; after changing a component run `pnpm gen:skill`).
@@ -260,6 +262,7 @@ export default defineApp({
 | Edit / diff / logs / test cases (complex components) | `templates/review/` |
 | `ctx.agent` multi-step job + progress / cancel | `templates/agentrun/` |
 | Board + table dual view + editing + AI (flagship) | `templates/jira/` |
+| Local `.xlsx` parsing via an installed library + model digest | `templates/spreadsheet/` (needs `mini_app_install` first) |
 
 For plain storage CRUD **start from the skeleton above** — don't read the whole Todo app to take a note. Templates are style references: product copy in the user's language, `call` owns loading/error, backend may use TypeScript.
 

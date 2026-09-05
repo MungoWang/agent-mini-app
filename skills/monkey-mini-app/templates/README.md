@@ -11,6 +11,18 @@ Each template is a different **reference scenario**: one layout prototype × one
 | [review](./review/) | Code/text comparison + test-case table | Reviewing diffs or cases, with write-back editing | `DiffViewer` (original/modified) + `CodeEditor` + `DataGrid` column filters/sorting + saving back |
 | [agentrun](./agentrun/) | Multi-step model work with visible progress | You need `ctx.agent` (**the only** demonstration of it) + cancel/progress | `ctx.agent` + `streamTo` → SSE → `useApp().on("agent")` + module-level `AbortController` cancellation |
 | [jira](./jira/) | Complex business simulation (multi-view + state machine + AI) | Ticket / Jira / project-management style apps, several views, AI assist | `Kanban` + `DataGrid` dual view + editing in a detail `Sheet` + status palette + `ctx.llm` drafting something the user confirms |
+| [spreadsheet](./spreadsheet/) | Local Excel → per-column aggregates + model digest | Reading a real `.xlsx` the user drops in, and saying something about it | **`mini_app_install`** (`exceljs`) + parsing bytes in the backend + aggregates over **all** rows while the grid shows a preview + `ctx.llm({schema})` + history in `ctx.storage.table` |
+
+## Templates that need a library
+
+`spreadsheet/` ships **no** `package.json` and **no** `node_modules`. After `mini_app_register`, install first, then reload:
+
+```
+mini_app_install({ appId: "com.example.spreadsheet", packages: [{ name: "exceljs" }] })
+mini_app_reload({ appId: "com.example.spreadsheet" })
+```
+
+Skipping that is the one case where a template fails `main.api:` with `backend cannot import 'exceljs'` — the message names the tool. Only `main.api.ts` / `api/**` may import installed packages; `ui.tsx` gets JSON through `call`.
 
 ## How to use them
 

@@ -32,6 +32,7 @@ import {
   type ReadFileResult,
   writeAppFile,
 } from "./app-files.ts";
+import { installAppPackages, requireFromAppPackages } from "./app-packages.ts";
 import { compileAppSource } from "./compile-app-source.ts";
 import { type HttpRequest, httpRequest, type HttpResponse } from "./ctx-http.ts";
 import { acronymOf, type AppManifest,parseManifest } from "./manifest.ts";
@@ -424,6 +425,62 @@ export class AppsManager {
   }
 
   /**
+   * Add/remove npm packages for **one** app (docs/rfcs/per-app-packages.md).
+   *
+   * npm runs with cwd = the app directory and `--ignore-scripts`, so a dependency's
+   * lifecycle scripts never execute from here. `package.json` + lockfile are committed
+   * by `afterMutate`; `node_modules` is not (git-history.ts ignores it), which is what
+   * keeps the app's git history reviewable.
+   */
+  async installPackages(
+    appId: string,
+    opts: { packages?: unknown; remove?: unknown; commit?: boolean },
+  ): Promise<
+    {
+      ok: boolean;
+      appId: AppId;
+      dependencies: Record<string, string>;
+      error?: string;
+      /** Nothing requested — the app's current set is reported, npm was not run. */
+      noop?: boolean;
+    } & AfterMutateResult
+  > {
+    const id = asAppId(appId);
+    if (!(await this.get(id))) {
+      throw new HostError("APP_NOT_FOUND", `app not found: ${appId}`);
+    }
+    const dir = this.dirOf(id);
+    const outcome = await installAppPackages({
+      appDir: dir,
+      appId: id,
+      packages: opts.packages,
+      remove: opts.remove,
+    });
+    // An empty request must not churn the worktree.
+    if (outcome.noop) {
+      return {
+        ok: true,
+        appId: id,
+        dependencies: outcome.dependencies,
+        noop: true,
+        committed: { status: "skipped", note: "no packages requested" },
+      };
+    }
+    this.invalidate(dir);
+    const after = await this.afterMutate(dir, {
+      commitMessage: "mini_app_install",
+      commit: opts.commit,
+    });
+    return {
+      ok: outcome.ok,
+      appId: id,
+      dependencies: outcome.dependencies,
+      error: outcome.error,
+      ...after,
+    };
+  }
+
+  /**
    * Validate + sync-compile api/ui. On success, auto-commit if the worktree is dirty.
    * Replaces the old lightweight mini_app_validate tool.
    */
@@ -731,10 +788,9 @@ export class AppsManager {
         return { ...named, default: lodashEs };
       }
       if (!spec.startsWith(".")) {
-        throw new HostError(
-          "BACKEND_IMPORT",
-          `backend cannot import '${spec}'. Backend may import @monkey-mini-app/api, lodash, and relative paths inside the app dir`,
-        );
+        // Bare specifier the platform does not ship: try this app's own node_modules
+        // (mini_app_install). Throws BACKEND_IMPORT with the install command when absent.
+        return requireFromAppPackages(appDir, spec);
       }
       const next = resolveAppModule(file, spec, appDir);
       assertBackendTree(appDir, next, spec);

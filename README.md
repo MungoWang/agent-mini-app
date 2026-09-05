@@ -25,6 +25,7 @@ cannot do without you becoming the platform:
 | Button runs a **real agent turn** | No | You rebuild a tool loop | `ctx.agent` — one-shot, isolated from chat, progress streamed into the app |
 | Uses MCP / tools you already connected | No | Re-auth every app | `ctx.tool` / `ctx.mcp` / `ctx.listTools()` — the host's live toolbelt |
 | Machine / network | No | You own `requests` + credentials | `ctx.bash` / `ctx.http` as the host user |
+| Needs a real library (a spreadsheet format, a broker client, a vendor SDK) | Browser-bound | Dependency sprawl you maintain forever | `mini_app_install` puts it in **that app's** `node_modules` (no lifecycle scripts, lockfile in its history) |
 | UI quality without inventing a stack | Random Tailwind | Random CSS | In-SDK kit + theme tokens the model is taught to use |
 | Many apps, next to chat | Browser tabs | Ports | Gallery, pin, dock left/right |
 
