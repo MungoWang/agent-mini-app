@@ -215,8 +215,42 @@ function writeOverlay(runtimeRoot: string, skillDest: string): string {
   return file;
 }
 
-function seedRuntime(version: string): { overlay: string } {
-  rmSync(RUNTIME, { recursive: true, force: true });
+/**
+ * Copy one skill template into the harness runtime and install the npm package its backend
+ * imports — the same two steps `mini_app_install` performs for an agent. `--ignore-scripts`
+ * here for the same reason the tool uses it.
+ */
+function seedTemplateApp(template: string, appId: string, pkg: string): void {
+  const dest = path.join(RUNTIME, "apps", appId);
+  const src = path.join(repoRoot, "skills/monkey-mini-app/templates", template);
+  if (!existsSync(src)) {
+    log(`WARN template missing: ${template}`);
+    return;
+  }
+  cpSync(src, dest, { recursive: true });
+  const manifest = path.join(dest, "package.json");
+  if (!existsSync(manifest)) {
+    writeFileSync(
+      manifest,
+      `${JSON.stringify({ private: true, name: appId, version: "0.0.0", dependencies: {} }, null, 2)}\n`,
+    );
+  }
+  log(`npm install ${pkg} → ${appId}`);
+  try {
+    execFileSync(
+      "npm",
+      ["install", "--ignore-scripts", "--omit=dev", "--no-audit", "--no-fund", pkg],
+      { cwd: dest, stdio: "pipe", env: process.env },
+    );
+  } catch (cause) {
+    // Stay up: the spreadsheet specs then fail naming the missing package, which is more
+    // diagnosable than a harness that refuses to boot on an offline machine.
+    const msg = cause instanceof Error ? cause.message : String(cause);
+    log(`WARN install ${pkg} failed — spreadsheet e2e will fail: ${msg.slice(0, 300)}`);
+  }
+}
+
+function seedRuntime(version: string): { overlay: string } {  rmSync(RUNTIME, { recursive: true, force: true });
   mkdirSync(path.join(RUNTIME, "apps"), { recursive: true });
   const cfg = {
     runtimeRoot: RUNTIME,
@@ -232,6 +266,10 @@ function seedRuntime(version: string): { overlay: string } {
   for (const id of ["com.example.todo", "com.example.review", "com.example.kit"]) {
     cpSync(path.join(fixtures, id), path.join(RUNTIME, "apps", id), { recursive: true });
   }
+  // The spreadsheet sample is seeded **from the shipped skill template**, so the e2e exercises
+  // what an agent actually installs rather than a copy that can drift. It needs a real npm
+  // package, which is the whole point of `mini_app_install`.
+  seedTemplateApp("spreadsheet", "com.example.spreadsheet", "exceljs");
   const skillDest = path.join(DSH_HOME, "skills", "monkey-mini-app");
   const overlay = writeOverlay(RUNTIME, skillDest);
   writeFileSync(path.join(appDir, ".version"), version);
