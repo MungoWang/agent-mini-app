@@ -45,6 +45,7 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 ## Architecture
 
 - Composition root: `createHost(capabilities, lifecycle, { config }).apply(ctx)`. dsh passes `DshCapabilities` / `DshLifecycle`; a new host implements its own. Do not leak dsh types into `host` / `panel` / `sdk`.
+- **Never spread a `HostCapabilities`** (`{ ...capabilities }`). Adapters pass **class instances** whose methods sit on the prototype, so a spread yields an object with no capabilities and every `ctx.*` fails with `host capability not available` — while object-literal caps in tests/react-host keep working and hide it (`3c8cb5a`, shipped in `0.1.1`). Wrap with `Object.create(caps, { push: … })`. The host test suite keeps a class-shaped adapter for exactly this reason.
 - Seam names: `HostCapabilities` / `HostLifecycle` / `PanelHost` (do not add an `Adapter` primary seam).
 - `HostCapabilities.*(callCtx, …)`; `bindCapsToContext` → author `ctx.*`; opts are not merged.
 - Paths only via `WorkspacePaths`; product code must not hardcode `~/.monkey-mini-app`.
