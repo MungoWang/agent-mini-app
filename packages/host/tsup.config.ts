@@ -20,6 +20,7 @@ export default defineConfig({
     "hono",
     "i18next",
     "isomorphic-git",
+    "lodash-es",
     "sucrase",
   ],
 });

@@ -29,6 +29,8 @@
 - [contracts/skill-sync.md](./contracts/skill-sync.md) — how the skill is generated, the `@family`/`componentType` taxonomy, prop-provenance rule, and what `pnpm check:skill` blocks
 - [rfcs/pi-extension-port.md](./rfcs/pi-extension-port.md) — next host (pi / pi-web), **not implemented**
 - [rfcs/authoring-protocol.md](./rfcs/authoring-protocol.md) — **landed**: one author package (`@monkey-mini-app/ui`), `defineApp`, `ui`/`api`/`shared` import bounds
+- [rfcs/authoring-surface.md](./rfcs/authoring-surface.md) — **proposal**: vendors/lodash, layout presets, templates, project intent/boundary, custom theme files
+- [rfcs/per-app-packages.md](./rfcs/per-app-packages.md) — **proposal**: on-demand backend `mini_app_install` into the app dir (not a default npm project, not a host driver list)
 - [rfcs/view-eval-metrics.md](./rfcs/view-eval-metrics.md) — **deferred**: observation metrics that must exist before reshaping `mini_app_view_eval` again
 - [rfcs/scripts-layout.md](./rfcs/scripts-layout.md) — **proposal**: `scripts/` by lifecycle stage, naming rules, `check/scripts` gate
 

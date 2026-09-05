@@ -409,6 +409,7 @@ const TOKENS: Record<PaletteId, Record<ModeId, TokenSet>> = {
 };
 
 /* —— 自定义主题（runtime themes/theme-<id>.css，一份文件含 light/dark 两模式） —— */
+/** File keys for `themes/theme-<id>.css`. `scripts/gen/skill/theme.mjs` reads this array. */
 const THEME_VAR_KEYS = [
   "bg", "fg", "surface", "surface-fg", "border", "muted", "muted-fg",
   "primary", "primary-fg", "secondary", "secondary-fg", "accent", "accent-fg",

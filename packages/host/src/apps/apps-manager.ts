@@ -4,11 +4,14 @@ import { rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import * as lodashEs from "lodash-es";
+
 import type { AgentRunOptions } from "../agent-events.ts";
 import type { AppCallContext } from "../app-runtime.ts";
 import { type AbsolutePath, type AppId,asAppId, isAppId } from "../brand.ts";
 import type { HostCapabilities } from "../capabilities.ts";
 import { bindCapsToContext } from "../capabilities.ts";
+import { resolveVendorSpecifier } from "../compile/platform-modules.ts";
 import { checkAppSources, formatFinding } from "../compile/static-check.ts";
 import type { UiCompiler } from "../compile/ui-compiler.ts";
 import { HostError } from "../errors.ts";
@@ -712,10 +715,25 @@ export class AppsManager {
           },
         });
       }
+      const vendor = resolveVendorSpecifier(spec);
+      if (vendor) {
+        const named = lodashEs as unknown as Record<string, unknown>;
+        if ("deep" in vendor) {
+          const fn = named[vendor.deep];
+          if (fn === undefined) {
+            throw new HostError(
+              "BACKEND_IMPORT",
+              `backend cannot import '${spec}': unknown lodash member`,
+            );
+          }
+          return { default: fn };
+        }
+        return { ...named, default: lodashEs };
+      }
       if (!spec.startsWith(".")) {
         throw new HostError(
           "BACKEND_IMPORT",
-          `backend cannot import '${spec}'. Backend may import @monkey-mini-app/api and relative paths inside the app dir`,
+          `backend cannot import '${spec}'. Backend may import @monkey-mini-app/api, lodash, and relative paths inside the app dir`,
         );
       }
       const next = resolveAppModule(file, spec, appDir);

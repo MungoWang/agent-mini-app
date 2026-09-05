@@ -2,8 +2,9 @@
  * Host-side per-app UI bundling with esbuild (native, wasm fallback).
  *
  * Iframe platform:
- *   /mma/runtime.js — React (complete, not curated)
- *   /mma/sdk.js     — @monkey-mini-app/ui kit + useApp (react external → runtime.js)
+ *   /mma/runtime.js        — React (complete, not curated)
+ *   /mma/sdk.js            — @monkey-mini-app/ui kit + useApp (react external → runtime.js)
+ *   /mma/vendors/lodash.js — full lodash (`lodash` / `lodash-es` specifiers)
  * App compile only bundles the mini-app's own ui.tsx + ui/** + shared/**;
  * relative imports are bounds-checked to stay inside the app dir.
  */
@@ -17,17 +18,22 @@ import type { BuildOptions, BuildResult, Plugin } from "esbuild";
 import { HostError } from "../errors.ts";
 import type { WorkspacePaths } from "../paths/workspace-paths.ts";
 import type { LocaleId } from "../types.ts";
+import {
+  resolveVendorSpecifier,
+  RUNTIME_HREF,
+  SDK_HREF,
+} from "./platform-modules.ts";
 
 const requireFromHere = createRequire(import.meta.url);
 
-export const RUNTIME_HREF = "/mma/runtime.js";
-export const SDK_HREF = "/mma/sdk.js";
+export { RUNTIME_HREF, SDK_HREF };
 
 const RUNTIME_SPECIFIER = /^(react|react-dom)(\/.*)?$/;
 /**
  * Author-facing UI package. Backend uses `@monkey-mini-app/api` (injected, not here).
  */
 const SDK_SPECIFIER = /^(lucide-react|@monkey-mini-app\/ui)(\/.*)?$/;
+const VENDOR_SPECIFIER = /^(lodash-es|lodash(\/.*)?)$/;
 
 export type UiBuildFile = { name: string; contents: Uint8Array };
 
@@ -49,7 +55,11 @@ function uiDistLooksValid(dir: string): boolean {
 }
 
 function sdkFileLooksValid(dir: string): boolean {
-  return fs.existsSync(path.join(dir, "sdk.js")) && fs.existsSync(path.join(dir, "runtime.js"));
+  return (
+    fs.existsSync(path.join(dir, "sdk.js")) &&
+    fs.existsSync(path.join(dir, "runtime.js")) &&
+    fs.existsSync(path.join(dir, "vendors", "lodash.js"))
+  );
 }
 
 function resolvePkgDist(
@@ -141,7 +151,7 @@ export function resolveSdkDistDir(): string {
   }
   throw new HostError(
     "SDK_DIST_MISSING",
-    "@monkey-mini-app/ui dist missing runtime.js/sdk.js — run: pnpm build:ui && pnpm build:sdk",
+    "@monkey-mini-app/ui dist missing runtime.js/sdk.js/vendors/lodash.js — run: pnpm build:ui && pnpm build:sdk",
   );
 }
 
@@ -257,6 +267,37 @@ function makeUiPlugin(appDir: string): Plugin {
         path: SDK_HREF,
         external: true,
       }));
+      build.onResolve({ filter: /^\/mma\/vendors\// }, (args) => ({
+        path: args.path,
+        external: true,
+      }));
+      build.onResolve({ filter: VENDOR_SPECIFIER }, (args) => {
+        const resolved = resolveVendorSpecifier(args.path);
+        if (!resolved) {
+          return {
+            errors: [{ text: `UI cannot import '${args.path}'` }],
+          };
+        }
+        if ("deep" in resolved) {
+          return {
+            path: resolved.deep,
+            namespace: "mma-vendor-deep",
+            pluginData: { href: resolved.href },
+          };
+        }
+        return { path: resolved.href, external: true };
+      });
+      build.onLoad({ filter: /.*/, namespace: "mma-vendor-deep" }, (args) => {
+        const href = (args.pluginData as { href?: string } | undefined)?.href;
+        const name = args.path;
+        if (!href || !/^[A-Za-z_$][\w$]*$/.test(name)) {
+          return { errors: [{ text: `UI cannot import lodash/${name}` }] };
+        }
+        return {
+          contents: `export { ${name} as default } from ${JSON.stringify(href)};\n`,
+          loader: "js",
+        };
+      });
     },
   };
 }
@@ -417,6 +458,7 @@ if (rootEl) {
       const sdkDir = resolveSdkDistDir();
       bump(path.join(sdkDir, "sdk.js"));
       bump(path.join(sdkDir, "runtime.js"));
+      bump(path.join(sdkDir, "vendors", "lodash.js"));
     } catch {
       /* sdk dist unavailable */
     }

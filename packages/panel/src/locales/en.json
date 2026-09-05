@@ -64,8 +64,6 @@
     "langEn": "English",
     "theme": "Theme",
     "palette": "Palette",
-    "customPalette": "Custom",
-    "customPaletteHint": "Custom palettes are not available yet",
     "dock": "Dock",
     "dockFill": "Fill",
     "dockSide": "Side",

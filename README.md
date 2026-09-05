@@ -2,35 +2,73 @@
 
 English | [中文](README.zh.md)
 
-An **AI-native mini-app platform**: an agent can spin up a real React app in one turn,
-run it locally, and keep using it. The product is the platform (runtime + panel + SDK).
-Agent shells (dsh today, pi later) are adapters.
+An **AI-native mini-app platform** — not a flashy HTML file sitting in the chat. A real
+app on your machine, docked next to the conversation, that can use **the same model and
+tools** the agent already has.
+
+The product is the platform (runtime + panel + SDK). Agent shells (dsh today, pi later)
+are adapters.
 
 ![home](docs/assets/home.png)
 
-## Why it exists
+## Why not a generated HTML page — or a local Python site?
 
-**Agent-native authoring.** A skill + `mini_app_*` tools + an in-SDK UI kit so a model
-can scaffold a high-quality app (`manifest.json` + `ui.tsx` + `main.api.ts`) without
-inventing a stack. Icons, tables, charts, editors are already in `@monkey-mini-app/ui`.
+Agents already write pretty HTML, and they can stand up a Flask/FastAPI app that talks
+to a database. That is a **one-shot artifact**. Mini-app is for the thing that artifact
+cannot do without you becoming the platform:
 
-**Mini-apps are the unit of work — and they can call the model back.** Each app is a
-small, reloadable program. `main.api.ts` gets a host `ctx`, not a toy sandbox:
+| | HTML in the chat | Agent-written local site | Mini-app |
+|---|---|---|---|
+| Still there tomorrow | Lost with the tab | You keep the process, venv, port | First-class app: disk + git + panel |
+| Agent can fix the running UI | Screenshot ping-pong | Restart and hope | `reload` → error card → live `view_eval` |
+| Button calls **your** model | You paste an API key | You wire OpenAI yourself | `ctx.llm` — same provider/model as the host, structured JSON, cancel |
+| Button runs a **real agent turn** | No | You rebuild a tool loop | `ctx.agent` — one-shot, isolated from chat, progress streamed into the app |
+| Uses MCP / tools you already connected | No | Re-auth every app | `ctx.tool` / `ctx.mcp` / `ctx.listTools()` — the host's live toolbelt |
+| Machine / network | No | You own `requests` + credentials | `ctx.bash` / `ctx.http` as the host user |
+| UI quality without inventing a stack | Random Tailwind | Random CSS | In-SDK kit + theme tokens the model is taught to use |
+| Many apps, next to chat | Browser tabs | Ports | Gallery, pin, dock left/right |
 
-| `ctx.*` | What the app can do |
-|---------|---------------------|
-| `http` / `bash` / `tool` (MCP) | Network, machine, existing tools |
-| `llm` / `agent` | Call a model or spawn a sub-agent **from the app** |
-| `storage` | Persist data on this machine |
+**A program that stays on the host** — generate it, use it, change it, without starting
+over from a new HTML blob.
 
-That loop — agent builds an app, the app calls `ctx.llm` / `ctx.agent` — is the point.
+## What the running app inherits
+
+`main.api.ts` gets a host `ctx`: the same model, tools, and machine the chat agent uses.
+Not a toy sandbox:
+
+**Model.** `ctx.llm(prompt, { schema, system, signal })` is the same model the chat
+already uses. Ask it to classify a row, draft a reply, extract JSON — get a string
+(parse `schema` results). Long jobs honour Stop via `ctx.signal`. You do not ship
+another SDK or key.
+
+**Agent.** `ctx.agent(goal)` starts a **one-shot** host agent (not the chat session):
+it can loop over tools, stream status/tool events into the UI (`streamTo` +
+`useApp().on`), then dispose. A dashboard button can mean “go investigate”, not
+“call one completion”.
+
+**Tools you already plugged in.** MCP servers and host tools show up as
+`ctx.tool` / `ctx.mcp` / `ctx.listTools()`. The app does not re-declare them. If the
+agent can talk to Jira, the browser, or an internal API, a mini-app button can too.
+
+**Machine.** `ctx.http`, `ctx.bash`, `ctx.storage` — network, this computer, JSON
+that survives reload. Same trust model as the agent that wrote the app (see below).
+
+That loop — **agent builds the app, the app calls the model and the toolbelt back** —
+is the product.
+
+## Authoring, panel, hosts
+
+**Agent-native authoring.** A skill + `mini_app_*` tools + `@monkey-mini-app/ui`
+(tables, charts, editors, kanban, theme). The model scaffolds `manifest.json` +
+`ui.tsx` + `main.api.ts` without inventing React/Vite/npm. Hot-reload, runtime
+errors, and live DOM query close the loop without you.
 
 **One management panel.** Gallery, open/pin/dock, theme, history, storage, reload.
-Same chrome on every host.
+Chat on one side, the app on the other.
 
 **Host-agnostic.** `createHost(capabilities, lifecycle)` + `PanelHost`. dsh web is
 the shipped adapter; pi / pi-web is next ([RFC](docs/rfcs/pi-extension-port.md)).
-`host` / `panel` / `sdk` do not depend on dsh.
+`host` / `panel` / `ui` / `api` do not depend on dsh.
 
 ![apps](docs/assets/apps-list.png)
 *Gallery in the dsh adapter — same apps on any host that implements the seams.*
@@ -91,9 +129,16 @@ Restart `dsh web` → the mini-app panel (`小程序`). No extra npm packages.
 |---------|------|
 | `host` | Platform: apps, git, HTTP, compile, `mini_app_*` tools, `ctx.*` |
 | `panel` | Management panel (`PanelHost`) |
-| `sdk` | App ABI; iframe `/mma/runtime.js` + `/mma/sdk.js` |
-| `ui` | UI kit (bundled into the SDK) |
+| `ui` | UI kit + iframe `/mma/runtime.js` + `/mma/sdk.js` |
+| `api` | Backend `defineApp` contract (host-injected) |
 | `dsh` | dsh adapter (plugin + skill) |
+
+## Trust model
+
+This is **owner-operated local software**. Mini-apps run as the host user. `ctx.bash`,
+`ctx.http`, and `ctx.llm` are real host capabilities, not a sandbox — that is the point
+of the product. The UI iframe isolates a crashed view from the panel; it does not isolate
+the machine. This project does not confine what a mini-app can do on your computer.
 
 ## License
 

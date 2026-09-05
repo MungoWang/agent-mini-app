@@ -18,6 +18,7 @@ import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
 import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
 import { asAppId, isAppId } from "../brand.ts";
 import type { AppCssCompiler } from "../compile/app-css.ts";
+import { vendorIdFromFile, VENDORS_HREF_PREFIX } from "../compile/platform-modules.ts";
 import {
   resolveSdkDistDir,
   resolveUiDistDir,
@@ -629,6 +630,20 @@ export class HttpGateway {
         });
       } catch (cause) {
         return c.text(`sdk.js missing: ${errorMessage(cause)}`, 500);
+      }
+    });
+
+    app.get(`${VENDORS_HREF_PREFIX}/:file`, (c) => {
+      const id = vendorIdFromFile(c.req.param("file") ?? "");
+      if (!id) return c.text("unknown vendor", 404);
+      try {
+        const buf = fs.readFileSync(path.join(resolveSdkDistDir(), "vendors", `${id}.js`));
+        return c.body(buf, 200, {
+          "Content-Type": "application/javascript; charset=utf-8",
+          "Cache-Control": "no-cache",
+        });
+      } catch (cause) {
+        return c.text(`vendors/${id}.js missing: ${errorMessage(cause)}`, 500);
       }
     });
 

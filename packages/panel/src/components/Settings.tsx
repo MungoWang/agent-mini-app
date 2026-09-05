@@ -448,11 +448,6 @@ export function Settings() {
                   label: t(`palette.${p.id}`),
                   preview: <PalettePreview id={p.id} mode={resolvedMode} />,
                 }))}
-                trailing={{
-                  label: t("settings.customPalette"),
-                  hint: t("settings.customPaletteHint"),
-                  disabled: true,
-                }}
               />
             </div>
 

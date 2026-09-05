@@ -54,11 +54,11 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 
 ## Hard constraints (broken apps if violated)
 
-1. UI imports `@monkey-mini-app/ui` (+ `react`); backend imports `@monkey-mini-app/api` (`defineApp`). UI may not import `main.api.ts`, `api/**`, or any other npm package. Hooks from `react`; components and `useApp()` from the UI package. Compiler: `react` → `/mma/runtime.js`, UI kit → `/mma/sdk.js`; relative imports that leave the app dir fail. Legacy `@monkey-mini-app/ui` / `@monkeyagent/*` are **removed**.
+1. UI imports `@monkey-mini-app/ui` (+ `react`) and the platform vendor `lodash` / `lodash-es`; backend imports `@monkey-mini-app/api` (`defineApp`) and the same `lodash`. UI may not import `main.api.ts`, `api/**`, or any other npm package. Hooks from `react`; components, `useApp()`, and `cn` from the UI package. Compiler: `react` → `/mma/runtime.js`, UI kit → `/mma/sdk.js`, lodash → `/mma/vendors/lodash.js`; relative imports that leave the app dir fail. Legacy `@monkey-mini-app/sdk` / `@monkeyagent/*` are **removed**.
  - Icons: `import { Icon } from "@monkey-mini-app/ui"` then `<Icon.HelpCircle />`.
  - Illustrations: `IlluXxx` from the SDK (unDraw, MIT; `scripts/gen/illustrations.mjs` tokenizes accent→`--primary`, greys→`--muted`/`--card`). No hard-coded hex. Accent via `--primary-svg-color: var(--primary)`.
 2. `call` methods must be keys of `defineApp({ api })`.
-3. Backend `main.api.ts` imports `defineApp` from `@monkey-mini-app/api` (the host injects the runtime copy — nothing React is loaded) + relative paths inside the app dir; no npm / Node builtins / `ui/**`. Layout: `ui/` UI-only · `api/` backend-only · `shared/` pure-isomorphic (enforced both ways). Net: `ctx.http`; machine: `ctx.bash`; model: `ctx.llm`.
+3. Backend `main.api.ts` imports `defineApp` from `@monkey-mini-app/api` (the host injects the runtime copy — nothing React is loaded), `lodash` (host-injected, same full build as the iframe), and relative paths inside the app dir; no other npm / Node builtins / `ui/**`. Layout: `ui/` UI-only · `api/` backend-only · `shared/` pure-isomorphic (enforced both ways). Net: `ctx.http`; machine: `ctx.bash`; model: `ctx.llm`.
 4. `compileAppSource` uses sucrase; no regex global strip of `: type`. UI compile: `packages/host/src/compile/ui-compiler.ts`.
 5. `ctx.llm` goes through `HostCapabilities.llm`; only the dsh adapter uses `llm.stream({ provider, model, messages })`. Do not hardcode dsh in `host`.
 6. `ctx.http` → `{ ok, status, headers, text, json }`; `ctx.bash` → `{ stdout, stderr, exitCode }`; `ctx.llm` / `ctx.tool` → **string**. MCP args must not be `{ input: "..." }`.

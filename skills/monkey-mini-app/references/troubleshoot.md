@@ -69,7 +69,7 @@ More → [eval.md](eval.md).
 | `main.api must export defineApp({ name, description, api })` | Missing `export default defineApp({...})` | Add the default export |
 | `defineApp requires name and description` | One of them is missing | Provide both |
 | `defineApp.api must be an object` | `api` written as a function or array | `api: { async list(ctx) {…} }` |
-| `backend cannot import '<spec>'. Backend may import @monkey-mini-app/api and relative paths inside the app dir` | Backend imported an npm package or a Node builtin | Backend: `@monkey-mini-app/api` (`defineApp`) + relative paths only |
+| `backend cannot import '<spec>'. Backend may import @monkey-mini-app/api, lodash, and relative paths inside the app dir` | Backend imported an npm package or a Node builtin | Backend: `@monkey-mini-app/api` (`defineApp`) + `lodash` + relative paths only |
 | `backend cannot import '<spec>': ui/** is UI-only` | Backend reached into the UI tree | Move the shared logic to `shared/**` |
 | `backend import escapes app dir: <spec>` | Backend imported `../` past the app root | Keep every import inside the app dir |
 | `unsafe relative path: <rel>` | Path contained `..` or was absolute | `mini_app_*` `path` values are app-relative |
@@ -92,6 +92,7 @@ More → [eval.md](eval.md).
 |---|---|---|
 | A class did nothing | Whether the class name is a **complete literal** | Tailwind scans source text: `` `bg-${x}-500` `` generates **no CSS and no error**. Full names only → [styling.md](styling.md) |
 | Colours wrong in dark mode | Any hardcoded hex | Use tokens → [theme.md](theme.md); the user's palette rewrites token values |
+| Custom theme file does not appear | Wrote `--background` or only one mode | File keys are `--bg` / `--fg` / `--primary` in **both** light and dark → [theme.md](theme.md) *Custom host theme file*; reopen the theme pop |
 | A node rendered to nothing | Its box and its classes, from the view | `mini_app_view_eval({ appId, code: 'return mma.$$("#root *").filter(n => !n.getBoundingClientRect().width).map(mma.selector)' })` — usually a class that never compiled, or a condition that never matched |
 | A token looks unset | The **computed** value, not the class name | `const cs = getComputedStyle(mma.$(".x")); return { color: cs.color, bg: cs.backgroundColor };` → [styling.md](styling.md) |
 | Panel still shows the old app after a fix | It should have refreshed on its own (`app:reload`) | If the browser was not attached to `/api/events`, use the panel's reload button |

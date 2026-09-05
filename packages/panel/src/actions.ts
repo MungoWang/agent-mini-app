@@ -30,6 +30,21 @@ function asCustomPalettes(value: PanelState["customPalettes"]): CustomPaletteMap
   return value as CustomPaletteMap;
 }
 
+/** Re-read host custom palettes (ThemePop opens; panel mount). */
+export function loadCustomPalettes(host: PanelHost): void {
+  if (!host.palettes) return;
+  host
+    .palettes()
+    .then((list) => {
+      const custom: CustomPaletteMap = {};
+      for (const p of list) {
+        custom[p.id] = { label: p.label, swatch: p.swatch, tokens: p.tokens };
+      }
+      setPanelState({ customPalettes: custom });
+    })
+    .catch(() => {});
+}
+
 export function createPanelActions(
   host: PanelHost,
   getRootEl: () => HTMLElement | null,
@@ -68,7 +83,11 @@ export function createPanelActions(
       }
     },
     setQuery: (q) => setPanelState({ query: q }),
-    toggleThemePop: () => setPanelState({ themePopOpen: !getPanelState().themePopOpen }),
+    toggleThemePop: () => {
+      const next = !getPanelState().themePopOpen;
+      setPanelState({ themePopOpen: next });
+      if (next) loadCustomPalettes(host);
+    },
     setAppearance: (next, scope) => {
       const s = getPanelState();
       const theme = next.theme ? String(next.theme) : s.theme;

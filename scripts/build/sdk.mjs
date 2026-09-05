@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
  * Build the iframe platform into packages/ui/dist:
- *   runtime.js — complete React ESM (vendored from esm.sh, then bundled)
- *   sdk.js     — UI kit + useApp; react* is external → /mma/runtime.js
- *   (served as /mma/runtime.js and /mma/sdk.js — href names kept for stability)
+ *   runtime.js          — complete React ESM (vendored from esm.sh, then bundled)
+ *   sdk.js              — UI kit + useApp; react* is external → /mma/runtime.js
+ *   vendors/lodash.js   — full lodash-es + default `_` (author specifier `lodash`)
+ *   (served as /mma/runtime.js, /mma/sdk.js, /mma/vendors/lodash.js)
  *
  * Requires packages/ui/dist/index.js (run build:ui first). esm.sh is fetched **once per
  * React version** and kept in a persistent cache, so rebuilds and `npm publish` work
@@ -14,7 +15,7 @@
  *               --offline  never touch the network; fail if something is uncached
  *
  * Inputs:       packages/ui/dist (flat kit + src), esm.sh (cached)
- * Writes:       packages/ui/dist/{runtime.js,sdk.js},
+ * Writes:       packages/ui/dist/{runtime.js,sdk.js,vendors/lodash.js},
  *               node_modules/.cache/monkey-mini-app/{esm.sh/**,iframe-stamp.json}
  * Run as:       pnpm build:sdk — also part of @monkey-mini-app/ui prepack
  */
@@ -43,6 +44,15 @@ const OFFLINE = flags.has("--offline");
 function reactVersion() {
   const req = createRequire(path.join(uiRoot, "package.json"));
   return req("react/package.json").version;
+}
+
+function lodashEsVersion() {
+  const req = createRequire(path.join(uiRoot, "package.json"));
+  try {
+    return req("lodash-es/package.json").version;
+  } catch {
+    return "missing";
+  }
 }
 
 function esmUrl(spec) {
@@ -275,6 +285,38 @@ async function buildSdk(esbuild) {
   return fs.statSync(outfile).size;
 }
 
+async function buildVendors(esbuild) {
+  const entry = path.join(distDir, ".vendor-lodash-entry.mjs");
+  fs.mkdirSync(path.join(distDir, "vendors"), { recursive: true });
+  fs.writeFileSync(
+    entry,
+    'export * from "lodash-es";\nimport * as es from "lodash-es";\nexport default es;\n',
+  );
+  const outfile = path.join(distDir, "vendors", "lodash.js");
+  try {
+    await esbuild.build({
+      entryPoints: [entry],
+      outfile,
+      absWorkingDir: uiRoot,
+      bundle: true,
+      format: "esm",
+      platform: "browser",
+      target: "es2020",
+      write: true,
+      minify: true,
+      legalComments: "none",
+      logLevel: "warning",
+    });
+  } finally {
+    fs.rmSync(entry, { force: true });
+  }
+  const js = fs.readFileSync(outfile, "utf8");
+  if (!/\bgroupBy\b/.test(js)) {
+    throw new Error("[build-sdk] vendors/lodash.js missing groupBy");
+  }
+  return fs.statSync(outfile).size;
+}
+
 /** Everything that can change the iframe output: the built kit barrel + its sources. */
 function fingerprint() {
   const h = crypto.createHash("sha256");
@@ -296,10 +338,16 @@ function fingerprint() {
 
 function stampIsCurrent(fp, ver) {
   if (FORCE) return false;
-  if (!fs.existsSync(path.join(distDir, "runtime.js")) || !fs.existsSync(path.join(distDir, "sdk.js"))) return false;
+  if (
+    !fs.existsSync(path.join(distDir, "runtime.js")) ||
+    !fs.existsSync(path.join(distDir, "sdk.js")) ||
+    !fs.existsSync(path.join(distDir, "vendors", "lodash.js"))
+  ) {
+    return false;
+  }
   try {
     const s = JSON.parse(fs.readFileSync(stampFile, "utf8"));
-    return s.fingerprint === fp && s.reactVersion === ver;
+    return s.fingerprint === fp && s.reactVersion === ver && s.lodashEs === lodashEsVersion();
   } catch {
     return false;
   }
@@ -320,7 +368,7 @@ async function main() {
   if (stampIsCurrent(fp, ver)) {
     const kb = (f) => (fs.statSync(path.join(distDir, f)).size / 1024).toFixed(0);
     console.log(
-      `[build-sdk] up to date (react@${ver}, ${kb("runtime.js")}KB + ${kb("sdk.js")}KB) — skipped; --force to rebuild`,
+      `[build-sdk] up to date (react@${ver}, ${kb("runtime.js")}KB + ${kb("sdk.js")}KB + ${kb("vendors/lodash.js")}KB) — skipped; --force to rebuild`,
     );
     return;
   }
@@ -328,13 +376,23 @@ async function main() {
   const t0 = Date.now();
   const runtimeBytes = await buildRuntime(esbuild, ver);
   const sdkBytes = await buildSdk(esbuild);
+  const lodashBytes = await buildVendors(esbuild);
   fs.mkdirSync(path.dirname(stampFile), { recursive: true });
   fs.writeFileSync(
     stampFile,
-    JSON.stringify({ fingerprint: fp, reactVersion: ver, builtAt: new Date().toISOString() }, null, 2) + "\n",
+    JSON.stringify(
+      {
+        fingerprint: fp,
+        reactVersion: ver,
+        lodashEs: lodashEsVersion(),
+        builtAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    ) + "\n",
   );
   console.log(
-    `[build-sdk] react@${ver} runtime.js ${(runtimeBytes / 1024 / 1024).toFixed(2)}MB · sdk.js ${(sdkBytes / 1024 / 1024).toFixed(2)}MB in ${Date.now() - t0}ms` +
+    `[build-sdk] react@${ver} runtime.js ${(runtimeBytes / 1024 / 1024).toFixed(2)}MB · sdk.js ${(sdkBytes / 1024 / 1024).toFixed(2)}MB · lodash.js ${(lodashBytes / 1024).toFixed(0)}KB in ${Date.now() - t0}ms` +
       ` · esm.sh ${cacheHits} cached / ${cacheMisses} fetched`,
   );
 }

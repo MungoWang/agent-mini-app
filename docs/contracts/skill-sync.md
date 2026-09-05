@@ -50,7 +50,7 @@ Effect: `env-table.md` went from 332 prop rows (5 real, with `String.prototype` 
 
 | Rule | What it prevents |
 |---|---|
-| `author-specifier` | The skill teaching a removed author specifier / API name (pre-unification `@monkeyagent/*`, the library package alias, `defineDashboard`, `useDashboardApi`) — the contract is UI `@monkey-mini-app/ui` + backend `@monkey-mini-app/api` + in-app relative paths |
+| `author-specifier` | The skill teaching a removed author specifier / API name (pre-unification `@monkeyagent/*`, the library package alias, `defineDashboard`, `useDashboardApi`) — the contract is UI `@monkey-mini-app/ui` + `react` + `lodash` + backend `@monkey-mini-app/api` + `lodash` + in-app relative paths |
 | `tool-name` / `tool-coverage` | Documenting a `mini_app_*` tool that does not exist; or a real tool never being mentioned |
 | `ctx-member` | Documenting `ctx.x` that is not a key of `AppContext` (this is how `ctx.llm.stream` and `onMount` used to survive) |
 | `ctx-mirror` | The SDK's author-facing `AppCtx` drifting from the host's `AppContext` — the backend takes its **types** from `@monkey-mini-app/ui` / `@monkey-mini-app/api` but its runtime `defineApp` from the host injection, so the two key sets must be identical |

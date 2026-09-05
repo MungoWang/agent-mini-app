@@ -124,7 +124,7 @@ A trivial app needs none of the three folders. Relative imports may use any subf
 
 - **Decide first**: is there a component for this that actually fits? **Yes → use it** (fewer tokens, consistent look). **No, or the design needs its own visual/interaction, or the user asked for free play → build it from native elements (`div`/`span`/`button`/`input`/`table`/`svg`…) + Tailwind classes.** Do not bend the design to fit the library.
 - **Mixing is normal**: library components for the skeleton (cards / page header / dialogs), native + Tailwind for the distinctive parts.
-- **Boundary of free play**: native elements and Tailwind are unlimited, but `ui.tsx` may only import `react`, `@monkey-mini-app/ui` and in-app relative paths — never `api/**`, never `../` out of the app dir, never another npm package. Hooks from `react`; components and `useApp` from the SDK.
+- **Boundary of free play**: native elements and Tailwind are unlimited, but `ui.tsx` may only import `react`, `@monkey-mini-app/ui`, `lodash` / `lodash-es`, and in-app relative paths — never `api/**`, never `../` out of the app dir, never another npm package. Hooks from `react`; components, `useApp`, and `cn` from the SDK.
 - **Not your job**: the theme provider and the app runtime are wrapped by the host; there is no `Stack`/`Text` layout component — use Tailwind classes.
 - Component props list **only their own API**: `className`, `style`, `onClick`, `aria-*` are never repeated (every component takes them). Conversely, **never guess the part names of a compound component** (`Dialog` + `DialogTrigger` + `DialogContent`, not `<Dialog title>`) — read its contract.
 
@@ -151,8 +151,10 @@ export default function Ui() {
 ```
 
 - **Layout is Tailwind** (`flex flex-col gap-3 p-4 grid md:grid-cols-3 w-full space-y-4`)
+- **`cn` is already in the kit** — `import { cn } from "@monkey-mini-app/ui"` (`clsx` + `tailwind-merge`). Prefer it over concatenating class strings.
 - **Tailwind is compiled per app from your source** — variants (`hover:` `group-hover:` `md:`), the default palette (`bg-rose-500`) and arbitrary values (`w-[437px]`) all work, so **do not fall back to inline `style` out of caution**. The one trap: class names must be complete literals — `` `bg-${x}-500` `` generates nothing, silently → **[references/styling.md](references/styling.md)**
-- **Colour is tokens, never hex** — the user's palette rewrites token values under `<html>`, a literal breaks dark mode → **[references/theme.md](references/theme.md)** (generated token table)
+- **Colour is tokens, never hex** — the user's palette rewrites token values under `<html>`, a literal breaks dark mode → **[references/theme.md](references/theme.md)** (generated token table). **Do not invent a theme in `ui.tsx`.** A host-global custom palette (`themes/theme-<id>.css`) only when the user asks — same page, *Custom host theme file*.
+- **`lodash` is a platform module** on UI and backend (`import { groupBy, debounce } from "lodash"`). Prefer it over hand-rolled `groupBy` / `uniqBy` / `pick` / `debounce`. Bare `axios` / `ramda` / `dayjs` still fail.
 - **Icons**: `import { Icon } from "@monkey-mini-app/ui"`, then `Icon.HelpCircle` (any lucide name works); **curated subset + when to use** → **[references/icons.md](references/icons.md)** (don't page through a thousand names)
 - **Empty-state illustrations** — exactly these 10, the names are not guessable: `IlluEmpty` `IlluNoData` `IlluSearch` `IlluLoading` `IlluServerStatus` `IlluAccessDenied` `IlluPageNotFound` `IlluDataProcessing` `IlluBugFixing` `IlluCodeReview`
 - Component index (props + types) → **[references/catalog.md](references/catalog.md)** and **[references/contracts/](references/contracts/)** (generated; after changing a component run `pnpm gen:skill`).
@@ -236,7 +238,7 @@ export default defineApp({
 | Component props / types | [references/catalog.md](references/catalog.md) → [references/contracts/](references/contracts/) |
 | **Which Tailwind classes work / how to colour** | [references/styling.md](references/styling.md) |
 | **What actually rendered (live DOM query)** | [references/eval.md](references/eval.md) — recipes, output format, the four `view` states |
-| **Theme token table** | [references/theme.md](references/theme.md) (generated — do not hand-edit) |
+| **Theme token table + custom host theme file** | [references/theme.md](references/theme.md) (generated — do not hand-edit) |
 | **A runnable starting point for one component** | contract's `## Examples` → [references/examples/](references/examples/) (each file = one scenario: `@title` + `@scenario`; layout/pattern recipes in `examples/<group>.md`) |
 | Icon subset (`Icon` namespace, when to use) | [references/icons.md](references/icons.md) |
 | Full `ctx.*` contract (incl. agent `onEvent` shapes) | [references/ctx.md](references/ctx.md) (use `ctx.http`, not bash curl) |

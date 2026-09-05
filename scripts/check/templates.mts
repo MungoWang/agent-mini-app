@@ -58,6 +58,9 @@ try {
         "@monkey-mini-app/ui/*": [path.join(uiSrc, "*")],
         "@monkey-mini-app/api": [path.join(apiSrc, "index.ts")],
         "@monkey-mini-app/api/*": [path.join(apiSrc, "*")],
+        lodash: [path.join(root, "packages/ui/node_modules/lodash-es")],
+        "lodash-es": [path.join(root, "packages/ui/node_modules/lodash-es")],
+        "lodash/*": [path.join(root, "packages/ui/node_modules/lodash-es/*")],
       },
     },
     include: [

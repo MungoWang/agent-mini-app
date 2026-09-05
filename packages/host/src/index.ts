@@ -57,6 +57,16 @@ export {
 } from "./brand.ts";
 export type { BoundHostCapabilities, HostCapabilities } from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
+export type { VendorId, VendorResolve } from "./compile/platform-modules.ts";
+export {
+  resolveVendorSpecifier,
+  RUNTIME_HREF,
+  SDK_HREF,
+  VENDOR_IDS,
+  vendorFileHref,
+  vendorIdFromFile,
+  VENDORS_HREF_PREFIX,
+} from "./compile/platform-modules.ts";
 export type { StaticCheckResult, StaticFinding } from "./compile/static-check.ts";
 export {
   checkAppSources,
@@ -68,8 +78,6 @@ export type { UiBuildFile, UiCompileOptions } from "./compile/ui-compiler.ts";
 export {
   resolveSdkDistDir,
   resolveUiDistDir,
-  RUNTIME_HREF,
-  SDK_HREF,
   UiCompiler,
 } from "./compile/ui-compiler.ts";
 export { bootstrapHostConfig } from "./config/bootstrap.ts";

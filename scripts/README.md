@@ -29,7 +29,7 @@ No file sits directly under `scripts/`. If you are about to add one, pick a stag
 | Path | Run as | Writes | Side effects |
 |---|---|---|---|
 | `build/ui.mjs` | `pnpm build:ui` (also ui `prepack`) | `packages/ui/dist/**` | repo build output |
-| `build/sdk.mjs` | `pnpm build:sdk` (also ui `prepack`) | `packages/ui/dist/{runtime.js,sdk.js}` | repo build + `node_modules/.cache` (esm.sh fetched once per React version; `--force` / `--refresh` / `--offline`) |
+| `build/sdk.mjs` | `pnpm build:sdk` (also ui `prepack`) | `packages/ui/dist/{runtime.js,sdk.js,vendors/lodash.js}` | repo build + `node_modules/.cache` (esm.sh fetched once per React version; `--force` / `--refresh` / `--offline`) |
 | `build/api.mjs` | `pnpm build:api` (also api `prepack`) | `packages/api/dist/index.js` | repo build |
 | `gen/skill/index.mjs` | `pnpm gen:skill` | `skills/.../references/**`, `packages/ui/ai/catalog.json` | repo tracked files |
 | `gen/skill/copy.mjs` | dsh `prepack` / `postpack` | `packages/<adapter>/skills/monkey-mini-app/` | packing scratch copy |

@@ -461,6 +461,18 @@ export default defineApp({
     expect(sdkJs).toContain("/mma/runtime.js");
   });
 
+  it("GET /mma/vendors/lodash.js serves lodash and unknown ids 404", async () => {
+    await startHost();
+    const ok = await fetch(`${origin()}/mma/vendors/lodash.js`);
+    expect(ok.status).toBe(200);
+    const js = await ok.text();
+    expect(js).toMatch(/groupBy/);
+    const miss = await fetch(`${origin()}/mma/vendors/axios.js`);
+    expect(miss.status).toBe(404);
+    const encoded = await fetch(`${origin()}/mma/vendors/${encodeURIComponent("../sdk.js")}`);
+    expect(encoded.status).toBe(404);
+  });
+
   it("GET /ui.css serves the ui dist stylesheet", async () => {
     await startHost();
     const res = await fetch(`${origin()}/ui.css`);

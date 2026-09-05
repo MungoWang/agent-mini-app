@@ -266,4 +266,17 @@ describe("createPanelActions + FakePanelHost", () => {
       deleteApp: true,
     });
   });
+
+  it("toggleThemePop refetches custom palettes when opening", async () => {
+    const { host, actions } = actionsFor(createFakePanelHost({ withPalettes: true }));
+    actions.toggleThemePop();
+    expect(getPanelState().themePopOpen).toBe(true);
+    await flush();
+    expect(host.calls.palettes).toBe(1);
+    expect(getPanelState().customPalettes["custom-1"]?.label).toBe("Custom One");
+    actions.toggleThemePop();
+    expect(getPanelState().themePopOpen).toBe(false);
+    await flush();
+    expect(host.calls.palettes).toBe(1);
+  });
 });

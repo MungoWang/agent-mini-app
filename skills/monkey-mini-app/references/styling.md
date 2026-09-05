@@ -78,6 +78,28 @@ elements or on a component's `className` (every component takes `className` and 
 The iframe fills its panel and the app scrolls inside it, so size against the viewport
 (`h-full`, `min-h-0`, `overflow-auto`) rather than a fixed pixel height.
 
+## Custom host theme (only when the user asks)
+
+Do **not** put hex in `ui.tsx`. If the user wants a named / branded palette, write a
+**host-global** file — contract and skeleton are generated in [theme.md](theme.md)
+(*Custom host theme file*). `mini_app_edit` cannot write it (outside the app dir).
+
+Light and dark are a **pair**, not two independent palettes. Worked example:
+`docs/assets/themes/theme-crimson.css` (same hue family, not an invert).
+
+1. **One hue family, two densities.** Do not invert (`#f7f2f1` → a cold `#080d0e`).
+2. **Contrast first.** `fg` on `bg`, `surface-fg` on `surface`, `primary-fg` on `primary`,
+   `muted-fg` on both `muted` and `bg` must all read.
+3. **Dark is not dimmer light.** Drop `bg` / `surface` to a near-black of the same hue;
+   **lift** `primary` chroma (`crimson` light `#c0392b` → dark `#ff5c4d`). `primary-fg`
+   flips with the new primary.
+4. **Elevation.** `surface` a step above `bg`; `border` visible on both; `shadow` stronger in dark.
+5. **Destructive stays a distinct red** even if the brand hue is already red.
+6. **Monochrome / graphite.** `primary` is a mid grey, not blue. Do not ship only
+   `#000` / `#fff` — `muted` / `border` / `surface` need room.
+7. **No second accent hue** unless asked. `accent` is a wash of `primary`.
+8. **Verify both modes** in the panel theme pop after writing. A file that only looks right in dark has failed.
+
 ## Animation
 
 A motion library is being decided for the platform. Until it lands, keep it simple:

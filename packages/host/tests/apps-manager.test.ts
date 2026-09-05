@@ -324,6 +324,28 @@ export default defineApp({
     await expect(apps.call("com.example.ok", "missing", {})).rejects.toThrow(HostError);
   });
 
+  it("injects full lodash into the backend", async () => {
+    const { apps } = boot();
+    await apps.register("com.example.lodash", {
+      "manifest.json": JSON.stringify({
+        id: "com.example.lodash",
+        name: "Lodash",
+        version: "1.0.0",
+        entry: "ui.tsx",
+      }),
+      "ui.tsx": "export default function Ui() { return null; }\n",
+      "main.api.ts": `import { pick } from "lodash";
+import { defineApp } from "@monkey-mini-app/api";
+export default defineApp({
+  name: "Lodash",
+  description: "vendor",
+  api: { ping: async () => pick({ a: 1, b: 2 }, "a") },
+});
+`,
+    });
+    await expect(apps.call("com.example.lodash", "ping", {})).resolves.toEqual({ a: 1 });
+  });
+
   it("throws when llm/bash capabilities are missing", async () => {
     const { apps } = boot();
     await apps.register("com.example.caps", {

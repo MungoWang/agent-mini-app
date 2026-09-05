@@ -24,8 +24,8 @@ dsh supplies capabilities/lifecycle; another host implements its own. Do not lea
 
 ## Author surface
 
-- UI: `import { useApp, Button, … } from "@monkey-mini-app/ui"` (+ `react`)
-- Backend: `import { defineApp } from "@monkey-mini-app/ui"` (host injects the runtime `defineApp`)
+- UI: `import { useApp, Button, cn, … } from "@monkey-mini-app/ui"` (+ `react`); `import { groupBy } from "lodash"` (platform vendor → `/mma/vendors/lodash.js`)
+- Backend: `import { defineApp } from "@monkey-mini-app/api"` (host injects the runtime `defineApp`); same `lodash` specifier, host-injected
 - Layout trees: `ui/**` (UI only), `api/**` (backend only), `shared/**` (isomorphic pure)
 - Skill: `skills/monkey-mini-app/`
 - Runnable examples: `packages/ui-examples` → copied (byte-for-byte, path-rewritten only) into
@@ -35,6 +35,7 @@ dsh supplies capabilities/lifecycle; another host implements its own. Do not lea
 
 - `/mma/runtime.js` — React
 - `/mma/sdk.js` — UI package bundle (kit + `useApp`)
+- `/mma/vendors/lodash.js` — full lodash (UI compiler + backend loader map `lodash` / `lodash-es` here)
 - App UI is compiled by the host; the iframe does not compile.
 
 ## Authoring loop (what `mini_app_reload` guarantees)

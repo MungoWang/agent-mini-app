@@ -1,7 +1,7 @@
 import { createRoot, type Root } from "react-dom/client";
 
 import { MiniAppPanel } from "./components/MiniAppPanel.tsx";
-import { createPanelActions } from "./actions.ts";
+import { createPanelActions, loadCustomPalettes } from "./actions.ts";
 import { PanelProvider } from "./context.tsx";
 import { createPanelI18n, resolvePanelLocale } from "./i18n.ts";
 import { capabilitiesOf, type PanelHost } from "./panel-host.ts";
@@ -20,20 +20,6 @@ export interface PanelInstance {
   unmount(): void;
   open(): void;
   close(): void;
-}
-
-function loadCustomPalettes(host: PanelHost): void {
-  if (!host.palettes) return;
-  host
-    .palettes()
-    .then((list) => {
-      const custom: CustomPaletteMap = {};
-      for (const p of list) {
-        custom[p.id] = { label: p.label, swatch: p.swatch, tokens: p.tokens };
-      }
-      setPanelState({ customPalettes: custom });
-    })
-    .catch(() => {});
 }
 
 export function createMiniAppPanel(host: PanelHost, options?: CreateMiniAppPanelOptions): PanelInstance {

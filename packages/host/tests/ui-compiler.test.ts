@@ -87,13 +87,36 @@ export default function Ui() {
   });
 
   it("no longer resolves the pre-unification / wrong-side specifiers", async () => {
-    // UI may only externalise @monkey-mini-app/ui (+ react/lucide). sdk is gone;
-    // api is backend-only and must not resolve in the UI compile.
+    // UI may only externalise @monkey-mini-app/ui (+ react/lucide) and lodash.
+    // sdk is gone; api is backend-only and must not resolve in the UI compile.
     for (const spec of ["@monkeyagent/host", "@monkey-mini-app/sdk", "@monkey-mini-app/api"]) {
       const { compiler, appDir } = makeApp(
         `import { Card } from "${spec}";\nexport default function Ui() { return <Card />; }\n`,
       );
       await expect(compiler.compile(appDir, { locale: "zh-CN" })).rejects.toThrow(/Could not resolve/);
     }
+  });
+
+  it("externalises lodash to /mma/vendors/lodash.js", async () => {
+    const { compiler, appDir } = makeApp(`
+import { groupBy } from "lodash";
+export default function Ui() {
+  return <div>{Object.keys(groupBy([{ k: 1 }], "k")).join(",")}</div>;
+}
+`);
+    const js = entryJs(await compiler.compile(appDir, { locale: "zh-CN" }));
+    expect(js).toContain("/mma/vendors/lodash.js");
+    expect(js).not.toMatch(/from\s*["']axios["']/);
+  });
+
+  it("rewrites lodash/groupBy to a default export of the vendor file", async () => {
+    const { compiler, appDir } = makeApp(`
+import groupBy from "lodash/groupBy";
+export default function Ui() {
+  return <div>{typeof groupBy}</div>;
+}
+`);
+    const js = entryJs(await compiler.compile(appDir, { locale: "zh-CN" }));
+    expect(js).toContain("/mma/vendors/lodash.js");
   });
 });
