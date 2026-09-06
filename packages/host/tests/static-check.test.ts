@@ -213,3 +213,77 @@ describe("static-check layering", () => {
     expect(found).toEqual([]);
   });
 });
+
+/**
+ * `ctx.push` and `useApp().on` are joined only by a string, and no type can cross the seam (the UI
+ * may not import `main.api.ts`), so a typo makes an app that renders fine and never updates.
+ * These are notices: they must never stop an app from reloading.
+ */
+describe("static-check event-name pairing (notices)", () => {
+  async function notices(files: Record<string, string>): Promise<string[]> {
+    const r = await checkAppSources(app(files));
+    return r.findings.filter((f) => f.severity === "notice").map((f) => f.reason);
+  }
+
+  const backend = (name: string) => `
+    import { defineApp } from "@monkey-mini-app/api";
+    export default defineApp({ name: "a", description: "b", api: { async go(ctx) { ctx.push("${name}", {}); return 1; } } });
+  `;
+  const ui = (name: string) => `
+    import { useApp } from "@monkey-mini-app/ui";
+    export default function Ui() { const { on } = useApp(); on("${name}", () => {}); return null; }
+  `;
+
+  it("stays quiet when both sides agree", async () => {
+    expect(await notices({ "main.api.ts": backend("stage"), "ui.tsx": ui("stage") })).toEqual([]);
+  });
+
+  it("flags a subscriber nothing ever pushes", async () => {
+    const found = await notices({ "main.api.ts": backend("stage"), "ui.tsx": ui("stga") });
+    expect(found.join("\n")).toMatch(/nothing in this app pushes "stga"/);
+  });
+
+  it("flags a push nobody subscribes to", async () => {
+    const found = await notices({ "main.api.ts": backend("stage"), "ui.tsx": ui("other") });
+    expect(found.join("\n")).toMatch(/"stage" is pushed but nothing subscribes/);
+  });
+
+  it("counts streamTo as a push", async () => {
+    const files = {
+      "main.api.ts": `
+        import { defineApp } from "@monkey-mini-app/api";
+        export default defineApp({ name: "a", description: "b", api: { async go(ctx) { return ctx.agent("x", { streamTo: "run" }); } } });
+      `,
+      "ui.tsx": ui("run"),
+    };
+    expect(await notices(files)).toEqual([]);
+  });
+
+  it("says nothing when a name is computed — literal pairing would be guesswork", async () => {
+    const files = {
+      "main.api.ts": `
+        import { defineApp } from "@monkey-mini-app/api";
+        export default defineApp({ name: "a", description: "b", api: { async go(ctx, args) { ctx.push(String(args), {}); return 1; } } });
+      `,
+      "ui.tsx": ui("whatever"),
+    };
+    expect(await notices(files)).toEqual([]);
+  });
+
+  it("does not mistake rows.push(item) for an event bus", async () => {
+    const files = {
+      "main.api.ts": `
+        import { defineApp } from "@monkey-mini-app/api";
+        export default defineApp({ name: "a", description: "b", api: { async go(ctx) { const rows: number[] = []; rows.push(1); return rows; } } });
+      `,
+    };
+    expect(await notices(files)).toEqual([]);
+  });
+
+  it("ignores a foreign on( from code that never touches the app SDK", async () => {
+    const files = {
+      "shared/socket.ts": `export function wire(emitter: { on(n: string): void }) { emitter.on("connection"); }`,
+    };
+    expect(await notices(files)).toEqual([]);
+  });
+});

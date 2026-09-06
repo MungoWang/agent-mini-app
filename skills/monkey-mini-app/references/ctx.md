@@ -20,6 +20,59 @@ Every `api.*` method (`defineApp({ api })` keys) receives the same `ctx`.
 | `ctx.push(name, params)` | SSE to this app's UI | Live channel for `useApp().on(name, cb)`. Fire-and-forget, never throws; `params` must be JSON-serialisable. Host keeps the last 200 events **per app**, so a reconnecting or later-opened UI replays them (`Last-Event-ID`) |
 | `ctx.system.metrics()` | os snapshot | |
 
+## Typed events
+
+`ctx.push("stage", …)` and `useApp().on("stage", …)` are joined by a **string**, and no type can
+cross the seam: `ui.tsx` may not import `main.api.ts` (AGENTS.md → Hard constraints 1), so the
+compiler cannot see that the two names must agree. A typo produces an app that renders perfectly
+and never updates.
+
+Declare the names once in `shared/` — the one tree both sides may import — and let the literal be
+the source of truth:
+
+```ts
+// shared/events.ts  (pure isomorphic: no React, no ctx, no DOM)
+export const EV = {
+  stage: (p: { done: number; total: number }) => p,
+  done: (p: { id: string }) => p,
+} as const;
+export type EventName = keyof typeof EV;
+```
+
+```ts
+// main.api.ts
+import { EV } from "./shared/events";
+ctx.push("stage", EV.stage({ done: 3, total: 10 }));
+```
+
+```tsx
+// ui.tsx
+import { EV } from "./shared/events";
+const { on } = useApp();
+useEffect(() => on("stage", (p) => setStage(p)), [on]); // p is typed by EV.stage's payload
+```
+
+Both sides now fail on a rename in one place, and the payload shape is checked. `mini_app_reload`
+also reports a mismatch as a **notice** (`nothing in this app pushes "stga"`), but notices only
+catch what the literals spell out — the `shared/` list catches the rest.
+
+## Choosing a table
+
+**Every `set` rewrites the entire file for that table** — read all, patch one key, serialise all,
+write all. So the layout is a decision, not a detail:
+
+| Data | Put it in |
+|---|---|
+| A handful of settings (source list, thresholds, UI prefs) | default `ctx.storage` — one small file you read whole anyway |
+| Anything that **grows**: fetched article bodies, run logs, activity, per-day records, snapshots | its own `ctx.storage.table("reads")` |
+| Both of the above in one app | two tables — otherwise adding a log line re-serialises your settings, and vice versa |
+
+Rules of thumb: keep big blobs out of the table you read on every render; a table with a few
+thousand entries, or one whose values are fetched documents, is where the whole-file rewrite starts
+showing as a visible pause mid-task. Nothing here is enforced — the platform cannot know that your
+`items` map is the one that will grow. Splitting early is free; splitting later means migrating a
+file you have already made big.
+
 ## Host capabilities
 
 | API | Signature | Returns | Fallback | Failure |
@@ -107,7 +160,8 @@ const text = await ctx.agent("Summarise the material into insights", {
   schema: { type: "object", properties: { summary: { type: "string" } }, required: ["summary"] },
   onEvent: (ev) => {
     trace.push(ev);
-    void ctx.storage.set("agentTrace", trace);
+    ctx.push("agentEvent", ev); // live to the UI; do NOT persist per event — that rewrites the
+                                 // whole file once per step, for a buffer nobody reads mid-run
   },
 });
 const insight = JSON.parse(text);

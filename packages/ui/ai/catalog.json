@@ -506,7 +506,7 @@
       "componentType": "component",
       "family": "Surface",
       "primitive": true,
-      "when": "Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`.",
+      "when": "Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`. Size it with `width` on `DialogContent`: the base caps at `sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm.",
       "contract": "references/contracts/dialog.md",
       "parts": [
         "Dialog",
@@ -1197,7 +1197,7 @@
       "componentType": "component",
       "family": "Surface",
       "primitive": true,
-      "when": "Detail/edit panel that keeps the list visible — the usual master-detail pattern.",
+      "when": "Detail/edit panel that keeps the list visible — the usual master-detail pattern. Size it with `width` on `SheetContent`: the panel carries its own `data-[side=right]:sm:max-w-sm` / `data-[side=left]:sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm (inline style or `!max-w-*` also work).",
       "contract": "references/contracts/sheet.md",
       "parts": [
         "Sheet",

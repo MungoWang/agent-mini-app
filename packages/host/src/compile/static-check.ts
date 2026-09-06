@@ -551,6 +551,113 @@ function keyframeFindings(appDir: string): StaticFinding[] {
   return out;
 }
 
+/**
+ * The three heads that carry an event name. Deliberately narrow: `\bpush\(` would match the
+ * `rows.push(item)` every app writes, mark it "computed", and silence the check forever — and a
+ * check that never fires is worse than none. `ctx.push(` / `streamTo:` are the only ways a name
+ * actually reaches the bus; `on(` is matched only when it opens a string literal, so a computed
+ * subscriber cannot invent a false accusation either.
+ */
+const PUSH_HEAD = /\bctx\.push\(\s*/g;
+const STREAM_HEAD = /streamTo:\s*/g;
+const LISTEN_HEAD = /\bon\(\s*(?=["'`])/g;
+const QUOTE = /["'`]/;
+
+type EventRefs = { names: Map<string, { file: string; line: number }>; dynamic: boolean };
+
+function collectInto(
+  src: string,
+  rel: string,
+  head: RegExp,
+  into: EventRefs,
+): void {
+  for (const m of src.matchAll(head)) {
+    const at = (m.index ?? 0) + m[0].length;
+    const rest = src.slice(at, at + 200);
+    const quote = rest[0];
+    if (!quote || !QUOTE.test(quote)) {
+      // `push(name)` / `on(` with no string first: pairing literals against this is guesswork.
+      into.dynamic = true;
+      continue;
+    }
+    const close = rest.indexOf(quote, 1);
+    if (close < 0) {
+      into.dynamic = true;
+      continue;
+    }
+    const name = rest.slice(1, close);
+    if (!into.names.has(name)) {
+      into.names.set(name, { file: rel, line: src.slice(0, at).split("\n").length });
+    }
+  }
+}
+
+/**
+ * Event names that cannot match — **notices, never blocking**.
+ *
+ * `ctx.push("readStage")` and `useApp().on("readStage")` are joined by a string the type checker
+ * never sees: the backend and `ui.tsx` compile as separate bundles, and the UI may not import
+ * `main.api.ts` (AGENTS.md → Hard constraints 1), so no type can cross the seam. A one-character
+ * typo therefore produces an app that works, looks fine, and never updates — the worst kind of bug
+ * to debug from the outside. Matching the literals catches that; it stays a notice because
+ * `push`/`on` are common method names elsewhere, and a false alarm must never be able to stop a
+ * working app from reloading. Declaring the names once in `shared/` is the way to make the pairing
+ * real rather than checked (skill: ctx.md → "Typed events").
+ */
+function eventFindings(appDir: string): StaticFinding[] {
+  const pushed: EventRefs = { names: new Map(), dynamic: false };
+  const listened: EventRefs = { names: new Map(), dynamic: false };
+
+  for (const abs of sourceFiles(appDir)) {
+    let src: string;
+    try {
+      src = readFileSync(abs, "utf8");
+    } catch {
+      continue;
+    }
+    if (!src.includes("ctx.push(") && !src.includes("on(") && !src.includes("streamTo")) continue;
+    const rel = path.relative(appDir, abs).split(path.sep).join("/");
+    collectInto(src, rel, PUSH_HEAD, pushed);
+    // `streamTo` is a push the host performs on the app's behalf.
+    collectInto(src, rel, STREAM_HEAD, pushed);
+    // `on("` is also how a socket or an emitter is wired up, and accusing those would be a false
+    // positive. The app's own subscriber comes from `useApp()`, which lives in the UI package — so
+    // only files that import from it can register a listener as far as this check is concerned.
+    if (/from\s+["']@monkey-mini-app\/ui["']/.test(src)) collectInto(src, rel, LISTEN_HEAD, listened);
+  }
+
+  // One computed name anywhere and literal pairing stops being evidence.
+  if (pushed.dynamic || listened.dynamic) return [];
+  if (!pushed.names.size && !listened.names.size) return [];
+
+  const out: StaticFinding[] = [];
+  for (const [name, ref] of listened.names) {
+    if (pushed.names.has(name)) continue;
+    out.push({
+      ...ref,
+      column: 1,
+      name,
+      severity: "notice",
+      reason:
+        `nothing in this app pushes "${name}", so this subscriber never fires — check the spelling ` +
+        `against ctx.push / streamTo, or declare the name once in shared/ and import it on both sides`,
+    });
+  }
+  for (const [name, ref] of pushed.names) {
+    if (listened.names.has(name)) continue;
+    out.push({
+      ...ref,
+      column: 1,
+      name,
+      severity: "notice",
+      reason:
+        `"${name}" is pushed but nothing subscribes to on("${name}") — dead code, or spelled ` +
+        `differently on the UI side`,
+    });
+  }
+  return out;
+}
+
 export async function checkAppSources(appDir: string): Promise<StaticCheckResult> {
   const empty: StaticCheckResult = { findings: [], errorsByLayer: new Map() };
   const loaded = await loadTs();
@@ -617,6 +724,7 @@ export async function checkAppSources(appDir: string): Promise<StaticCheckResult
   }
 
   findings.push(...keyframeFindings(appDir));
+  findings.push(...eventFindings(appDir));
 
   findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.column - b.column);
   const errorsByLayer = new Map<string, StaticFinding[]>();

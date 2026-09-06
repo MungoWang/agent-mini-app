@@ -4,7 +4,7 @@
 
 Slide-in side panel.
 
-**when** Detail/edit panel that keeps the list visible — the usual master-detail pattern.
+**when** Detail/edit panel that keeps the list visible — the usual master-detail pattern. Size it with `width` on `SheetContent`: the panel carries its own `data-[side=right]:sm:max-w-sm` / `data-[side=left]:sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm (inline style or `!max-w-*` also work).
 
 Compound: compose the parts below — **do not invent part names**.
 
@@ -18,7 +18,7 @@ Compound: compose the parts below — **do not invent part names**.
 |---|---|
 | `Sheet` | `actionsRef?` `defaultOpen?` `defaultTriggerId?` `disablePointerDismissal?` `handle?` `modal?` `onOpenChange?` `onOpenChangeComplete?` `open?` `triggerId?` |
 | `SheetClose` | `nativeButton?` `render?` |
-| `SheetContent` | `finalFocus?` `initialFocus?` `render?` `showCloseButton?` `side?=top/bottom/left/right` |
+| `SheetContent` | `finalFocus?` `initialFocus?` `render?` `showCloseButton?` `side?=top/bottom/left/right` `width?` |
 | `SheetDescription` | `render?` |
 | `SheetFooter` | — |
 | `SheetHeader` | — |

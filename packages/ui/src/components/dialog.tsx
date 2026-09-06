@@ -7,7 +7,7 @@ import { XIcon } from "lucide-react"
 
 /**
  * Modal overlay: Trigger + Content(+Header/Footer).
- * @when Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`.
+ * @when Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`. Size it with `width` on `DialogContent`: the base caps at `sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm.
  * @example
  * <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button>编辑</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>标题</DialogTitle></DialogHeader>…<DialogFooter><Button onClick={save}>保存</Button></DialogFooter></DialogContent></Dialog>
  * @family Surface
@@ -48,15 +48,29 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  width,
+  style,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  /**
+   * Dialog width — a number is px. Inline `maxWidth`, because the base class caps the dialog at
+   * `sm:max-w-sm` and that utility outranks one the caller passes in `className`.
+   */
+  width?: string | number
 }) {
+  const maxWidth =
+    width == null
+      ? undefined
+      : typeof width === "number"
+        ? `${width}px`
+        : width
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
+        style={maxWidth == null ? style : { ...style, maxWidth }}
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className

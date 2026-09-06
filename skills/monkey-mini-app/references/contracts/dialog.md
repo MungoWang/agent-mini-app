@@ -4,7 +4,7 @@
 
 Modal overlay: Trigger + Content(+Header/Footer).
 
-**when** Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`.
+**when** Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`. Size it with `width` on `DialogContent`: the base caps at `sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm.
 
 Compound: compose the parts below — **do not invent part names**.
 
@@ -18,7 +18,7 @@ Compound: compose the parts below — **do not invent part names**.
 |---|---|
 | `Dialog` | `actionsRef?` `defaultOpen?` `defaultTriggerId?` `disablePointerDismissal?` `handle?` `modal?` `onOpenChange?` `onOpenChangeComplete?` `open?` `triggerId?` |
 | `DialogClose` | `nativeButton?` `render?` |
-| `DialogContent` | `finalFocus?` `initialFocus?` `render?` `showCloseButton?` |
+| `DialogContent` | `finalFocus?` `initialFocus?` `render?` `showCloseButton?` `width?` |
 | `DialogDescription` | `render?` |
 | `DialogFooter` | `showCloseButton?` |
 | `DialogHeader` | — |

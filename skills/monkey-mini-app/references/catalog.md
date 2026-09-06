@@ -61,12 +61,12 @@ Elevates content above the page: card, dialog, sheet, drawer, popover, tooltip, 
 | `AlertDialog` | component | `AlertDialog` `AlertDialogAction` +10 | Deleting/irreversible actions that must be answered. | [docs](contracts/alert-dialog.md) |
 | `Bubble` | component | `Bubble` `BubbleContent` +2 | Conversational UI (assistant turns). Records/logs → `ActivityFeed` / `Message`. | [docs](contracts/bubble.md) |
 | `Card` | component | `Card` `CardAction` +5 | The default container for a block of related UI. | [docs](contracts/card.md) |
-| `Dialog` | component | `Dialog` `DialogClose` +8 | Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`. | [docs](contracts/dialog.md) |
+| `Dialog` | component | `Dialog` `DialogClose` +8 | Focused edit/confirm flow. Needs no focus takeover → `Sheet`. Destructive yes/no → `ConfirmDialog`. Size it with `width` on `DialogContent`: the base caps at `sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm. | [docs](contracts/dialog.md) |
 | `Drawer` | component | `Drawer` `DrawerClose` +9 | Mobile-ish bottom sheet on narrow panels. Desktop detail → `Sheet`. | [docs](contracts/drawer.md) |
 | `HoverCard` | component | `HoverCard` `HoverCardContent` +1 | Peek a user/issue without navigating. Needs a decision → `Dialog`. | [docs](contracts/hover-card.md) |
 | `Message` | component | `Message` `MessageAvatar` +4 | Assistant/user turns. Timestamped log rows → `LogViewer`. | [docs](contracts/message.md) |
 | `Popover` | component | `Popover` `PopoverContent` +4 | Small editor/filter anchored to a control. Menus of commands → `DropdownMenu`. | [docs](contracts/popover.md) |
-| `Sheet` | component | `Sheet` `SheetClose` +6 | Detail/edit panel that keeps the list visible — the usual master-detail pattern. | [docs](contracts/sheet.md) |
+| `Sheet` | component | `Sheet` `SheetClose` +6 | Detail/edit panel that keeps the list visible — the usual master-detail pattern. Size it with `width` on `SheetContent`: the panel carries its own `data-[side=right]:sm:max-w-sm` / `data-[side=left]:sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm (inline style or `!max-w-*` also work). | [docs](contracts/sheet.md) |
 | `Tooltip` | component | `Tooltip` `TooltipContent` +2 | Explaining an icon-only button. Never put an action in it. | [docs](contracts/tooltip.md) |
 
 ## Form

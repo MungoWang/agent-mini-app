@@ -7,7 +7,7 @@ import { XIcon } from "lucide-react"
 
 /**
  * Slide-in side panel.
- * @when Detail/edit panel that keeps the list visible — the usual master-detail pattern.
+ * @when Detail/edit panel that keeps the list visible — the usual master-detail pattern. Size it with `width` on `SheetContent`: the panel carries its own `data-[side=right]:sm:max-w-sm` / `data-[side=left]:sm:max-w-sm`, so a `max-w-*` in `className` loses at ≥sm (inline style or `!max-w-*` also work).
  * @example
  * <Sheet open={open} onOpenChange={setOpen}><SheetContent side="right"><SheetHeader><SheetTitle>详情</SheetTitle></SheetHeader>…</SheetContent></Sheet>
  * @family Surface
@@ -46,17 +46,32 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  width,
+  style,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  /**
+   * Panel width — a number is px. Applied as inline `maxWidth` on purpose: the base class
+   * already caps the sheet at `sm:max-w-sm` through a variant selector, which outranks a
+   * `max-w-*` utility the caller passes in `className`, so a prop is the only honest door.
+   */
+  width?: string | number
 }) {
+  const maxWidth =
+    width == null
+      ? undefined
+      : typeof width === "number"
+        ? `${width}px`
+        : width
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}
+        style={maxWidth == null ? style : { ...style, maxWidth }}
         className={cn(
           "fixed z-50 flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
           className
