@@ -1,4 +1,4 @@
-import type { JsonInstructOptions, LlmRunOptions, ModelRouteOptions } from "@monkey-mini-app/host";
+import { DEFAULT_LLM_MAX_TOKENS, type JsonInstructOptions, type LlmRunOptions, type ModelRouteOptions } from "@monkey-mini-app/host";
 
 import type { DshLlmService } from "./ctx.ts";
 
@@ -69,7 +69,9 @@ export async function collectLlmStream(
     model: route.model,
     messages: [{ role: "user", content: [{ type: "text", text }] }],
     system,
-    maxTokens: opts?.maxTokens ?? 1024,
+    // The host normally supplies this (see DEFAULT_LLM_MAX_TOKENS); the same constant here keeps
+    // a direct capability call from silently falling back to a truncating budget.
+    maxTokens: opts?.maxTokens ?? DEFAULT_LLM_MAX_TOKENS,
   };
   const acc: string[] = [];
   let sawDelta = false;

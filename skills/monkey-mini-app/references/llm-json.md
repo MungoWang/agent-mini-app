@@ -7,9 +7,9 @@ When you need an object or an array, use this path — do not experiment with "p
 | | |
 |--|--|
 | Entry | `ctx.llm(prompt, { schema })` **or** `ctx.agent(goal, { schema })` |
-| Returns | **Always a string**; with `schema` the host asks the model for JSON only and strips markdown/preambles as best it can |
-| In your app | `JSON.parse(raw)`; on failure throw — never render it as copy |
-| It is not | On by default per call; **not** provider-native JSON mode and **not** schema validation with retry (phase 2 may add that) |
+| Returns | **Always a string that `JSON.parse` accepts** — the host asks for JSON only, strips fences/preambles, retries what a retry can fix, and raises if nothing parses |
+| In your app | `JSON.parse(raw)`; it is not a question of *whether* the text is JSON, only of whether the fields match — validate those yourself |
+| It is not | Provider-native JSON mode, and **not** full schema validation: the host checks that the answer *parses*, plus nothing about your `required` / `type` / enum shape |
 
 `schema` is a plain JSON Schema object (at least `type` + `properties` / `items`). Keep the prompt short: state the task, put the constraints in `schema` instead of stacking "no explanation" lines.
 
@@ -66,4 +66,17 @@ Same as llm: `schema` is optional, and for a natural-language final answer you d
 3. `coerceSchemaJson`: drops ```` ```json ```` fences / preambles and extracts `{…}` / `[…]` as well as it can
 4. Your app calls `JSON.parse`
 
-On invalid JSON there is **no automatic retry** — throw, and let the UI show the error.
+## What the host guarantees, and what it costs
+
+- `ctx.llm` tries up to **`retryTimes`** times (default 3 total). A retry happens only for
+  something retrying can fix: the call failed / answered nothing, or the answer did not parse.
+- From the second try on, the model is shown *why* the previous answer was rejected, including the
+  start of it — a blind re-roll just reproduces the same truncated object.
+- If nothing parses, you get `HostError` `code: "LLM_JSON_INVALID"` (or `LLM_RETRY_EXHAUSTED` if
+  the model never answered at all). Its message lists every attempt; `err.attempts` carries them
+  structured (`kind`, `error`, `bytes`, `head`). Nothing about the model's output is hidden — the
+  rejected samples are in there, which is what lets you fix the prompt instead of guessing.
+- Output is capped at **`maxTokens` (default 4096)**. A schema asking for many items can still be
+  truncated at the ceiling, so for wide arrays set it yourself rather than widening the schema.
+- `ctx.agent` defaults to **1 attempt**, because a turn may already have posted a comment or pushed
+  a build — replaying it repeats that. Pass `retryTimes` only when your steps are idempotent.

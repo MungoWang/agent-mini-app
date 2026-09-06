@@ -61,6 +61,22 @@ mini_app_view_eval({ appId, code: "return performance.timeOrigin" })   →  relo
 Unchanged means it never reloaded. Then assert your *content* too: query a string only the new
 code can print, rather than looking at the panel.
 
+## `LLM_JSON_INVALID` / `LLM_RETRY_EXHAUSTED`
+
+`ctx.llm(prompt, { schema })` retried and still got nothing parseable. The message lists every
+attempt (`err.attempts`: `kind` `json` | `transport`, `error`, `bytes`, `head`) — read it before
+changing anything, the shape of the bad answer *is* the diagnosis:
+
+| The attempts say | Meaning | Fix |
+|---|---|---|
+| `transport`, 0 bytes every time | the model never answered | provider/config, not your prompt |
+| `json` with `head` = prose ("Here is the JSON:") | the schema instruction lost to the chatty system prompt | shorten `system`, put constraints in `schema` |
+| `json` with `head` = truncated object, `bytes` suspiciously round | hit the output ceiling | pass a bigger `maxTokens`, or ask for fewer items |
+| `json` with `head` = reasoning text | the budget died before the answer | bigger `maxTokens`; a reasoning model needs headroom |
+
+Never wrap `ctx.llm` in a hand-rolled salvage parser: the retries and the evidence are already the
+same thing, one layer down.
+
 ## `mini_app_reload` → `errors[i]` prefix
 
 | Message | Root cause | Next step |

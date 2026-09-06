@@ -48,6 +48,8 @@ export type AppModelOptions = {
   system?: string;
   schema?: unknown;
   maxTokens?: number;
+  /** Attempts in total, including the first. Default 3 (`llm`); `agent` defaults to 1. */
+  retryTimes?: number;
   signal?: AbortSignal;
 };
 

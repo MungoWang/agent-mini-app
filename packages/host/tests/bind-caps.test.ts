@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AppCallContext } from "../src/app-runtime.ts";
 import { bindCapsToContext, type HostCapabilities } from "../src/capabilities.ts";
+import { DEFAULT_LLM_MAX_TOKENS } from "../src/model-call.ts";
 
 describe("bindCapsToContext", () => {
   const callCtx: AppCallContext = {
@@ -23,7 +24,8 @@ describe("bindCapsToContext", () => {
     const bound = bindCapsToContext(callCtx, caps);
 
     await expect(bound.agent("hi")).resolves.toBe("ok:hi");
-    expect(agent).toHaveBeenCalledWith(callCtx, "hi", undefined);
+    // The host owns one option: the output ceiling, applied so no adapter guesses it.
+    expect(agent).toHaveBeenCalledWith(callCtx, "hi", { maxTokens: DEFAULT_LLM_MAX_TOKENS });
 
     await expect(bound.bash("uname")).resolves.toMatchObject({ stdout: "uname", exitCode: 0 });
     expect(bash).toHaveBeenCalledWith(callCtx, "uname");
@@ -124,13 +126,27 @@ describe("bindCapsToContext", () => {
     expect(order).toEqual(["push"]);
   });
 
-  it("without streamTo the opts are passed through untouched", async () => {
+  it("without streamTo the author's opts reach the adapter as they were, plus the host budget", async () => {
     const agent = vi.fn(async () => "ok");
     const push = vi.fn();
     const bound = bindCapsToContext(callCtx, { agent, push });
     const opts = { maxIterations: 3 };
     await bound.agent("go", opts);
-    expect(agent).toHaveBeenCalledWith(callCtx, "go", opts);
+    expect(agent).toHaveBeenCalledWith(callCtx, "go", {
+      ...opts,
+      maxTokens: DEFAULT_LLM_MAX_TOKENS,
+    });
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("an author-set maxTokens is never replaced", async () => {
+    const seen: Array<Record<string, unknown> | undefined> = [];
+    const agent = vi.fn(async (_ctx: AppCallContext, _goal: string, opts?: Record<string, unknown>) => {
+      seen.push(opts);
+      return "ok";
+    });
+    const bound = bindCapsToContext(callCtx, { agent });
+    await bound.agent("go", { maxTokens: 300 });
+    expect(seen[0]).toMatchObject({ maxTokens: 300 });
   });
 });

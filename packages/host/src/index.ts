@@ -150,9 +150,18 @@ export type { HostLifecycle, HostServices, LogLevel } from "./lifecycle.ts";
 export type {
   JsonInstructOptions,
   JsonSchema,
+  LlmAttempt,
+  LlmAttemptRunner,
   LlmRunOptions,
   ModelCallOptions,
   ModelRouteOptions,
+} from "./model-call.ts";
+export {
+  DEFAULT_AGENT_ATTEMPTS,
+  DEFAULT_LLM_ATTEMPTS,
+  DEFAULT_LLM_MAX_TOKENS,
+  MAX_LLM_ATTEMPTS,
+  runLlmAttempts,
 } from "./model-call.ts";
 export { WorkspacePaths } from "./paths/workspace-paths.ts";
 export type { CustomThemePalette, ThemeResource } from "./theme-resource.ts";

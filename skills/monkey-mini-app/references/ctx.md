@@ -52,7 +52,8 @@ type ModelCallOptions = {
   model?: string;
   system?: string;
   schema?: object;     // JSON Schema — use it when you need an object, then JSON.parse the result
-  maxTokens?: number;
+  maxTokens?: number; // host default 4096 when unset — raise it for wide arrays
+  retryTimes?: number; // attempts IN TOTAL (1 = no retry); llm default 3, agent default 1
   signal?: AbortSignal; // ctx.signal already exists inside an api call, so this is optional
 };
 
