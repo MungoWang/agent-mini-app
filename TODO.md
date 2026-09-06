@@ -23,6 +23,7 @@
 
 ## 挂起（低优先，随时可捡）
 
+- **没有gate跑 Playwright**。`pnpm verify` 和 `.github/workflows/ci.yml` 都不调用 e2e，所以 `apps/demo-host/e2e` 里两条测试从写下那天起红到现在。要么给 verify/CI 加一个跑 e2e 的步骤，要么在文档里明确它们是手动验收——现在这样不算有测试。
 - **kit 测试没有覆盖率门槛**。`packages/ui` 的组件测试之前根本没被 `pnpm test` 跑到（见 `vitest.workspace.ts` 的 `kit` project 注释），根因之一是 85% 线只覆盖 host/panel/dsh。project 已经接上，但 kit 自身不设阈值——24 个 `.test.tsx` 里只要有文件再次与 include 规则错开，没有东西会报警。
 - `shared/**` 的「纯同构」目前只是约定，没有静态门禁（不许 React / `ctx` / DOM / Node）。
 - 面板 `host-shell.ts` 覆盖率仍偏低，是 85% 线的拖累项；补测试即可，与功能无关。

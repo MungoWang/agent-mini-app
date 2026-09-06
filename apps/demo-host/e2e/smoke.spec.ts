@@ -1,9 +1,19 @@
 import { expect, test } from "@playwright/test"
 
+/**
+ * The demo app shows one section at a time and opens on `style-glass`
+ * (`apps/demo-host/src/App.tsx` — `useState<Section>("style-glass")`), so a grid is not on
+ * the landing page. Every other test in this file navigates first; the two grid tests below
+ * were written without that click in 8230c88 and have failed ever since — invisible because
+ * nothing in CI or `pnpm verify` runs Playwright at all.
+ */
+
 test("grid: filter sort paginate", async ({ page }) => {
   await page.goto("/")
+  await page.getByTestId("nav-data").click()
   await expect(page.getByTestId("data-grid").first()).toBeVisible()
   const rows = page.getByTestId("data-grid").first().getByTestId("data-grid-row")
+  // 6 runs at pageSize 4 → the first page is full and the grid is really paginating.
   await expect(rows).toHaveCount(4)
   await page.getByTestId("column-filter-name").click()
   await page.getByTestId("column-search-name").fill("login")
@@ -13,6 +23,7 @@ test("grid: filter sort paginate", async ({ page }) => {
 
 test("grid: sort and paginate", async ({ page }) => {
   await page.goto("/")
+  await page.getByTestId("nav-data").click()
   const grid = page.getByTestId("data-grid").first()
   await grid.getByTestId("sort-name").click()
   await expect(grid.getByTestId("data-grid-row").first()).toContainText("auth-spec")

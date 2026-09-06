@@ -23,7 +23,15 @@
     "packages/panel/src/**/*.tsx",
     "packages/panel/tests/**/*.ts",
     "packages/api/tests/**/*.ts",
-    "packages/smoke-test/**/*.ts"
+    "packages/smoke-test/**/*.ts",
+    // The two Vitest config files are code, not data: they carry aliases and include globs
+    // that decide what the suite even runs. They were in no tsconfig, so an editor opened
+    // `vitest.workspace.ts` with an inferred (non-strict) config and showed red while every
+    // CI check stayed green — the exact split AGENTS.md warns about. A real error was living
+    // there: `coverage` is root-only and invalid inside a workspace project, where entries
+    // are typed `ProjectConfig`.
+    "vitest.config.ts",
+    "vitest.workspace.ts"
   ],
   "exclude": [
     "**/node_modules",

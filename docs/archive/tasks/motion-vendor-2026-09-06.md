@@ -151,12 +151,54 @@ the nodes a 320ms entrance has settled, so "opacity is 1" holds in both modes) �
 was removed rather than kept as theatre, and reduce-motion coverage stays in jsdom where the
 initial values can be asserted.
 
-## Pre-existing, not from this change
+## The two grid tests, and a claim in this file that was wrong
 
-`apps/demo-host/e2e/smoke.spec.ts` has 2 failing tests (`data-grid` not on the landing page;
-the app's default section is `style-glass`). Confirmed by checking out `3f74577` (before
-motion landed) and re-running: the same 2 fail. Left alone. Note that no gate runs these
-e2e specs — `pnpm verify` does not invoke Playwright — which is how they stayed red.
+`apps/demo-host/e2e/smoke.spec.ts` had 2 failing tests. **Test bug, not a code bug:** the
+app opens on `style-glass` (`useState<Section>("style-glass")`), the other five tests in the
+file all click a `nav-*` button first, and these two did not. Every assertion they make is
+correct against the real fixture data (6 runs, `pageSize={4}` → 4 rows; ascending name sort
+→ `auth-spec` first; 6/4 → `2 /`). Fixed by adding the missing navigation, and canaried:
+remove the click and that test fails again.
+
+They were **broken on the day they were written** — `8230c88` introduced the spec and the
+`style-glass` default in the same commit. They survived because nothing runs Playwright: not
+`pnpm verify`, not `.github/workflows/ci.yml` (which runs lint, check:skill, generated-diff,
+`tsc -b`, `pnpm test`, dsh build).
+
+### The claim I retracted
+
+This file originally said the failing `pnpm test:coverage` was pre-existing, "confirmed by
+re-running at `3f74577`". **That check proved nothing**: a git checkout does not reinstall
+`node_modules`, so I had re-run the broken command inside the tree I had already broken.
+
+The truth: `pnpm test:coverage` — the gate AGENTS.md advertises for the 85% lines floor —
+crashed with `TypeError: balanced is not a function`, and **I caused it**. `pnpm --filter
+@monkey-mini-app/ui add motion` re-resolved a hoisted tree (`.npmrc`: `node-linker=hoisted`,
+`shamefully-hoist=true`) and left `node_modules/brace-expansion` holding **2.1.4's code with
+5.0.9's nested dependency** — `balanced-match@4.0.4`, whose exports are `{ balanced, range }`,
+where 2.1.4 does `var balanced = require("balanced-match")` and calls it. Two versions of one
+package fighting over the same hoisted path.
+
+The lockfile was never wrong (`2.1.4 → 1.0.2`, `5.0.9 → 4.0.4`) and my commits did not touch
+it; the installed tree simply disagreed with it, and `pnpm install --frozen-lockfile` did not
+detect the mismatch. Only `rm -rf node_modules` + reinstall fixed it.
+
+Lesson worth keeping: to prove something predates your change, check it out **and reinstall**,
+or say you have not proven it. And with a hoisted linker, a filtered `pnpm add` can silently
+correlate unrelated packages — verify the whole tree, not just the package you touched.
+
+`pnpm test:coverage` now runs (497 tests) and the threshold is live — verified by canary:
+raising `packages/host/src/**` to 99.9 fails with `Coverage for lines (86.97%) does not meet
+"packages/host/src/**" threshold (99.9%)`.
+
+### Why the workspace file had a type error nobody saw
+
+`vitest.workspace.ts` was in no tsconfig `include`, so an editor checked it with an inferred
+config and showed red while every CI check stayed green — the exact split AGENTS.md warns
+about. The error was real: `coverage` is a **root-only** option, and once the workspace array
+contains a string entry the remaining entries are typed `ProjectConfig`, which rejects it.
+The duplicated block is gone; the live one stays in `vitest.config.ts`. Both config files are
+now in the root tsconfig so this class of mistake cannot hide again.
 
 ## Not done here
 

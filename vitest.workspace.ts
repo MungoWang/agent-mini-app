@@ -38,21 +38,9 @@ export default defineWorkspace([
       ],
       exclude: ["**/node_modules/**", "**/dist/**", "packages/ui/**"],
       testTimeout: 60_000,
-      coverage: {
-        provider: "v8",
-        include: [
-          "packages/host/src/**/*.{ts,tsx}",
-          "packages/panel/src/**/*.{ts,tsx}",
-          "packages/dsh/src/**/*.{ts,tsx}",
-        ],
-        exclude: ["**/*.d.ts", "**/*.test.ts"],
-        reporter: ["text", "json-summary"],
-        thresholds: {
-          "packages/host/src/**": { lines: 85 },
-          "packages/panel/src/**": { lines: 85 },
-          "packages/dsh/src/**": { lines: 85 },
-        },
-      },
+      // No `coverage` block here on purpose. Coverage is a root-only option: a workspace
+      // project is typed `ProjectConfig`, which does not accept it, and anything written
+      // here is ignored. The real thresholds live in `vitest.config.ts`.
     },
   },
 ]);
