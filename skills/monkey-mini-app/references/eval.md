@@ -20,6 +20,12 @@ pre-decided about what to look at, so there is no "the tool doesn't support that
 It needs a **live iframe**: `mini_app_open({ appId })` first. If nothing is rendering the app
 you get `view: "not-open"`, not an empty answer.
 
+Every query runs on a budget: `timeoutMs` (default 1500, capped at 8000), echoed back as
+`budgetMs` so a near-miss is visible. If it expires, the host asks your view a trivial question
+and the answer decides what you're told: `pending` means the page is healthy and your expression
+is still running — raise `timeoutMs` or split the click-wait-assert into separate calls;
+`stuck` means even the probe went unanswered, i.e. the main thread is genuinely blocked.
+
 ## The three names you get
 
 ```js

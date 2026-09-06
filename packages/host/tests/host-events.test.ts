@@ -3,9 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import {
   APP_ERROR_BUFFER,
   APP_EVENT_BUFFER,
+  clampViewEvalTimeout,
   formatSse,
   type HostEvent,
   HostEventBus,
+  VIEW_EVAL_TIMEOUT_MAX_MS,
+  VIEW_EVAL_TIMEOUT_MIN_MS,
+  VIEW_EVAL_TIMEOUT_MS,
 } from "@monkey-mini-app/host";
 
 describe("HostEventBus", () => {
@@ -335,5 +339,81 @@ describe("HostEventBus.listenerCount", () => {
     expect(bus.listenerCount()).toBe(2);
     off();
     expect(bus.listenerCount()).toBe(1);
+  });
+});
+
+/**
+ * `pending` vs `stuck`. A query that runs long and a view whose thread is wedged used to report
+ * identically, which sent the agent to tell the user to reload a page that was fine. The bus now
+ * asks a zero-work probe after a timeout, so the two are separated by evidence rather than guess.
+ */
+describe("HostEventBus.requestViewEval timeouts", () => {
+  const APP = "com.example.view";
+
+  /** Attach a shell that checks in, watches every query, and answers only the allowed ones. */
+  function shell(bus: HostEventBus, answer: (code: string) => boolean): void {
+    bus.subscribe((e) => {
+      if (e.type !== "app:eval" || e.appId !== APP) return;
+      if (!answer(e.code)) return;
+      bus.reportViewEval(APP, {
+        requestId: e.requestId,
+        ok: true,
+        result: "1",
+        bytes: 1,
+        tookMs: 1,
+      });
+    });
+    bus.reportViewAlive(APP);
+  }
+
+  it("reports pending, not stuck, when the view still answers a trivial probe", async () => {
+    const bus = new HostEventBus();
+    shell(bus, (code) => code === "return 1;"); // only the probe gets a reply
+
+    const reply = await bus.requestViewEval(APP, "await new Promise(() => {})", 6144, 200);
+    expect(reply.view).toBe("pending");
+    expect(reply.ok).toBe(false);
+    expect(reply.budgetMs).toBe(200);
+    expect(reply.hint).toMatch(/healthy/);
+    expect(reply.hint).toMatch(/200/);
+    expect(reply.hint).toMatch(/timeoutMs/);
+  });
+
+  it("still reports stuck when the probe is ignored too", async () => {
+    const bus = new HostEventBus();
+    shell(bus, () => false); // wedged: nothing answers, probe included
+
+    const reply = await bus.requestViewEval(APP, "while (true) {}", 6144, 200);
+    expect(reply.view).toBe("stuck");
+    expect(reply.hint).toBeUndefined();
+  });
+
+  it("answers straight through without spending a probe", async () => {
+    const bus = new HostEventBus();
+    shell(bus, () => true);
+
+    const reply = await bus.requestViewEval(APP, "return 2;", 6144, 5_000);
+    expect(reply.view).toBe("live");
+    expect(reply.ok).toBe(true);
+    expect(reply.result).toBe("1");
+    expect(reply.budgetMs).toBe(5_000);
+  });
+
+  it("clamps the caller's budget to both ends of the range", () => {
+    // Tested as a pure function: sitting out the ceiling would make this suite wait eight seconds
+    // for a number, and the clamp is the same code path either way.
+    expect(clampViewEvalTimeout(10 * 60 * 1000)).toBe(VIEW_EVAL_TIMEOUT_MAX_MS);
+    expect(clampViewEvalTimeout(1)).toBe(VIEW_EVAL_TIMEOUT_MIN_MS);
+    expect(clampViewEvalTimeout(3_000)).toBe(3_000);
+    expect(clampViewEvalTimeout()).toBe(VIEW_EVAL_TIMEOUT_MS);
+    expect(clampViewEvalTimeout(Number.NaN)).toBe(VIEW_EVAL_TIMEOUT_MS);
+  });
+
+  it("says runner-not-booted when the view never checked in, and does not probe", async () => {
+    const bus = new HostEventBus();
+    bus.subscribe(() => {}); // a browser is attached, but no runner has reported alive
+
+    const reply = await bus.requestViewEval(APP, "return 1", 6144, 200);
+    expect(reply.view).toBe("runner-not-booted");
   });
 });

@@ -27,10 +27,39 @@ If the ring is empty you probably never opened it — the hint says so. An app t
 |---|---|---|
 | `not-open` | no browser is attached, or nothing is showing this app | `mini_app_open`, then retry |
 | `runner-not-booted` | the iframe exists but its script never ran | `mini_app_errors` (a `module` error), then `mini_app_open` |
-| `stuck` | the script ran, then stopped answering — the thread is blocked | a `while (true)` in your own `code` does this, and it wedges the panel page too: tell the user to reload the tab |
+| `pending` | your query is **still running** in a healthy view | raise `timeoutMs` (default 1500, max 8000) or return before awaiting. Nothing is broken and the user must not be told to reload — the host proved that by getting an answer to a trivial probe |
+| `stuck` | the script ran, then stopped answering, and even the trivial probe went unanswered — the thread really is blocked | a `while (true)` in your own `code` does this, and it wedges the panel page too: tell the user to reload the tab |
 | `live` + `ok: false` | the view is fine, **your query** failed | `error.line` / `error.source` point into your JS |
 
 More → [eval.md](eval.md).
+
+## "Did my change actually take effect?"
+
+`mini_app_reload` answers this in its own result, so you never have to infer it from a
+screenshot. A successful reload always drops the in-memory build of the API module, the UI
+bundle **and** the app's Tailwind CSS, then tells every attached panel to re-fetch:
+
+```json
+{ "ok": true, "caches": { "uiBundle": "dropped", "appCss": "dropped", "views": "reload sent to 1 attached panel" } }
+```
+
+- `views: "no panel attached — nothing was showing this app"` → the browser never re-fetched,
+  because there was nothing to re-fetch. Call `mini_app_open`.
+- `views: "not sent (compile failed)"` → fix the compile; the memos still went, so the next
+  attempt cannot inherit the old bytes.
+- `cleanCaches: true` additionally deletes the on-disk build (`.autogen/`, cached bundles) and
+  reports `diskBundles` / `autogen: "removed"`. Only worth its cost (a full Tailwind + esbuild
+  run) when you suspect the artifact itself, not your source.
+
+To prove the frame is a *new document*, compare `performance.timeOrigin` across the reload —
+the refreshed URL carries a cache-buster, so a real reload always changes it:
+
+```
+mini_app_view_eval({ appId, code: "return performance.timeOrigin" })   →  reload  →  ask again
+```
+
+Unchanged means it never reloaded. Then assert your *content* too: query a string only the new
+code can print, rather than looking at the panel.
 
 ## `mini_app_reload` → `errors[i]` prefix
 

@@ -11,6 +11,7 @@ import type { AppCallContext } from "../app-runtime.ts";
 import { type AbsolutePath, type AppId,asAppId, isAppId } from "../brand.ts";
 import type { HostCapabilities } from "../capabilities.ts";
 import { bindCapsToContext } from "../capabilities.ts";
+import type { AppCssCompiler } from "../compile/app-css.ts";
 import { findVendor, resolveVendorSpecifier,type VendorId } from "../compile/platform-modules.ts";
 import { checkAppSources, formatFinding } from "../compile/static-check.ts";
 import type { UiCompiler } from "../compile/ui-compiler.ts";
@@ -129,6 +130,21 @@ function publicAppConfig(config: HostConfig): Record<string, unknown> {
     chatLanguage: config.chatLanguage,
     hostPort: config.hostPort,
     llm: config.llm,
+  };
+}
+
+/** The `caches` block of a reload result: measured, never inferred. */
+function cacheReport(
+  cleanCaches: boolean,
+  diskBundles: number,
+  autogen: "removed" | "kept",
+  views: string,
+): NonNullable<ReloadResult["caches"]> {
+  return {
+    uiBundle: "dropped",
+    appCss: "dropped",
+    ...(cleanCaches ? { diskBundles, autogen } : {}),
+    views,
   };
 }
 
@@ -290,12 +306,27 @@ export type ReloadResult = {
   path: string;
   compiled?: { api: boolean; ui: boolean };
   committed?: CommitOutcome;
+  /**
+   * What the host threw away on the way to this answer, so the agent never has to guess whether
+   * it is looking at fresh bytes. `uiBundle`/`appCss` are the in-memory memos (always dropped by
+   * a reload — they used to survive and serve stale CSS); `diskBundles` counts on-disk bundle
+   * caches removed by `cleanCaches`, and `views` reports how many attached panels were told to
+   * re-fetch. Every field is measured, never inferred.
+   */
+  caches?: {
+    uiBundle: "dropped" | "kept";
+    appCss: "dropped" | "kept";
+    diskBundles?: number;
+    autogen?: "removed" | "kept";
+    views: string;
+  };
 };
 
 /** Loads, registers, and executes mini-apps under WorkspacePaths.appsDir(). */
 export class AppsManager {
   private readonly appCache = new Map<string, CachedApp>();
   private uiCompiler: UiCompiler | null = null;
+  private cssCompiler: AppCssCompiler | null = null;
 
   constructor(
     private readonly paths: WorkspacePaths,
@@ -309,6 +340,11 @@ export class AppsManager {
   /** Wire UI compiler for invalidate + reload (createHost calls this). */
   setUiCompiler(compiler: UiCompiler): void {
     this.uiCompiler = compiler;
+  }
+
+  /** Wire the per-app Tailwind compiler so a reload drops its memo too (createHost calls this). */
+  setCssCompiler(compiler: AppCssCompiler): void {
+    this.cssCompiler = compiler;
   }
 
   dirOf(appId: string): AbsolutePath {
@@ -502,7 +538,7 @@ export class AppsManager {
    * Validate + sync-compile api/ui. On success, auto-commit if the worktree is dirty.
    * Replaces the old lightweight mini_app_validate tool.
    */
-  async reload(appId: string): Promise<ReloadResult> {
+  async reload(appId: string, opts?: { cleanCaches?: boolean }): Promise<ReloadResult> {
     const errors: string[] = [];
     if (!isAppId(appId)) {
       errors.push("appId must be reverse-DNS (e.g. com.example.todo)");
@@ -523,7 +559,17 @@ export class AppsManager {
       errors.push(`manifest: ${message}`);
     }
 
+    // Every memo goes first, so a failing compile below cannot leave the next request reading
+    // bytes from before the edit. `cleanCaches` additionally throws away what is on disk.
+    const cleanCaches = opts?.cleanCaches === true;
     this.invalidate(dir);
+    let diskBundles = 0;
+    let autogen: "removed" | "kept" = "kept";
+    if (cleanCaches) {
+      diskBundles = this.uiCompiler?.purgeDiskCache(dir) ?? 0;
+      this.cssCompiler?.purge(dir);
+      autogen = "removed";
+    }
 
     let apiOk = false;
     try {
@@ -607,6 +653,7 @@ export class AppsManager {
             path: dir,
             compiled: { api: apiOk, ui: uiOk },
             committed,
+            caches: cacheReport(cleanCaches, diskBundles, autogen, "not sent (compile failed)"),
           };
         }
       }
@@ -614,12 +661,17 @@ export class AppsManager {
 
     // A successful reload means the browser copy is stale: tell every connected
     // panel so an already-open iframe re-fetches instead of showing old code.
+    let views = "not sent (compile failed)";
     if (ok) {
       this.events.emit({ type: "app:reload", appId });
       this.events.forgetErrors(appId);
       // The browser copy is thrown away with it, so its proof of life goes too: the new
       // document has to check in before a query can trust it is executing.
       this.events.forgetView(appId);
+      const panels = this.events.listenerCount();
+      views = panels
+        ? `reload sent to ${panels} attached panel${panels === 1 ? "" : "s"}`
+        : "no panel attached — nothing was showing this app";
     }
 
     return {
@@ -629,6 +681,7 @@ export class AppsManager {
       path: dir,
       compiled: { api: apiOk, ui: uiOk },
       committed,
+      caches: cacheReport(cleanCaches, diskBundles, autogen, views),
     };
   }
 
@@ -693,6 +746,7 @@ export class AppsManager {
   invalidate(appDir: string): void {
     this.appCache.delete(appDir);
     this.uiCompiler?.invalidate(appDir);
+    this.cssCompiler?.invalidate(appDir);
   }
 
   private async readAppItem(id: AppId): Promise<AppItem | null> {

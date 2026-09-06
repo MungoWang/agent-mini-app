@@ -38,6 +38,18 @@ export const APP_ERROR_BUFFER = 50;
 /** How long the host waits for a rendered view to answer a query. */
 export const VIEW_EVAL_TIMEOUT_MS = 1_500;
 
+/** Longest a caller may wait for one query. Raised per call, never above this. */
+export const VIEW_EVAL_TIMEOUT_MAX_MS = 8_000;
+
+/** Floor: below this, a healthy view looks wedged just because the machine was busy. */
+export const VIEW_EVAL_TIMEOUT_MIN_MS = 100;
+
+/**
+ * Budget for the zero-work probe that tells a slow query apart from a wedged view. It only runs
+ * after a timeout, so it must be short enough to answer before the agent gives up on the tool.
+ */
+export const VIEW_EVAL_PROBE_TIMEOUT_MS = 400;
+
 /**
  * A runtime failure reported by the app iframe. These never reach `mini_app_reload`
  * (compile is green by definition at that point), so without this ring the only
@@ -106,10 +118,13 @@ export type ViewEvalInput = {
  * - `live` — the view answered (the answer itself may still be an error in the agent's JS)
  * - `not-open` — no frame for this app: nobody is rendering it, so nothing can answer
  * - `runner-not-booted` — a frame exists but its script never checked in (a dead bundle)
+ * - `pending` — the runner checked in, the query is still running (a long `await`), and the view
+ *   answers a trivial probe — the page is healthy, the caller just needs a bigger `timeoutMs` or
+ *   a query that returns instead of waiting. Nothing for the user to do.
  * - `stuck` — the runner checked in and then did not answer (blocked main thread, e.g. a
  *   synchronous loop; only an iframe reload escapes that)
  */
-export type ViewState = "live" | "not-open" | "runner-not-booted" | "stuck";
+export type ViewState = "live" | "not-open" | "runner-not-booted" | "pending" | "stuck";
 
 /** One query's outcome as the tool sees it: a view state plus whatever the view sent. */
 export type ViewEvalReply = {
@@ -117,6 +132,8 @@ export type ViewEvalReply = {
   /** True only when the view answered *and* the code returned a value. */
   ok: boolean;
   tookMs: number;
+  /** The budget this query was given, so a near-miss is visible instead of mysterious. */
+  budgetMs?: number;
   result?: string;
   bytes?: number;
   truncated?: boolean;
@@ -131,6 +148,15 @@ export type ViewEvalReply = {
 
 /** Max accepted sizes, so a chatty app cannot grow an unbounded ring. */
 export const APP_ERROR_TEXT_LIMIT = 4000;
+
+/**
+ * Keep a caller's timeout inside the range the SSE round trip is designed for: never a busy-wait
+ * floor of a few ms, never a tool call that outlives the agent's own patience.
+ */
+export function clampViewEvalTimeout(ms?: number): number {
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms <= 0) return VIEW_EVAL_TIMEOUT_MS;
+  return Math.max(VIEW_EVAL_TIMEOUT_MIN_MS, Math.min(Math.floor(ms), VIEW_EVAL_TIMEOUT_MAX_MS));
+}
 
 export class HostEventBus {
   private readonly listeners = new Set<HostEventListener>();
@@ -303,7 +329,7 @@ export class HostEventBus {
    * Never rejects: "nobody is there" is an ordinary, expected outcome of this call, not an
    * exception, and the caller has to distinguish four reasons for it anyway.
    */
-  requestViewEval(
+  async requestViewEval(
     appId: string,
     code: string,
     maxBytes: number,
@@ -319,6 +345,35 @@ export class HostEventBus {
         hint: "no browser is attached to /api/events — call mini_app_open first",
       });
     }
+    const budget = clampViewEvalTimeout(timeoutMs);
+    const reply = { budgetMs: budget, ...(await this.askView(appId, code, maxBytes, budget)) };
+    if (reply.view !== "stuck") return reply;
+
+    // A clock overrun on a view that has checked in is two different facts wearing one label:
+    // "still computing" and "never coming back". The first needs a bigger budget, the second
+    // needs the user to reload the tab, so telling them apart is the whole point of asking.
+    const probe = await this.askView(appId, "return 1;", 64, VIEW_EVAL_PROBE_TIMEOUT_MS);
+    if (probe.view !== "live") return reply;
+    return {
+      ...reply,
+      view: "pending",
+      hint:
+        "the view is healthy — your query is still running. It may still land its side effects; " +
+        `raise timeoutMs (budget was ${budget}ms) or return instead of awaiting.`,
+    };
+  }
+
+  /**
+   * One round trip to a rendered view. (Kept private so the only way to wait on a view is
+   * `requestViewEval`, which owns the probe.) Times out into `runner-not-booted` / `stuck` depending on
+   * whether that app has ever checked in — see `requestViewEval` for the probe that follows.
+   */
+  private askView(
+    appId: string,
+    code: string,
+    maxBytes: number,
+    timeoutMs: number,
+  ): Promise<ViewEvalReply> {
     const requestId = `v${++this.evalSeq}`;
     const started = Date.now();
     return new Promise<ViewEvalReply>((resolve) => {
@@ -330,6 +385,7 @@ export class HostEventBus {
           view: this.viewAliveAt.get(appId) ? "stuck" : "runner-not-booted",
           ok: false,
           tookMs: Date.now() - started,
+          budgetMs: timeoutMs,
         });
       }, timeoutMs);
       this.viewPending.set(requestId, { appId, startedAt: started, resolve, timer });

@@ -29,6 +29,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  rmSync,
   statSync,
   symlinkSync,
   writeFileSync,
@@ -125,6 +126,25 @@ export class AppCssCompiler {
   private readonly cache = new Map<string, { css: string; builtFromMtime: number }>();
 
   constructor(private readonly paths: WorkspacePaths) {}
+
+  /** Drop the memoized build for this app; the next request recompiles from source. */
+  invalidate(appDir: string): void {
+    this.cache.delete(appDir);
+  }
+
+  /**
+   * Also throw away the on-disk build (`.autogen/`), so the next request cannot even read a
+   * stale `ui.css` back from disk. For the rare case where the agent suspects the artifact
+   * itself, not just the memo — `mini_app_reload({ cleanCaches: true })`.
+   */
+  purge(appDir: string): void {
+    this.invalidate(appDir);
+    try {
+      rmSync(path.join(appDir, AUTOGEN), { recursive: true, force: true });
+    } catch {
+      /* unwritable dir: the memo drop alone still forces a rebuild attempt */
+    }
+  }
 
   async compile(appDir: string): Promise<string> {
     const maxSrc = maxMtime(appDir);

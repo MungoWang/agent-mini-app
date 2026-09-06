@@ -54,6 +54,9 @@ export function createHost(
   const compiler = new UiCompiler(paths);
   apps.setUiCompiler(compiler);
   const css = new AppCssCompiler(paths);
+  // A reload must be able to drop the css memo too: without this the compiled stylesheet stayed
+  // reachable from the process even after every source change.
+  apps.setCssCompiler(css);
   const themes = options.themes ?? EMPTY_THEME_RESOURCE;
   const http = new HttpGateway(
     apps,

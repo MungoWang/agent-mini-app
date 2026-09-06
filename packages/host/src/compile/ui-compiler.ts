@@ -335,6 +335,34 @@ export class UiCompiler {
     this.buildCache.delete(appDir);
   }
 
+  /**
+   * Remove this app's on-disk bundle cache (`<uiCacheDir>/<id>-<sig>/`), returning how many
+   * entries went. `invalidate` alone still lets a compile read a previous bundle back off disk,
+   * so this is the one knob that guarantees bytes came from the current source — used by
+   * `mini_app_reload({ cleanCaches: true })`.
+   */
+  purgeDiskCache(appDir: string): number {
+    const prefix = this.cachePrefix(appDir);
+    let removed = 0;
+    let names: string[] = [];
+    try {
+      names = fs.readdirSync(this.paths.uiCacheDir());
+    } catch {
+      return 0; // nothing cached yet
+    }
+    for (const name of names) {
+      if (!name.startsWith(prefix)) continue;
+      try {
+        fs.rmSync(path.join(this.paths.uiCacheDir(), name), { recursive: true, force: true });
+        removed++;
+      } catch {
+        /* leave it; the memo drop below still stands */
+      }
+    }
+    this.invalidate(appDir);
+    return removed;
+  }
+
   cacheSize(): number {
     return this.buildCache.size;
   }
@@ -440,8 +468,17 @@ if (rootEl) {
   }
 
   private cacheKey(appDir: string, sig: string): string {
+    return `${this.cachePrefix(appDir)}${sig}`;
+  }
+
+  /**
+   * Prefix every on-disk cache entry for this app shares. One definition on purpose: the purge
+   * has to find exactly what `cacheKey` wrote, and the app id's dots do **not** survive the
+   * character filter, so a second copy of this rule would silently purge nothing.
+   */
+  private cachePrefix(appDir: string): string {
     const id = path.basename(path.resolve(appDir)).replace(/[^A-Za-z0-9_-]/g, "_");
-    return `${id}-${sig}`;
+    return `${id}-`;
   }
 
   private cacheSig(appDir: string): string {

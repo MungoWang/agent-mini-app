@@ -147,10 +147,17 @@ export class ToolFacade {
       {
         name: "mini_app_reload",
         description:
-          "Validate + sync-compile main.api and ui for an app (replaces mini_app_validate). Returns compile errors if any. On success, auto-commits if the worktree is dirty. Call after a round of edits to verify and warm the UI cache.",
+          "Validate + sync-compile main.api and ui for an app (replaces mini_app_validate). Returns compile errors if any. On success, auto-commits if the worktree is dirty. Call after a round of edits to verify and warm the UI cache. " +
+          "A successful reload already drops every in-memory build (api module, UI bundle, app CSS) and tells the open panels to re-fetch — the `caches` block of the result states what was dropped and how many views were signalled, so you never have to wonder whether you are looking at fresh bytes. `cleanCaches: true` additionally deletes the on-disk build output (`.autogen/` and cached bundles) and rebuilds from source: reach for it only when you suspect the artifact itself, since it costs a full Tailwind + esbuild run.",
         inputSchema: {
           type: "object",
-          properties: { appId: APP_ID_SCHEMA },
+          properties: {
+            appId: APP_ID_SCHEMA,
+            cleanCaches: {
+              type: "boolean",
+              description: "Also purge on-disk build output and rebuild from source. Default false.",
+            },
+          },
           required: ["appId"],
         },
         execute: (args, signal) => this.invoke("mini_app_reload", args, signal),
@@ -372,7 +379,8 @@ export class ToolFacade {
           "Injected: mma.$(sel, root?) → Element|null · mma.$$(sel, root?) → Array<Element> (a real array, not jQuery) · mma.selector(el) → a CSS selector to pass back to mma.$(). " +
           "Everything else is standard DOM; host-side data is one same-origin fetch('/api/app/<appId>/errors') away. " +
           "Reply is capped at min(maxBytes, 6144) and says when it stopped (`truncated` + `stoppedBy` = bytes|nodes|depth|timeout) — never silently. " +
-          "Needs an open iframe (mini_app_open first); `view` then says not-open / runner-not-booted / stuck if it cannot answer. A synchronous infinite loop wedges the view and the page around it — no tool recovers that, the user must reload.",
+          "Needs an open iframe (mini_app_open first). `timeoutMs` (default 1500, max 8000) is the budget for one query; the reply echoes it as `budgetMs`. " +
+          "When a query does not answer, `view` says which kind of failure it was: not-open / runner-not-booted / pending / stuck. `pending` means the view is HEALTHY and your expression is still running (a long await) — raise `timeoutMs` or split the query, and do not tell the user anything is broken. Only `stuck` means the main thread is genuinely blocked, which no tool recovers: a synchronous infinite loop wedges the view and the page around it, so the user must reload.",
         inputSchema: {
           type: "object",
           properties: {
@@ -382,6 +390,10 @@ export class ToolFacade {
               description: "Async function body. Must `return`. `mma` is in scope.",
             },
             maxBytes: { type: "number", description: "Reply budget (hard ceiling 6144)." },
+            timeoutMs: {
+              type: "number",
+              description: "How long to wait for this query (default 1500, max 8000).",
+            },
           },
           required: ["appId"],
         },
@@ -500,7 +512,7 @@ export class ToolFacade {
 
   private async handleReload(args: Record<string, unknown>): Promise<unknown> {
     const appId = requireString(args, "appId");
-    return this.apps.reload(appId);
+    return this.apps.reload(appId, { cleanCaches: args.cleanCaches === true });
   }
 
   private async handleInstall(args: Record<string, unknown>): Promise<unknown> {
@@ -683,8 +695,17 @@ export class ToolFacade {
       typeof maxBytesRaw === "number" && Number.isFinite(maxBytesRaw) && maxBytesRaw > 0
         ? Math.min(Math.floor(maxBytesRaw), VIEW_EVAL_BYTE_CAP)
         : VIEW_EVAL_BYTE_CAP;
-    const reply = await this.events.requestViewEval(appId, code, maxBytes);
-    const base: Record<string, unknown> = { view: reply.view, tookMs: reply.tookMs };
+    const timeoutRaw = args.timeoutMs;
+    const timeoutMs =
+      typeof timeoutRaw === "number" && Number.isFinite(timeoutRaw) && timeoutRaw > 0
+        ? Math.floor(timeoutRaw)
+        : undefined;
+    const reply = await this.events.requestViewEval(appId, code, maxBytes, timeoutMs);
+    const base: Record<string, unknown> = {
+      view: reply.view,
+      tookMs: reply.tookMs,
+      budgetMs: reply.budgetMs,
+    };
     if (reply.ok) {
       return {
         ...base,

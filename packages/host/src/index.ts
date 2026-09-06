@@ -64,6 +64,7 @@ export {
 } from "./brand.ts";
 export type { BoundHostCapabilities, HostCapabilities } from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
+export { AppCssCompiler, appCssExists } from "./compile/app-css.ts";
 export {
   keyframeNamesIn,
   platformKeyframeNames,
@@ -115,8 +116,11 @@ export type {
 export {
   APP_ERROR_BUFFER,
   APP_EVENT_BUFFER,
+  clampViewEvalTimeout,
   formatSse,
   HostEventBus,
+  VIEW_EVAL_TIMEOUT_MAX_MS,
+  VIEW_EVAL_TIMEOUT_MIN_MS,
   VIEW_EVAL_TIMEOUT_MS,
 } from "./events/host-events.ts";
 export type {
