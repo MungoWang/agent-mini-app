@@ -1,20 +1,32 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { bootstrapHostConfig, createHost, type HostServices } from "@monkey-mini-app/host";
+import {
+  bootstrapHostConfig,
+  createHost,
+  type Host,
+  type HostCapabilities,
+  type HostConfig,
+  type HostLifecycle,
+  type HostServices,
+} from "@monkey-mini-app/host";
 
-const api = `import { defineApp } from "@monkey-mini-app/api";
-export default defineApp({ name: "P", description: "p", api: { ping: async () => ({ ok: true }) } });
-`;
+/**
+ * The per-app Tailwind build must follow the app's sources.
+ *
+ * `AppCssCompiler` documented itself as "cached by comparing the app's source mtimes against the
+ * compiled ui.css mtime", but the in-memory `Map` was consulted *before* any freshness check, so
+ * the mtime rule only ever guarded the disk path. One compiler instance lives per host process
+ * (`create-host.ts`), which meant: ask the agent for a new width class after the panel had loaded
+ * once, and the class was compiled into nothing at all — silently, for the rest of the process's
+ * life. Layout then falls back on whatever the kit base stylesheet happens to provide, so the app
+ * looks styled and is simply wrong.
+ */
 
-const ui = `export default function Ui() {
-  return <div className="gap-2.5 w-[320px] py-2.5 h-screen grid-cols-3 col-span-2 lg:grid-cols-2 md:grid-cols-2">x</div>;
-}`;
-
-let host: ReturnType<typeof createHost> | undefined;
+let host: Host | undefined;
 
 afterEach(async () => {
   if (host) {
@@ -23,43 +35,76 @@ afterEach(async () => {
   }
 });
 
-async function startHost(): Promise<HostServices> {
-  const root = mkdtempSync(path.join(tmpdir(), "mma-css-"));
-  let services: HostServices | undefined;
-  host = createHost({ listTools: () => [] }, { attach: (_c, s) => { services = s; } }, { config: bootstrapHostConfig({ runtimeRoot: root, hostPort: 0 }) });
-  await host.apply();
-  if (!services) throw new Error("no services");
-  await services.apps.register("com.css.demo", {
-    "manifest.json": JSON.stringify({ id: "com.css.demo", name: "CSS", version: "1.0.0", entry: "ui.tsx" }),
-    "ui.tsx": ui,
-    "main.api.ts": api,
+const APP = "com.example.appcss";
+
+function uiWith(width: string): string {
+  return `export default function Ui() {
+  return <div className="${width}">styled-box</div>;
+}
+`;
+}
+
+const api = `import { defineApp } from "@monkey-mini-app/api";
+export default defineApp({
+  name: "AppCss",
+  description: "css freshness",
+  api: { ping: async () => "pong" },
+});
+`;
+
+async function start(): Promise<HostServices> {
+  const config: HostConfig = bootstrapHostConfig({
+    runtimeRoot: mkdtempSync(path.join(tmpdir(), "mma-appcss-")),
+    hostPort: 0,
   });
+  let services: HostServices | undefined;
+  const lifecycle: HostLifecycle = {
+    attach: (_ctx, s) => {
+      services = s;
+    },
+  };
+  const capabilities: HostCapabilities = {
+    bash: async () => ({ stdout: "", stderr: "", exitCode: 0 }),
+    listTools: () => [],
+  };
+  host = createHost(capabilities, lifecycle, { config });
+  await host.apply();
+  if (!services) throw new Error("lifecycle.attach did not receive HostServices");
   return services;
 }
 
-describe("per-app Tailwind CSS", () => {
-  it("compiles classes (incl. responsive + arbitrary) that never appear in the repo", async () => {
-    await startHost();
-    const res = await fetch(`http://127.0.0.1:${host!.port}/api/app/com.css.demo/ui.css`);
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toMatch(/text\/css/);
-    const css = await res.text();
-    // Base utilities the app uses (not in the repo).
-    for (const sel of [".gap-2\\.5", ".w-\\[320px\\]", ".py-2\\.5", ".h-screen", ".grid-cols-3", ".col-span-2"]) {
-      expect(css).toContain(sel);
-    }
-    // Responsive variants must also be generated (Tailwind v4 @source content scan).
-    expect(css).toContain("\\:grid-cols-2");
-    // The per-app sheet carries the app's utilities only — the theme lives in the shared base.
-    expect(css).not.toContain("--background");
-  }, 60_000);
+async function css(): Promise<string> {
+  const res = await fetch(`http://127.0.0.1:${host!.port}/api/app/${APP}/ui.css`);
+  expect(res.status).toBe(200);
+  return res.text();
+}
 
-  it("serves the shared /ui.css for apps with no ui.tsx", async () => {
-    const root = mkdtempSync(path.join(tmpdir(), "mma-css2-"));
-    host = createHost({ listTools: () => [] }, { attach: () => {} }, { config: bootstrapHostConfig({ runtimeRoot: root, hostPort: 0 }) });
-    await host.apply();
-    const res = await fetch(`http://127.0.0.1:${host!.port}/ui.css`);
-    expect(res.status).toBe(200);
-    expect((await res.text()).includes("--background")).toBe(true);
-  }, 60_000);
+describe("app ui.css compilation", () => {
+  it("emits the app's own utility and picks up a class added after the first build", async () => {
+    const services = await start();
+    await services.apps.register(APP, {
+      "manifest.json": JSON.stringify({
+        id: APP,
+        name: "AppCss",
+        version: "0.1.0",
+        entry: "ui.tsx",
+      }),
+      "ui.tsx": uiWith("w-[437px]"),
+      "main.api.ts": api,
+    });
+    const uiFile = services.apps.dirOf(APP);
+
+    const first = await css();
+    expect(first).toContain("437px");
+
+    // A later edit by the agent: new class in the source, so the compiled css must change too.
+    writeFileSync(path.join(uiFile, "ui.tsx"), uiWith("w-[612px]"), "utf8");
+    // Push the mtime past the built css regardless of filesystem timestamp granularity.
+    const t = new Date(Date.now() + 5_000);
+    utimesSync(path.join(uiFile, "ui.tsx"), t, t);
+
+    const second = await css();
+    expect(second, "ui.css served a stale build after the source changed").toContain("612px");
+    expect(second).not.toContain("437px");
+  });
 });

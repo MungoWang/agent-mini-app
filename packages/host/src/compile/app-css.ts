@@ -18,8 +18,10 @@
  *
  * `tailwindcss` is a dependency of `@monkey-mini-app/ui`, so the CLI is resolvable at runtime.
  * Because the app dir has no `node_modules`, we link `tailwindcss` into a SHARED runtime-root
- * `node_modules` (an ancestor of every app), so the import resolves. Cached by comparing the
- * app's source mtimes against the compiled `ui.css` mtime.
+ * `node_modules` (an ancestor of every app), so the import resolves. Freshness is the app's own
+ * source mtime: an in-process rebuild happens whenever a source file is newer than the last build
+ * the compiler memoized, so a class added after the first css request still lands (see
+ * `packages/host/tests/app-css.test.ts` — the in-memory memo once made that untrue forever).
  */
 import { execFile } from "node:child_process";
 import {
@@ -119,28 +121,37 @@ function run(bin: string, args: string[]): Promise<void> {
 }
 
 export class AppCssCompiler {
-  private readonly cache = new Map<string, string>();
+  /** Memo for the freshness check below — keyed by the source mtime the css was built from. */
+  private readonly cache = new Map<string, { css: string; builtFromMtime: number }>();
 
   constructor(private readonly paths: WorkspacePaths) {}
 
   async compile(appDir: string): Promise<string> {
+    const maxSrc = maxMtime(appDir);
+
+    // The map must never outlive the sources it was built from. It used to be consulted before
+    // any freshness check, so the mtime rule below only ever guarded the *disk* path: one
+    // compiler lives per host process, which meant a class the agent added after the app's first
+    // css request compiled into nothing for the rest of that process's life — silently, with the
+    // app still looking styled because the shared base sheet answered for it.
     const hit = this.cache.get(appDir);
-    if (hit !== undefined) return hit;
+    if (hit !== undefined && hit.builtFromMtime >= maxSrc) return hit.css;
 
     const genCss = path.join(appDir, AUTOGEN, GEN_CSS);
     const uiCss = path.join(appDir, AUTOGEN, UI_CSS);
-    const maxSrc = maxMtime(appDir);
 
     // Cache = the app's own generated ui.css; recompile only when a source file is newer or
     // the output is absent (so a hand-edit to ui.css is always overwritten by the next compile).
     if (maxSrc > 0 && existsSync(uiCss) && statSync(uiCss).mtimeMs >= maxSrc) {
       const css = readFileSync(uiCss, "utf8");
-      this.cache.set(appDir, css);
+      this.cache.set(appDir, { css, builtFromMtime: maxSrc });
       return css;
     }
 
     const css = await this.buildCss(appDir, genCss, uiCss);
-    this.cache.set(appDir, css);
+    // The CLI takes ~1s; re-read what is on disk now rather than claiming freshness the sources
+    // may have taken away while it ran.
+    this.cache.set(appDir, { css, builtFromMtime: Math.max(maxSrc, maxMtime(appDir)) });
     return css;
   }
 
