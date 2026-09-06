@@ -27,7 +27,25 @@ export const APP_PACKAGE_JSON = "package.json";
  * Compared on the **package name**, so `lodash-es`, `@monkey-mini-app/ui` and a scoped
  * `@monkey-mini-app/host` all hit the same rule.
  */
-const DENY_EXACT = new Set(["react", "react-dom", "lodash", "lodash-es", "axios", "typescript"]);
+const DENY_EXACT = new Set([
+  "react",
+  "react-dom",
+  "lodash",
+  "lodash-es",
+  "axios",
+  "typescript",
+  // Platform iframe vendors. A second copy of motion is a second copy of its React
+  // bindings, which is the multi-React bug this list exists to stop.
+  "motion",
+  "framer-motion",
+]);
+
+/** Per-package tail for the install error, so the agent gets the actual replacement. */
+const DENY_HINT: Record<string, string> = {
+  axios: "use ctx.http",
+  motion: 'import { motion } from "motion/react" — the iframe already ships it',
+  "framer-motion": 'import { motion } from "motion/react" — the iframe already ships it',
+};
 
 const NPM_TIMEOUT_MS = 120_000;
 
@@ -45,9 +63,7 @@ function denyReason(name: string): string | null {
     return `'${name}' is a platform package — already available, do not install it`;
   }
   if (DENY_EXACT.has(name)) {
-    return `'${name}' is a platform package — ${
-      name === "axios" ? "use ctx.http" : "it is already provided; do not install it"
-    }`;
+    return `'${name}' is a platform package — ${DENY_HINT[name] ?? "it is already provided; do not install it"}`;
   }
   return null;
 }

@@ -4,7 +4,9 @@
  *   runtime.js          — complete React ESM (vendored from esm.sh, then bundled)
  *   sdk.js              — UI kit + useApp; react* is external → /mma/runtime.js
  *   vendors/lodash.js   — full lodash-es + default `_` (author specifier `lodash`)
- *   (served as /mma/runtime.js, /mma/sdk.js, /mma/vendors/lodash.js)
+ *   vendors/motion.js   — motion/react (author specifier `motion` / `motion/react`),
+ *                         react* external → /mma/runtime.js, so the iframe keeps one React
+ *   (served as /mma/runtime.js, /mma/sdk.js, /mma/vendors/<id>.js)
  *
  * Requires packages/ui/dist/index.js (run build:ui first). esm.sh is fetched **once per
  * React version** and kept in a persistent cache, so rebuilds and `npm publish` work
@@ -15,7 +17,7 @@
  *               --offline  never touch the network; fail if something is uncached
  *
  * Inputs:       packages/ui/dist (flat kit + src), esm.sh (cached)
- * Writes:       packages/ui/dist/{runtime.js,sdk.js,vendors/lodash.js},
+ * Writes:       packages/ui/dist/{runtime.js,sdk.js,vendors/lodash.js,vendors/motion.js},
  *               node_modules/.cache/monkey-mini-app/{esm.sh/**,iframe-stamp.json}
  * Run as:       pnpm build:sdk — also part of @monkey-mini-app/ui prepack
  */
@@ -24,6 +26,8 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { vendorFileHref, VENDOR_IDS } from "../../packages/host/src/compile/platform-modules.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..", "..");
@@ -50,6 +54,15 @@ function lodashEsVersion() {
   const req = createRequire(path.join(uiRoot, "package.json"));
   try {
     return req("lodash-es/package.json").version;
+  } catch {
+    return "missing";
+  }
+}
+
+function motionVersion() {
+  const req = createRequire(path.join(uiRoot, "package.json"));
+  try {
+    return req("motion/package.json").version;
   } catch {
     return "missing";
   }
@@ -159,6 +172,27 @@ async function vendorEsm(entryUrls) {
   return entryFiles;
 }
 
+/**
+ * React for an iframe vendor must be the **platform** React. Left alone, esbuild would
+ * bundle a second copy out of node_modules and two Reacts in one document means hooks
+ * throw the moment the kit and the vendor both render.
+ */
+function reactToRuntimePlugin() {
+  return {
+    name: "mma-react-to-runtime",
+    setup(build) {
+      build.onResolve({ filter: /^react($|\/)/ }, () => ({
+        path: RUNTIME_HREF,
+        external: true,
+      }));
+      build.onResolve({ filter: /^react-dom($|\/)/ }, () => ({
+        path: RUNTIME_HREF,
+        external: true,
+      }));
+    },
+  };
+}
+
 function uiSubpathPlugin() {
   return {
     name: "ui-subpath",
@@ -169,6 +203,13 @@ function uiSubpathPlugin() {
       }));
       build.onResolve({ filter: /^react-dom($|\/)/ }, () => ({
         path: RUNTIME_HREF,
+        external: true,
+      }));
+      // The kit's own motion import must land on the **same** module the app writes,
+      // or the iframe runs two motion runtimes (Reveal and the app's AnimatePresence
+      // would each carry their own React binding and shared-layout context).
+      build.onResolve({ filter: /^motion(\/react)?$/ }, () => ({
+        path: vendorFileHref("motion"),
         external: true,
       }));
       build.onResolve({ filter: /^@monkey-mini-app\/ui$/ }, () => ({
@@ -285,36 +326,82 @@ async function buildSdk(esbuild) {
   return fs.statSync(outfile).size;
 }
 
+/**
+ * iframe platform vendors — one file per library. The **id list comes from the same
+ * table the compiler and the backend loader read** (`platform-modules.ts`); this map only
+ * adds what that file cannot know: which module to bundle and whether it needs React.
+ * A vendor in the table with no entry here (or the reverse) fails the build, so the two
+ * can never drift into "import resolves, then 404s in the iframe".
+ *
+ * motion's `react` entry is re-exported under both author spellings, and its React must
+ * externalise to /mma/runtime.js — a second React in the iframe breaks hooks the moment
+ * the kit and a mini-app both render.
+ */
+const VENDOR_BUILD = {
+  lodash: {
+    module: "lodash-es",
+    react: false,
+    // The build proves the file really carries the API authors reach for.
+    expect: ["groupBy"],
+  },
+  motion: {
+    module: "motion/react",
+    react: true,
+    expect: ["AnimatePresence"],
+  },
+};
+
 async function buildVendors(esbuild) {
-  const entry = path.join(distDir, ".vendor-lodash-entry.mjs");
+  const missing = VENDOR_IDS.filter((id) => !VENDOR_BUILD[id]);
+  const extra = Object.keys(VENDOR_BUILD).filter((id) => !VENDOR_IDS.includes(id));
+  if (missing.length || extra.length) {
+    throw new Error(
+      `[build-sdk] vendor table and build are out of sync:` +
+        ` no build for [${missing.join(", ")}]; not in platform-modules [${extra.join(", ")}]`,
+    );
+  }
+
   fs.mkdirSync(path.join(distDir, "vendors"), { recursive: true });
-  fs.writeFileSync(
-    entry,
-    'export * from "lodash-es";\nimport * as es from "lodash-es";\nexport default es;\n',
-  );
-  const outfile = path.join(distDir, "vendors", "lodash.js");
-  try {
-    await esbuild.build({
-      entryPoints: [entry],
-      outfile,
-      absWorkingDir: uiRoot,
-      bundle: true,
-      format: "esm",
-      platform: "browser",
-      target: "es2020",
-      write: true,
-      minify: true,
-      legalComments: "none",
-      logLevel: "warning",
-    });
-  } finally {
-    fs.rmSync(entry, { force: true });
+  const sizes = {};
+  for (const id of VENDOR_IDS) {
+    const v = VENDOR_BUILD[id];
+    const entry = path.join(distDir, `.vendor-${id}-entry.mjs`);
+    fs.writeFileSync(
+      entry,
+      `export * from ${JSON.stringify(v.module)};\nimport * as es from ${JSON.stringify(v.module)};\nexport default es;\n`,
+    );
+    const outfile = path.join(distDir, "vendors", `${id}.js`);
+    try {
+      await esbuild.build({
+        entryPoints: [entry],
+        outfile,
+        absWorkingDir: uiRoot,
+        bundle: true,
+        format: "esm",
+        platform: "browser",
+        target: "es2020",
+        write: true,
+        minify: true,
+        legalComments: "none",
+        logLevel: "warning",
+        define: { "process.env.NODE_ENV": '"production"' },
+        ...(v.react ? { plugins: [reactToRuntimePlugin()] } : {}),
+      });
+    } finally {
+      fs.rmSync(entry, { force: true });
+    }
+    const js = fs.readFileSync(outfile, "utf8");
+    for (const name of v.expect) {
+      if (!new RegExp(`\\b${name}\\b`).test(js)) {
+        throw new Error(`[build-sdk] vendors/${id}.js missing ${name}`);
+      }
+    }
+    if (v.react && !js.includes(RUNTIME_HREF)) {
+      throw new Error(`[build-sdk] vendors/${id}.js does not import ${RUNTIME_HREF}`);
+    }
+    sizes[id] = fs.statSync(outfile).size;
   }
-  const js = fs.readFileSync(outfile, "utf8");
-  if (!/\bgroupBy\b/.test(js)) {
-    throw new Error("[build-sdk] vendors/lodash.js missing groupBy");
-  }
-  return fs.statSync(outfile).size;
+  return sizes;
 }
 
 /** Everything that can change the iframe output: the built kit barrel + its sources. */
@@ -338,19 +425,28 @@ function fingerprint() {
 
 function stampIsCurrent(fp, ver) {
   if (FORCE) return false;
-  if (
-    !fs.existsSync(path.join(distDir, "runtime.js")) ||
-    !fs.existsSync(path.join(distDir, "sdk.js")) ||
-    !fs.existsSync(path.join(distDir, "vendors", "lodash.js"))
-  ) {
-    return false;
+  for (const f of [
+    "runtime.js",
+    "sdk.js",
+    ...VENDOR_IDS.map((id) => path.join("vendors", `${id}.js`)),
+  ]) {
+    if (!fs.existsSync(path.join(distDir, f))) return false;
   }
   try {
     const s = JSON.parse(fs.readFileSync(stampFile, "utf8"));
-    return s.fingerprint === fp && s.reactVersion === ver && s.lodashEs === lodashEsVersion();
+    return (
+      s.fingerprint === fp &&
+      s.reactVersion === ver &&
+      s.lodashEs === lodashEsVersion() &&
+      s.motion === motionVersion()
+    );
   } catch {
     return false;
   }
+}
+
+function kb(file) {
+  return (fs.statSync(path.join(distDir, file)).size / 1024).toFixed(0);
 }
 
 async function main() {
@@ -365,10 +461,11 @@ async function main() {
   }
 
   const fp = fingerprint();
+  const vendorLabel = () =>
+    VENDOR_IDS.map((id) => `${id}.js ${kb(path.join("vendors", `${id}.js`))}KB`).join(" + ");
   if (stampIsCurrent(fp, ver)) {
-    const kb = (f) => (fs.statSync(path.join(distDir, f)).size / 1024).toFixed(0);
     console.log(
-      `[build-sdk] up to date (react@${ver}, ${kb("runtime.js")}KB + ${kb("sdk.js")}KB + ${kb("vendors/lodash.js")}KB) — skipped; --force to rebuild`,
+      `[build-sdk] up to date (react@${ver}, runtime.js ${kb("runtime.js")}KB + sdk.js ${kb("sdk.js")}KB + ${vendorLabel()}) — skipped; --force to rebuild`,
     );
     return;
   }
@@ -376,7 +473,7 @@ async function main() {
   const t0 = Date.now();
   const runtimeBytes = await buildRuntime(esbuild, ver);
   const sdkBytes = await buildSdk(esbuild);
-  const lodashBytes = await buildVendors(esbuild);
+  const vendorBytes = await buildVendors(esbuild);
   fs.mkdirSync(path.dirname(stampFile), { recursive: true });
   fs.writeFileSync(
     stampFile,
@@ -385,14 +482,18 @@ async function main() {
         fingerprint: fp,
         reactVersion: ver,
         lodashEs: lodashEsVersion(),
+        motion: motionVersion(),
         builtAt: new Date().toISOString(),
       },
       null,
       2,
     ) + "\n",
   );
+  const vendorLog = Object.entries(vendorBytes)
+    .map(([id, bytes]) => `${id}.js ${(bytes / 1024).toFixed(0)}KB`)
+    .join(" · ");
   console.log(
-    `[build-sdk] react@${ver} runtime.js ${(runtimeBytes / 1024 / 1024).toFixed(2)}MB · sdk.js ${(sdkBytes / 1024 / 1024).toFixed(2)}MB · lodash.js ${(lodashBytes / 1024).toFixed(0)}KB in ${Date.now() - t0}ms` +
+    `[build-sdk] react@${ver} runtime.js ${(runtimeBytes / 1024 / 1024).toFixed(2)}MB · sdk.js ${(sdkBytes / 1024 / 1024).toFixed(2)}MB · ${vendorLog} in ${Date.now() - t0}ms` +
       ` · esm.sh ${cacheHits} cached / ${cacheMisses} fetched`,
   );
 }

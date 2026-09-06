@@ -1,10 +1,12 @@
 # RFC: Authoring surface — utils, motion, layouts, templates, security, theme
 
 > Date: 2026-09-05
-> Status: **proposal** (not implemented)
+> Status: **partly shipped** — (4) README intent ✅ · (5) custom-theme contract + skill ✅ ·
+> (1a) lodash vendor ✅ · (1b) `motion` vendor + kit `Reveal` ✅ · (2) layout presets not
+> started (gates revised, see §4.0) · (3) templates/paradigms not started, waits on (2)
 > Source: items 1–5 of [`rough-ideas.md`](./rough-ideas.md)
 > Packages: `packages/ui` · `packages/api` · `packages/host` · `packages/panel` · skill / templates / README
-> Related: [`TODO.md`](../../TODO.md) P1-4 (theme table, landed) · P1-5 (animation, parked waiting for `motion`) · [`rfcs/authoring-protocol.md`](./authoring-protocol.md)
+> Related: [`TODO.md`](../../TODO.md) P1-4 (theme table, landed) · P1-5 (animation, **landed** — shipped as its own iframe vendor, see §3.1) · [`rfcs/authoring-protocol.md`](./authoring-protocol.md)
 
 ## 0. Verdict
 
@@ -98,19 +100,45 @@ The iframe isolates the *panel* from a broken React tree. It does **not** isolat
 
 ### 3.1 Motion
 
-Land P1-5.
+Shipped. Notes below record what actually happened where this section guessed wrong.
 
 - Dependency: `motion` (`motion/react`). LLM-familiar; same component API as Framer Motion (`motion.div`, `AnimatePresence`, `variants`).
-- Bundle it into `/mma/sdk.js`. Authors write:
+- **Landed as `/mma/vendors/motion.js`, not inside `/mma/sdk.js`** (§3.3 anticipated this
+  option). `sdk.js` is ~2.4 MB on its own; folding motion in would cache-bust 196 KB of
+  animation library on every kit edit, and keep them in one file only by giving the kit a
+  second reason to grow.
+- Because it is a vendor, the author specifier is the package name the model already types:
 
   ```tsx
-  import { motion, AnimatePresence } from "@monkey-mini-app/ui";
+  import { motion, AnimatePresence } from "motion/react";
   ```
 
-- The UI compiler continues to reject a bare `"motion"` / `"framer-motion"` specifier. One copy of React, one copy of motion, both in the iframe bundle. Same rule as CodeMirror/shiki: authors do not `pnpm add` it.
-- Promote paradigm `Reveal` (and only that) into the kit *on top of* `motion`, as a convenience. Do not invent a second animation API. `useCountUp` can stay a paradigm helper until a second caller appears.
-- Rewrite `references/styling.md` Animation: Tailwind transitions for 1-property hover; `motion` for enter/exit/layout. Still forbid injected `@keyframes`.
-- `scripts/build/sdk.mjs` / dsh `tsup.config.ts` externals: follow constraint #10 if motion cannot bundle (prefer bundle; it has to run in the iframe with no npm).
+  Bare `motion` resolves to the same file (it is what models type), which is **not** what
+  the npm package's bare entry means — npm's `motion` is the *vanilla* API with no
+  `motion.div`. The type wiring has to lie in the same direction or `from "motion"` would
+  type-error while running fine; see the `paths` note in `scripts/check/templates.mts`.
+- The UI compiler continues to reject a bare `"framer-motion"` specifier. One copy of React,
+  one copy of motion, both in the iframe.
+- The vendor table grew a **`targets`** axis (§3.3's table implied one but the mechanism had
+  none): lodash resolves on both sides, motion is `ui` only. Without it, `import "motion"` in
+  `main.api.ts` fell into the single hardcoded lodash branch and the app silently received
+  `_`. `findVendor()` now turns that into a real message instead of “go install it”.
+- Kit `Reveal` (blocks/reveal.tsx) is built on motion, and calls `useReducedMotion()`. Its
+  `dist` entry externalises to the same vendor file, so the kit and the app share one motion
+  runtime — the two Reacts problem again if the kit bundled its own.
+- `references/styling.md` *Animation* rewritten in the same change (was: “a motion library is
+  being decided”). The `@keyframes` ban now has the reason attached: keyframe names are
+  global per document, so two components declaring the same name make the last-mounted one
+  win, and a bare `@keyframes spin` overwrites Tailwind's own.
+- `mini_app_install` denylist covers `motion` + `framer-motion` with the working specifier in
+  the error text.
+- Paradigm `Reveal` was promoted into the kit (the old inlined copy in
+  `packages/ui-examples/src/paradigms/shared.tsx` is now a re-export of the kit one, so all
+  nine paradigms exercise it). `useCountUp` stayed a paradigm helper — still one caller each,
+  no second consumer to justify promoting it. No second animation API was invented.
+- `scripts/build/sdk.mjs` bundles motion with esbuild directly (constraint #10 did **not**
+  bite: motion ships real ESM, so no `tsup.config.ts` external was needed and nothing had to
+  be fetched from esm.sh — it is a normal workspace dep, cached with the rest of the build).
 
 ### 3.2 Lodash — the util library (complete, not curated)
 
@@ -201,24 +229,80 @@ v1 ships **lodash only** under `vendors/`. `date-fns` / `zod` / `motion` are the
 
 ## 4. Workstream 2 — Layout presets
 
-Add **four** page-level blocks under `packages/ui/src/blocks/`, `@family Layout & structure`, each with `@when` that names a *page shape*, not "a layout".
+### 4.0 How this list was chosen
 
-| Preset | Encodes (the thing agents get wrong) | Slots |
-|---|---|---|
-| `ListDetail` | `min-h-0` + independent scroll + `Resizable` split; empty vs selected | `list`, `detail`, `empty` |
-| `DashboardShell` | sticky header, KPI row, main + optional aside, overflow on the main pane only | `header`, `kpis`, `main`, `aside?` |
-| `SettingsSplit` | side nav + section, `Scrollspy` wired | `nav`, `sections` |
-| `WizardShell` | `Stepper` + body + sticky footer actions, back/next disabled states | `stepper`, `body`, `footer` |
+The original gate — “the slot API must first be used by a real template” — is **withdrawn**
+(owner decision, 2026-09-06). The product is pre-release: nothing is installed anywhere
+(`runtime/apps` is empty), and the samples that would have exercised the API are being
+rebuilt in §5 regardless. Waiting for that evidence would only reorder the same work.
 
-Rules:
+So the list is defined the other way round: **from the page shapes SaaS apps actually
+ship**, with the general-purpose ones kept because mini-apps are not all SaaS. Templates are
+then written *against* these presets in §5, which is the validation — just paid for in the
+cheap order.
 
-- Built from existing kit pieces (`AppShell`, `Resizable`, `ScrollArea`, `Stepper`, `PageHeader`). No new CSS framework.
-- Every preset takes `className` and renders semantic HTML. No `Stack`.
+Selection rule per preset: it must kill a bug agents demonstrably get wrong (column 3), not
+just save typing. A preset that only saves typing is a Tailwind class string.
+
+### 4.1 Scenarios
+| # | Scenario | Who asks for it | Shape it needs |
+|---|---|---|---|
+| S1 | Records + one at a time: orders, tickets, contacts, logs → detail | CRUD/admin mini-apps, `todo`, `review` | list/detail split |
+| S2 | Big filterable table: many columns, bulk select, saved views | spreadsheet-like, any inventory | toolbar + table + bulk bar |
+| S3 | Overview / KPI dashboard: metrics row, charts, activity aside | `monitor`, ops dashboards | dashboard grid |
+| S4 | Preferences: section nav + long form + save | app settings, integration config | nav/content split |
+| S5 | Multi-step: create/import/onboard with validation per step | wizards, config generators | stepper + sticky actions |
+| S6 | Focused create/edit form over a list you do not want to lose | nearly every CRUD app | sheet/drawer form |
+| S7 | Board: columns of draggable cards + card detail | `jira`, pipelines, kanban | board + detail |
+| S8 | Read-focused page: long document/report, TOC, anchored sections | insights, generated reports | prose + scrollspy |
+| S9 | Full-screen empty/first-run: nothing data-shaped yet, just start | any app on first launch | centered single column |
+
+S1–S6 are the SaaS core; S7–S9 are the general-purpose tail that mini-apps hit constantly
+(`jira` is already S7, so it needs no new preset).
+
+### 4.2 Presets — build order
+
+Six page-level blocks under `packages/ui/src/blocks/`, `@family Layout & structure`, each with
+`@when` naming a *page shape*, not “a layout”. Ordered by how often agents meet the shape ×
+how badly they get it wrong without help.
+
+| Order | Preset | Scenarios | Encodes (the bug it kills) | Slots |
+|---|---|---|---|---|
+| 1 | `ListDetail` | S1, S6 | `min-h-0` on both panes so each scrolls **independently**; `Resizable` split with a sane default; selected vs empty; detail collapses below `md` instead of squashing | `list`, `detail`, `empty?`, `toolbar?` |
+| 2 | `TablePage` | S2 | the height chain from iframe → toolbar → grid → pagination; filter bar that does not eat the viewport; bulk bar overlaying rather than reflowing | `toolbar`, `grid`, `pagination?`, `bulk?`, `empty?` |
+| 3 | `DashboardShell` | S3 | sticky header, KPI row, main + optional aside, `overflow-auto` **on the main pane only** (the classic “whole page scrolls, header slides away”) | `header`, `kpis?`, `main`, `aside?` |
+| 4 | `SettingsSplit` | S4, S8 | side nav + section content with `Scrollspy` wired to real section ids; unsaved-changes bar pinned to the content pane, not the window | `nav`, `sections`, `footer?` |
+| 5 | `WizardShell` | S5 | `Stepper` + scrollable body + **sticky** footer; back/next disabled state derived from step validity; body keeps its height between steps so the footer does not jump | `stepper`, `body`, `footer` |
+| 6 | `FormSheet` | S6 | a `Sheet` whose header/footer stay fixed while only the form scrolls; single submit path; Escape-dirty confirm | `header`, `body`, `footer` |
+
+S7 (`jira`'s board) and S9 (first-run) stay hand-written: `Kanban` already exists and the
+`empty` component plus Tailwind covers a centred column — a preset for either would be a
+wrapper that saves nothing an agent gets wrong.
+
+### 4.3 Rules
+
+- Built from existing kit pieces (`AppShell`, `Resizable`, `ScrollArea`, `Stepper`,
+  `PageHeader`, `DetailPanel`, `FilterBar`, `DataGrid`, `Scrollspy`). No new CSS framework,
+  no second layout engine.
+- Every preset takes `className` and renders semantic HTML. No `Stack` / `Text` / `Box` —
+  that rejection in `references/styling.md` stands.
+- A preset never fetches, stores, or routes. It takes nodes; the app owns the state. Slots
+  are `ReactNode` props, not render-props, so the generated code stays a tree an agent can
+  see at a glance.
+- Responsive collapse is the preset's job (S1's detail pane, S3's aside, S4's nav) — that is
+  most of what “encodes” means here, and it is the part an agent omits.
 - Chrome strings go through `useLabels` + `en.ts` / `zh.ts` in the same change.
-- `AppShell` stays the generic frame; do not replace it.
-- After add: `pnpm gen:skill` so catalog + contracts pick them up. One example each, *distinct* `@scenario`.
+- `AppShell` stays the generic frame; presets compose it, do not replace it.
+- After adding: `pnpm gen:skill` so catalog + contracts pick them up. One example each, with
+  a **distinct** `@scenario` from the table above.
+- Each preset ships with a layout test that asserts the property it exists for (e.g.
+  `ListDetail`: both panes scroll independently at a fixed height) — not a snapshot of markup.
+  A preset whose scroll contract is untested will be “fixed” by the next agent into the bug
+  it was written to kill.
 
-Four is the cap for the first cut. Inbox / Kanban-page / form-only can wait until a template actually needs them (`jira` already has `Kanban` + `Sheet`; it does not need a fifth preset to exist first).
+The first cut is six, not four: `TablePage` and `FormSheet` were the two shapes most often
+named when asking “what do agents actually build”, and leaving them out would send §5
+templates back to hand-rolling the exact height chain this workstream exists to encode.
 
 ## 5. Workstream 3 — Templates and paradigms
 
@@ -226,22 +310,35 @@ Do this **after** (1) and (2) land, so the samples teach the new surface.
 
 ### 5.1 Templates
 
-Keep the seven names — the capability axes in `templates/README.md` are already the right split. Raise the floor:
+Keep the eight names — the capability axes in `templates/README.md` are already the right
+split (`spreadsheet/` was added after this RFC was written; it earns its place as the only
+template that teaches `mini_app_install`). Raise the floor:
 
 - `minimal` is the **only** hello-world. If another template can be mistaken for it, that template has failed.
-- Each of the other six must demonstrate (a) its claimed `ctx.*` axis and (b) a layout/preset the others do not use. Suggested pairing:
+- Each of the other seven must demonstrate (a) its claimed `ctx.*` axis and (b) a preset or
+  layout identity no other template uses. Pairing against §4.2:
 
   | Template | Preset / kit identity |
   |---|---|
   | `todo` | `ListDetail` + `storage.table` |
-  | `insights` | long-job + `WizardShell` or progress in `DashboardShell` |
+  | `review` | `ListDetail` with `DiffViewer` / `CodeEditor` as the detail — the pair must differ from `todo` in **content**, so if both keep `ListDetail` one of them moves to `TablePage` |
   | `monitor` | `DashboardShell` + charts, **no** llm |
-  | `review` | `ListDetail` with `DiffViewer` / `CodeEditor` as the detail |
+  | `insights` | long-job progress in `DashboardShell`, or `WizardShell` if it stays multi-step |
+  | `spreadsheet` | `TablePage` (it is already the closest thing to a real data grid) |
   | `agentrun` | `ctx.agent` + `streamTo` (the only one) |
-  | `jira` | flagship: `Kanban` + `DataGrid` + `DetailPanel` + llm confirm |
+  | `jira` | flagship: `Kanban` + `DataGrid` + `DetailPanel` + llm confirm — deliberately **not** a preset, to prove the presets are optional |
+  | `minimal` | plain `AppShell` + Tailwind, and **no** motion — a skeleton must not cost a vendor download to read |
+
+  Two templates sharing a preset is acceptable only when their `ctx.*` axes differ and the
+  §2.3 look-alike complaint does not apply to them; the note on `review` is the live case.
+- Motion is demonstrated by **exactly one** template (suggested: `monitor`, via kit `Reveal`
+  on the KPI row) — not by all of them. Every sample that animates teaches the agent to
+  animate, and the tokens are paid on every generation.
 
 - Teaching comments stay `// ⭐`. Product copy stays Chinese in the samples (host default locale). Instructions/comments stay English.
 - No ninth template without a new capability axis. A new scenario goes through "does an existing axis already cover this?". (The rule exists to stop look-alike samples, not to forbid growth: `spreadsheet/` was added later because it is the only template that teaches `mini_app_install` — see [`per-app-packages.md`](./per-app-packages.md).)
+- `templates/README.md`'s table gets a **preset** column in the same change, so "which sample
+do I copy" answers the layout question too and not only the capability question.
 
 ### 5.2 Paradigms
 
@@ -361,16 +458,28 @@ Independent of the kit, land first:
 
 Then the kit, in order:
 
-3. **(1) `/mma/vendors/lodash.js` + specifier table on compiler and backend + motion** — unlocks P1-5; `pnpm build:ui` + `pnpm build:sdk`; `lodash` resolves, other bare specifiers still fail; templates typecheck.
-4. **(2) four layout presets** — `gen:skill`, i18n keys, one example each.
-5. **(3) templates + paradigms** — consume (1)(2); `pnpm check:templates && pnpm gen:skill && pnpm gen:examples`.
+3. **(1a) `/mma/vendors/lodash.js` + specifier table on compiler and backend** — ✅ landed.
+3b. **(1b) `motion`** — ✅ landed as `/mma/vendors/motion.js` (not folded into `sdk.js`: the
+    kit is already ~2.4 MB and every kit edit would otherwise cache-bust motion). The vendor
+    table grew a `targets` axis because motion is React-only — `import … from "motion"` in
+    `main.api.ts` fails `BACKEND_IMPORT` instead of falling through to “install it”, or to
+    the lodash module the way a single hardcoded vendor branch did. `styling.md` *Animation*
+    ships in the same change (see the rule below). `Reveal` promoted onto it.
+4. **(2) six layout presets** — see §4. The old gate (“the slot API must be used by a real
+   template first”) is **dropped**: this product is pre-release, there is no installed app to
+   protect, and the samples that would have exercised the API are being rebuilt anyway (§5).
+   The presets are therefore specified from the page shapes SaaS apps actually need, and the
+   templates are written **against** them afterwards — which is the same evidence, just in
+   the cheaper order.
+5. **(3) templates + paradigms** — consume (1b)(2); `pnpm check:templates && pnpm gen:skill && pnpm gen:examples`.
 
 Do not merge 3 into 1. Do not ship motion without updating `styling.md` in the same change.
 
 ## 9. Acceptance
 
 - Authors can `import { groupBy, debounce } from "lodash"` (and `import _ from "lodash"`) in `ui.tsx` **and** `main.api.ts`; `lodash-es` and `lodash/groupBy` resolve to the same full build. `import { motion, AnimatePresence } from "motion/react"` works in UI. Bare specifiers outside the platform table (`axios`, `ramda`, `dayjs`, …) still fail compile / backend load. Lodash is **not** a named export of `@monkey-mini-app/ui`.
-- Four presets appear in the generated catalog with distinct `@when` / `@scenario`.
+- The six presets of §4.2 appear in the generated catalog with distinct `@when` / `@scenario`,
+  each with a test that asserts the scroll/overflow property it exists for.
 - `minimal` is the only skeleton; each other template uses a unique capability × layout pair; paradigms have no inlined `Reveal`.
 - README(.zh) states owner-operated intent and that `ctx.*` is not a sandbox; no sentence claims a runtime fence; no `references/security.md` on the hot path.
 - Skill tells an agent, **only when the user asked**, to write `<dirname(runtimeRoot)>/themes/theme-<id>.css` with both light and dark TokenSet keys (generated from `THEME_VAR_KEYS`, not copied from app-facing `theme.md`). A just-written file appears in ThemePop without restarting the host. `check:skill` fails if the documented file keys drift. Mini-apps still contain no hex.

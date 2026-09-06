@@ -11,7 +11,7 @@ import type { AppCallContext } from "../app-runtime.ts";
 import { type AbsolutePath, type AppId,asAppId, isAppId } from "../brand.ts";
 import type { HostCapabilities } from "../capabilities.ts";
 import { bindCapsToContext } from "../capabilities.ts";
-import { resolveVendorSpecifier } from "../compile/platform-modules.ts";
+import { findVendor, resolveVendorSpecifier,type VendorId } from "../compile/platform-modules.ts";
 import { checkAppSources, formatFinding } from "../compile/static-check.ts";
 import type { UiCompiler } from "../compile/ui-compiler.ts";
 import { HostError } from "../errors.ts";
@@ -36,6 +36,24 @@ import { installAppPackages, requireFromAppPackages } from "./app-packages.ts";
 import { compileAppSource } from "./compile-app-source.ts";
 import { type HttpRequest, httpRequest, type HttpResponse } from "./ctx-http.ts";
 import { acronymOf, type AppManifest,parseManifest } from "./manifest.ts";
+
+/**
+ * Platform libraries the backend may serve. `platform-modules.ts` decides which ids
+ * reach here (a `ui`-only vendor like motion never does), so a missing entry is a
+ * table bug rather than an app error — but it still fails loud instead of returning
+ * the previous vendor's module, which is what a single hardcoded lodash did.
+ */
+const BACKEND_VENDORS: Partial<Record<VendorId, Record<string, unknown>>> = {
+  lodash: lodashEs as unknown as Record<string, unknown>,
+};
+
+function backendVendorModule(id: VendorId): Record<string, unknown> {
+  const mod = BACKEND_VENDORS[id];
+  if (!mod) {
+    throw new HostError("BACKEND_IMPORT", `backend has no platform module '${id}'`);
+  }
+  return mod;
+}
 
 export type AppItem = {
   id: AppId;
@@ -772,24 +790,32 @@ export class AppsManager {
           },
         });
       }
-      const vendor = resolveVendorSpecifier(spec);
+      const vendor = resolveVendorSpecifier(spec, "backend");
       if (vendor) {
-        const named = lodashEs as unknown as Record<string, unknown>;
+        const named = backendVendorModule(vendor.id);
         if ("deep" in vendor) {
           const fn = named[vendor.deep];
           if (fn === undefined) {
             throw new HostError(
               "BACKEND_IMPORT",
-              `backend cannot import '${spec}': unknown lodash member`,
+              `backend cannot import '${spec}': unknown ${vendor.id} member`,
             );
           }
           return { default: fn };
         }
-        return { ...named, default: lodashEs };
+        return { ...named, default: named };
       }
       if (!spec.startsWith(".")) {
         // Bare specifier the platform does not ship: try this app's own node_modules
         // (mini_app_install). Throws BACKEND_IMPORT with the install command when absent.
+        // A vendor that exists but skipped `backend` gets the real reason instead.
+        const uiOnly = findVendor(spec);
+        if (uiOnly) {
+          throw new HostError(
+            "BACKEND_IMPORT",
+            `backend cannot import '${spec}': ${uiOnly.id} is iframe-only (main.api.ts has no React) — use it in ui.tsx`,
+          );
+        }
         return requireFromAppPackages(appDir, spec);
       }
       const next = resolveAppModule(file, spec, appDir);

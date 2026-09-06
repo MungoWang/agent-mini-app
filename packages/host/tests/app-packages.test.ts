@@ -91,6 +91,17 @@ describe("installAppPackages", () => {
     });
   }
 
+  for (const name of ["motion", "framer-motion"]) {
+    it(`rejects ${name} and points at the iframe motion build`, async () => {
+      const dir = appDirWith({});
+      // A second motion means a second React binding, so the refusal has to name the
+      // specifier that actually works — "do not install it" alone sends the agent away.
+      await expect(
+        installAppPackages({ appDir: dir, appId: "com.example.a", packages: [{ name }] }),
+      ).rejects.toThrow(/motion\/react/);
+    });
+  }
+
   it("rejects a path-ish package name", async () => {
     const dir = appDirWith({});
     await expect(

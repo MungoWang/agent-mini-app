@@ -44,6 +44,10 @@
     {
       "name": "Discovery & inspect",
       "blurb": "Inspect, compare and browse artefacts: diff, JSON, code, requests, attachments."
+    },
+    {
+      "name": "Animation",
+      "blurb": "Entrance / exit / layout motion: reveal, stagger, animated presence."
     }
   ]
 }

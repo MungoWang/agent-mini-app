@@ -22,6 +22,8 @@ import {
   resolveVendorSpecifier,
   RUNTIME_HREF,
   SDK_HREF,
+  VENDOR_IDS,
+  vendorSpecifierFilter,
 } from "./platform-modules.ts";
 
 const requireFromHere = createRequire(import.meta.url);
@@ -33,7 +35,8 @@ const RUNTIME_SPECIFIER = /^(react|react-dom)(\/.*)?$/;
  * Author-facing UI package. Backend uses `@monkey-mini-app/api` (injected, not here).
  */
 const SDK_SPECIFIER = /^(lucide-react|@monkey-mini-app\/ui)(\/.*)?$/;
-const VENDOR_SPECIFIER = /^(lodash-es|lodash(\/.*)?)$/;
+/** Built from the vendor table, so a new platform library is one row in platform-modules. */
+const VENDOR_SPECIFIER = vendorSpecifierFilter();
 
 export type UiBuildFile = { name: string; contents: Uint8Array };
 
@@ -54,11 +57,18 @@ function uiDistLooksValid(dir: string): boolean {
   return fs.existsSync(path.join(dir, "index.js")) && fs.existsSync(path.join(dir, "globals.css"));
 }
 
+/**
+ * A usable iframe dist carries the runtime, the kit, and **every** vendor the platform
+ * table promises. Listing vendors here (rather than hardcoding lodash) means a dist built
+ * before a vendor was added is rejected up front with a rebuild hint, instead of resolving
+ * fine and then 500-ing on each `/mma/vendors/<new>.js` request — which surfaces as a
+ * mini-app with a blank frame and no obvious cause.
+ */
 function sdkFileLooksValid(dir: string): boolean {
   return (
     fs.existsSync(path.join(dir, "sdk.js")) &&
     fs.existsSync(path.join(dir, "runtime.js")) &&
-    fs.existsSync(path.join(dir, "vendors", "lodash.js"))
+    VENDOR_IDS.every((id) => fs.existsSync(path.join(dir, "vendors", `${id}.js`)))
   );
 }
 
@@ -151,7 +161,7 @@ export function resolveSdkDistDir(): string {
   }
   throw new HostError(
     "SDK_DIST_MISSING",
-    "@monkey-mini-app/ui dist missing runtime.js/sdk.js/vendors/lodash.js — run: pnpm build:ui && pnpm build:sdk",
+    `@monkey-mini-app/ui dist missing runtime.js/sdk.js/vendors/{${VENDOR_IDS.join(",")}}.js — run: pnpm build:ui && pnpm build:sdk`,
   );
 }
 
@@ -272,7 +282,7 @@ function makeUiPlugin(appDir: string): Plugin {
         external: true,
       }));
       build.onResolve({ filter: VENDOR_SPECIFIER }, (args) => {
-        const resolved = resolveVendorSpecifier(args.path);
+        const resolved = resolveVendorSpecifier(args.path, "ui");
         if (!resolved) {
           return {
             errors: [{ text: `UI cannot import '${args.path}'` }],
@@ -291,7 +301,7 @@ function makeUiPlugin(appDir: string): Plugin {
         const href = (args.pluginData as { href?: string } | undefined)?.href;
         const name = args.path;
         if (!href || !/^[A-Za-z_$][\w$]*$/.test(name)) {
-          return { errors: [{ text: `UI cannot import lodash/${name}` }] };
+          return { errors: [{ text: `UI cannot import ${name} from ${href ?? "a vendor"}` }] };
         }
         return {
           contents: `export { ${name} as default } from ${JSON.stringify(href)};\n`,

@@ -102,11 +102,58 @@ Light and dark are a **pair**, not two independent palettes. Worked example:
 
 ## Animation
 
-A motion library is being decided for the platform. Until it lands, keep it simple:
-transition with Tailwind utilities (`transition`, `duration-200`, `ease-out`,
-`animate-pulse`), and **do not inject your own `<style>` block with `@keyframes`** — it
-fights inline `opacity` and `animation-fill-mode` and is the kind of thing that looks
-right once and wrong after a theme switch.
+The platform ships [motion](https://motion.dev) in the iframe — one build at
+`/mma/vendors/motion.js`, sharing the same React as the kit. It is not an npm install and
+not a kit re-export; you write the package name you already know:
+
+```tsx
+import { motion, AnimatePresence } from "motion/react";
+```
+
+Pick by how much you actually need:
+
+| You want | Use |
+|---|---|
+| A hover / press / colour change on one property | Tailwind `transition duration-200 ease-out` — no motion |
+| A card or row **entering** (fade + rise, staggered) | `<Reveal delay={i * 60}>` from the kit |
+| Exit animation, or a list where rows come and go | `AnimatePresence` + `motion.div` with `initial` / `animate` / `exit` |
+| Something that moves to a new position (layout shift) | `motion.div layout` |
+| A looping decorative effect (shimmer, pulse) | Tailwind `animate-pulse` / `animate-spin` first; `motion` `animate={{ … , transition: { repeat: Infinity } }}` if that is not enough |
+
+```tsx
+// rows that leave without popping out of existence
+<AnimatePresence initial={false}>
+  {items.map((it, i) => (
+    <motion.div
+      key={it.id}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ delay: i * 0.04 }}
+    >
+      <Card>{it.title}</Card>
+    </motion.div>
+  ))}
+</AnimatePresence>
+```
+
+Rules that keep this from breaking:
+
+- **Never inject your own `<style>` block with `@keyframes`.** Keyframe names are global
+  in a document: two components in one app that both declare `@keyframes soft-pulse` with
+  different values mean whichever mounted last silently changes the other, and a bare
+  `@keyframes spin` overwrites the one Tailwind emitted for `animate-spin`. This is the
+  single most common way a hand-written animation looks right once and wrong later.
+- **Don't mix** an injected `animation` with `animate-in` / `fill-mode-both` on the same
+  element — they fight over `opacity`.
+- `motion` is **UI only**. `main.api.ts` has no React, so `import … from "motion"` there
+  fails with `BACKEND_IMPORT`.
+- Respect the OS setting: `useReducedMotion()` from `motion/react` before animating
+  position. (Kit `Reveal` already does this.)
+- Colour still comes from tokens. Animate `opacity` / `transform`, and use theme vars
+  (`var(--primary)`) rather than hex inside a keyframe. → [theme.md](theme.md)
+- Do not `mini_app_install` `motion` or `framer-motion` — the host rejects them, because a
+  second copy means a second React.
 
 ## What is actually on disk
 
@@ -118,5 +165,5 @@ next compile — never edit it, and never import from it.
 - [ ] every class name is a complete literal in the source (no `` `bg-${x}-500` ``)
 - [ ] no hex / rgb literals for themeable colour — tokens only
 - [ ] sized against the viewport, not a fixed height
-- [ ] no injected `<style>`/`@keyframes`
+- [ ] no injected `<style>`/`@keyframes` (keyframe names are global per document — use `motion` or kit `Reveal`) → *Animation*
 - [ ] ask the live view what won: `mini_app_view_eval({ appId, code: 'const cs = getComputedStyle(mma.$(".your-class")); return { color: cs.color, bg: cs.backgroundColor };' })` → [eval.md](eval.md)

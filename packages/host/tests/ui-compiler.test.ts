@@ -119,6 +119,29 @@ export default function Ui() {
     expect(js).toContain("/mma/vendors/lodash.js");
   });
 
+  it("externalises motion to /mma/vendors/motion.js", async () => {
+    for (const spec of ["motion", "motion/react"]) {
+      const { compiler, appDir } = makeApp(`
+import { motion, AnimatePresence } from "${spec}";
+export default function Ui() {
+  return <AnimatePresence>{motion ? <div /> : null}</AnimatePresence>;
+}
+`);
+      const js = entryJs(await compiler.compile(appDir, { locale: "zh-CN" }));
+      expect(js).toContain("/mma/vendors/motion.js");
+      // One React: the app must never pull its own copy alongside the vendor file.
+      expect(js).not.toMatch(/from\s*["']react["']/);
+    }
+  });
+
+  it("does not let framer-motion sneak a second animation runtime in", async () => {
+    const { compiler, appDir } = makeApp(`
+import { motion } from "framer-motion";
+export default function Ui() { return <div>{typeof motion}</div>; }
+`);
+    await expect(compiler.compile(appDir, { locale: "zh-CN" })).rejects.toThrow(/Could not resolve|cannot import/);
+  });
+
   it("keeps app-installed backend packages out of the UI bundle", async () => {
     const { compiler, appDir } = makeApp(`
 import ExcelJS from "exceljs";

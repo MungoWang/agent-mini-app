@@ -346,6 +346,30 @@ export default defineApp({
     await expect(apps.call("com.example.lodash", "ping", {})).resolves.toEqual({ a: 1 });
   });
 
+  it("refuses a UI-only vendor in the backend instead of handing over lodash", async () => {
+    // motion has no backend meaning (no React there). Before the vendor table had
+    // `targets`, any vendor id fell into the lodash branch and the app got `_`.
+    const { apps } = boot();
+    await apps.register("com.example.uionly", {
+      "manifest.json": JSON.stringify({
+        id: "com.example.uionly",
+        name: "UIOnly",
+        version: "1.0.0",
+        entry: "ui.tsx",
+      }),
+      "ui.tsx": "export default function Ui() { return null; }\n",
+      "main.api.ts": `import { motion } from "motion";
+import { defineApp } from "@monkey-mini-app/api";
+export default defineApp({
+  name: "UIOnly",
+  description: "vendor",
+  api: { ping: async () => typeof motion },
+});
+`,
+    });
+    await expect(apps.call("com.example.uionly", "ping", {})).rejects.toThrow(/motion/);
+  });
+
   it("loads a backend package installed into the app directory", async () => {
     const { apps } = boot();
     const id = "com.example.vendor";

@@ -66,6 +66,15 @@ try {
         lodash: [path.join(root, "packages/ui/node_modules/lodash-es")],
         "lodash-es": [path.join(root, "packages/ui/node_modules/lodash-es")],
         "lodash/*": [path.join(root, "packages/ui/node_modules/lodash-es/*")],
+        // The iframe vendors ship their types from the kit's own tree: an app directory
+        // has no node_modules, so this is the only place an author's editor can look.
+        //
+        // Both motion rows point at the **react** declaration: the vendor file re-exports
+        // motion/react under both specifiers, and motion's own bare entry is the vanilla
+        // API (no `motion.div`). Leaving it would make `from "motion"` type-error while
+        // running fine — the exact disagreement an agent cannot debug from the outside.
+        motion: [path.join(root, "node_modules/motion/dist/react.d.ts")],
+        "motion/react": [path.join(root, "node_modules/motion/dist/react.d.ts")],
       },
     },
     include: [

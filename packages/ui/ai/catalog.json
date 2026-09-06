@@ -47,6 +47,10 @@
     {
       "name": "Discovery & inspect",
       "blurb": "Inspect, compare and browse artefacts: diff, JSON, code, requests, attachments."
+    },
+    {
+      "name": "Animation",
+      "blurb": "Entrance / exit / layout motion: reveal, stagger, animated presence."
     }
   ],
   "components": {
@@ -1096,6 +1100,13 @@
         "ResizablePanelGroup"
       ],
       "helpers": []
+    },
+    "Reveal": {
+      "componentType": "block",
+      "family": "Animation",
+      "primitive": false,
+      "when": "A card, row, or section appearing on first paint or after a filter change. Not for a hover/press response (one property: use a Tailwind `transition`) and not for animating an element out (use `AnimatePresence`).",
+      "contract": "references/contracts/reveal.md"
     },
     "RichTextEditor": {
       "componentType": "product",

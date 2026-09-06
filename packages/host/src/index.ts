@@ -64,15 +64,18 @@ export {
 } from "./brand.ts";
 export type { BoundHostCapabilities, HostCapabilities } from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
-export type { VendorId, VendorResolve } from "./compile/platform-modules.ts";
+export type { Vendor, VendorId, VendorResolve, VendorTarget } from "./compile/platform-modules.ts";
 export {
+  findVendor,
   resolveVendorSpecifier,
   RUNTIME_HREF,
   SDK_HREF,
   VENDOR_IDS,
   vendorFileHref,
   vendorIdFromFile,
+  VENDORS,
   VENDORS_HREF_PREFIX,
+  vendorSpecifierFilter,
 } from "./compile/platform-modules.ts";
 export type { StaticCheckResult, StaticFinding } from "./compile/static-check.ts";
 export {

@@ -473,6 +473,17 @@ export default defineApp({
     expect(encoded.status).toBe(404);
   });
 
+  it("GET /mma/vendors/motion.js serves the iframe motion build", async () => {
+    await startHost();
+    const res = await fetch(`${origin()}/mma/vendors/motion.js`);
+    expect(res.status).toBe(200);
+    const js = await res.text();
+    expect(js).toMatch(/AnimatePresence/);
+    // One React: motion must reach the platform runtime, never bundle its own.
+    expect(js).toContain("/mma/runtime.js");
+    expect(js).not.toMatch(/from\s*["']react["']/);
+  });
+
   it("GET /ui.css serves the ui dist stylesheet", async () => {
     await startHost();
     const res = await fetch(`${origin()}/ui.css`);

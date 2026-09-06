@@ -1,5 +1,13 @@
 import * as React from "react";
 
+/**
+ * Entrance reveal comes from the kit, which sits on the platform `motion` build
+ * (/mma/vendors/motion.js, one shared React). The demos used to hand-roll this with
+ * `animate-in` + an inline `animationDelay`, which is the pattern that collides with a
+ * theme switch — now there is one implementation to look at.
+ */
+export { Reveal } from "@monkey-mini-app/ui";
+
 /** Count-up animation shared by the paradigm demos (a kit component later). */
 export function useCountUp(target: number, duration = 900): number {
   const [value, setValue] = React.useState(0);
@@ -16,26 +24,6 @@ export function useCountUp(target: number, duration = 900): number {
     return () => cancelAnimationFrame(raf);
   }, [target, duration]);
   return value;
-}
-
-/** Entrance stagger shared by the paradigm demos (a kit Reveal later) */
-export function Reveal({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  return (
-    <div
-      className={"animate-in fade-in slide-in-from-bottom-2 fill-mode-both " + className}
-      style={{ animationDelay: `${delay}ms`, animationDuration: "500ms" }}
-    >
-      {children}
-    </div>
-  );
 }
 
 /** Heading block that opens a style group */

@@ -220,3 +220,11 @@ Inspect, compare and browse artefacts: diff, JSON, code, requests, attachments.
 | `RequestInspector` | block | — | Debugging one API call: method, url, bodies. Multiple calls streaming → `LogViewer`. | [docs](contracts/request-inspector.md) |
 | `Copyable` | composite | — | IDs, hashes, URLs, tokens the user pastes elsewhere. | [docs](contracts/copyable.md) |
 | `Attachment` | component | `Attachment` `AttachmentAction` +7 | One selected file inside a form. A grid of many → `AttachmentGallery`. | [docs](contracts/attachment.md) |
+
+## Animation
+
+Entrance / exit / layout motion: reveal, stagger, animated presence.
+
+| component | type | parts | when | contract |
+|---|---|---|---|---|
+| `Reveal` | block | — | A card, row, or section appearing on first paint or after a filter change. Not for a hover/press response (one property: use a Tailwind `transition`) and not for animating an element out (use `AnimatePresence`). | [docs](contracts/reveal.md) |

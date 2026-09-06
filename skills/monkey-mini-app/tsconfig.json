@@ -16,7 +16,15 @@
     "paths": {
       "@monkey-mini-app/api": ["../../packages/api/src/index.ts"],
       "@monkey-mini-app/ui": ["../../packages/ui/src/index.ts"],
-      "@monkey-mini-app/ui/*": ["../../packages/ui/src/*"]
+      "@monkey-mini-app/ui/*": ["../../packages/ui/src/*"],
+      // The iframe vendors. An app directory has no node_modules, so these rows are the
+      // only reason `lodash` / `motion` are not red in the author's editor. Both motion
+      // rows are the **react** declaration, matching what /mma/vendors/motion.js ships
+      // (motion's own bare entry is the vanilla API and has no `motion.div`).
+      "lodash": ["../../node_modules/lodash-es"],
+      "lodash/*": ["../../node_modules/lodash-es/*"],
+      "motion": ["../../node_modules/motion/dist/react.d.ts"],
+      "motion/react": ["../../node_modules/motion/dist/react.d.ts"]
     }
   },
   "include": ["templates/**/*.ts", "templates/**/*.tsx", "types/**/*.d.ts"]
