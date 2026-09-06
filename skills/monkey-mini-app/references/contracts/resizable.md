@@ -25,5 +25,5 @@ _Inherited HTML/ARIA props (`className`, `style`, `id`, `onClick`, `aria-*`, …
 ## Skeleton
 
 ```tsx
-<ResizablePanelGroup direction="horizontal"><ResizablePanel>list</ResizablePanel><ResizableHandle /><ResizablePanel>detail</ResizablePanel></ResizablePanelGroup>
+<ResizablePanelGroup orientation="horizontal"><ResizablePanel>list</ResizablePanel><ResizableHandle /><ResizablePanel>detail</ResizablePanel></ResizablePanelGroup>
 ```

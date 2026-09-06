@@ -799,6 +799,13 @@
       ],
       "helpers": []
     },
+    "ListDetail": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Page shape: click a row, then read or edit that one record beside the list — orders, tickets, contacts, log lines",
+      "contract": "references/contracts/list-detail.md"
+    },
     "LogViewer": {
       "componentType": "product",
       "family": "Realtime",

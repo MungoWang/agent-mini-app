@@ -249,6 +249,9 @@ export const en = {
     hideDetails: "Hide details",
     reported: "Reported to the host",
   },
+  listDetail: {
+    back: "Back to list",
+  },
 }
 
 export type UiMessages = typeof en

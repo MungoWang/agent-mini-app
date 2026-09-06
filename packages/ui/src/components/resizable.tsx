@@ -9,7 +9,7 @@ import { cn } from "@monkey-mini-app/ui/lib/utils"
  * @family Layout & structure
  * @when Master-detail or editor + preview inside the app body.
  * @example
- * <ResizablePanelGroup direction="horizontal"><ResizablePanel>list</ResizablePanel><ResizableHandle /><ResizablePanel>detail</ResizablePanel></ResizablePanelGroup>
+ * <ResizablePanelGroup orientation="horizontal"><ResizablePanel>list</ResizablePanel><ResizableHandle /><ResizablePanel>detail</ResizablePanel></ResizablePanelGroup>
  */
 function ResizablePanelGroup({
   className,

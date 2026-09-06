@@ -1,4 +1,5 @@
 import DetailPanel01Example from "../components/detail-panel/detail-panel-01";
+import ListDetail01Example from "../components/list-detail/list-detail-01";
 import MiscChartsBlocks01Example from "../components/misc-charts-blocks/misc-charts-blocks-01";
 import MiscChartsBlocks02Example from "../components/misc-charts-blocks/misc-charts-blocks-02";
 import MiscChartsBlocks03Example from "../components/misc-charts-blocks/misc-charts-blocks-03";
@@ -35,6 +36,13 @@ export function ChartBlockExamples() {
       </Example>
       <Example id="detail-panel" title="DetailPanel">
         <DetailPanel01Example />
+      </Example>
+      <Example
+        id="list-detail"
+        title="ListDetail"
+        hint="Scroll either pane — the toolbar and the other pane stay put"
+      >
+        <ListDetail01Example />
       </Example>
       <Example id="run-timeline" title="RunTimeline">
         <RunTimeline01Example />

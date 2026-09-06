@@ -235,4 +235,7 @@ export const zh: UiMessages = {
     hideDetails: "收起详情",
     reported: "已上报宿主",
   },
+  listDetail: {
+    back: "返回列表",
+  },
 }
