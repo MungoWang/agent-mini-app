@@ -23,5 +23,6 @@
 
 ## 挂起（低优先，随时可捡）
 
+- **kit 测试没有覆盖率门槛**。`packages/ui` 的组件测试之前根本没被 `pnpm test` 跑到（见 `vitest.workspace.ts` 的 `kit` project 注释），根因之一是 85% 线只覆盖 host/panel/dsh。project 已经接上，但 kit 自身不设阈值——24 个 `.test.tsx` 里只要有文件再次与 include 规则错开，没有东西会报警。
 - `shared/**` 的「纯同构」目前只是约定，没有静态门禁（不许 React / `ctx` / DOM / Node）。
 - 面板 `host-shell.ts` 覆盖率仍偏低，是 85% 线的拖累项；补测试即可，与功能无关。

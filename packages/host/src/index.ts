@@ -64,6 +64,10 @@ export {
 } from "./brand.ts";
 export type { BoundHostCapabilities, HostCapabilities } from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
+export {
+  keyframeNamesIn,
+  platformKeyframeNames,
+} from "./compile/platform-keyframes.ts";
 export type { Vendor, VendorId, VendorResolve, VendorTarget } from "./compile/platform-modules.ts";
 export {
   findVendor,
@@ -77,6 +81,7 @@ export {
   VENDORS_HREF_PREFIX,
   vendorSpecifierFilter,
 } from "./compile/platform-modules.ts";
+export { RUNNER_INLINE_CSS } from "./compile/runner-inline-css.ts";
 export type { StaticCheckResult, StaticFinding } from "./compile/static-check.ts";
 export {
   checkAppSources,

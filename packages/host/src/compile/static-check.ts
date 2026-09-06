@@ -31,6 +31,8 @@ import path from "node:path";
 import type * as tsTypes from "typescript";
 import type tsModule from "typescript";
 
+import { platformKeyframeNames } from "./platform-keyframes.ts";
+
 type Ts = typeof tsModule;
 
 type TsLoader = Promise<Ts | null>;
@@ -436,6 +438,119 @@ function closestMatch(name: string, decls: Iterable<string>): string | undefined
  * Scan every source of a mini-app for names that will not exist at runtime.
  * `appDir` is the registered app directory; findings carry app-relative paths.
  */
+/** Every file whose text may declare CSS: sources plus any hand-written stylesheet. */
+function cssBearingFiles(appDir: string): string[] {
+  const out: string[] = [];
+  const walk = (dir: string): void => {
+    let names: string[] = [];
+    try {
+      names = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const name of names) {
+      const full = path.join(dir, name);
+      if (SKIP_DIRS.has(name)) continue;
+      let st;
+      try {
+        st = statSync(full);
+      } catch {
+        continue;
+      }
+      if (st.isDirectory()) walk(full);
+      // `.autogen` is skipped with the app's other generated trees: it re-echoes the
+      // platform's own keyframes, and flagging those would be pure noise.
+      else if (/\.(ts|tsx|js|jsx|css)$/.test(name) && !/\.(test|spec)\./.test(name)) out.push(full);
+    }
+  };
+  walk(appDir);
+  return out.sort();
+}
+
+const KEYFRAME_DECL = /@keyframes\s+(?:"([^"]+)"|'([^']+)'|([\w-]+))/g;
+
+type KeyframeDecl = { name: string; file: string; line: number; column: number };
+
+/**
+ * `@keyframes` the app declares, wherever they are written. Deliberately text-based: an app
+ * puts keyframes in a `<style>` template literal, in `` css`…` ``, in a plain string it
+ * injects, or in a `.css` file — an AST walk would have to decide which strings are CSS,
+ * and guessing wrong means missing a real collision.
+ */
+function keyframeDeclarations(appDir: string): KeyframeDecl[] {
+  const decls: KeyframeDecl[] = [];
+  for (const abs of cssBearingFiles(appDir)) {
+    let src: string;
+    try {
+      src = readFileSync(abs, "utf8");
+    } catch {
+      continue;
+    }
+    if (!src.includes("@keyframes")) continue;
+    const rel = path.relative(appDir, abs).split(path.sep).join("/");
+    for (const m of src.matchAll(KEYFRAME_DECL)) {
+      const name = m[1] ?? m[2] ?? m[3];
+      if (!name) continue;
+      const at = m.index ?? 0;
+      const before = src.slice(0, at);
+      decls.push({
+        name,
+        file: rel,
+        line: before.split("\n").length,
+        column: at - (before.lastIndexOf("\n") + 1) + 1,
+      });
+    }
+  }
+  return decls;
+}
+
+/**
+ * Keyframe collisions inside this one app document — **notices, never blocking**.
+ *
+ * Each mini-app is its own iframe and therefore its own document: an app's keyframes cannot
+ * reach another app, so uniquely named custom animation is safe and is not something to
+ * forbid. Two things do silently misbehave: re-declaring a name the platform sheet already
+ * defines, and declaring the same name twice in one app, where whichever mounts last wins
+ * for both users (that is a real bug we hit — one dashboard defined `aibrief-soft` twice
+ * with different opacity values). Worth telling the agent about; not worth refusing to
+ * reload an app over, because overriding a platform keyframe can be exactly what the author
+ * meant to do.
+ */
+function keyframeFindings(appDir: string): StaticFinding[] {
+  const decls = keyframeDeclarations(appDir);
+  if (!decls.length) return [];
+  const reserved = platformKeyframeNames();
+  const seen = new Map<string, KeyframeDecl>();
+  const out: StaticFinding[] = [];
+  for (const d of decls) {
+    const at = { file: d.file, line: d.line, column: d.column, name: d.name };
+    if (reserved.has(d.name)) {
+      out.push({
+        ...at,
+        severity: "notice",
+        reason:
+          `@keyframes "${d.name}" reuses a name the platform stylesheet already defines, so the later-mounted ` +
+          `rule wins for every animation using it in this app. Rename it (e.g. "${d.name}-app") unless that ` +
+          `override is what you meant.`,
+      });
+      continue;
+    }
+    const first = seen.get(d.name);
+    if (first) {
+      out.push({
+        ...at,
+        severity: "notice",
+        reason:
+          `@keyframes "${d.name}" is declared twice in this app (also at ${first.file}:${first.line}); ` +
+          `whichever mounts last wins, so one of the two users silently gets the other's values.`,
+      });
+      continue;
+    }
+    seen.set(d.name, d);
+  }
+  return out;
+}
+
 export async function checkAppSources(appDir: string): Promise<StaticCheckResult> {
   const empty: StaticCheckResult = { findings: [], errorsByLayer: new Map() };
   const loaded = await loadTs();
@@ -500,6 +615,8 @@ export async function checkAppSources(appDir: string): Promise<StaticCheckResult
       });
     }
   }
+
+  findings.push(...keyframeFindings(appDir));
 
   findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.column - b.column);
   const errorsByLayer = new Map<string, StaticFinding[]>();

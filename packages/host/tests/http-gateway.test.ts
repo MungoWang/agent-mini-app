@@ -484,6 +484,21 @@ export default defineApp({
     expect(js).not.toMatch(/from\s*["']react["']/);
   });
 
+  it("keeps one motion runtime shared by the kit and the apps", async () => {
+    await startHost();
+    // The kit imports motion (for Reveal). If that import ever gets bundled instead of
+    // externalised, sdk.js carries a second motion next to the vendor file: two React
+    // binders, and app-level AnimatePresence stops seeing kit-driven nodes. The iframe
+    // renders fine, so only the bytes show it.
+    const sdk = await (await fetch(`${origin()}/mma/sdk.js`)).text();
+    expect(sdk).toContain("/mma/vendors/motion.js");
+    expect(sdk).not.toMatch(/from\s*["']react["']/);
+    const motion = await (await fetch(`${origin()}/mma/vendors/motion.js`)).text();
+    // motion's source ships its own react copy under a minified name; a second runtime
+    // would be `createContext(` of a fresh React, not a reference to the shared one.
+    expect(motion).toContain("/mma/runtime.js");
+  });
+
   it("GET /ui.css serves the ui dist stylesheet", async () => {
     await startHost();
     const res = await fetch(`${origin()}/ui.css`);

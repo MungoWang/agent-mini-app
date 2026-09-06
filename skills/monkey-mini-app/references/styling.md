@@ -139,11 +139,16 @@ Pick by how much you actually need:
 
 Rules that keep this from breaking:
 
-- **Never inject your own `<style>` block with `@keyframes`.** Keyframe names are global
-  in a document: two components in one app that both declare `@keyframes soft-pulse` with
-  different values mean whichever mounted last silently changes the other, and a bare
-  `@keyframes spin` overwrites the one Tailwind emitted for `animate-spin`. This is the
-  single most common way a hand-written animation looks right once and wrong later.
+- **Keyframe names are global inside one app document.** Each mini-app runs in its own
+  iframe, so your keyframes cannot affect another app — but two of *your* components can
+  fight over one name, and whichever mounts last wins for both. That is a real, silent bug:
+  one dashboard declared `@keyframes soft-pulse` twice with different opacity values, and
+  whichever panel opened later changed the other's animation.
+- **Prefer a name the platform does not already use.** The host's own sheet defines
+  `spin`, `ping`, `pulse`, `enter`, `exit`, `accordion-down`, `accordion-up`,
+  `scroll-fade-reveal-*`, `tw-shimmer` and `mma-dot`. Declaring one of those overrides it
+  for the whole app. The reload check reports a clash as a **notice** and the app still
+  loads — overriding deliberately is allowed, being unaware of it is what gets you.
 - **Don't mix** an injected `animation` with `animate-in` / `fill-mode-both` on the same
   element — they fight over `opacity`.
 - `motion` is **UI only**. `main.api.ts` has no React, so `import … from "motion"` there
@@ -155,6 +160,14 @@ Rules that keep this from breaking:
 - Do not `mini_app_install` `motion` or `framer-motion` — the host rejects them, because a
   second copy means a second React.
 
+```tsx
+/* ✓ your own name, so nothing else in this document is sharing it */
+<style>{`@keyframes ledger-row-in { from { opacity: 0; transform: translateY(6px) } }`}</style>
+
+/* ✗ silently redefines Tailwind's spin for every animate-spin in the app */
+<style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+```
+
 ## What is actually on disk
 
 `.autogen/` inside an app holds the generated Tailwind output. It is overwritten on the
@@ -165,5 +178,6 @@ next compile — never edit it, and never import from it.
 - [ ] every class name is a complete literal in the source (no `` `bg-${x}-500` ``)
 - [ ] no hex / rgb literals for themeable colour — tokens only
 - [ ] sized against the viewport, not a fixed height
-- [ ] no injected `<style>`/`@keyframes` (keyframe names are global per document — use `motion` or kit `Reveal`) → *Animation*
+- [ ] animations use `motion` / kit `Reveal`, or a Tailwind transition — and any custom
+      `@keyframes` has a name the platform sheet does not already define → *Animation*
 - [ ] ask the live view what won: `mini_app_view_eval({ appId, code: 'const cs = getComputedStyle(mma.$(".your-class")); return { color: cs.color, bg: cs.backgroundColor };' })` → [eval.md](eval.md)

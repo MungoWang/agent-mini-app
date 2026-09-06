@@ -1,3 +1,4 @@
+import { RUNNER_INLINE_CSS } from "../compile/runner-inline-css.ts";
 import { RUNTIME_HREF, SDK_HREF } from "../compile/ui-compiler.ts";
 import { viewEvalRuntime } from "./app-view-eval.ts";
 
@@ -96,6 +97,7 @@ function diagnosticsScript(appId: string): string {
 }
 
 /** Iframe entry HTML for a compiled mini-app UI bundle. */
+
 export function appRunnerHtml(appId: string, themeCss = ""): string {
   const safe = JSON.stringify(appId);
   const title = appId.replace(/[&<>"']/g, (ch) => {
@@ -169,14 +171,7 @@ export function appRunnerHtml(appId: string, themeCss = ""): string {
   ${themeBlock}html,body,#root{margin:0;height:100%;background:var(--background,#fff);color:var(--foreground,#111);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);}
   .err{padding:24px;color:#b91c1c;white-space:pre-wrap;}
   ${CRASH_CSS}
-  #root.boot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
-  #root.boot .art{position:relative;width:88px;height:72px;color:var(--foreground,#111);}
-  #root.boot .art svg{display:block;width:88px;height:64px;}
-  #root.boot .dots{display:flex;gap:5px;justify-content:center;margin-top:2px;}
-  #root.boot .dots i{width:6px;height:6px;border-radius:50%;background:var(--primary,#2563eb);opacity:.35;animation:mma-dot 1s ease-in-out infinite;}
-  #root.boot .dots i:nth-child(2){animation-delay:.15s;}
-  #root.boot .dots i:nth-child(3){animation-delay:.3s;}
-  @keyframes mma-dot{0%,80%,100%{transform:translateY(0);opacity:.3}40%{transform:translateY(-5px);opacity:1}}
+${RUNNER_INLINE_CSS}
 </style>
 </head>
 <body>

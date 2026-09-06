@@ -98,6 +98,66 @@ the entrance sample raced page setup (replaced with a state-driven transition), 
 "app-injected keyframes" counted the host's own boot loader (`mma-dot`, from
 `app-runner-html.ts`) as if the app had written it.
 
+## The dormant test suite this surfaced
+
+Answering "is there an animation test in dsh-host?" required counting what the suite
+actually executes, and the answer was worse than "no":
+
+`vitest.workspace.ts` declared **one** project, `unit`, with includes ending in
+`.test.ts`. `packages/ui` has its own config (jsdom + testing-library + its own alias) and
+24 `.test.tsx` component tests — and nothing ever ran it. No script and no CI step invokes
+`pnpm --filter @monkey-mini-app/ui test`, and the root `vitest run` cannot see `.test.tsx`
+through `unit`'s globs. Those tests type-checked and sat unread. Widening the `unit` glob
+would not have fixed it either: they need jsdom and the kit's setup file.
+
+Adding the `kit` project took the suite from ~330 to **673 tests**, and immediately produced
+three failures:
+
+- two were my own brand-new `reveal.test.tsx` assertions, wrong about how motion writes
+  styles in jsdom (`translateY(24px)`, and `"none"` rather than `""` when reduced);
+- one was `code-block.test.tsx`, which had **never once run** and could never have passed:
+  it awaited `data-highlighted="true"` from shiki, but shiki is loaded from
+  `https://esm.sh/shiki@4.4.3` (hard constraint #12: CDN, not bundled) and Node's loader
+  rejects that with `ERR_UNSUPPORTED_ESM_URL_SCHEME`. Its own `waitFor` timeout (8000ms) was
+  also longer than the default test timeout (5000ms), so it failed on timing before it could
+  fail on substance. Rewritten to assert the contract that is real offline — **a failed
+  highlight CDN must still render the code** — which is the failure mode that would actually
+  cost a user something.
+
+The 85% coverage thresholds cover host/panel/dsh only, so nothing flagged a whole package's
+component tests going unrun. That gap is recorded in `TODO.md` rather than papered over.
+
+## Canaries run (each was seen red before green)
+
+- Vendor table vs build map drift: added a `zod` row with no build entry →
+  `no build for [zod]`.
+- `check:templates` motion path: removed the `paths` row → `Module "motion" has no exported
+  member "motion"`.
+- Keyframe fence: deleted the `keyframeFindings` call → 3 of 7 tests red.
+- `reveal.test.tsx` reduce-motion: deleted the `useReducedMotion` branch → red.
+- `motion-vendor.spec.ts`: swapped `Reveal` back to the old CSS-class implementation → all 3
+  browser tests red.
+
+The last one needed a second attempt and is worth writing down: the first three canaries
+*passed*, which looked like a weak assertion but was a stale build. `@monkey-mini-app/ui`
+resolves through the package `exports` to **`packages/ui/dist`**, not `src` (only
+`globals.css` is aliased to source), so editing a component and re-running the e2e tests the
+previous build. After `pnpm build:ui` it failed correctly. A canary that passes is not
+automatically a failed canary — check that the code under test is the code you changed.
+
+Two of my own assertions were also simply not discriminating, found the same way: the
+browser reduce-motion test passed with the feature deleted (by the time Playwright observes
+the nodes a 320ms entrance has settled, so "opacity is 1" holds in both modes) — that test
+was removed rather than kept as theatre, and reduce-motion coverage stays in jsdom where the
+initial values can be asserted.
+
+## Pre-existing, not from this change
+
+`apps/demo-host/e2e/smoke.spec.ts` has 2 failing tests (`data-grid` not on the landing page;
+the app's default section is `style-glass`). Confirmed by checking out `3f74577` (before
+motion landed) and re-running: the same 2 fail. Left alone. Note that no gate runs these
+e2e specs — `pnpm verify` does not invoke Playwright — which is how they stayed red.
+
 ## Not done here
 
 Templates and paradigms still animate via the old path where they had it; §5 (templates

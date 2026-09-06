@@ -127,11 +127,36 @@ Shipped. Notes below record what actually happened where this section guessed wr
   `dist` entry externalises to the same vendor file, so the kit and the app share one motion
   runtime — the two Reacts problem again if the kit bundled its own.
 - `references/styling.md` *Animation* rewritten in the same change (was: “a motion library is
-  being decided”). The `@keyframes` ban now has the reason attached: keyframe names are
-  global per document, so two components declaring the same name make the last-mounted one
-  win, and a bare `@keyframes spin` overwrites Tailwind's own.
+  being decided”). The first cut banned app-injected `@keyframes` outright; that was
+  over-converging a **naming** problem into a **prohibition** and has been replaced by a
+  fence (see below).
 - `mini_app_install` denylist covers `motion` + `framer-motion` with the working specifier in
   the error text.
+
+#### Keyframes: fence, not ban
+
+Each mini-app is its own iframe and therefore its own document
+(`packages/panel/src/frame.ts` — `iframe.src = urlOf(appId)`), so an app's `@keyframes`
+**cannot reach another app**. Uniquely named custom animation is safe, and a blanket ban was
+just an agent losing a capability it was allowed to want. Two things do misbehave, both
+inside one document:
+
+1. re-declaring a name the platform sheet already defines;
+2. declaring the same name twice in one app, where last-mounted wins for both users.
+
+(2) is the bug that started this: one dashboard declared `@keyframes aibrief-soft` in two
+components with different opacity values.)
+
+So the host reports both as static-check **`notice`s** and reloads anyway. Not blocking is
+deliberate: overriding a platform keyframe is sometimes exactly what the author means, and
+the earlier “error” framing would have had the same cost as the ban it replaced.
+
+The reserved names are **not a hand-written list** — `compile/platform-keyframes.ts` derives
+them from the two things that actually inject CSS into an app document (`globals.css` and the
+runner's inline boot CSS, now a leaf module `compile/runner-inline-css.ts` because both
+`http/` and `compile/` need it). Add a keyframe to either and it is reserved on the next
+reload. The derived set was checked against a live app document and matched exactly: `mma-dot
+spin ping pulse enter exit accordion-down accordion-up scroll-fade-reveal-b/s/e tw-shimmer`.
 - Paradigm `Reveal` was promoted into the kit (the old inlined copy in
   `packages/ui-examples/src/paradigms/shared.tsx` is now a re-export of the kit one, so all
   nine paradigms exercise it). `useCountUp` stayed a paradigm helper — still one caller each,
