@@ -15,7 +15,7 @@ import {
 } from "../about.ts";
 import { readAppTheme, writeAppTheme } from "../apps/app-theme.ts";
 import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
-import { listStorageTables, readJsonFile, storageTablePath } from "../apps/storage.ts";
+import { listStorageTables, readJsonFile, readTableView } from "../apps/storage.ts";
 import { asAppId, isAppId } from "../brand.ts";
 import type { AppCssCompiler } from "../compile/app-css.ts";
 import { vendorIdFromFile, VENDORS_HREF_PREFIX } from "../compile/platform-modules.ts";
@@ -519,8 +519,8 @@ export class HttpGateway {
       const appId = asAppId(c.req.param("appId"));
       const table = c.req.param("table");
       const dir = path.join(this.apps.dirOf(appId), WorkspacePaths.Rel.storage);
-      const fp = storageTablePath(dir, table);
-      return c.json({ ok: true, table, value: readJsonFile(fp, null) });
+      // Folded back into one view whether the host keeps it as a file or as one file per key.
+      return c.json({ ok: true, table, value: readTableView(dir, table) });
     });
 
     app.get("/api/apps/:appId/theme", (c) => {

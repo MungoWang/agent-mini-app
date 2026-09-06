@@ -1,5 +1,6 @@
 import type { Dirent } from "node:fs";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { closeSync, fsyncSync, openSync, writeSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -36,6 +37,14 @@ import {
 import { installAppPackages, requireFromAppPackages } from "./app-packages.ts";
 import { compileAppSource } from "./compile-app-source.ts";
 import { type HttpRequest, httpRequest, type HttpResponse } from "./ctx-http.ts";
+import {
+  clearTable,
+  deleteKey,
+  readKey,
+  SPLIT_NOTICE_BYTES,
+  stats,
+  writeKey,
+} from "./file-store.ts";
 import { acronymOf, type AppManifest,parseManifest } from "./manifest.ts";
 
 /**
@@ -71,6 +80,8 @@ export type AppStorage = {
   delete(key: string): Promise<void>;
   clear(): Promise<void>;
   table(name: string): AppStorage;
+  /** Bytes this table occupies on disk. Mirrors `@monkey-mini-app/api`'s `AppStorage`. */
+  bytes(): number;
 };
 
 export type AppContext = {
@@ -148,41 +159,49 @@ function cacheReport(
   };
 }
 
+/**
+ * `ctx.storage` for one table. Every method addresses exactly one key, which is what lets
+ * `file-store.ts` decide the layout (one file, or one file per key past a threshold) without the
+ * app, the panel or this adapter having an opinion about it.
+ */
 function makeFileStorage(appDir: string, fileName: string): AppStorage {
-  const fp = path.join(appDir, "storage", fileName);
-  const read = (): Record<string, unknown> => {
-    try {
-      const parsed: unknown = JSON.parse(readFileSync(fp, "utf8"));
-      return isRecord(parsed) ? parsed : {};
-    } catch {
-      return {};
-    }
+  const dir = path.join(appDir, "storage");
+  const table = fileName.replace(/\.json$/, "");
+  /** One warning per size band, not one per write — see `SPLIT_NOTICE_BYTES`. */
+  const warnedBands = new Set<number>();
+  const watchSize = (): void => {
+    const { bytes, keys, split } = stats(dir, table);
+    const band = Math.floor(bytes / SPLIT_NOTICE_BYTES);
+    if (band < 1 || warnedBands.has(band)) return;
+    warnedBands.add(band);
+    console.warn(
+      `[mini-app storage] ${fileName} is ${(bytes / 1024).toFixed(0)} KB across ${keys} keys` +
+        `${split ? " (already one file per key)" : ""}. Rows that grow belong in their own ` +
+        "ctx.storage.table(...) rather than one large value — the panel and every read pay for it.",
+    );
   };
-  const write = (obj: Record<string, unknown>): void => {
-    mkdirSync(path.dirname(fp), { recursive: true });
-    writeFileSync(fp, JSON.stringify(obj, null, 2));
-  };
+
   return {
     async get(key: string): Promise<unknown> {
-      const obj = read();
-      return Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : null;
+      return readKey(dir, table, key);
     },
     async set(key: string, value: unknown): Promise<void> {
-      const obj = read();
-      obj[key] = value;
-      write(obj);
+      writeKey(dir, table, key, value);
+      watchSize();
     },
     async delete(key: string): Promise<void> {
-      const obj = read();
-      delete obj[key];
-      write(obj);
+      deleteKey(dir, table, key);
+      watchSize();
     },
     async clear(): Promise<void> {
-      write({});
+      clearTable(dir, table);
     },
     table(name: string): AppStorage {
       const safe = name.replace(/[^A-Za-z0-9_-]/g, "_");
       return makeFileStorage(appDir, `${safe}.storage.json`);
+    },
+    bytes(): number {
+      return stats(dir, table).bytes;
     },
   };
 }

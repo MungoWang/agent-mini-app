@@ -50,10 +50,22 @@ export {
   applyEditsToNormalizedContent,
   fuzzyFindText,
 } from "./apps/edit-diff.ts";
+export {
+  clearTable,
+  deleteKey,
+  readKey,
+  readTable,
+  SPLIT_NOTICE_BYTES,
+  SPLIT_THRESHOLD_BYTES,
+  stats,
+  tableHas,
+  type TableStats,
+  writeKey,
+} from "./apps/file-store.ts";
 export type { AppManifest } from "./apps/manifest.ts";
 export { acronymOf,parseManifest } from "./apps/manifest.ts";
 export type { StorageTableInfo } from "./apps/storage.ts";
-export { listStorageTables, readJsonFile,storageTablePath } from "./apps/storage.ts";
+export { listStorageTables, readJsonFile, readTableView, storageTablePath } from "./apps/storage.ts";
 export type { AbsolutePath, AppId } from "./brand.ts";
 export {
   asAbsolutePath,

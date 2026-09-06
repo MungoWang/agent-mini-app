@@ -121,7 +121,10 @@
     "noCommits": "暂无提交记录",
     "noStorage": "暂无存储文件",
     "expandMsg": "展开全文",
-    "collapseMsg": "收起"
+    "collapseMsg": "收起",
+    "entries": "{{count}} 条",
+    "sizeKb": "{{value}} KB",
+    "sizeMb": "{{value}} MB"
   },
   "load": {
     "label": "加载中"

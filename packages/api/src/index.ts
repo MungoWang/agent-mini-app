@@ -16,7 +16,14 @@ export type AppStorage = {
   set(key: string, value: unknown): Promise<void>;
   delete(key: string): Promise<void>;
   clear(): Promise<void>;
-  /** Row-per-key view backed by `storage/<name>.json`. */
+  /** Bytes this table occupies on disk. Cheap, and meant for "is my data getting big" checks. */
+  bytes(): number;
+  /**
+   * A second, independent table in the same app (`storage/<name>.storage.json`). Keys do not
+   * overlap between tables, and neither layout choice here is yours to make: the host moves a
+   * table to one file per key once it stops fitting a single rewrite, which is invisible from
+   * this API — `get` / `set` / `delete` / `clear` mean the same thing either way.
+   */
   table(name: string): AppStorage;
 };
 

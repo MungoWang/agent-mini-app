@@ -46,8 +46,9 @@ afterEach(() => {
   resetPanelState();
 });
 
-async function mountFull(): Promise<{ el: HTMLElement; panel: PanelInstance }> {
+async function mountFull(locale: "en" | "zh-CN" = "zh-CN"): Promise<{ el: HTMLElement; panel: PanelInstance }> {
   const host = createFakePanelHost({
+    locale,
     apps: [todo],
     withHistory: true,
     withStorage: true,
@@ -62,7 +63,11 @@ async function mountFull(): Promise<{ el: HTMLElement; panel: PanelInstance }> {
       time: "now",
       files: [{ path: "ui.tsx", add: 2, del: 1, preview: "+hi" }],
     },
-    tables: [{ name: "kv", size: 4, updatedAt: "t" }],
+    tables: [
+      { name: "kv", size: 4, updatedAt: "t" },
+      // A table the host has grown past one rewrite: one file per key, still listed as one table.
+      { name: "reads", size: 2 * 1024 * 1024, updatedAt: "t2", keys: 3, split: true },
+    ],
     tableValue: { a: 1 },
     palettes: [{ id: "custom-1", label: "Custom One", swatch: "#abc" }],
   });
@@ -105,6 +110,23 @@ describe("Browse / chrome interactions", () => {
     await act(async () => {
       panel.actions.toggleBrowse("");
     });
+  });
+
+  it("shows a grown table by entries and human size, not by shard count", async () => {
+    // English locale asserted explicitly: the fake host defaults to zh-CN, and this case is about
+    // what the row *carries*, which must not depend on which dictionary is loaded.
+    const { el } = await mountFull("en");
+    await act(async () => {
+      el.querySelector<HTMLButtonElement>("#mma-storage-btn")?.click();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const rows = Array.from(el.querySelectorAll(".mma-bitem")).map((n) => n.textContent);
+    expect(rows.some((r) => r?.includes("2.0 MB") && r?.includes("3 entries"))).toBe(true);
+    // Small tables keep the plain byte count; nothing about the layout is the author's business.
+    expect(rows.some((r) => r?.startsWith("kv") && r?.includes("4 B"))).toBe(true);
   });
 
   it("opens storage, loads a table, and shows JSON", async () => {

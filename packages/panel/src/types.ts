@@ -54,6 +54,10 @@ export type StorageTable = {
   name: string;
   size?: number;
   updatedAt?: string;
+  /** Keys in the table, when the host knows without a full parse. */
+  keys?: number;
+  /** The host stores this one as a file per key. Still one table to every reader. */
+  split?: boolean;
 };
 
 export type PanelCapabilities = {

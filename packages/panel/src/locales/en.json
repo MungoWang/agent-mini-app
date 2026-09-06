@@ -121,7 +121,10 @@
     "noCommits": "No commits yet",
     "noStorage": "No storage files",
     "expandMsg": "Show more",
-    "collapseMsg": "Show less"
+    "collapseMsg": "Show less",
+    "entries": "{{count}} entries",
+    "sizeKb": "{{value}} KB",
+    "sizeMb": "{{value}} MB"
   },
   "load": {
     "label": "Loading"

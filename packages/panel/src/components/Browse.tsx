@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { usePanelActions, usePanelI18n } from "../context.tsx";
+import type { I18nParams } from "../i18n.ts";
 import { usePanelState } from "../store.ts";
 import type { Commit, StorageTable } from "../types.ts";
 
@@ -54,13 +55,25 @@ function CommitItem({ c }: { c: Commit }) {
   );
 }
 
+/** 1024-based, because these are bytes on a disk, and only up to MB — a table over that is a story
+ * the entries count tells better than a fifth significant digit. */
+function humanBytes(n: number, t: (key: string, params?: I18nParams) => string): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return t("browse.sizeKb", { value: (n / 1024).toFixed(1) });
+  return t("browse.sizeMb", { value: (n / (1024 * 1024)).toFixed(1) });
+}
+
 function StorageItem({ table }: { table: StorageTable }) {
   const actions = usePanelActions();
+  const { t } = usePanelI18n();
   return (
     <button type="button" className="mma-bitem" onClick={() => actions.loadTable(table.name)}>
       <b>{table.name}</b>
       <span className="meta">
-        <span>{table.size || 0} B</span>
+        {/* The host may keep a grown table as one file per key; it is still one table here, so the
+            row leads with what the author thinks about: how many entries, how big. */}
+        {typeof table.keys === "number" ? <span>{t("browse.entries", { count: table.keys })}</span> : null}
+        <span>{humanBytes(table.size || 0, t)}</span>
         <span>{table.updatedAt || ""}</span>
       </span>
     </button>

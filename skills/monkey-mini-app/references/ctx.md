@@ -11,7 +11,8 @@ Every `api.*` method (`defineApp({ api })` keys) receives the same `ctx`.
 | `ctx.storage.get(key)` | value or `null` | Backed by `storage/main.storage.json` |
 | `ctx.storage.set(key, value)` | | Value must be JSON-serialisable |
 | `ctx.storage.delete` / `clear` | | |
-| `ctx.storage.table(name)` | same API | Separate file `{name}.storage.json`; `name` = `[A-Za-z0-9_-]` |
+| `ctx.storage.table(name)` | same API | Independent table in the same app (`{name}.storage.json`); `name` = `[A-Za-z0-9_-]` |
+| `ctx.storage.bytes()` | number | Bytes this table occupies — for your own "is this getting big" logging |
 | `ctx.state` | object | In-memory; the same reference as `defineApp.state` |
 | `ctx.config` | `{ theme, palette, chatLanguage, hostPort, llm }` | This host's own settings only (settings page / top bar), **not** a dsh settings dump. `theme` = `light`\|`dark`\|`system` (a *preference* — resolve `system` yourself if you need a concrete mode); `palette` = `default`\|`ocean`\|`violet`\|`slate` |
 | `ctx.credentials` | `Record<string,string>` | Secrets **supplied by the host** — a mini-app cannot declare them. `{}` when the host has no credential service: read by key, show a usable empty state when missing, never invent key names |
@@ -58,20 +59,24 @@ catch what the literals spell out — the `shared/` list catches the rest.
 
 ## Choosing a table
 
-**Every `set` rewrites the entire file for that table** — read all, patch one key, serialise all,
-write all. So the layout is a decision, not a detail:
+Tables are independent namespaces over the same API: `ctx.storage.table("reads")` gives you a table
+whose keys cannot collide with the default one. There is no `keys()`, no enumeration and no query —
+every method addresses exactly one key, which is why the host is free to change how a table is
+stored underneath you. **Past roughly 512 KB it switches to one file per key**, so a table that grows
+forever does not pay a full rewrite per `set`; you will not see that happen and must not code around
+it. What you *do* choose is which keys share a table, because until that point everything in one
+table is written together:
 
 | Data | Put it in |
 |---|---|
-| A handful of settings (source list, thresholds, UI prefs) | default `ctx.storage` — one small file you read whole anyway |
+| A handful of settings (source list, thresholds, UI prefs) | default `ctx.storage` — small, and you read it whole anyway |
 | Anything that **grows**: fetched article bodies, run logs, activity, per-day records, snapshots | its own `ctx.storage.table("reads")` |
-| Both of the above in one app | two tables — otherwise adding a log line re-serialises your settings, and vice versa |
+| Both of the above in one app | two tables — otherwise your settings rewrite rides along with every log line |
 
-Rules of thumb: keep big blobs out of the table you read on every render; a table with a few
-thousand entries, or one whose values are fetched documents, is where the whole-file rewrite starts
-showing as a visible pause mid-task. Nothing here is enforced — the platform cannot know that your
-`items` map is the one that will grow. Splitting early is free; splitting later means migrating a
-file you have already made big.
+`ctx.storage.bytes()` answers "how big is this table right now" if you want to log it or show it.
+Keep the huge blobs out of the table you read on every render — a split table still costs one read
+per key you touch. And split by *meaning* anyway: the automatic layout saves the rewrite, not the
+`read-everything-to-answer-one-question` shape that a 5 MB `items` map next to a 3 KB setting causes.
 
 ## Host capabilities
 
