@@ -128,6 +128,8 @@ pnpm --filter @monkey-mini-app/dsh-mini-app build
 
 Every package config includes `src` **and** `tests`. **Do not** put `**/*.test.ts` in exclude: orphan tests fall into an inferred (non-strict) project — IDE red, CI green. Before claiming types are clean, run `pnpm typecheck` (not `tsc -b` alone). `packages/ui` is linted for **invariants only** (no style rules) — see `eslint.config.js` for why.
 
+**CI** (`.github/workflows/ci.yml`) runs lint, `check:skill`, the generated-drift diff, `check:format`, `check:templates`, `pnpm typecheck`, `pnpm test` and the dsh build. It builds `host` + `panel` first because package **subpath exports** (`@monkey-mini-app/panel/themes`) resolve through `dist` — without that step `pnpm typecheck` is red on a clean checkout. Two things are **local acceptance only and are not CI evidence**: the Playwright suites (`apps/demo-host/e2e/**` via `pnpm --filter demo-host test:e2e`, and `pnpm test:dsh`, which needs Verdaccio + a real `dsh web`). Run them before touching the kit's visual behaviour or the publish path.
+
 ## Verify
 
 ```bash

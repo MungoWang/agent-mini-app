@@ -23,6 +23,14 @@ jobs:
       - run: pnpm check:skill
       # contracts are generated: committed docs must match source
       - run: pnpm gen:skill && pnpm gen:examples && git diff --exit-code skills packages/ui/ai apps/dsh-host/fixtures
-      - run: pnpm exec tsc -b --pretty false
+      - run: pnpm check:format
+      - run: pnpm check:templates
+      # package subpath exports (@monkey-mini-app/panel/themes) resolve through dist, so the
+      # two libraries the adapters type against must be built before every tsconfig is read
+      - run: pnpm --filter @monkey-mini-app/host --filter @monkey-mini-app/panel build
+      # every tsconfig in the repo, not just the root aggregate (AGENTS.md → Gates)
+      - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm --filter @monkey-mini-app/dsh-mini-app build
+      # Playwright suites (apps/demo-host/e2e, pnpm test:dsh) are deliberately NOT run here:
+      # local acceptance only — see AGENTS.md → Gates
