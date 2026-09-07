@@ -124,7 +124,13 @@
     "collapseMsg": "Show less",
     "entries": "{{count}} entries",
     "sizeKb": "{{value}} KB",
-    "sizeMb": "{{value}} MB"
+    "sizeMb": "{{value}} MB",
+    "noticeTitle": "\"{{table}}\" is already {{size}}",
+    "noticeBody": "The bigger this file gets, the slower every save becomes. Move anything that keeps growing into its own table — copy the prompt below and paste it to an AI to do the split for you.",
+    "noticeTop": "The heaviest piece right now is \"{{key}}\" (about {{size}}).",
+    "noticeCopy": "Copy split prompt",
+    "noticeCopied": "Copied",
+    "noticeDismiss": "Got it"
   },
   "load": {
     "label": "Loading"

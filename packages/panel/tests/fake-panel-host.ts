@@ -1,4 +1,4 @@
-import type { AppItem, Commit, Palette, PanelHost, StorageTable } from "@monkey-mini-app/panel";
+import type { AppItem, Commit, Palette, PanelHost, StorageNotice, StorageTable } from "@monkey-mini-app/panel";
 
 export type FakePanelHostCalls = {
   fetchApps: number;
@@ -32,6 +32,7 @@ export type FakePanelHostOptions = {
   history?: Commit[];
   historyDetail?: Commit;
   tables?: StorageTable[];
+  notices?: StorageNotice[];
   tableValue?: unknown;
   config?: Record<string, string>;
   palettes?: Palette[];
@@ -127,7 +128,7 @@ export function createFakePanelHost(options: FakePanelHostOptions = {}): FakePan
     host.storage = {
       listTables: async (appId) => {
         host.calls.storageList.push(appId);
-        return options.tables ?? [];
+        return { tables: options.tables ?? [], notices: options.notices ?? [] };
       },
       readTable: async (appId, name) => {
         host.calls.storageRead.push({ appId, name });

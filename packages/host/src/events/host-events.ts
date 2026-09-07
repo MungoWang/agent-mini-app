@@ -25,6 +25,19 @@ export type HostEvent =
       data?: unknown;
       /** Per-app sequence; doubles as the SSE id for Last-Event-ID replay. */
       seq: number;
+    }
+  /**
+   * A storage table crossed a size band. Does not block the write — the panel shows a
+   * dismissible banner with a copy-paste prompt the user can hand to an agent.
+   */
+  | {
+      type: "app:storage-notice";
+      appId: string;
+      table: string;
+      bytes: number;
+      keys: number;
+      heavy: Array<{ key: string; bytes: number; kind: "list" | "map" | "value"; entries?: number }>;
+      prompt: string;
     };
 
 export type HostEventListener = (event: HostEvent) => void;
@@ -483,6 +496,16 @@ function sseData(event: HostEvent): string {
       requestId: event.requestId,
       code: event.code,
       maxBytes: event.maxBytes,
+    });
+  }
+  if (event.type === "app:storage-notice") {
+    return JSON.stringify({
+      appId: event.appId,
+      table: event.table,
+      bytes: event.bytes,
+      keys: event.keys,
+      heavy: event.heavy,
+      prompt: event.prompt,
     });
   }
   return JSON.stringify({ name: event.name, data: event.data, seq: event.seq });

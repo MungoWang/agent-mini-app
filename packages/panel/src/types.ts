@@ -54,10 +54,18 @@ export type StorageTable = {
   name: string;
   size?: number;
   updatedAt?: string;
-  /** Keys in the table, when the host knows without a full parse. */
+  /** Top-level key count when the host knows. */
   keys?: number;
-  /** The host stores this one as a file per key. Still one table to every reader. */
-  split?: boolean;
+};
+
+/** Soft notice when a table crossed a size band — banner + copy-paste AI prompt. */
+export type StorageNotice = {
+  appId: string;
+  table: string;
+  bytes: number;
+  keys: number;
+  heavy: Array<{ key: string; bytes: number; kind: "list" | "map" | "value"; entries?: number }>;
+  prompt: string;
 };
 
 export type PanelCapabilities = {
@@ -89,6 +97,8 @@ export type PanelActions = {
   loadTable: (name: string) => void;
   browseBack: () => void;
   browseFile: (path: string) => void;
+  dismissStorageNotice: () => void;
+  applyStorageNotice: (notice: StorageNotice) => void;
   reloadActive: () => void;
   askDelete: () => void;
   hideModal: () => void;
@@ -134,4 +144,6 @@ export type PanelState = {
   browseTable: string | null;
   browseTableValue: unknown;
   browseOpenFile: string | null;
+  /** Latest storage-size notice for the active app; banner is dismissible. */
+  storageNotice: StorageNotice | null;
 };

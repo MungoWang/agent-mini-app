@@ -2,6 +2,12 @@
 
 > Archived 2026-09-08 · original location: `TODO.md` P2 (storage 单文件) + the design thread that came
 > out of the AI-radar app's field report
+>
+> **Update 2026-09-08 (later):** auto-split was **withdrawn**. Measured cost (fsync per shard write +
+> O(N) `stats()` on every `set`) made the common "many small keys" shape *slower* than rewriting a
+> mid-sized JSON file. What remains: atomic write + `STORAGE_CORRUPT`, plus a host **panel banner**
+> (never blocks writes) that names the heaviest keys and offers a copy-paste AI prompt. Leftover
+> `<table>.d/` dirs from the withdrawn layout are absorbed back into one `.json` on first touch.
 
 ## What was wrong
 

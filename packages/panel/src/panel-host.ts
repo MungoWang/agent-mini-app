@@ -9,6 +9,7 @@ import type {
   Commit,
   LocaleId,
   PanelCapabilities,
+  StorageNotice,
   StorageTable,
   UpdateCheck,
 } from "./types.ts";
@@ -56,7 +57,7 @@ export interface PanelHost {
     detail(appId: string, id: string): Promise<Commit>;
   };
   storage?: {
-    listTables(appId: string): Promise<StorageTable[]>;
+    listTables(appId: string): Promise<{ tables: StorageTable[]; notices: StorageNotice[] }>;
     readTable(appId: string, name: string): Promise<unknown>;
   };
   onOpenRequest?(cb: (appId?: string) => void): () => void;

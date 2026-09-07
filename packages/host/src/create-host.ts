@@ -49,7 +49,9 @@ export function createHost(
       writable: true,
     },
   }) as HostCapabilities;
-  const apps = new AppsManager(paths, caps, git, config);
+  // Same bus the HTTP gateway fans out on — without this, app:reload / storage notices
+  // from AppsManager would go to a private bus the panel never sees.
+  const apps = new AppsManager(paths, caps, git, config, events);
   const tools = new ToolFacade(apps, git, paths, events);
   const compiler = new UiCompiler(paths);
   apps.setUiCompiler(compiler);

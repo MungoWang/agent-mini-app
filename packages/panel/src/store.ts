@@ -48,6 +48,7 @@ const initial: PanelState = {
   browseTable: null,
   browseTableValue: null,
   browseOpenFile: null,
+  storageNotice: null,
 };
 
 let state: PanelState = { ...initial, capabilities: { ...none } };

@@ -70,13 +70,56 @@ function StorageItem({ table }: { table: StorageTable }) {
     <button type="button" className="mma-bitem" onClick={() => actions.loadTable(table.name)}>
       <b>{table.name}</b>
       <span className="meta">
-        {/* The host may keep a grown table as one file per key; it is still one table here, so the
-            row leads with what the author thinks about: how many entries, how big. */}
         {typeof table.keys === "number" ? <span>{t("browse.entries", { count: table.keys })}</span> : null}
         <span>{humanBytes(table.size || 0, t)}</span>
         <span>{table.updatedAt || ""}</span>
       </span>
     </button>
+  );
+}
+
+/** Soft size reminder — plain language for humans, plus a prompt the user can paste to an agent. */
+function StorageNoticeBanner() {
+  const s = usePanelState();
+  const actions = usePanelActions();
+  const { t } = usePanelI18n();
+  const notice = s.storageNotice;
+  const [copied, setCopied] = React.useState(false);
+  if (!notice) return null;
+  // Only show for the app whose storage we are browsing (or whenever set, if browse is for that app).
+  if (s.browseAppId && notice.appId !== s.browseAppId) return null;
+
+  const top = notice.heavy[0];
+  const summary = top
+    ? t("browse.noticeTop", { key: top.key, size: humanBytes(top.bytes, t) })
+    : "";
+
+  const copyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(notice.prompt);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard may be denied — leave the button label alone */
+    }
+  };
+
+  return (
+    <div className="mma-storage-notice" role="status">
+      <div className="mma-storage-notice-body">
+        <b>{t("browse.noticeTitle", { table: notice.table, size: humanBytes(notice.bytes, t) })}</b>
+        <p>{t("browse.noticeBody")}</p>
+        {summary ? <p className="mma-storage-notice-top">{summary}</p> : null}
+      </div>
+      <div className="mma-storage-notice-actions">
+        <button type="button" className="mma-storage-notice-copy" onClick={() => void copyPrompt()}>
+          {copied ? t("browse.noticeCopied") : t("browse.noticeCopy")}
+        </button>
+        <button type="button" onClick={() => actions.dismissStorageNotice()}>
+          {t("browse.noticeDismiss")}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -223,6 +266,7 @@ export function Browse() {
   return (
     <div className="mma-browse" id="mma-browse" data-open="1">
       <div className="mma-browse-body" id="mma-browse-body">
+        {s.browseKind === "storage" ? <StorageNoticeBanner /> : null}
         {content}
       </div>
     </div>

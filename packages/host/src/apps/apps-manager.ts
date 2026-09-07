@@ -38,10 +38,12 @@ import { installAppPackages, requireFromAppPackages } from "./app-packages.ts";
 import { compileAppSource } from "./compile-app-source.ts";
 import { type HttpRequest, httpRequest, type HttpResponse } from "./ctx-http.ts";
 import {
+  analyzeTable,
   clearTable,
   deleteKey,
+  NOTICE_BYTES,
   readKey,
-  SPLIT_NOTICE_BYTES,
+  readTable,
   stats,
   writeKey,
 } from "./file-store.ts";
@@ -159,25 +161,40 @@ function cacheReport(
   };
 }
 
+type StorageWire = {
+  appId: string;
+  events: HostEventBus;
+  locale: "zh-CN" | "en";
+};
+
 /**
- * `ctx.storage` for one table. Every method addresses exactly one key, which is what lets
- * `file-store.ts` decide the layout (one file, or one file per key past a threshold) without the
- * app, the panel or this adapter having an opinion about it.
+ * `ctx.storage` for one table. Writes never block on size; crossing a band emits a panel notice
+ * with the heavy keys and a copy-paste prompt for an agent.
  */
-function makeFileStorage(appDir: string, fileName: string): AppStorage {
+function makeFileStorage(appDir: string, fileName: string, wire: StorageWire): AppStorage {
   const dir = path.join(appDir, "storage");
   const table = fileName.replace(/\.json$/, "");
-  /** One warning per size band, not one per write — see `SPLIT_NOTICE_BYTES`. */
+  /** One notice per size band, not one per write. */
   const warnedBands = new Set<number>();
-  const watchSize = (): void => {
-    const { bytes, keys, split } = stats(dir, table);
-    const band = Math.floor(bytes / SPLIT_NOTICE_BYTES);
+  const maybeNotice = (): void => {
+    const { bytes, keys } = stats(dir, table);
+    const band = Math.floor(bytes / NOTICE_BYTES);
     if (band < 1 || warnedBands.has(band)) return;
     warnedBands.add(band);
+    const advice = analyzeTable(table, readTable(dir, table), wire.locale);
+    wire.events.emit({
+      type: "app:storage-notice",
+      appId: wire.appId,
+      table: advice.table,
+      bytes: advice.bytes,
+      keys: advice.keys,
+      heavy: advice.heavy,
+      prompt: advice.prompt,
+    });
+    // Keep a console breadcrumb for headless runs / logs — the panel is the primary surface.
     console.warn(
-      `[mini-app storage] ${fileName} is ${(bytes / 1024).toFixed(0)} KB across ${keys} keys` +
-        `${split ? " (already one file per key)" : ""}. Rows that grow belong in their own ` +
-        "ctx.storage.table(...) rather than one large value — the panel and every read pay for it.",
+      `[mini-app storage] ${table} is ${(bytes / 1024).toFixed(0)} KB across ${keys} keys — ` +
+        "panel has a split prompt; writes were not blocked",
     );
   };
 
@@ -187,18 +204,18 @@ function makeFileStorage(appDir: string, fileName: string): AppStorage {
     },
     async set(key: string, value: unknown): Promise<void> {
       writeKey(dir, table, key, value);
-      watchSize();
+      maybeNotice();
     },
     async delete(key: string): Promise<void> {
       deleteKey(dir, table, key);
-      watchSize();
+      maybeNotice();
     },
     async clear(): Promise<void> {
       clearTable(dir, table);
     },
     table(name: string): AppStorage {
       const safe = name.replace(/[^A-Za-z0-9_-]/g, "_");
-      return makeFileStorage(appDir, `${safe}.storage.json`);
+      return makeFileStorage(appDir, `${safe}.storage.json`, wire);
     },
     bytes(): number {
       return stats(dir, table).bytes;
@@ -739,8 +756,14 @@ export class AppsManager {
       return hit;
     }
     const def = this.loadMainApi(dir);
-    const storage = makeFileStorage(dir, "main.storage.json");
-    const ctx = this.buildCtx(storage, def, asAppId(appId));
+    const id = asAppId(appId);
+    const locale = this.config.locale === "en" ? "en" : "zh-CN";
+    const storage = makeFileStorage(dir, "main.storage.json", {
+      appId: id,
+      events: this.events,
+      locale,
+    });
+    const ctx = this.buildCtx(storage, def, id);
     const rec = { mtime, def, ctx };
     this.appCache.set(dir, rec);
     return rec;

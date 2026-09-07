@@ -255,11 +255,22 @@ export function createPanelActions(
       } else if (host.storage) {
         host.storage
           .listTables(app.id)
-          .then((list) => {
-            setPanelState({ browseList: list, browseLoading: false });
+          .then(({ tables, notices }) => {
+            const notice = notices[0] ?? null;
+            setPanelState({
+              browseList: tables,
+              browseLoading: false,
+              ...(notice ? { storageNotice: notice } : {}),
+            });
           })
           .catch((e) => setPanelState({ browseError: errorMessage(e), browseLoading: false }));
       }
+    },
+    dismissStorageNotice: () => {
+      setPanelState({ storageNotice: null });
+    },
+    applyStorageNotice: (notice) => {
+      setPanelState({ storageNotice: notice });
     },
     loadCommitDetail: (id) => {
       const s = getPanelState();

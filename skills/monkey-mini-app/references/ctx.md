@@ -61,11 +61,8 @@ catch what the literals spell out — the `shared/` list catches the rest.
 
 Tables are independent namespaces over the same API: `ctx.storage.table("reads")` gives you a table
 whose keys cannot collide with the default one. There is no `keys()`, no enumeration and no query —
-every method addresses exactly one key, which is why the host is free to change how a table is
-stored underneath you. **Past roughly 512 KB it switches to one file per key**, so a table that grows
-forever does not pay a full rewrite per `set`; you will not see that happen and must not code around
-it. What you *do* choose is which keys share a table, because until that point everything in one
-table is written together:
+every method addresses exactly one key. Each table is one JSON file; every `set` rewrites that file,
+so **what shares a table is a real cost**, not just a naming preference:
 
 | Data | Put it in |
 |---|---|
@@ -73,10 +70,10 @@ table is written together:
 | Anything that **grows**: fetched article bodies, run logs, activity, per-day records, snapshots | its own `ctx.storage.table("reads")` |
 | Both of the above in one app | two tables — otherwise your settings rewrite rides along with every log line |
 
-`ctx.storage.bytes()` answers "how big is this table right now" if you want to log it or show it.
-Keep the huge blobs out of the table you read on every render — a split table still costs one read
-per key you touch. And split by *meaning* anyway: the automatic layout saves the rewrite, not the
-`read-everything-to-answer-one-question` shape that a 5 MB `items` map next to a 3 KB setting causes.
+Large lists should be **one key per row** (`await rows.set(id, row)`), not one giant array under a
+single key. `ctx.storage.bytes()` answers "how big is this table right now". Past roughly 512 KB the
+host surfaces a **panel banner** (writes are never blocked) with the heaviest keys and a copy-paste
+prompt you can hand to an agent to do the split.
 
 ## Host capabilities
 

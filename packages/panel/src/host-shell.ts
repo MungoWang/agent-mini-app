@@ -119,6 +119,10 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
         if (frame.map.has(appId)) frame.reload(appId);
       },
       onEval: (query) => relayViewEval(currentOrigin, frame, query),
+      onStorageNotice: (notice) => {
+        // Soft reminder only — do not steal focus; the banner is dismissible.
+        setPanelState({ storageNotice: notice });
+      },
     });
   }
 

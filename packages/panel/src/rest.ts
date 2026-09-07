@@ -19,6 +19,7 @@ import type {
   CardStyle,
   Commit,
   LocaleId,
+  StorageNotice,
   StorageTable,
 } from "./types.ts";
 
@@ -113,6 +114,8 @@ export type HostEventHandlers = {
    * is cross-origin, so `postMessage` is the one door from this page into that one.
    */
   onEval?: (query: ViewEvalQuery) => void;
+  /** A storage table crossed a size band — soft banner, writes were not blocked. */
+  onStorageNotice?: (notice: StorageNotice) => void;
 };
 
 /**
@@ -183,6 +186,32 @@ export function subscribeHostEvents(origin: string, handlers: HostEventHandlers)
           appId: d.appId,
           code: typeof d.code === "string" ? d.code : "",
           maxBytes: typeof d.maxBytes === "number" ? d.maxBytes : 0,
+        });
+      }),
+    );
+    es.addEventListener(
+      "app:storage-notice",
+      listen((d) => {
+        if (typeof d.appId !== "string" || typeof d.table !== "string" || typeof d.prompt !== "string") return;
+        const heavyRaw = Array.isArray(d.heavy) ? d.heavy : [];
+        const heavy = heavyRaw.flatMap((h) => {
+          if (!isRecord(h) || typeof h.key !== "string" || typeof h.bytes !== "number") return [];
+          const kind: "list" | "map" | "value" =
+            h.kind === "list" || h.kind === "map" || h.kind === "value" ? h.kind : "value";
+          return [{
+            key: h.key,
+            bytes: h.bytes,
+            kind,
+            entries: typeof h.entries === "number" ? h.entries : undefined,
+          }];
+        });
+        handlers.onStorageNotice?.({
+          appId: d.appId,
+          table: d.table,
+          bytes: typeof d.bytes === "number" ? d.bytes : 0,
+          keys: typeof d.keys === "number" ? d.keys : 0,
+          heavy,
+          prompt: d.prompt,
         });
       }),
     );
@@ -319,6 +348,37 @@ export function parseStorageTables(raw: unknown): StorageTable[] {
       name: row.name,
       size: typeof row.size === "number" ? row.size : undefined,
       updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : undefined,
+      keys: typeof row.keys === "number" ? row.keys : undefined,
+    });
+  }
+  return out;
+}
+
+export function parseStorageNotices(raw: unknown, appId: string): StorageNotice[] {
+  const rec = isRecord(raw) ? raw : {};
+  const list = Array.isArray(rec.notices) ? rec.notices : [];
+  const out: StorageNotice[] = [];
+  for (const row of list) {
+    if (!isRecord(row) || typeof row.table !== "string" || typeof row.prompt !== "string") continue;
+    const heavyRaw = Array.isArray(row.heavy) ? row.heavy : [];
+    const heavy = heavyRaw.flatMap((h) => {
+      if (!isRecord(h) || typeof h.key !== "string" || typeof h.bytes !== "number") return [];
+      const kind: "list" | "map" | "value" =
+        h.kind === "list" || h.kind === "map" || h.kind === "value" ? h.kind : "value";
+      return [{
+        key: h.key,
+        bytes: h.bytes,
+        kind,
+        entries: typeof h.entries === "number" ? h.entries : undefined,
+      }];
+    });
+    out.push({
+      appId: typeof row.appId === "string" ? row.appId : appId,
+      table: row.table,
+      bytes: typeof row.bytes === "number" ? row.bytes : 0,
+      keys: typeof row.keys === "number" ? row.keys : 0,
+      heavy,
+      prompt: row.prompt,
     });
   }
   return out;
@@ -406,7 +466,13 @@ export function createRestPanelHost(opts: RestOptions): PanelHostIF {
       detail: async (appId, id) => parseCommitDetail(await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/history/${encodeURIComponent(id)}`), id),
     },
     storage: {
-      listTables: async (appId) => parseStorageTables(await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/storage`)),
+      listTables: async (appId) => {
+        const raw = await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/storage`);
+        return {
+          tables: parseStorageTables(raw),
+          notices: parseStorageNotices(raw, appId),
+        };
+      },
       readTable: async (appId, name) => {
         const raw = await readJson(`${origin()}/api/apps/${encodeURIComponent(appId)}/storage/${encodeURIComponent(name)}`);
         return isRecord(raw) && "value" in raw ? raw.value : raw;

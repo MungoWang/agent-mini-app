@@ -1,73 +1,61 @@
 /**
- * Where a mini-app's JSON data lives, and when it stops living in one file.
+ * Where a mini-app's JSON table lives on disk.
  *
- * The author-facing contract (`ctx.storage.get/set/delete/clear/table`) addresses **one key at a
- * time** — there is no `keys()`, no enumeration, no query. That is what makes the layout here a
- * private detail: a table can be one file or one file per key, and every method means the same
- * thing either way. So the platform splits a table that has outgrown a single rewrite, instead of
- * making every app author size-plan, split-by-hand and migrate later.
+ * One table = one file (`storage/<table>.json`). Writes are atomic (tmp + rename) so a process
+ * killed mid-`set` never leaves a half-written file for the next read. An unreadable file is
+ * quarantined and fails loudly (`STORAGE_CORRUPT`) — never read back as `{}`, which used to let
+ * the next `set` wipe the rest of the table.
  *
- * Two layouts, chosen per table and invisible above this module:
- *
- *   storage/<table>.json        whole table, one atomic write   (the default)
- *   storage/<table>.d/          one file per key                (past SPLIT_THRESHOLD_BYTES)
- *
- * `.d` is a directory, so the browser API (`listStorageTables`) never mistakes a shard for a
- * table, and a table that split once stays split: flipping back and forth on a threshold would
- * re-migrate on every write around the boundary for no benefit.
- *
- * Both layouts share the rules that matter more than shape:
- *
- * - **A write is never observable half-done.** Bytes go to `<target>.tmp-<pid>`, are fsynced, then
- *   `rename`d over the destination — atomic within a filesystem. Writing in place used to truncate
- *   first, so a process killed mid-`set` left unreadable JSON.
- * - **An unreadable file is never read as empty.** A parse failure used to return `{}`, and the
- *   next `set` then wrote a table containing only its own key: the rest of the app's data gone,
- *   silently, with the UI merely looking empty. Now the bytes are moved to `<name>.corrupt-<stamp>`
- *   and the call fails loudly — `storage/` is gitignored (git-history.ts:31), so those bytes are
- *   the only copy and the only evidence.
- * - **A key is not a filename.** Author keys are arbitrary strings (URLs, Chinese titles, `a/b`),
- *   so a shard is named by a hash and carries the real key inside it, verified on read. A hash
- *   collision therefore reads as a miss, never as somebody else's value.
+ * Auto-splitting into one-file-per-key was tried and withdrawn: with fsync + directory stats it
+ * cost more than rewriting a mid-sized JSON file on the common "many small keys" shape. Growth
+ * is handled by guidance (and a host notice that points at the heavy keys), not by a second layout.
  */
-import { createHash } from "node:crypto";
 import {
   closeSync,
   existsSync,
-  fsyncSync,
   mkdirSync,
   openSync,
   readdirSync,
   readFileSync,
   renameSync,
   rmSync,
-  statSync,
   writeSync,
 } from "node:fs";
 import path from "node:path";
 
 import { HostError } from "../errors.ts";
 
-/** Table size at which the next write migrates it to one file per key. */
-export const SPLIT_THRESHOLD_BYTES = 512 * 1024;
+/** Size at which the host starts reminding about table shape (one notice per band). */
+export const NOTICE_BYTES = 512 * 1024;
 
-/** Size at which the host starts reminding the author about table shape (per 512 KB band). */
-export const SPLIT_NOTICE_BYTES = 512 * 1024;
+/** How many of the heaviest top-level keys to surface in a notice / AI prompt. */
+const HEAVY_KEY_LIMIT = 5;
 
-/** Shard directory suffix for a table. Kept out of `*.json` so table listings stay correct. */
+/** Leftover suffix from the withdrawn auto-split layout. Absorbed back into one file on touch. */
 const SHARD_DIR = ".d";
-const SHARD_SUFFIX = ".json";
 
-/** What a write cost, so callers can report it without re-deriving anything. */
 export type TableStats = {
-  /** Bytes now on disk for this table (summed across shards). */
   bytes: number;
   keys: number;
-  /** Whether the table is currently one-file-per-key. */
-  split: boolean;
 };
 
-type ShardRecord = { key: string; value: unknown };
+export type HeavyKey = {
+  key: string;
+  bytes: number;
+  /** Rough shape hint so the AI prompt can say "this looks like a list". */
+  kind: "list" | "map" | "value";
+  /** For lists/maps: entry count when cheap. */
+  entries?: number;
+};
+
+export type StorageAdvice = {
+  table: string;
+  bytes: number;
+  keys: number;
+  heavy: HeavyKey[];
+  /** Ready-to-paste prompt for an agent, in the requested locale. */
+  prompt: string;
+};
 
 function tableFile(dir: string, table: string): string {
   return path.join(dir, `${table}.json`);
@@ -77,14 +65,11 @@ function shardDir(dir: string, table: string): string {
   return path.join(dir, `${table}${SHARD_DIR}`);
 }
 
-function shardPath(dir: string, table: string, key: string, into?: string): string {
-  const hash = createHash("sha1").update(key).digest("hex").slice(0, 16);
-  return path.join(into ?? shardDir(dir, table), `${hash}${SHARD_SUFFIX}`);
-}
-
 /**
- * Write bytes so a reader sees either the old file or the new one. `rename` is the atomic step;
- * the fsync before it is what makes "the new file exists" imply "the new file has content".
+ * Write so a reader sees either the old file or the new one — never a third half-written thing.
+ * `rename` is the atomic step. We deliberately do **not** fsync: that bought power-loss durability
+ * at ~10× the cost of the rename, and the bug we fix is "process killed mid-write", which rename
+ * alone covers.
  */
 function atomicWrite(fp: string, payload: string): void {
   mkdirSync(path.dirname(fp), { recursive: true });
@@ -92,7 +77,6 @@ function atomicWrite(fp: string, payload: string): void {
   const fd = openSync(tmp, "w");
   try {
     writeSync(fd, payload);
-    fsyncSync(fd);
   } finally {
     closeSync(fd);
   }
@@ -127,166 +111,170 @@ function parseObject(fp: string, raw: string): Record<string, unknown> {
   return parsed as Record<string, unknown>;
 }
 
-function readWholeTable(dir: string, table: string): Record<string, unknown> {
-  const fp = tableFile(dir, table);
-  let raw: string;
-  try {
-    raw = readFileSync(fp, "utf8");
-  } catch {
-    return {}; // no file yet — the ordinary first-run case
-  }
-  return parseObject(fp, raw);
-}
-
-function listShards(dir: string, table: string): string[] {
-  try {
-    return readdirSync(shardDir(dir, table)).filter((n) => n.endsWith(SHARD_SUFFIX));
-  } catch {
-    return [];
-  }
-}
-
 /**
- * One shard's value, or `undefined` when absent. `found` distinguishes "no such key" from
- * "no such table", which the callers need because a missing key is a normal answer.
+ * If a withdrawn auto-split left `<table>.d/` behind, fold it back into one JSON file once.
+ * Crash-safe: write the merged file first, then remove the directory.
  */
-function readShard(dir: string, table: string, key: string): { found: boolean; value?: unknown } {
-  const fp = shardPath(dir, table, key);
-  let raw: string;
+function absorbLegacyShards(dir: string, table: string): void {
+  const sd = shardDir(dir, table);
+  if (!existsSync(sd)) return;
+  let names: string[];
   try {
-    raw = readFileSync(fp, "utf8");
+    names = readdirSync(sd).filter((n) => n.endsWith(".json"));
   } catch {
-    return { found: false };
+    return;
   }
-  const rec = parseShardRecord(fp, raw);
-  // The filename is a hash: without this, a collision would hand back another key's data.
-  if (rec.key !== key) return { found: false };
-  return { found: true, value: rec.value };
-}
-
-function parseShardRecord(fp: string, raw: string): ShardRecord {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (cause) {
-    quarantine(fp, cause instanceof Error ? cause.message : String(cause));
+  const merged: Record<string, unknown> = {};
+  // Prefer the single file when both exist (it was authoritative if a split crashed mid-way).
+  if (existsSync(tableFile(dir, table))) {
+    Object.assign(merged, readWholeTable(dir, table));
   }
-  const rec = parsed as Partial<ShardRecord> | null;
-  if (!rec || typeof rec !== "object" || typeof rec.key !== "string") {
-    quarantine(fp, "shard is not a { key, value } record");
-  }
-  return rec as ShardRecord;
-}
-
-function writeShard(dir: string, table: string, key: string, value: unknown, into?: string): void {
-  atomicWrite(shardPath(dir, table, key, into), JSON.stringify({ key, value } satisfies ShardRecord));
-}
-
-/** Whole-table serialisation size for a split table, without reading every value. */
-function shardBytes(dir: string, table: string): number {
-  let bytes = 0;
-  for (const name of listShards(dir, table)) {
-    try {
-      bytes += statSync(path.join(shardDir(dir, table), name)).size;
-    } catch {
-      /* raced away */
-    }
-  }
-  return bytes;
-}
-
-/**
- * Move `storage/<table>.json` into `storage/<table>.d/`, key by key.
- *
- * The shards are staged in `<table>.d.tmp/` and the directory is `rename`d into place **only when
- * every key is on disk**, because the mere existence of `<table>.d/` is what makes the split layout
- * authoritative: writing straight into it would leave a table half-migrated and readable-by-shards,
- * silently losing every key that had not been copied yet. With the staging step a crash leaves the
- * single file in charge and untouched. The old file is moved aside last and never deleted — it is
- * the fallback copy, and `<name>.json.split` is inert to both layouts.
- */
-function splitTable(dir: string, table: string, obj: Record<string, unknown>): void {
-  const staging = `${shardDir(dir, table)}.tmp`;
-  rmSync(staging, { recursive: true, force: true });
-  mkdirSync(staging, { recursive: true });
-  for (const [key, value] of Object.entries(obj)) writeShard(dir, table, key, value, staging);
-  // A previous attempt may have died between the rename and moving the file aside.
-  rmSync(shardDir(dir, table), { recursive: true, force: true });
-  renameSync(staging, shardDir(dir, table));
-  const source = tableFile(dir, table);
-  if (existsSync(source)) renameSync(source, `${source}.split`);
-}
-
-function isSplit(dir: string, table: string): boolean {
-  return existsSync(shardDir(dir, table));
-}
-
-/** Read the whole table as an object — used by the browse API, which is allowed to enumerate. */
-export function readTable(dir: string, table: string): Record<string, unknown> {
-  if (!isSplit(dir, table)) return readWholeTable(dir, table);
-  const out: Record<string, unknown> = {};
-  for (const name of listShards(dir, table)) {
-    const fp = path.join(shardDir(dir, table), name);
+  for (const name of names) {
+    const fp = path.join(sd, name);
     let raw: string;
     try {
       raw = readFileSync(fp, "utf8");
     } catch {
       continue;
     }
-    const rec = parseShardRecord(fp, raw);
-    out[rec.key] = rec.value;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      continue;
+    }
+    const rec = parsed as { key?: unknown; value?: unknown } | null;
+    if (rec && typeof rec === "object" && typeof rec.key === "string") {
+      merged[rec.key] = rec.value;
+    }
   }
-  return out;
+  atomicWrite(tableFile(dir, table), JSON.stringify(merged, null, 2));
+  rmSync(sd, { recursive: true, force: true });
+  const leftover = `${tableFile(dir, table)}.split`;
+  if (existsSync(leftover)) rmSync(leftover, { force: true });
 }
 
-export function tableHas(dir: string, table: string): boolean {
-  return isSplit(dir, table) || existsSync(tableFile(dir, table));
+function readWholeTable(dir: string, table: string): Record<string, unknown> {
+  absorbLegacyShards(dir, table);
+  const fp = tableFile(dir, table);
+  let raw: string;
+  try {
+    raw = readFileSync(fp, "utf8");
+  } catch {
+    return {};
+  }
+  return parseObject(fp, raw);
+}
+
+function classifyValue(value: unknown): Pick<HeavyKey, "kind" | "entries"> {
+  if (Array.isArray(value)) return { kind: "list", entries: value.length };
+  if (value && typeof value === "object") {
+    return { kind: "map", entries: Object.keys(value as object).length };
+  }
+  return { kind: "value" };
+}
+
+/** Rank top-level keys by serialised size — what the notice / AI prompt points at. */
+export function analyzeTable(
+  table: string,
+  obj: Record<string, unknown>,
+  locale: "zh-CN" | "en" = "zh-CN",
+): StorageAdvice {
+  const heavy: HeavyKey[] = Object.entries(obj)
+    .map(([key, value]) => {
+      const bytes = Buffer.byteLength(JSON.stringify(value));
+      return { key, bytes, ...classifyValue(value) };
+    })
+    .sort((a, b) => b.bytes - a.bytes)
+    .slice(0, HEAVY_KEY_LIMIT);
+  const bytes = Buffer.byteLength(JSON.stringify(obj, null, 2));
+  const keys = Object.keys(obj).length;
+  return { table, bytes, keys, heavy, prompt: buildSplitPrompt({ table, bytes, keys, heavy }, locale) };
+}
+
+function humanBytes(n: number, locale: "zh-CN" | "en"): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) {
+    const v = (n / 1024).toFixed(1);
+    return locale === "zh-CN" ? `${v} KB` : `${v} KB`;
+  }
+  const v = (n / (1024 * 1024)).toFixed(1);
+  return locale === "zh-CN" ? `${v} MB` : `${v} MB`;
+}
+
+function kindHint(h: HeavyKey, locale: "zh-CN" | "en"): string {
+  if (locale === "zh-CN") {
+    if (h.kind === "list") return `列表，约 ${h.entries ?? "?"} 条 — 适合一行一个 key`;
+    if (h.kind === "map") return `对象，约 ${h.entries ?? "?"} 个字段`;
+    return "单个值";
+  }
+  if (h.kind === "list") return `list, ~${h.entries ?? "?"} items — prefer one key per row`;
+  if (h.kind === "map") return `object, ~${h.entries ?? "?"} fields`;
+  return "single value";
+}
+
+/** Prompt a human can paste to an agent. Plain language; concrete table/key names. */
+export function buildSplitPrompt(
+  advice: Pick<StorageAdvice, "table" | "bytes" | "keys" | "heavy">,
+  locale: "zh-CN" | "en",
+): string {
+  const size = humanBytes(advice.bytes, locale);
+  const lines = advice.heavy.map(
+    (h, i) => `${i + 1}. \`${h.key}\` ≈ ${humanBytes(h.bytes, locale)}（${kindHint(h, locale)}）`,
+  );
+  if (locale === "zh-CN") {
+    return [
+      `小程序存储表「${advice.table}」现在大约 ${size}（${advice.keys} 个顶层 key）。继续往同一个表里塞会越来越慢。`,
+      ``,
+      `按体积，这些 key 最该先处理：`,
+      ...lines,
+      ``,
+      `请只改存储形状，不要改业务含义：`,
+      `- 会增长的数据各自放到 ctx.storage.table("…")，别和设置/小状态挤在一张表`,
+      `- 大列表改成一行一个 key：const rows = ctx.storage.table("…"); await rows.set(id, row)`,
+      `- 不要再对一个巨大的数组/对象做整包 set`,
+      `- 改完用 ctx.storage.bytes() 看体积是否降下来`,
+    ].join("\n");
+  }
+  return [
+    `Mini-app storage table "${advice.table}" is about ${size} (${advice.keys} top-level keys). Keeping growth in one table will keep getting slower.`,
+    ``,
+    `Heaviest keys to deal with first:`,
+    ...advice.heavy.map(
+      (h, i) => `${i + 1}. \`${h.key}\` ≈ ${humanBytes(h.bytes, "en")} (${kindHint(h, "en")})`,
+    ),
+    ``,
+    `Change storage shape only — keep the product behaviour:`,
+    `- Put anything that grows in its own ctx.storage.table("…"), not next to settings`,
+    `- Turn large lists into one key per row: const rows = ctx.storage.table("…"); await rows.set(id, row)`,
+    `- Do not keep set()-ing one giant array/object`,
+    `- Check ctx.storage.bytes() afterwards`,
+  ].join("\n");
 }
 
 export function readKey(dir: string, table: string, key: string): unknown {
-  if (isSplit(dir, table)) {
-    const hit = readShard(dir, table, key);
-    return hit.found ? hit.value : null;
-  }
   const obj = readWholeTable(dir, table);
   return Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : null;
 }
 
-/**
- * Write one key. Past the threshold the table becomes one file per key, so the *next* write to a
- * 4 MB table costs one small file instead of re-serialising 4 MB — which is the whole reason this
- * module exists.
- */
 export function writeKey(dir: string, table: string, key: string, value: unknown): TableStats {
   mkdirSync(dir, { recursive: true });
-  if (isSplit(dir, table)) {
-    writeShard(dir, table, key, value);
-    return stats(dir, table);
-  }
   const obj = readWholeTable(dir, table);
   obj[key] = value;
   const payload = JSON.stringify(obj, null, 2);
-  if (Buffer.byteLength(payload) > SPLIT_THRESHOLD_BYTES) {
-    splitTable(dir, table, obj);
-    return stats(dir, table);
-  }
   atomicWrite(tableFile(dir, table), payload);
-  return stats(dir, table);
+  return { bytes: Buffer.byteLength(payload), keys: Object.keys(obj).length };
 }
 
 export function deleteKey(dir: string, table: string, key: string): TableStats {
-  if (isSplit(dir, table)) {
-    rmSync(shardPath(dir, table, key), { force: true });
-    return stats(dir, table);
-  }
   const obj = readWholeTable(dir, table);
   if (!Object.prototype.hasOwnProperty.call(obj, key)) return stats(dir, table);
   delete obj[key];
-  atomicWrite(tableFile(dir, table), JSON.stringify(obj, null, 2));
-  return stats(dir, table);
+  const payload = JSON.stringify(obj, null, 2);
+  atomicWrite(tableFile(dir, table), payload);
+  return { bytes: Buffer.byteLength(payload), keys: Object.keys(obj).length };
 }
 
-/** Both layouts, because a table that never split still has a file to clear. */
 export function clearTable(dir: string, table: string): void {
   mkdirSync(dir, { recursive: true });
   rmSync(shardDir(dir, table), { recursive: true, force: true });
@@ -294,19 +282,32 @@ export function clearTable(dir: string, table: string): void {
 }
 
 export function stats(dir: string, table: string): TableStats {
-  if (isSplit(dir, table)) {
-    const names = listShards(dir, table);
-    return { bytes: shardBytes(dir, table), keys: names.length, split: true };
-  }
+  absorbLegacyShards(dir, table);
   const fp = tableFile(dir, table);
-  let bytes = 0;
-  let keys = 0;
   try {
     const raw = readFileSync(fp, "utf8");
-    bytes = Buffer.byteLength(raw);
-    keys = Object.keys(parseObject(fp, raw)).length;
+    return {
+      bytes: Buffer.byteLength(raw),
+      keys: Object.keys(parseObject(fp, raw)).length,
+    };
   } catch {
-    /* absent table is simply empty */
+    return { bytes: 0, keys: 0 };
   }
-  return { bytes, keys, split: false };
+}
+
+/** Read the whole table — browse API only. Absorbs any leftover shard directory first. */
+export function readTable(dir: string, table: string): Record<string, unknown> {
+  return readWholeTable(dir, table);
+}
+
+/** Advice for a table already on disk, or `null` when it is under the notice threshold. */
+export function adviceForTable(
+  dir: string,
+  table: string,
+  locale: "zh-CN" | "en" = "zh-CN",
+): StorageAdvice | null {
+  const obj = readWholeTable(dir, table);
+  const bytes = Buffer.byteLength(JSON.stringify(obj, null, 2));
+  if (bytes < NOTICE_BYTES) return null;
+  return analyzeTable(table, obj, locale);
 }

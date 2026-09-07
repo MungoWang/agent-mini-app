@@ -55,5 +55,4 @@
 | 额外包的 approve/reject 弹窗 | **只在**出现分享/安装别人的包时，而且打在那份包上；本机自用的 app 不加围栏 | `docs/rfcs/per-app-packages.md` §7 |
 | backend worker / 子进程隔离 | 某个 app 的 native 依赖真的把宿主拖崩过一次 | 同上 §4 |
 | `mini_app_view_eval` 观测指标 | 第二次出现「不知道该不该改形态」的争论，或 `view` 非 live > 5 % | `docs/rfcs/view-eval-metrics.md` |
-| 查询型存储（SQLite / `node:sqlite`） | 自动分库（`file-store.ts`，>512 KB 一 key 一文件）之后仍出现真实需求：要按条件过滤/排序/聚合，或单表条目多到遍历 shard 本身成为瓶颈。**前置条件**：`engines.node` 有意抬到 ≥22.5（现在声明 `>=20`，`node:sqlite` 用不了）。不是待办，是条件 | `docs/archive/tasks/storage-layout-2026-09-08.md` |
-| 整表拆回单文件 | 出现「拆完反而更糟」的实测证据（比如小 key 海量导致的 inode/列举开销压过重写开销） | 同上 |
+| 查询型存储（SQLite / `node:sqlite` / WASM SQLite） | 面板「表过大」提醒 + 分表引导之后仍出现真实需求：要按条件过滤/排序/聚合，或单表大到 JSON 整表重写可测地拖慢。**前置条件**：接受 WASM 依赖，或把 `engines.node` 抬到 ≥22.5 用内置 `node:sqlite`。自动按 key 拆文件已撤回（实测常见形状更慢） | `docs/archive/tasks/storage-layout-2026-09-08.md` |

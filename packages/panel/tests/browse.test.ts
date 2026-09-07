@@ -66,7 +66,7 @@ async function mountFull(locale: "en" | "zh-CN" = "zh-CN"): Promise<{ el: HTMLEl
     tables: [
       { name: "kv", size: 4, updatedAt: "t" },
       // A table the host has grown past one rewrite: one file per key, still listed as one table.
-      { name: "reads", size: 2 * 1024 * 1024, updatedAt: "t2", keys: 3, split: true },
+      { name: "reads", size: 2 * 1024 * 1024, updatedAt: "t2", keys: 3 },
     ],
     tableValue: { a: 1 },
     palettes: [{ id: "custom-1", label: "Custom One", swatch: "#abc" }],
@@ -112,9 +112,7 @@ describe("Browse / chrome interactions", () => {
     });
   });
 
-  it("shows a grown table by entries and human size, not by shard count", async () => {
-    // English locale asserted explicitly: the fake host defaults to zh-CN, and this case is about
-    // what the row *carries*, which must not depend on which dictionary is loaded.
+  it("shows table entries and human size", async () => {
     const { el } = await mountFull("en");
     await act(async () => {
       el.querySelector<HTMLButtonElement>("#mma-storage-btn")?.click();
@@ -125,8 +123,29 @@ describe("Browse / chrome interactions", () => {
 
     const rows = Array.from(el.querySelectorAll(".mma-bitem")).map((n) => n.textContent);
     expect(rows.some((r) => r?.includes("2.0 MB") && r?.includes("3 entries"))).toBe(true);
-    // Small tables keep the plain byte count; nothing about the layout is the author's business.
     expect(rows.some((r) => r?.startsWith("kv") && r?.includes("4 B"))).toBe(true);
+  });
+
+  it("shows a storage notice banner with a copyable split prompt", async () => {
+    const { el, panel } = await mountFull("en");
+    await act(async () => {
+      panel.actions.applyStorageNotice({
+        appId: "com.example.todo",
+        table: "main.storage",
+        bytes: 2 * 1024 * 1024,
+        keys: 3,
+        heavy: [{ key: "reads", bytes: 1_800_000, kind: "list", entries: 100 }],
+        prompt: "please split reads into its own table",
+      });
+      el.querySelector<HTMLButtonElement>("#mma-storage-btn")?.click();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(el.querySelector(".mma-storage-notice")).toBeTruthy();
+    expect(el.textContent).toContain("main.storage");
+    expect(el.textContent).toContain("reads");
+    expect(el.textContent).toMatch(/Copy split prompt|复制拆分提示词/);
   });
 
   it("opens storage, loads a table, and shows JSON", async () => {

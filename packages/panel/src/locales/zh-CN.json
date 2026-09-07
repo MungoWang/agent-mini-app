@@ -124,7 +124,13 @@
     "collapseMsg": "收起",
     "entries": "{{count}} 条",
     "sizeKb": "{{value}} KB",
-    "sizeMb": "{{value}} MB"
+    "sizeMb": "{{value}} MB",
+    "noticeTitle": "「{{table}}」已经有 {{size}} 了",
+    "noticeBody": "这个文件越大，每次保存都会越慢。建议把会不断变多的数据拆到单独的表里——你可以把下面的提示词复制给 AI，让它帮你改。",
+    "noticeTop": "眼下最大的一块是「{{key}}」（约 {{size}}）。",
+    "noticeCopy": "复制拆分提示词",
+    "noticeCopied": "已复制",
+    "noticeDismiss": "知道了"
   },
   "load": {
     "label": "加载中"

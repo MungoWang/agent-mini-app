@@ -61,7 +61,10 @@ describe("createRestPanelHost", () => {
     await expect(host.palettes?.()).resolves.toEqual([{ id: "c1", label: "C", swatch: "#111", tokens: undefined }]);
     await expect(host.history!.list("com.example.todo")).resolves.toHaveLength(1);
     await expect(host.history!.detail("com.example.todo", "abc")).resolves.toMatchObject({ id: "abc", message: "m" });
-    await expect(host.storage!.listTables("com.example.todo")).resolves.toEqual([{ name: "kv", size: 2, updatedAt: undefined }]);
+    await expect(host.storage!.listTables("com.example.todo")).resolves.toEqual({
+      tables: [{ name: "kv", size: 2, updatedAt: undefined, keys: undefined }],
+      notices: [],
+    });
     await expect(host.storage!.readTable("com.example.todo", "kv")).resolves.toEqual({ a: 1 });
     await host.deleteApp!("com.example.todo");
   });

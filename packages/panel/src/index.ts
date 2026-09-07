@@ -60,6 +60,7 @@ export type {
   PanelActions,
   PanelCapabilities,
   PanelState,
+  StorageNotice,
   StorageTable,
   TabItem,
   TabKind,

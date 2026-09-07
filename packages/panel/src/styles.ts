@@ -239,6 +239,14 @@ const CSS = [
   "#mma-host .mma-diff-line--ctx{color:inherit;opacity:.85;}",
   "#mma-host .mma-bempty{padding:20px;opacity:.6;text-align:center;font-size:13px;}",
   "#mma-host .mma-berr{padding:16px;color:#b91c1c;font-size:13px;}",
+  "#mma-host .mma-storage-notice{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:12px 14px;margin:0 0 12px;border-radius:10px;background:color-mix(in srgb, var(--dsw-alias-warning, #f59e0b) 14%, var(--dsw-alias-bg, #f7f7f8));border:1px solid color-mix(in srgb, var(--dsw-alias-warning, #f59e0b) 35%, transparent);}",
+  "#mma-host .mma-storage-notice-body{min-width:0;flex:1;}",
+  "#mma-host .mma-storage-notice-body b{display:block;font-size:13px;margin:0 0 4px;}",
+  "#mma-host .mma-storage-notice-body p{margin:0;font-size:12px;line-height:1.45;opacity:.85;}",
+  "#mma-host .mma-storage-notice-top{margin-top:6px !important;}",
+  "#mma-host .mma-storage-notice-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}",
+  "#mma-host .mma-storage-notice-actions button{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid color-mix(in srgb, currentColor 18%, transparent);background:var(--dsw-alias-bg, #fff);cursor:pointer;}",
+  "#mma-host .mma-storage-notice-copy{font-weight:600;}",
 ];
 
 export function injectPanelCss(): void {
