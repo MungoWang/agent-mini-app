@@ -11,7 +11,7 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 
 ## Doc rules
 
-- **Language: developer-facing text is English by default.** Applies to `docs/**`, `README.md`, code comments, JSDoc, commit/PR text, and the skill (`skills/monkey-mini-app/**`).
+- **Language: project document is English by default.** Applies to `docs/**`, `README.md`, code comments, JSDoc, commit/PR text, and the skill (`skills/monkey-mini-app/**`).
  - **Keep the two languages apart by audience, not by file type:** *instructions* (what a reader/agent must do) are always English; *sample product copy* (strings a mini-app renders — template `ui.tsx` labels, `manifest.name`, error text shown to the end user) follows the host locale and stays Chinese in the samples.
  - Customer-facing `README.md` may have a `README.zh.md` twin. **When you change one, change the other in the same commit** — an out-of-date translation is a bug, not a TODO.
  - Personal / working notes (`TODO.md`, `LOCAL.md`, scratch RFCs) may stay Chinese if that is faster for the author; anything published or read by agents should be English.
