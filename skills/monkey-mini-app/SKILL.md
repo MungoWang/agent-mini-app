@@ -54,7 +54,11 @@ Mutating tools **auto-commit** by default; pass `commit: false` to batch a few e
 
 ### What `mini_app_reload` returns
 
-`{ ok, errors, notices?, compiled, committed }`. The **prefix** of each `errors[i]` names the failing layer — fix that layer, don't shotgun:
+`{ ok, errors, notices?, compiled, committed, caches }`. The **prefix** of each `errors[i]` names the failing layer — fix that layer, don't shotgun.
+
+**Cache contract (do not second-guess this):** every successful reload drops the in-memory API module, UI bundle, **and app CSS** (`caches.appCss` is always `"dropped"`), and signals open panels to re-fetch. The tool also defaults to `cleanCaches: true` (purges `.autogen/` + on-disk bundles) so a stale Tailwind artifact cannot linger — pass `cleanCaches: false` only when you intentionally want to keep disk caches. Read `caches.views` to know whether a browser actually re-fetched.
+
+Error prefixes:
 
 | Prefix | Meaning | Next step |
 |---|---|---|

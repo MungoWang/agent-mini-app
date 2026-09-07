@@ -1,10 +1,11 @@
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  AppCssCompiler,
   AppsManager,
   bootstrapHostConfig,
   GitHistory,
@@ -12,6 +13,7 @@ import {
   HostError,
   type HostEvent,
   HostEventBus,
+  type ReloadResult,
   ToolFacade,
   UiCompiler,
   VIEW_EVAL_BYTE_CAP,
@@ -120,6 +122,54 @@ describe("ToolFacade", () => {
     const def = tools.definitions().find((t) => t.name === "mini_app_reload");
     const viaExecute = (await def?.execute({ appId: "NotValid" })) as { ok: boolean };
     expect(viaExecute.ok).toBe(false);
+  });
+
+  it("mini_app_reload defaults cleanCaches to true (app CSS memo always drops either way)", async () => {
+    // Canary: agents used to pass nothing and inherit a stale .autogen/ui.css. The tool now
+    // purges disk by default; AppsManager.reload({ }) without opts still keeps disk — that
+    // split is intentional and this test pins the tool side.
+    const { tools, apps, paths } = boot();
+    apps.setCssCompiler(new AppCssCompiler(paths));
+    const appId = "com.example.cachedefault";
+    await tools.invoke("mini_app_register", {
+      appId,
+      files: {
+        "manifest.json": JSON.stringify({
+          id: appId,
+          name: "Cache",
+          version: "1.0.0",
+          entry: "ui.tsx",
+        }),
+        "main.api.ts": pingApi,
+        "ui.tsx": `export default function App() { return <div className="p-4">x</div>; }\n`,
+      },
+    });
+    const dir = apps.dirOf(appId);
+    const autogen = path.join(dir, ".autogen");
+    mkdirSync(autogen, { recursive: true });
+    const css = path.join(autogen, "ui.css");
+    writeFileSync(css, ".stale{}", "utf8");
+
+    const def = tools.definitions().find((t) => t.name === "mini_app_reload");
+    const cleanProp = (def?.inputSchema as { properties?: { cleanCaches?: { description?: string } } })
+      ?.properties?.cleanCaches;
+    expect(cleanProp?.description ?? "").toMatch(/Default true/i);
+
+    const purged = (await tools.invoke("mini_app_reload", { appId })) as ReloadResult;
+    expect(purged.ok).toBe(true);
+    expect(purged.caches).toMatchObject({ uiBundle: "dropped", appCss: "dropped", autogen: "removed" });
+    expect(existsSync(css)).toBe(false);
+
+    mkdirSync(autogen, { recursive: true });
+    writeFileSync(css, ".stale-again{}", "utf8");
+    const kept = (await tools.invoke("mini_app_reload", {
+      appId,
+      cleanCaches: false,
+    })) as ReloadResult;
+    expect(kept.ok).toBe(true);
+    expect(kept.caches).toMatchObject({ uiBundle: "dropped", appCss: "dropped" });
+    expect(kept.caches?.autogen).toBeUndefined();
+    expect(existsSync(css)).toBe(true);
   });
 
   it("reads, edits, writes, lists files; commit:false then reload commits dirty tree", async () => {

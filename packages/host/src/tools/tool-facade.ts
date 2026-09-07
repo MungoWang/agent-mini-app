@@ -148,14 +148,16 @@ export class ToolFacade {
         name: "mini_app_reload",
         description:
           "Validate + sync-compile main.api and ui for an app (replaces mini_app_validate). Returns compile errors if any. On success, auto-commits if the worktree is dirty. Call after a round of edits to verify and warm the UI cache. " +
-          "A successful reload already drops every in-memory build (api module, UI bundle, app CSS) and tells the open panels to re-fetch — the `caches` block of the result states what was dropped and how many views were signalled, so you never have to wonder whether you are looking at fresh bytes. `cleanCaches: true` additionally deletes the on-disk build output (`.autogen/` and cached bundles) and rebuilds from source: reach for it only when you suspect the artifact itself, since it costs a full Tailwind + esbuild run.",
+          "Always drops every in-memory build (api module, UI bundle, **app CSS**) and tells open panels to re-fetch — the `caches` block states what was dropped. " +
+          "By default also purges on-disk build output (`.autogen/` + cached bundles) so you never inherit a stale Tailwind/esbuild artifact; pass `cleanCaches: false` only when you deliberately want to keep those files (faster, but you must trust the disk cache).",
         inputSchema: {
           type: "object",
           properties: {
             appId: APP_ID_SCHEMA,
             cleanCaches: {
               type: "boolean",
-              description: "Also purge on-disk build output and rebuild from source. Default false.",
+              description:
+                "Purge on-disk build output (`.autogen/`, cached bundles) before rebuilding. Default true — pass false only to keep disk artifacts.",
             },
           },
           required: ["appId"],
@@ -512,7 +514,11 @@ export class ToolFacade {
 
   private async handleReload(args: Record<string, unknown>): Promise<unknown> {
     const appId = requireString(args, "appId");
-    return this.apps.reload(appId, { cleanCaches: args.cleanCaches === true });
+    // Tool default is true so agents stop second-guessing stale Tailwind/esbuild artifacts.
+    // AppsManager.reload itself still defaults to false when opts are omitted — only this
+    // tool flips the default. Explicit `false` still opts out.
+    const cleanCaches = args.cleanCaches !== false;
+    return this.apps.reload(appId, { cleanCaches });
   }
 
   private async handleInstall(args: Record<string, unknown>): Promise<unknown> {

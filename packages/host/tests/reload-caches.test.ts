@@ -85,7 +85,8 @@ describe("mini_app_reload cache report", () => {
     // Nothing attached to the bus, so the honest answer is "nobody was shown this app" — not a
     // silent claim that a view refreshed.
     expect(cachesOf(result)?.views).toMatch(/no panel attached/);
-    // On-disk output survives an ordinary reload: only the memos are guaranteed gone.
+    // AppsManager.reload without opts keeps on-disk output — only memos are guaranteed gone.
+    // The *tool* defaults cleanCaches to true (see tool-facade.test); that is a separate seam.
     expect(existsSync(css)).toBe(true);
     expect(cachesOf(result)?.diskBundles).toBeUndefined();
   });

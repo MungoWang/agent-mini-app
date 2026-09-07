@@ -3,6 +3,12 @@
 Two things are decided for you and cannot be changed: **Tailwind is compiled per app at
 reload time**, and **colours come from theme tokens**. Everything below follows from that.
 
+**Reload ↔ CSS contract:** every `mini_app_reload` drops the in-memory app CSS memo
+(`caches.appCss: "dropped"`). The tool also defaults to `cleanCaches: true`, which deletes
+`.autogen/ui.css` so a stale sheet cannot survive on disk either. You do not need a second
+"clear CSS" step — if a class is missing after a green reload, the class was never in source
+(dynamic string) or the panel never re-fetched (`caches.views`).
+
 ## Tailwind is real JIT over your own source — not a fixed safelist
 
 The host runs Tailwind v4 against the app directory on every compile

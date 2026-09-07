@@ -36,20 +36,24 @@ More → [eval.md](eval.md).
 ## "Did my change actually take effect?"
 
 `mini_app_reload` answers this in its own result, so you never have to infer it from a
-screenshot. A successful reload always drops the in-memory build of the API module, the UI
-bundle **and** the app's Tailwind CSS, then tells every attached panel to re-fetch:
+screenshot. **CSS is part of the contract, not an afterthought:** a successful reload always
+drops the in-memory build of the API module, the UI bundle **and** the app's Tailwind CSS
+(`appCss: "dropped"`), then tells every attached panel to re-fetch. There is no "CSS somehow
+stayed" path — if `caches.appCss` is not `"dropped"`, something else is wrong.
 
 ```json
-{ "ok": true, "caches": { "uiBundle": "dropped", "appCss": "dropped", "views": "reload sent to 1 attached panel" } }
+{ "ok": true, "caches": { "uiBundle": "dropped", "appCss": "dropped", "autogen": "removed", "views": "reload sent to 1 attached panel" } }
 ```
 
 - `views: "no panel attached — nothing was showing this app"` → the browser never re-fetched,
   because there was nothing to re-fetch. Call `mini_app_open`.
 - `views: "not sent (compile failed)"` → fix the compile; the memos still went, so the next
   attempt cannot inherit the old bytes.
-- `cleanCaches: true` additionally deletes the on-disk build (`.autogen/`, cached bundles) and
-  reports `diskBundles` / `autogen: "removed"`. Only worth its cost (a full Tailwind + esbuild
-  run) when you suspect the artifact itself, not your source.
+- **`cleanCaches` defaults to `true` on the tool** — on-disk build output (`.autogen/`, cached
+  bundles) is purged and rebuilt, so a stale Tailwind artifact cannot survive a normal reload.
+  Pass `cleanCaches: false` only when you deliberately want to keep those files (faster, but
+  you are trusting the disk cache). The underlying `AppsManager.reload` API still defaults to
+  `false` when called without opts; only the tool flips the default.
 
 To prove the frame is a *new document*, compare `performance.timeOrigin` across the reload —
 the refreshed URL carries a cache-buster, so a real reload always changes it:
