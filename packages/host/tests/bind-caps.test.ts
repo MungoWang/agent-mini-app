@@ -149,4 +149,23 @@ describe("bindCapsToContext", () => {
     await bound.agent("go", { maxTokens: 300 });
     expect(seen[0]).toMatchObject({ maxTokens: 300 });
   });
+
+  it("keeps `this` for class-shaped adapters (dsh puts methods on the prototype)", async () => {
+    // Canary for the 8f8ad0f regression: destructuring llm/agent off caps loses the receiver,
+    // and the next line inside DshCapabilities (`this.dsh`) throws
+    // "Cannot read properties of undefined (reading 'dsh')". Object-literal caps hide it.
+    class Caps {
+      constructor(private readonly tag: string) {}
+      async llm(_ctx: AppCallContext, prompt: string): Promise<string> {
+        return `${this.tag}:${prompt}`;
+      }
+      async agent(_ctx: AppCallContext, goal: string): Promise<string> {
+        return `${this.tag}:${goal}`;
+      }
+    }
+    const caps = new Caps("bound") as unknown as HostCapabilities;
+    const bound = bindCapsToContext(callCtx, caps);
+    await expect(bound.llm("hi")).resolves.toBe("bound:hi");
+    await expect(bound.agent("go")).resolves.toBe("bound:go");
+  });
 });

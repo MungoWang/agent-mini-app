@@ -87,20 +87,25 @@ export function bindCapsToContext(
 ): BoundHostCapabilities {
   // Hand-written (not Object.keys): keep next to HostCapabilities so new methods are not forgotten.
   // async wrappers turn missingCap sync throws into Promise rejections.
-  const { llm, agent } = caps;
+  //
+  // Call through `caps.llm(...)` / `caps.agent(...)` — never destructure the methods off. Adapters
+  // (dsh) put them on a class prototype and close over `this.dsh`; `const { llm } = caps` then
+  // `llm(...)` loses the receiver and blows up with "Cannot read properties of undefined
+  // (reading 'dsh')". Object-literal caps in unit tests hide that, which is how 8f8ad0f shipped.
   return {
     bash: async (command) => (caps.bash ? caps.bash(ctx, command) : missingCap("bash")),
     // Both model paths go through the attempt engine so the retry budget, the output ceiling and
     // the `schema` guarantee are the same on every host, not adapter-specific politeness.
-    llm: llm
-      ? async (prompt, opts) => runLlmAttempts(prompt, opts, (input, o) => llm(ctx, input, o))
+    llm: caps.llm
+      ? async (prompt, opts) =>
+          runLlmAttempts(prompt, opts, (input, o) => caps.llm!(ctx, input, o))
       : async () => missingCap("llm"),
-    agent: agent
+    agent: caps.agent
       ? async (goal, opts) =>
           runLlmAttempts(
             goal,
             opts,
-            (input, o) => agent(ctx, input, withAgentStreamBridge(ctx, caps, o)),
+            (input, o) => caps.agent!(ctx, input, withAgentStreamBridge(ctx, caps, o)),
             { attempts: DEFAULT_AGENT_ATTEMPTS },
           )
       : async () => missingCap("agent"),
