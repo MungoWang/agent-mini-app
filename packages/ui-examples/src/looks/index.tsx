@@ -15,20 +15,20 @@ import { useLookPalette } from "./palette";
  * Tailwind drops the extra inset layers of an arbitrary `shadow-[…]`.
  */
 const GLASS = {
-  backgroundColor: "color-mix(in oklch, var(--card) 30%, transparent)",
+  backgroundColor: "color-mix(in oklch, var(--card) 26%, transparent)",
   backgroundImage:
     "linear-gradient(to bottom," +
-    " color-mix(in oklch, var(--card) 48%, transparent) 0%," +
-    " color-mix(in oklch, var(--card) 16%, transparent) 38%," +
-    " transparent 74%)",
+    " color-mix(in oklch, var(--card) 42%, transparent) 0%," +
+    " color-mix(in oklch, var(--card) 14%, transparent) 32%," +
+    " transparent 70%)",
   boxShadow:
-    "inset 0 1px 0 0 color-mix(in oklch, var(--card) 88%, var(--background))," +
-    "inset 0 -1px 0 0 color-mix(in oklch, var(--background) 52%, transparent)," +
-    "0 2px 6px -2px color-mix(in oklch, var(--foreground) 26%, transparent)," +
-    "0 18px 40px -18px color-mix(in oklch, var(--foreground) 40%, transparent)",
-  borderColor: "color-mix(in oklch, var(--card) 28%, transparent)",
-  backdropFilter: "blur(16px) saturate(180%) brightness(1.06)",
-  WebkitBackdropFilter: "blur(16px) saturate(180%) brightness(1.06)",
+    "inset 0 1.5px 0 color-mix(in oklch, var(--card) 96%, transparent)," +
+    "inset 0 -1px 0 color-mix(in oklch, var(--card) 38%, transparent)," +
+    "0 2px 6px -2px color-mix(in oklch, var(--foreground) 30%, transparent)," +
+    "0 20px 42px -18px var(--shadow)",
+  borderColor: "color-mix(in oklch, var(--card) 34%, transparent)",
+  backdropFilter: "blur(18px) saturate(200%) brightness(1.08)",
+  WebkitBackdropFilter: "blur(18px) saturate(200%) brightness(1.08)",
 } as const;
 
 export function GlassIslandLook() {

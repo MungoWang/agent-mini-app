@@ -10,17 +10,17 @@ id: `glass-island` · grammar: `poster-dock`
 
 **Not:** Launchers, DataGrid, incident walls. Not a 2D mosaic.
 
-**How to copy it:** Four things, and blur is only one of them. (1) `saturate()` on the backdrop — blur alone desaturates and reads as grey film. (2) A specular top edge that is genuinely LIGHTER than the fill: mix --card against --background, not against transparent, or the rim has no contrast and vanishes. Add the faint dark bounce on the bottom edge. (3) Two shadows — tight contact + wide lift. (4) The ground needs structure to sample: backdrop-filter over a flat fill renders flat whatever the radius, so keep light pools behind the cluster. Inline style is required (Tailwind keeps one layer of an arbitrary shadow-[…]). Sky = palette; cap and centre the cluster; write spans out, not md:. Small text over glass is where legibility dies — deepen the fill before shrinking the blur.
+**How to copy it:** Glass reads through THREE ingredient families, and all three must fire. (1) The ground is saturated (this look's theme.css carries the blue-violet field with cyan/indigo pools); a grey ground can never make glass, it can only make film. (2) The pane is LOW-alpha and near-neutral `blur() + saturate(200%)`, so the ground's hue is lifted through it by the filter rather than painted in the fill. (3) The top edge is a specular rim (color-mix card → ground), plus tight contact + wide lift shadows. Under-saturating the fill or the ground is the two ways cheap glass happens; muddy grey-blue is one of them. Sky = palette (bg-background); cap and centre the cluster; write spans out, not md:.
 
 ## Style (inline — Tailwind drops multi-layer shadows)
 
 ```tsx
 const GLASS = {
-  "backgroundColor": "color-mix(in oklch, var(--card) 30%, transparent)",
-  "backgroundImage": "linear-gradient(to bottom, color-mix(in oklch, var(--card) 48%, transparent) 0%, color-mix(in oklch, var(--card) 16%, transparent) 38%, transparent 74%)",
-  "boxShadow": "inset 0 1px 0 0 color-mix(in oklch, var(--card) 88%, var(--background)), inset 0 -1px 0 0 color-mix(in oklch, var(--background) 52%, transparent), 0 2px 6px -2px color-mix(in oklch, var(--foreground) 26%, transparent), 0 18px 40px -18px color-mix(in oklch, var(--foreground) 40%, transparent)",
-  "borderColor": "color-mix(in oklch, var(--card) 28%, transparent)",
-  "backdropFilter": "blur(16px) saturate(180%) brightness(1.06)"
+  "backgroundColor": "color-mix(in oklch, var(--card) 26%, transparent)",
+  "backgroundImage": "linear-gradient(to bottom, color-mix(in oklch, var(--card) 42%, transparent) 0%, color-mix(in oklch, var(--card) 14%, transparent) 32%, transparent 70%)",
+  "boxShadow": "inset 0 1.5px 0 color-mix(in oklch, var(--card) 96%, transparent), inset 0 -1px 0 color-mix(in oklch, var(--card) 38%, transparent), 0 2px 6px -2px color-mix(in oklch, var(--foreground) 30%, transparent), 0 20px 42px -18px var(--shadow)",
+  "borderColor": "color-mix(in oklch, var(--card) 34%, transparent)",
+  "backdropFilter": "blur(18px) saturate(200%) brightness(1.08)"
 } as const;
 ```
 
@@ -40,48 +40,50 @@ pick a host palette. Omit the file to follow the host palette instead.
 
 ```css
 /* name: 玻璃岛屿 */
-/* Look-owned palette: the island is the sky, so the hue is part of the grammar. */
+/* Look-owned palette: the sky is a cool blue-violet field with cyan + indigo pools.
+   The ground carries the saturation; the panes stay mostly unsaturated so `saturate()`
+   is what lifts the colour through them. */
 :root[data-mode="light"] {
-  --bg: #8fabc6;
-  --fg: #1b2833;
-  --surface: #e9f1f7;
-  --surface-fg: #1b2833;
-  --border: #7494ae;
-  --muted: #9dbdd2;
-  --muted-fg: #33505f;
-  --primary: #3d6a88;
-  --primary-fg: #f4f8fb;
-  --secondary: #9dbdd2;
-  --secondary-fg: #1b2833;
-  --accent: #b9d0e0;
-  --accent-fg: #1b2833;
-  --destructive: #b42318;
+  --bg: #a8bfe5;
+  --fg: #1e2740;
+  --surface: #f2f6ff;
+  --surface-fg: #1e2740;
+  --border: #d0daf2;
+  --muted: #c4d2ef;
+  --muted-fg: #46557c;
+  --primary: #4a63c8;
+  --primary-fg: #f4f8ff;
+  --secondary: #cfdaf4;
+  --secondary-fg: #1e2740;
+  --accent: #dde6fa;
+  --accent-fg: #1e2740;
+  --destructive: #c63f4f;
   --destructive-fg: #ffffff;
-  --ring: #3d6a88;
-  --input: #7494ae;
+  --ring: #4a63c8;
+  --input: #b3c3ea;
   --radius: 18px;
-  --shadow: rgba(18, 34, 48, 0.32);
+  --shadow: rgba(28, 42, 92, 0.3);
 }
 :root[data-mode="dark"] {
-  --bg: #0d141c;
-  --fg: #e6eef4;
-  --surface: #16212c;
-  --surface-fg: #e6eef4;
-  --border: #2a3c4c;
-  --muted: #1c2a36;
-  --muted-fg: #9ab0c0;
-  --primary: #8fb4cc;
-  --primary-fg: #0d141c;
-  --secondary: #1c2a36;
-  --secondary-fg: #e6eef4;
-  --accent: #1c2a36;
-  --accent-fg: #e6eef4;
+  --bg: #131736;
+  --fg: #e9edff;
+  --surface: #1e2344;
+  --surface-fg: #e9edff;
+  --border: #2c3360;
+  --muted: #21264c;
+  --muted-fg: #9aabdd;
+  --primary: #8397f0;
+  --primary-fg: #12142c;
+  --secondary: #252a50;
+  --secondary-fg: #e9edff;
+  --accent: #232850;
+  --accent-fg: #e9edff;
   --destructive: #f97066;
-  --destructive-fg: #0d141c;
-  --ring: #8fb4cc;
-  --input: #2a3c4c;
+  --destructive-fg: #20120d;
+  --ring: #8397f0;
+  --input: #2c3360;
   --radius: 18px;
-  --shadow: rgba(0, 0, 0, 0.45);
+  --shadow: rgba(2, 6, 26, 0.6);
 }
 ```
 

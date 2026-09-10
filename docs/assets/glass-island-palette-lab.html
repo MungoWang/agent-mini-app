@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>玻璃岛屿 · 色板打样 A/B</title>
+  <style>
+    :root { font: 13px/1.45 ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f2f3f5; }
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 20px 80px; }
+    h1 { font-size: 20px; }
+    .lede { color: #555; margin: 6px 0 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 14px; }
+    .card { background: #fff; border: 1px solid #e4e6ea; border-radius: 12px; overflow: hidden; }
+    .head { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 12px; border-bottom: 1px solid #edf0f3; }
+    .head b { font-size: 12px; letter-spacing: 0.04em; }
+    .head span { font-size: 11px; color: #888; }
+    .field { position: relative; overflow: hidden; height: 320px; padding: 18px 18px; background: var(--bg); }
+    .wash { position: absolute; inset: 0; pointer-events: none; }
+    .cluster { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+    .isl {
+      border-radius: 22px; padding: 12px 14px;
+      color: var(--fg);
+      background-color: color-mix(in oklch, var(--card) 26%, transparent);
+      background-image: linear-gradient(to bottom, color-mix(in oklch, var(--card) 42%, transparent) 0%, color-mix(in oklch, var(--card) 14%, transparent) 32%, transparent 70%);
+      box-shadow:
+        inset 0 1.5px 0 color-mix(in oklch, var(--card) 96%, transparent),
+        inset 0 -1px 0 color-mix(in oklch, var(--card) 38%, transparent),
+        0 2px 6px -2px color-mix(in oklch, var(--fg) 30%, transparent),
+        0 20px 42px -18px var(--shadow);
+      border: 1px solid color-mix(in oklch, var(--card) 34%, transparent);
+      backdrop-filter: blur(18px) saturate(190%) brightness(1.06);
+    }
+    .tall { grid-column: span 2; grid-row: span 2; }
+    .tall .n { font-family: Georgia, serif; font-size: 44px; line-height: 0.85; margin: 14px 0 4px; font-weight: 500; }
+    .wide { grid-column: span 4; }
+    .small { grid-column: span 2; }
+    .sub { font-size: 11px; opacity: 0.75; }
+    .num { font-size: 22px; font-weight: 600; margin-top: 12px; font-variant-numeric: tabular-nums; }
+    .week { display: flex; justify-content: space-between; font-size: 11px; }
+    .week i { font-style: normal; opacity: 0.8; padding: 3px 6px; border-radius: 999px; }
+    .week i.on { background: var(--fg); color: var(--bg); opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>玻璃岛屿 · 色板打样</h1>
+    <p class="lede">玻璃配方已固定（高透明填充 + specular 顶边 + 双层投影 + blur/saturate）。只是四组「地面 + 卡」候选挑一组，代码和 online 一致。编号你直接回我。</p>
+    <div class="grid" id="grid"></div>
+  </div>
+  <script>
+    const WASH = (P, FG, CARD) =>
+      `radial-gradient(440px 320px at 10% -8%, color-mix(in oklch, ${P} 55%, transparent), transparent 58%),` +
+      `radial-gradient(360px 300px at 92% 2%, color-mix(in oklch, ${P} 40%, transparent), transparent 60%),` +
+      `radial-gradient(420px 320px at 70% 68%, color-mix(in oklch, ${CARD} 40%, transparent), transparent 62%),` +
+      `radial-gradient(500px 360px at 8% 108%, color-mix(in oklch, ${FG} 22%, transparent), transparent 64%)`;
+
+    // A. 经典锁屏钢蓝（更饱和一点，呼应 island-widgets 参考）
+    const A = {
+      id: "A 钢蓝",
+      light: { bg: "#87a4c4", fg: "#142a3c", card: "#eef5fb", shadow: "rgba(14,32,48,0.34)", pool: "#4f7fa3" },
+      dark: { bg: "#10202e", fg: "#dfeef7", card: "#182c3c", shadow: "rgba(3,10,16,0.6)", pool: "#6699cc" },
+    };
+    // B. 紫蓝薄雾（现款）
+    const B = {
+      id: "B 薄雾紫蓝",
+      light: { bg: "#a8bfe5", fg: "#1e2740", card: "#f2f6ff", shadow: "rgba(28,42,92,0.3)", pool: "#4a63c8" },
+      dark: { bg: "#131736", fg: "#e9edff", card: "#1e2344", shadow: "rgba(0,4,24,0.66)", pool: "#8b94fa" },
+    };
+    // C. 更深的靛蓝紫（对比更强）
+    const C = {
+      id: "C 靛蓝紫",
+      light: { bg: "#98a2e0", fg: "#1c1e40", card: "#f6f6ff", shadow: "rgba(38,30,110,0.34)", pool: "#4c46c8" },
+      dark: { bg: "#1d1a45", fg: "#e8e6ff", card: "#242052", shadow: "rgba(1,1,16,0.62)", pool: "#978df5" },
+    };
+    // D. 冷青钻蓝（偏青）
+    const D = {
+      id: "D 青钻",
+      light: { bg: "#7fb8c8", fg: "#0e2c34", card: "#ecf7fb", shadow: "rgba(8,36,44,0.32)", pool: "#189ab5" },
+      dark: { bg: "#0a2a32", fg: "#d8f0f6", card: "#0f3742", shadow: "rgba(1,10,14,0.6)", pool: "#3fc1d8" },
+    };
+
+    const pools = [A, B, C, D];
+    const grid = document.getElementById("grid");
+    for (const p of pools) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `<div class="head"><b>${p.id}</b><span>左侧 light / 未展示 dark（角色交叉时可补截）</span></div>`;
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      for (const mode of ["light", "dark"]) {
+        const v = p[mode];
+        const f = document.createElement("div");
+        f.className = "field";
+        f.style.setProperty("--bg", v.bg);
+        f.style.setProperty("--fg", v.fg);
+        f.style.setProperty("--card", v.card);
+        f.style.setProperty("--shadow", v.shadow);
+        f.style.flex = "1";
+        f.innerHTML = `
+          <div class="wash" style="background:${WASH(v.pool, v.fg, v.card)}"></div>
+          <div class="cluster">
+            <div class="isl tall">
+              <div class="sub">星期四</div>
+              <div class="n">10</div>
+              <div class="sub">9 月 10 日</div>
+            </div>
+            <div class="isl wide">
+              <div class="week"><i>一</i><i>二</i><i>三</i><i class="on">四</i><i>五</i><i>六</i><i>日</i></div>
+            </div>
+            <div class="isl small">
+              <div class="sub">进行中</div><div class="num">3</div>
+            </div>
+            <div class="isl small">
+              <div class="sub">已完</div><div class="num">12</div>
+            </div>
+          </div>`;
+        row.appendChild(f);
+      }
+      card.appendChild(row);
+      grid.appendChild(card);
+    }
+  </script>
+</body>
+</html>

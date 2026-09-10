@@ -17,16 +17,14 @@
         "content": "relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3"
       },
       "theme": "themes/glass-island.css",
-      "defaultFor": [
-        "today"
-      ],
-      "notes": "Four things, and blur is only one of them. (1) `saturate()` on the backdrop — blur alone desaturates and reads as grey film. (2) A specular top edge that is genuinely LIGHTER than the fill: mix --card against --background, not against transparent, or the rim has no contrast and vanishes. Add the faint dark bounce on the bottom edge. (3) Two shadows — tight contact + wide lift. (4) The ground needs structure to sample: backdrop-filter over a flat fill renders flat whatever the radius, so keep light pools behind the cluster. Inline style is required (Tailwind keeps one layer of an arbitrary shadow-[…]). Sky = palette; cap and centre the cluster; write spans out, not md:. Small text over glass is where legibility dies — deepen the fill before shrinking the blur.",
+      "defaultFor": ["today"],
+      "notes": "Glass reads through THREE ingredient families, and all three must fire. (1) The ground is saturated (this look's theme.css carries the blue-violet field with cyan/indigo pools); a grey ground can never make glass, it can only make film. (2) The pane is LOW-alpha and near-neutral `blur() + saturate(200%)`, so the ground's hue is lifted through it by the filter rather than painted in the fill. (3) The top edge is a specular rim (color-mix card → ground), plus tight contact + wide lift shadows. Under-saturating the fill or the ground is the two ways cheap glass happens; muddy grey-blue is one of them. Sky = palette (bg-background); cap and centre the cluster; write spans out, not md:.",
       "style": {
-        "backgroundColor": "color-mix(in oklch, var(--card) 30%, transparent)",
-        "backgroundImage": "linear-gradient(to bottom, color-mix(in oklch, var(--card) 48%, transparent) 0%, color-mix(in oklch, var(--card) 16%, transparent) 38%, transparent 74%)",
-        "boxShadow": "inset 0 1px 0 0 color-mix(in oklch, var(--card) 88%, var(--background)), inset 0 -1px 0 0 color-mix(in oklch, var(--background) 52%, transparent), 0 2px 6px -2px color-mix(in oklch, var(--foreground) 26%, transparent), 0 18px 40px -18px color-mix(in oklch, var(--foreground) 40%, transparent)",
-        "borderColor": "color-mix(in oklch, var(--card) 28%, transparent)",
-        "backdropFilter": "blur(16px) saturate(180%) brightness(1.06)"
+        "backgroundColor": "color-mix(in oklch, var(--card) 26%, transparent)",
+        "backgroundImage": "linear-gradient(to bottom, color-mix(in oklch, var(--card) 42%, transparent) 0%, color-mix(in oklch, var(--card) 14%, transparent) 32%, transparent 70%)",
+        "boxShadow": "inset 0 1.5px 0 color-mix(in oklch, var(--card) 96%, transparent), inset 0 -1px 0 color-mix(in oklch, var(--card) 38%, transparent), 0 2px 6px -2px color-mix(in oklch, var(--foreground) 30%, transparent), 0 20px 42px -18px var(--shadow)",
+        "borderColor": "color-mix(in oklch, var(--card) 34%, transparent)",
+        "backdropFilter": "blur(18px) saturate(200%) brightness(1.08)"
       }
     },
     {
@@ -43,9 +41,7 @@
         "tile": "rounded-lg bg-card p-3 overflow-hidden",
         "hero": "col-span-2 row-span-2 bg-foreground text-background p-4 rounded-lg"
       },
-      "defaultFor": [
-        "board"
-      ]
+      "defaultFor": ["board"]
     },
     {
       "id": "desk-split",
@@ -60,9 +56,7 @@
         "root": "h-full min-h-0 bg-background",
         "pane": "rounded-xl border border-border bg-card"
       },
-      "defaultFor": [
-        "sheets"
-      ]
+      "defaultFor": ["sheets"]
     },
     {
       "id": "editorial",
@@ -78,9 +72,7 @@
         "kicker": "text-xs tracking-[0.2em] uppercase text-muted-foreground",
         "display": "font-serif text-3xl font-bold tracking-tight"
       },
-      "defaultFor": [
-        "radar"
-      ]
+      "defaultFor": ["radar"]
     },
     {
       "id": "tape",
@@ -96,9 +88,7 @@
         "nums": "grid grid-cols-4 divide-x divide-border",
         "num": "px-4 py-5 text-3xl font-medium tracking-tight tabular-nums"
       },
-      "defaultFor": [
-        "watch"
-      ]
+      "defaultFor": ["watch"]
     },
     {
       "id": "void",
@@ -147,10 +137,7 @@
         "well": "min-h-0 flex-1 overflow-auto"
       },
       "theme": "themes/terminal.css",
-      "defaultFor": [
-        "runner",
-        "chores"
-      ]
+      "defaultFor": ["runner", "chores"]
     }
   ]
 }
