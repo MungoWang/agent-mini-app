@@ -43,7 +43,7 @@ land back on the file, making the row a no-op for exactly the apps it matters to
 available as `theme.json` reset ("restore this app default"), which is a different question.
 
 ThemePop: scope first; appearance is always system/light/dark in both scopes (an app may follow
-the OS on its own); `本应用` is a palette row, shown only in app scope. Chips: 系统 / 自定义 / 本应用.
+the OS on its own); `本应用` is a palette row, shown only in app scope. Chips: `系统` / `自定义` / `本应用`.
 Only hue-dependent looks ship a file — `glass-island`, `signage`, `terminal`; the neutral ones
 follow the host on purpose. `theme.md` → _App-local palette_ is generated from the same key list
 as the host-global contract, so the two cannot drift.
@@ -79,16 +79,16 @@ Classes in the spec are complete Tailwind literals using tokens / `color-mix(var
 
 Cut by loop: copying the wrong facade would copy the wrong _kind of running_.
 
-| Folder    | Product  | Loop                                   | Preset (now)                        | Default Look   |
-| --------- | -------- | -------------------------------------- | ----------------------------------- | -------------- |
-| `minimal` | 骨架示例 | one `call`                             | `AppShell`                          | —              |
-| `today`   | 今日台子 | open → see my screen → open one record | `ListDetail`                        | `glass-island` |
-| `board`   | 阶段看板 | many items move in 2D status           | Kanban + Sheet (preset optional)    | `aurora-bento` |
-| `radar`   | 信息雷达 | I trigger → wait → read (cancellable)  | Tailwind                            | `editorial`    |
-| `sheets`  | 表格台   | file in, grid work, what changed       | DataGrid (+ later `TablePage`)      | `desk-split`   |
-| `runner`  | 执行器   | the model walks; the UI _is_ the run   | `RunTimeline` + `Terminal`          | `terminal`     |
-| `chores`  | 一键杂事 | named buttons, known script, no model  | `AppShell`                          | `terminal`     |
-| `watch`   | 值班屏   | numbers move by themselves; no Start   | Tailwind (+ later `DashboardShell`) | `tape`         |
+| Folder    | Product    | Loop                                   | Preset (now)                        | Default Look   |
+| --------- | ---------- | -------------------------------------- | ----------------------------------- | -------------- |
+| `minimal` | `骨架示例` | one `call`                             | `AppShell`                          | —              |
+| `today`   | `今日台子` | open → see my screen → open one record | `ListDetail`                        | `glass-island` |
+| `board`   | `阶段看板` | many items move in 2D status           | Kanban + Sheet (preset optional)    | `aurora-bento` |
+| `radar`   | `信息雷达` | I trigger → wait → read (cancellable)  | Tailwind                            | `editorial`    |
+| `sheets`  | `表格台`   | file in, grid work, what changed       | DataGrid (+ later `TablePage`)      | `desk-split`   |
+| `runner`  | `执行器`   | the model walks; the UI _is_ the run   | `RunTimeline` + `Terminal`          | `terminal`     |
+| `chores`  | `一键杂事` | named buttons, known script, no model  | `AppShell`                          | `terminal`     |
+| `watch`   | `值班屏`   | numbers move by themselves; no Start   | Tailwind (+ later `DashboardShell`) | `tape`         |
 
 `chores` must stay buttons. A prompt box makes it `runner`.
 
