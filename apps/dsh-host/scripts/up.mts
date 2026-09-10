@@ -246,7 +246,7 @@ function seedTemplateApp(template: string, appId: string, pkg: string): void {
     // Stay up: the spreadsheet specs then fail naming the missing package, which is more
     // diagnosable than a harness that refuses to boot on an offline machine.
     const msg = cause instanceof Error ? cause.message : String(cause);
-    log(`WARN install ${pkg} failed — spreadsheet e2e will fail: ${msg.slice(0, 300)}`);
+    log(`WARN install ${pkg} failed — sheets e2e will fail: ${msg.slice(0, 300)}`);
   }
 }
 
@@ -266,10 +266,10 @@ function seedRuntime(version: string): { overlay: string } {  rmSync(RUNTIME, { 
   for (const id of ["com.example.todo", "com.example.review", "com.example.kit"]) {
     cpSync(path.join(fixtures, id), path.join(RUNTIME, "apps", id), { recursive: true });
   }
-  // The spreadsheet sample is seeded **from the shipped skill template**, so the e2e exercises
+  // The sheets sample is seeded **from the shipped skill template**, so the e2e exercises
   // what an agent actually installs rather than a copy that can drift. It needs a real npm
   // package, which is the whole point of `mini_app_install`.
-  seedTemplateApp("spreadsheet", "com.example.spreadsheet", "exceljs");
+  seedTemplateApp("sheets", "com.example.sheets", "exceljs");
   const skillDest = path.join(DSH_HOME, "skills", "monkey-mini-app");
   const overlay = writeOverlay(RUNTIME, skillDest);
   writeFileSync(path.join(appDir, ".version"), version);

@@ -1,0 +1,109 @@
+{
+  "looks": [
+    {
+      "id": "glass-island",
+      "name": { "en": "Glass Island", "zh": "玻璃岛屿" },
+      "when": "Personal home, lock-screen style one-shot. Type sits on the sky; two glass slabs dock at the bottom.",
+      "whenNot": "Launchers, DataGrid, incident walls. Not a 2D mosaic.",
+      "grammar": "poster-dock",
+      "classes": {
+        "root": "flex h-full min-h-0 flex-col justify-between bg-linear-to-b from-primary/15 to-muted p-5",
+        "hero": "text-foreground",
+        "slab": "rounded-3xl border border-border/50 bg-card/40 p-4 backdrop-blur-xl"
+      },
+      "theme": "themes/glass-island.css",
+      "defaultFor": ["today"]
+    },
+    {
+      "id": "aurora-bento",
+      "name": { "en": "Aurora Bento", "zh": "极光便当" },
+      "when": "Launcher / overview. The page is a 6×3 tessellation, every cell a destination.",
+      "whenNot": "A lock-screen home. No sky, no poster layer.",
+      "grammar": "tessellation",
+      "classes": {
+        "root": "grid h-full min-h-0 grid-cols-6 grid-rows-3 gap-1.5 p-1.5 bg-muted",
+        "tile": "rounded-lg bg-card p-3 overflow-hidden",
+        "hero": "col-span-2 row-span-2 bg-foreground text-background p-4 rounded-lg"
+      },
+      "defaultFor": ["board"]
+    },
+    {
+      "id": "desk-split",
+      "name": { "en": "Desk Split", "zh": "精致分栏" },
+      "when": "CRUD, tickets, contacts, ledgers. Two panes, hairline, dense toolbar.",
+      "whenNot": "Marketing pages, lock-screen homes.",
+      "grammar": "list-detail",
+      "classes": {
+        "root": "h-full min-h-0 bg-background",
+        "pane": "rounded-xl border border-border bg-card"
+      },
+      "defaultFor": ["sheets"]
+    },
+    {
+      "id": "editorial",
+      "name": { "en": "Editorial", "zh": "编辑排版" },
+      "when": "Weekly digest, insights, runbook, help. Type hierarchy, hairline rules, almost no cards.",
+      "whenNot": "Monitor walls, dense tables.",
+      "grammar": "prose-measure",
+      "classes": {
+        "root": "mx-auto max-w-2xl px-6 py-8",
+        "kicker": "text-xs tracking-[0.2em] uppercase text-muted-foreground",
+        "display": "font-serif text-3xl font-bold tracking-tight"
+      },
+      "defaultFor": ["radar"]
+    },
+    {
+      "id": "tape",
+      "name": { "en": "Tape", "zh": "行情带" },
+      "when": "Watch board, quotes, incident strip. Tabular numerals, vertical rules, colour = delta only.",
+      "whenNot": "Homes, forms. No graph-paper grid, no card chrome.",
+      "grammar": "numeral-strip",
+      "classes": {
+        "root": "h-full min-h-0 bg-background font-mono",
+        "nums": "grid grid-cols-4 divide-x divide-border",
+        "num": "px-4 py-5 text-3xl font-medium tracking-tight tabular-nums"
+      },
+      "defaultFor": ["watch"]
+    },
+    {
+      "id": "void",
+      "name": { "en": "Void", "zh": "黑空" },
+      "when": "Named 'premium / sparse / AI product'. Huge type, one hairline, almost empty.",
+      "whenNot": "Dense tables, watch boards. Opt-in only.",
+      "grammar": "sparse-hero",
+      "classes": {
+        "root": "flex h-full min-h-0 flex-col justify-center px-8 py-10",
+        "display": "max-w-[12ch] text-4xl font-medium tracking-tight",
+        "hair": "mt-6 h-px w-28 bg-linear-to-r from-foreground to-transparent"
+      },
+      "defaultFor": []
+    },
+    {
+      "id": "signage",
+      "name": { "en": "Signage", "zh": "霓虹招牌" },
+      "when": "Named cyberpunk / neon. Display type, chroma wash, caption columns — not glow cards.",
+      "whenNot": "A dark dashboard with extra shadow. Opt-in only.",
+      "grammar": "display-type",
+      "classes": {
+        "root": "relative h-full min-h-0 overflow-hidden bg-background p-6",
+        "wash": "pointer-events-none absolute inset-0 bg-[radial-gradient(420px_180px_at_90%_10%,color-mix(in_oklch,var(--primary)_28%,transparent),transparent_62%)]",
+        "display": "text-4xl font-bold tracking-tight leading-[0.95]"
+      },
+      "theme": "themes/signage.css",
+      "defaultFor": []
+    },
+    {
+      "id": "terminal",
+      "name": { "en": "Terminal", "zh": "终端等宽" },
+      "when": "Logs, agent progress, a command well. Mono rows, lamps, colour = state.",
+      "whenNot": "Long-form reading.",
+      "grammar": "mono-well",
+      "classes": {
+        "root": "flex h-full min-h-0 flex-col bg-background",
+        "well": "min-h-0 flex-1 overflow-auto"
+      },
+      "theme": "themes/terminal.css",
+      "defaultFor": ["runner", "chores"]
+    }
+  ]
+}

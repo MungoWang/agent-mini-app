@@ -1,37 +1,36 @@
 # Mini-app templates
 
-Each template is a different **reference scenario**: one layout prototype × one capability axis, showing **what to borrow and what it demonstrates**. Use the table to find the closest starting point — real apps routinely take pieces from several (a monitor page that summarises with the model borrows `monitor` + `insights`).
+Each template is a **product facade**: one interaction loop × one default Look. Use the table to find the closest starting point — real apps routinely take pieces from several.
 
-| Template | One line | Copy it when | What it teaches |
+Looks (style recipes, not apps) live in [`../references/looks/`](../references/looks/index.md). Open them only when the user names a style.
+
+| Template | Loop | Copy it when | What it teaches |
 |---|---|---|---|
-| [minimal](./minimal/) | Smallest runnable skeleton | Starting out / connectivity check / you just need a working shell | `defineApp` + one `useApp().call` round trip + `AppShell`/`PageHeader` skeleton |
-| [todo](./todo/) | Local CRUD + filtering + derived stats | Storing local data with add/edit/delete and a status filter | `ctx.storage` + one fixed-height scrolling screen + `FilterBar` + multiple tables via `storage.table()` |
-| [insights](./insights/) | Web data → model summary (long job) | External data plus summarisation, and it will be slow | `ctx.http` + `ctx.llm({schema})` + **sampling / progress / `ctx.signal` cancellation** (`scan` starts, `ctx.push("progress")` streams) |
-| [monitor](./monitor/) | Live machine-metrics dashboard | Monitoring, overview pages, charts, KPIs | `ctx.system.metrics()` + `ctx.bash` (only for `ps`/`df` the host does not provide) + polling that stops when hidden |
-| [review](./review/) | Code/text comparison + test-case table | Reviewing diffs or cases, with write-back editing | `DiffViewer` (original/modified) + `CodeEditor` + `DataGrid` column filters/sorting + saving back |
-| [agentrun](./agentrun/) | Multi-step model work with visible progress | You need `ctx.agent` (**the only** demonstration of it) + cancel/progress | `ctx.agent` + `streamTo` → SSE → `useApp().on("agent")` + module-level `AbortController` cancellation |
-| [jira](./jira/) | Complex business simulation (multi-view + state machine + AI) | Ticket / Jira / project-management style apps, several views, AI assist | `Kanban` + `DataGrid` dual view + editing in a detail `Sheet` + status palette + `ctx.llm` drafting something the user confirms |
-| [spreadsheet](./spreadsheet/) | Local Excel → per-column aggregates + model digest | Reading a real `.xlsx` the user drops in, and saying something about it | **`mini_app_install`** (`exceljs`) + parsing bytes in the backend + aggregates over **all** rows while the grid shows a preview + `ctx.llm({schema})` + history in `ctx.storage.table` |
+| [minimal](./minimal/) | one `call` | Starting out / connectivity | `defineApp` + `useApp().call` + `AppShell` skeleton. No Look. |
+| [today](./today/) | open → see my screen → one record | Personal home, "what first" | `ctx.storage` + `storage.table()` + `ListDetail` + glass-island |
+| [board](./board/) | items move in 2D status | Pipelines, "who is blocked" | `Kanban` + `DataGrid` + `Sheet` + `ctx.llm` confirm. aurora-bento |
+| [radar](./radar/) | I trigger → wait → read (cancel) | Fetch sources, write a brief, long job | `ctx.push`/`on` names in `shared/events.ts`; long job in `api/`; brief in `ui/`. editorial |
+| [sheets](./sheets/) | file in, grid work | `.xlsx` / column stats / compare | **`mini_app_install`** (`exceljs`) + lodash aggregates + `DataGrid`. desk-split |
+| [runner](./runner/) | the UI *is* the run | Multi-step model work | `ctx.agent` + `streamTo` + SSE. terminal |
+| [chores](./chores/) | named buttons, no model | One button on this machine | `ctx.bash` → stdout in `Terminal`. Not a prompt. |
+| [watch](./watch/) | numbers move by themselves | Live status, stop when hidden | `ctx.system.metrics()` + polling that stops when hidden. tape. **Reveal** |
 
 ## Templates that need a library
 
-`spreadsheet/` ships **no** `package.json` and **no** `node_modules`. After `mini_app_register`, install first, then reload:
+`sheets/` ships **no** `package.json`. After `mini_app_register`, install first, then reload:
 
 ```
-mini_app_install({ appId: "com.example.spreadsheet", packages: [{ name: "exceljs" }] })
-mini_app_reload({ appId: "com.example.spreadsheet" })
+mini_app_install({ appId: "com.example.sheets", packages: [{ name: "exceljs" }] })
+mini_app_reload({ appId: "com.example.sheets" })
 ```
-
-Skipping that is the one case where a template fails `main.api:` with `backend cannot import 'exceljs'` — the message names the tool. Only `main.api.ts` / `api/**` may import installed packages; `ui.tsx` gets JSON through `call`.
 
 ## How to use them
 
-1. **Start from the closest template** (by the "copy it when" column); **open others whenever your app spans capabilities** — boards + AI summary means reading `jira` *and* `insights`. Read file by file (`main.api.ts` for behaviour, `ui.tsx` for layout) and stop when you have what you need.
-2. **Lift the pattern, not the file.** Copy structure, naming, and the technique you came for; do not paste 300-line samples wholesale (`jira/ui.tsx`) — you pay for those tokens on every regeneration. `minimal/` is the right base when you only need a skeleton.
-3. Comments marked `// ⭐` are the **teaching points** — skimming them captures the lesson (e.g. `ctx.agent`, `storage.table`, cancelling via `ctx.signal`, `DiffViewer`'s original/modified, `StatusBadge` expecting lowercase statuses).
-4. **Conventions every template follows** (regardless of which one you read):
-   - UI: `@monkey-mini-app/ui`; backend: `@monkey-mini-app/api`. UI adds `react`; helper code lives in `ui/` (UI only), `api/` (backend only), `shared/` (pure, both). No other npm packages (an app directory has no `node_modules`).
-   - Icons: `import { Icon } from "@monkey-mini-app/ui"` → `<Icon.HelpCircle />`; empty states use exactly the 10 `Illu*` listed in [../references/icons.md](../references/icons.md).
-   - The only route to the backend is `useApp().call(method, args)` (from the SDK); `method` must be a key of `defineApp({ api })`.
-   - List / board / table rows are located for edits by their `key` field. Layout uses Tailwind classes.
-   - Visible copy in these samples is Chinese because the shipped host defaults to that locale — instructions and code comments are English. When the host locale is English, write English product strings.
+1. **Start from the closest loop** (the table). Open others when the app spans loops.
+2. **Lift the pattern, not the file.** Comments marked `// ⭐` are the teaching points.
+3. Looks are optional. Kit components first; Tailwind for the distinctive grammar. No hex.
+4. **Three facades ship a `theme.css`** (`today`, `runner`, `chores`) because their look is
+   hue-dependent — the panel shows it as a palette tagged `本应用` and the user can switch away.
+   The other facades follow the host palette on purpose. Do not add one to a plain CRUD app
+   ([../references/theme.md](../references/theme.md) → *App-local palette*).
+5. Visible copy in these samples is Chinese. Instructions and comments are English.

@@ -25,7 +25,7 @@ import { expect, test } from "@playwright/test"
  */
 
 /** Style sections all open with kit `Reveal`. */
-const SECTIONS = ["style-glass", "style-desk", "style-dark"] as const
+const SECTIONS = ["glass-island", "desk-split", "editorial"] as const
 
 function revealStyles() {
   return [...document.querySelectorAll<HTMLElement>("[data-mma-reveal]")].map((el) => ({

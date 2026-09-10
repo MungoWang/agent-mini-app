@@ -25,7 +25,7 @@ export function readTemplate(name: string): TemplateFiles {
   return files;
 }
 
-export const TEMPLATES = ["minimal", "todo", "monitor", "review", "insights", "agentrun", "jira", "spreadsheet"] as const;
+export const TEMPLATES = ["minimal", "today", "board", "radar", "sheets", "runner", "chores", "watch"] as const;
 
 /**
  * Templates whose `main.api.ts` imports a library outside the platform surface.
@@ -33,7 +33,7 @@ export const TEMPLATES = ["minimal", "todo", "monitor", "review", "insights", "a
  * even a trivial call fails at module evaluation.
  */
 export const NEEDS_PACKAGES: Record<string, { name: string }[]> = {
-  spreadsheet: [{ name: "exceljs" }],
+  sheets: [{ name: "exceljs" }],
 };
 
 export function templateId(name: string): string {

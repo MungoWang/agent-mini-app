@@ -21,7 +21,7 @@ Homes (gitignored):
 |---|---|---|
 | `com.example.todo` · `com.example.review` | `fixtures/` | panel + iframe plumbing, kept in-repo so the gate does not drift with the skill |
 | `com.example.kit` | `pnpm gen:examples` → `fixtures/com.example.kit` | every kit component mounts in the iframe |
-| `com.example.spreadsheet` | **the shipped skill template** (`skills/.../templates/spreadsheet`) + `npm install exceljs` at seed time | the only case that cannot exist without `mini_app_install`: a real `.xlsx` parsed by a package living in that app's own `node_modules` |
+| `com.example.sheets` | **the shipped skill template** (`skills/.../templates/sheets`) + `npm install exceljs` at seed time | the only case that cannot exist without `mini_app_install`: a real `.xlsx` parsed by a package living in that app's own `node_modules` |
 
 The uploaded workbook is `e2e/fixtures/运输明细.xlsx`; regenerate it (it prints the aggregate
 numbers the specs assert on) with:

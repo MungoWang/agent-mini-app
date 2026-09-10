@@ -32,9 +32,12 @@
      react-resizable-panels v4（prop 叫 `orientation`）——生成的合同一直在教 agent 写一个不存在的属性；
    • `hooks/use-mobile.ts` 在无 `matchMedia` 的环境（SSR / 裸 jsdom）直接抛，任何用 `Sidebar` 的
      渲染都会炸；现在按「未知即宽屏」返回 false。
-   被谁挡：没有。**它挡住**：第 2 项。
+    被谁挡：没有。门面已按现状落地（`today` / `sheets` 用 `ListDetail`），preset 齐了再换壳：
+   `sheets` → `TablePage`，`watch` → `DashboardShell`。
 
-2. **templates / paradigms 按 presets 重做** — 同一 RFC §8 步骤 5。等第 1 项落地再动，否则写两遍。
+2. **Look 预览图** — looks + 门面重做已落地（见 `docs/rfcs/looks-and-templates.md`）。
+   **只剩**：每个 Look 的 light / dark PNG（机主手截，截 demo-host 的 Looks 栏），
+   `catalog.json` 里给 `preview` 留了位。截完补一句到 `references/looks/index.md` 的生成器里。
 
 ## P2 — 质量，无先后
 

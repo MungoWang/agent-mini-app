@@ -16,14 +16,4 @@ export { FormExamples } from "./areas/forms";
 export { OverlayExamples } from "./areas/overlays";
 export { PrimitiveExamples } from "./areas/primitives";
 export { ProductExamples } from "./areas/products";
-export {
-  DarkDataParadigm,
-  DeskParadigm,
-  EditorialParadigm,
-  GlassParadigm,
-  MinimalParadigm,
-  OpsParadigm,
-  SaasParadigms,
-  SemanticParadigm,
-  TerminalParadigm,
-} from "./paradigms";
+export { LOOKS } from "./looks";

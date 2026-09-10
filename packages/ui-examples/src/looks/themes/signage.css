@@ -1,0 +1,44 @@
+/* name: 霓虹招牌 */
+/* Look-owned palette: the chroma IS the style. ui.tsx still never contains a hex. */
+:root[data-mode="light"] {
+  --bg: #f6effa;
+  --fg: #1a1020;
+  --surface: #ffffff;
+  --surface-fg: #1a1020;
+  --border: #e2d3ea;
+  --muted: #efe4f5;
+  --muted-fg: #5f4a6b;
+  --primary: #b3128a;
+  --primary-fg: #ffffff;
+  --secondary: #efe4f5;
+  --secondary-fg: #1a1020;
+  --accent: #f6e9fb;
+  --accent-fg: #1a1020;
+  --destructive: #c02626;
+  --destructive-fg: #ffffff;
+  --ring: #b3128a;
+  --input: #e2d3ea;
+  --radius: 14px;
+  --shadow: rgba(60, 20, 70, 0.12);
+}
+:root[data-mode="dark"] {
+  --bg: #0a0614;
+  --fg: #f6ecff;
+  --surface: #150b26;
+  --surface-fg: #f6ecff;
+  --border: #2e1b45;
+  --muted: #1c1030;
+  --muted-fg: #a98fc4;
+  --primary: #ff2ea6;
+  --primary-fg: #12031a;
+  --secondary: #1c1030;
+  --secondary-fg: #f6ecff;
+  --accent: #241036;
+  --accent-fg: #f6ecff;
+  --destructive: #ff5c5c;
+  --destructive-fg: #12031a;
+  --ring: #ff2ea6;
+  --input: #2e1b45;
+  --radius: 14px;
+  --shadow: rgba(0, 0, 0, 0.6);
+}

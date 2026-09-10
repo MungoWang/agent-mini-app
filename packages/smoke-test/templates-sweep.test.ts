@@ -6,13 +6,13 @@ import { startHost, readTemplate, templateId, TEMPLATES, NEEDS_PACKAGES } from "
 // 断言每个模板至少能编译出 UI、且其声明的一个 api 方法可调用并返回对象。
 const PROBE: Record<string, { method: string; args?: Record<string, unknown>; check?: (v: unknown) => boolean }> = {
   minimal: { method: "ping", check: (v) => (v as { appId?: string })?.appId !== undefined },
-  todo: { method: "list", args: { filter: "all" }, check: (v) => Array.isArray((v as { items?: unknown })?.items) },
-  monitor: { method: "getSnapshot", check: (v) => (v as { cpu?: unknown })?.cpu !== undefined },
-  review: { method: "get", check: (v) => (v as { before?: string })?.before !== undefined },
-  insights: { method: "latest", check: (v) => Array.isArray((v as { items?: unknown })?.items) },
-  agentrun: { method: "runStatus", check: (v) => typeof (v as { status?: string })?.status === "string" },
-  jira: { method: "list", check: (v) => Array.isArray((v as { issues?: unknown })?.issues) },
-  spreadsheet: { method: "list", check: (v) => Array.isArray(v) },
+  today: { method: "list", args: { filter: "all" }, check: (v) => Array.isArray((v as { items?: unknown })?.items) },
+  watch: { method: "getSnapshot", check: (v) => (v as { cpu?: unknown })?.cpu !== undefined },
+  radar: { method: "latest", check: (v) => Array.isArray((v as { items?: unknown })?.items) },
+  runner: { method: "runStatus", check: (v) => typeof (v as { status?: string })?.status === "string" },
+  board: { method: "list", check: (v) => Array.isArray((v as { issues?: unknown })?.issues) },
+  sheets: { method: "list", check: (v) => Array.isArray(v) },
+  chores: { method: "jobs", check: (v) => Array.isArray((v as { jobs?: unknown })?.jobs) },
 };
 
 describe("S1 · every skill template registers + compiles + answers a real call", () => {

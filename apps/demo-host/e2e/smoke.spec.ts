@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test"
 
 /**
- * The demo app shows one section at a time and opens on `style-glass`
- * (`apps/demo-host/src/App.tsx` — `useState<Section>("style-glass")`), so a grid is not on
+ * The demo app shows one section at a time and opens on `glass-island`
+ * (`apps/demo-host/src/App.tsx`), so a grid is not on
  * the landing page. Every other test in this file navigates first; the two grid tests below
  * were written without that click in 8230c88 and have failed ever since — invisible because
  * nothing in CI or `pnpm verify` runs Playwright at all.

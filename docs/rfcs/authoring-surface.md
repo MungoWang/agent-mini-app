@@ -2,8 +2,9 @@
 
 > Date: 2026-09-05
 > Status: **partly shipped** — (4) README intent ✅ · (5) custom-theme contract + skill ✅ ·
-> (1a) lodash vendor ✅ · (1b) `motion` vendor + kit `Reveal` ✅ · (2) layout presets not
-> started (gates revised, see §4.0) · (3) templates/paradigms not started, waits on (2)
+> (1a) lodash vendor ✅ · (1b) `motion` vendor + kit `Reveal` ✅ · (2) layout presets
+> in progress (`ListDetail` landed) · (3) templates/paradigms **superseded** by
+> [`looks-and-templates.md`](./looks-and-templates.md) (does not wait on remaining presets)
 > Source: items 1–5 of [`rough-ideas.md`](./rough-ideas.md)
 > Packages: `packages/ui` · `packages/api` · `packages/host` · `packages/panel` · skill / templates / README
 > Related: [`TODO.md`](../../TODO.md) P1-4 (theme table, landed) · P1-5 (animation, **landed** — shipped as its own iframe vendor, see §3.1) · [`rfcs/authoring-protocol.md`](./authoring-protocol.md)

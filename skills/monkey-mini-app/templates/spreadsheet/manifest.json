@@ -1,9 +1,0 @@
-{
-  "id": "com.example.spreadsheet",
-  "name": "报表摘要",
-  "description": "拖入本机 Excel，解析多张工作表并让模型出一版业务摘要",
-  "version": "0.1.0",
-  "entry": "ui.tsx",
-  "theme": { "followsHost": true },
-  "acronym": "BX"
-}

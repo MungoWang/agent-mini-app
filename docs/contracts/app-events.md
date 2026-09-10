@@ -69,8 +69,8 @@ from aborting the run.
 
 ## Working examples
 
-`skills/monkey-mini-app/templates/agentrun` (agent + `streamTo`) and
-`templates/insights` (long job + explicit `ctx.push`).
+`skills/monkey-mini-app/templates/runner` (agent + `streamTo`) and
+`templates/radar` (long job + explicit `ctx.push`).
 
 ## Related
 

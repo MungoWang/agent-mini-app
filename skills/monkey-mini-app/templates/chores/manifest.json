@@ -1,0 +1,8 @@
+{
+  "id": "com.example.chores",
+  "name": "一键杂事",
+  "description": "已知脚本、一个按钮、这台机器、看输出。没有模型。",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "acronym": "ZS"
+}

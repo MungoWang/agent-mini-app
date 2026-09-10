@@ -34,28 +34,36 @@ the source of truth:
 ```ts
 // shared/events.ts  (pure isomorphic: no React, no ctx, no DOM)
 export const EV = {
-  stage: (p: { done: number; total: number }) => p,
-  done: (p: { id: string }) => p,
+  progress: "progress",
+  latest: "latest",
 } as const;
-export type EventName = keyof typeof EV;
+
+export type Events = {
+  progress: { running: boolean; step: string; done: number; total: number; error?: string };
+  latest: { items: { title: string }[]; digest: { headline: string; bullets: string[] } | null; at: number };
+};
+
+export type Progress = Events["progress"];
+export type Payload = Events["latest"];
 ```
 
 ```ts
-// main.api.ts
-import { EV } from "./shared/events";
-ctx.push("stage", EV.stage({ done: 3, total: 10 }));
+// api/scan.ts  (or main.api.ts)
+import { EV, type Progress } from "../shared/events";
+const next: Progress = { running: true, step: "fetch", done: 1, total: 3 };
+ctx.push(EV.progress, next);
 ```
 
 ```tsx
 // ui.tsx
-import { EV } from "./shared/events";
+import { EV, type Progress } from "./shared/events";
 const { on } = useApp();
-useEffect(() => on("stage", (p) => setStage(p)), [on]); // p is typed by EV.stage's payload
+useEffect(() => on(EV.progress, (p) => setProgress(p as Progress)), [on]);
 ```
 
-Both sides now fail on a rename in one place, and the payload shape is checked. `mini_app_reload`
-also reports a mismatch as a **notice** (`nothing in this app pushes "stga"`), but notices only
-catch what the literals spell out — the `shared/` list catches the rest.
+Rename `EV.progress` once — both sides move. The `Events` map is the payload contract.
+Worked example: `templates/radar/shared/events.ts`. `mini_app_reload` still notices a leftover
+string literal that nothing pushes (`"stga"`); names that go through `EV.*` are the source of truth.
 
 ## Choosing a table
 
@@ -143,7 +151,7 @@ The return value is still the final string; `onEvent` only observes the run. To 
 
 ```ts
 await ctx.agent(goal, { streamTo: "agent", maxIterations: 12 });
-// UI: on("agent", (ev) => …) — see templates/agentrun
+// UI: on("agent", (ev) => …) — see templates/runner
 ```
 
 ```ts

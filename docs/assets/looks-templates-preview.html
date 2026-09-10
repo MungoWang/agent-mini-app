@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Looks × Templates — design preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #f3f1ec;
+      --ink: #161513;
+      --muted: #6b6560;
+      --line: #ddd8cf;
+      --card: #fffcf7;
+      --accent: #c45c26;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: Geist, ui-sans-serif, system-ui, sans-serif; }
+    body { font-size: 15px; line-height: 1.5; }
+    a { color: inherit; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 48px 28px 120px; }
+    .kicker { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    h1 { font-family: Fraunces, Georgia, serif; font-size: 52px; line-height: 1.05; letter-spacing: -0.03em; font-weight: 600; margin: 10px 0 16px; }
+    h2 { font-family: Fraunces, Georgia, serif; font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
+    h3 { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+    .lede { font-size: 18px; max-width: 46rem; color: #3a3530; }
+    .note { font-size: 13px; color: var(--muted); }
+    .hero { padding-bottom: 42px; border-bottom: 1px solid var(--line); margin-bottom: 42px; }
+    .meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 22px; font-size: 12px; color: var(--muted); }
+    .meta b { color: var(--ink); font-weight: 600; }
+    .toc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+    .toc a { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 12px; text-decoration: none; }
+    .toc a:hover { border-color: var(--ink); }
+    section { margin: 64px 0; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+    .card.bad { background: #f8ece6; }
+    .card.good { background: #eef3ea; }
+    .card p { margin: 0 0 8px; }
+    .card ul { margin: 8px 0 0; padding-left: 18px; color: #3a3530; }
+    .layers { display: grid; grid-template-columns: 1.1fr 0.9fr 0.9fr; gap: 14px; }
+    .layer { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; min-height: 210px; }
+    .layer .id { font-family: JetBrains Mono, ui-monospace, monospace; font-size: 11px; color: var(--accent); }
+    .layer h4 { font-family: Fraunces, Georgia, serif; font-size: 22px; margin: 6px 0 8px; }
+    .layer p { margin: 0; color: #3a3530; font-size: 14px; }
+    .arrow { text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 0.12em; margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: #ebe7df; }
+    tr:last-child td { border-bottom: 0; }
+    code, .mono { font-family: JetBrains Mono, ui-monospace, monospace; font-size: 12px; }
+    pre { background: #171513; color: #f4efe6; padding: 18px; border-radius: 14px; overflow: auto; font-size: 12px; line-height: 1.55; }
+    .look { padding: 32px 0; border-top: 1px solid var(--line); }
+    .look-head { display: grid; grid-template-columns: 72px 1fr 1.3fr; gap: 12px 20px; margin-bottom: 16px; align-items: start; }
+    .look-id { font-family: Fraunces, Georgia, serif; font-size: 42px; color: #b7b0a6; font-weight: 400; line-height: 1; }
+    .look h2 { font-size: 28px; margin: 0; }
+    .look .zh { font-size: 16px; color: #3a3530; margin-top: 2px; }
+    .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .when { margin-top: 8px; font-size: 13px; color: #3a3530; grid-column: 2 / span 2; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .chrome { background: #d8d3cb; border-radius: 16px; padding: 10px 10px 0; box-shadow: 0 18px 40px rgba(40, 30, 20, 0.12); }
+    .chrome.night { background: #2c2926; }
+    .chrome-bar { display: flex; align-items: center; gap: 8px; padding: 0 8px 8px; }
+    .dots { display: flex; gap: 5px; }
+    .dots i { width: 8px; height: 8px; border-radius: 50%; background: #b8b2aa; display: block; }
+    .chrome.night .dots i { background: #5c564e; }
+    .url { flex: 1; background: #ece8e1; border-radius: 8px; font-size: 11px; color: #6b6560; padding: 4px 10px; font-family: JetBrains Mono, monospace; }
+    .chrome.night .url { background: #1c1a18; color: #9a948c; }
+    .mode { font-size: 10px; letter-spacing: 0.14em; font-weight: 600; color: #6b6560; }
+    .chrome.night .mode { color: #9a948c; }
+    .stage { border-radius: 12px 12px 0 0; overflow: hidden; min-height: 248px; }
+    .q { background: var(--card); border: 1px dashed var(--line); border-radius: 16px; padding: 16px 18px; margin: 10px 0; }
+    .pill { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 11px; background: #ebe7df; }
+    @media (max-width: 920px) {
+      .split, .layers, .pair, .look-head { grid-template-columns: 1fr; }
+      .when { grid-column: auto; }
+      h1 { font-size: 36px; }
+    }
+
+    /* ===== look stages ===== */
+    /* Island = lock screen: type on the sky + 1–2 slabs docked at the bottom. NOT a 2D tile wall. */
+    .island {
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 22px 18px 14px;
+      background: linear-gradient(180deg, #c5d4e2 0%, #8fa9be 100%);
+      color: #f4f8fb;
+    }
+    .island.night { background: linear-gradient(180deg, #243444 0%, #0c1218 100%); color: #e6eef4; }
+    .island-hero { padding: 4px 4px 0; }
+    .island-hero .dow { font-size: 13px; letter-spacing: 0.08em; opacity: 0.85; }
+    .island-hero .big { font-family: Fraunces, serif; font-size: 64px; line-height: 0.85; font-weight: 500; letter-spacing: -0.04em; margin-top: 4px; }
+    .island-hero .meta { font-size: 13px; opacity: 0.8; margin-top: 6px; }
+    .island-dock { display: flex; flex-direction: column; gap: 8px; }
+    .iw { background: rgba(255,255,255,0.22); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.32); border-radius: 22px; padding: 10px 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4); }
+    .island.night .iw { background: rgba(16, 24, 36, 0.55); border-color: rgba(255,255,255,0.12); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+    .cal { display: flex; justify-content: space-between; font-size: 11px; align-items: center; }
+    .cal b { width: 26px; height: 26px; border-radius: 50%; background: #1b1d20; color: #fff; display: grid; place-items: center; }
+    .island.night .cal b { background: #eef4f8; color: #111; }
+
+    /* Bento = tessellated comic page. The rectangle is 100% tiles. No sky, no poster. */
+    .bento { background: #dde1ea; color: #1b1f2a; padding: 0; }
+    .bento.night { background: #0e1014; color: #e6e8ee; }
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 5px; padding: 5px; min-height: 248px; height: 248px;
+    }
+    .bt { background: #fff; border-radius: 8px; padding: 8px 10px; font-size: 11px; overflow: hidden; }
+    .bento.night .bt { background: #1a1d24; }
+    .bt.s2 { grid-column: span 2; }
+    .bt.s3 { grid-column: span 3; }
+    .bt.s4 { grid-column: span 4; }
+    .bt.r2 { grid-row: span 2; }
+    .bt.hero { background: #111318; color: #fff; font-size: 16px; }
+    .bento.night .bt.hero { background: #07080b; }
+    .bt.blue { background: #d9e6ff; }
+    .bento.night .bt.blue { background: #1a2434; }
+    .bt.photo { background: linear-gradient(160deg, #8aa4b8, #44586a); color: #fff; }
+    .bt b { display: block; font-size: 16px; margin-top: 4px; }
+
+    .neon { background: #07040f; color: #f5e9ff; padding: 0; min-height: 300px; position: relative; }
+    .neon:before { content: ""; position: absolute; inset: 0; background:
+      radial-gradient(500px 180px at 20% 30%, rgba(255, 45, 180, 0.35), transparent 60%),
+      radial-gradient(420px 200px at 80% 20%, rgba(80, 120, 255, 0.4), transparent 60%),
+      linear-gradient(#12081f, #07040f); }
+    .neon-in { position: relative; padding: 18px 20px; }
+    .neon h5 { margin: 0; font-size: 28px; letter-spacing: -0.03em; }
+    .neon .row { display: flex; gap: 8px; margin-top: 14px; }
+    .neon .chip { border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 6px 10px; font-size: 11px; background: rgba(255,255,255,0.06); }
+
+    .tech { background: #07080c; color: #e8eef8; padding: 18px 20px; min-height: 300px; }
+    .tech h5 { font-size: 30px; margin: 28px 0 8px; letter-spacing: -0.04em; }
+    .tech .line { width: 180px; height: 1px; background: linear-gradient(90deg, #7ad7ff, transparent); margin: 16px 0; }
+    .tech .stats { display: flex; gap: 24px; font-size: 12px; color: #9aa7b8; }
+
+    .desk { background: #f7f6f3; color: #1c1a17; padding: 10px; display: grid; grid-template-columns: 38% 1fr; gap: 8px; }
+    .desk.night { background: #161412; color: #ece8e1; }
+    .desk .pane { background: #fff; border: 1px solid #ece8e1; border-radius: 12px; overflow: hidden; }
+    .desk.night .pane { background: #1f1c19; border-color: #2e2a26; }
+    .desk .row { display: flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #f0ece6; font-size: 12px; }
+    .desk.night .row { border-color: #2e2a26; }
+    .desk .row.on { background: #f4f0ea; }
+    .desk.night .row.on { background: #2a2622; }
+    .desk .detail { padding: 14px; }
+    .desk h5 { margin: 0 0 6px; font-size: 15px; }
+
+    .tape {
+      background: #070b10;
+      color: #dce8f0; padding: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .tape .nums { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .tape .n { padding: 12px 14px 16px; border-right: 1px solid rgba(160,210,255,0.1); }
+    .tape .n:last-child { border-right: 0; }
+    .tape .n b { display: block; font-size: 34px; font-weight: 500; letter-spacing: -0.05em; line-height: 1; }
+    .tape .n span { display: block; margin-top: 8px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.4; }
+    .up { color: #5ee0a0; } .dn { color: #ff8a7a; }
+    .tape .rows { border-top: 1px solid rgba(160,210,255,0.12); }
+    .tape .r {
+      display: grid; grid-template-columns: 1.4fr 70px 70px 50px;
+      gap: 8px; padding: 8px 14px; font-size: 12px;
+      font-family: JetBrains Mono, monospace;
+      border-bottom: 1px solid rgba(160,210,255,0.06);
+    }
+
+    .tape.day { background: #eef2f4; color: #102030; }
+    .tape.day .up { color: #0f8a4a; } .tape.day .dn { color: #c43c2c; }
+
+    .void {
+      background: #05060a; color: #e8eef8;
+      padding: 32px 24px; position: relative; overflow: hidden;
+    }
+    .void.day { background: #f4f1ea; color: #16140f; }
+    .void.day:after { border-color: rgba(20, 20, 16, 0.12); }
+    .void.day .hair { background: linear-gradient(90deg, #16140f, transparent); }
+    .void:after {
+      content: ""; position: absolute; right: -30px; top: 30px;
+      width: 240px; height: 240px; border-radius: 50%;
+      border: 1px solid rgba(122, 215, 255, 0.32);
+    }
+    .void .k { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.4; }
+    .void h5 { font-size: 34px; font-weight: 500; letter-spacing: -0.045em; margin: 16px 0 0; max-width: 10ch; line-height: 1.05; }
+    .void .hair { width: 120px; height: 1px; background: linear-gradient(90deg, #7ad7ff, transparent); margin: 22px 0 18px; }
+    .void .ms { display: flex; gap: 28px; font-size: 11px; opacity: 0.45; position: relative; }
+
+    .sign {
+      background: #0a0614; color: #fff;
+      padding: 22px; position: relative; overflow: hidden;
+    }
+    .sign.day {
+      background: #f3eef8; color: #1a1020;
+    }
+    .sign.day:before {
+      background:
+        radial-gradient(420px 180px at 92% 8%, rgba(255, 40, 180, 0.16), transparent 62%),
+        radial-gradient(380px 200px at 8% 90%, rgba(50, 80, 255, 0.12), transparent 62%);
+    }
+    .sign.day .brand { color: #c01880; }
+    .sign.day h5 em { color: #2a5ad8; }
+    .sign.day .cols > div { border-color: rgba(20,10,30,0.18); }
+    .sign:before {
+      content: ""; position: absolute; inset: 0;
+      background:
+        radial-gradient(420px 180px at 92% 8%, rgba(255, 40, 180, 0.38), transparent 62%),
+        radial-gradient(380px 200px at 8% 90%, rgba(50, 80, 255, 0.32), transparent 62%);
+    }
+    .sign-in { position: relative; }
+    .sign .brand { font-size: 11px; letter-spacing: 0.32em; color: #ff4ec8; font-weight: 600; }
+    .sign h5 { font-size: 40px; line-height: 0.95; letter-spacing: -0.045em; margin: 14px 0 10px; font-weight: 700; }
+    .sign h5 em { font-style: normal; color: #7ad7ff; }
+    .sign .sub { opacity: 0.7; font-size: 13px; max-width: 36ch; }
+    .sign .cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 28px; }
+    .sign .cols > div { border-top: 1px solid rgba(255,255,255,0.25); padding-top: 8px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+    .sign .cols b { display: block; font-size: 16px; margin-top: 4px; letter-spacing: 0; text-transform: none; opacity: 1; font-weight: 600; }
+
+    .edit { background: #fbfaf6; color: #1b1914; padding: 22px 24px; }
+    .edit.night { background: #161410; color: #ebe6dc; }
+    .edit.night .vol { color: #8a8378; }
+    .edit .vol { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #8a8378; }
+    .edit h5 { font-family: Fraunces, serif; font-size: 28px; margin: 8px 0 10px; max-width: 16ch; }
+    .edit p { font-size: 13px; max-width: 46ch; color: #5c574e; }
+
+    .term { background: #12141a; color: #d7f7c8; padding: 0; font-family: JetBrains Mono, monospace; }
+    .term.day { background: #f3f5f0; color: #1a3d2a; }
+    .term.day .term-bar { background: #e4e8df; color: #5a6558; }
+    .term.day pre { color: #1a3d2a; }
+    .term-bar { background: #1c2028; color: #9aa3b2; padding: 8px 12px; font-size: 11px; display: flex; gap: 8px; align-items: center; }
+    .lamp { width: 8px; height: 8px; border-radius: 50%; }
+    .term pre { background: transparent; margin: 0; padding: 14px 16px; color: #d7f7c8; }
+
+    .saas { background: #f5f6f8; padding: 14px; color: #1b1f2a; }
+    .saas.night { background: #12141a; color: #e8eaee; }
+    .saas .hero { border: 0; padding: 0; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .saas .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .sc { background: #fff; border: 1px solid #e7e9ee; border-radius: 12px; padding: 12px; }
+    .saas.night .sc { background: #1b1e26; border-color: #2a2e38; }
+    .sc b { font-size: 22px; display: block; }
+
+    .path { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .path .card { min-height: 140px; }
+    .num { font-family: Fraunces, serif; font-size: 28px; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="kicker">Design result · not landed</div>
+      <h1>Templates are the facade.<br />Looks are the catalog.</h1>
+      <p class="lede">
+        门面按<strong>运转方式</strong>切成 7 座产品 + 一座骨架。风格是 9 份规格 + 面板形 PNG。推荐实践，不是闸门。
+      </p>
+      <div class="meta">
+        <span><b>Status</b> review mock</span>
+        <span><b>Replaces</b> 9 paradigm TSX + overlapping template skins</span>
+        <span><b>Constraint</b> no hex in <code>ui.tsx</code> · tokens · layout presets</span>
+        <span><b>Audience</b> authoring agent (text + vision) · human lookbook</span>
+      </div>
+      <nav class="toc">
+        <a href="#diagnosis">Diagnosis</a>
+        <a href="#model">Two layers</a>
+        <a href="#lookbook">Lookbook</a>
+        <a href="#fusion">Official fusion</a>
+        <a href="#templates">Template map</a>
+        <a href="#spec">Spec + PNG</a>
+        <a href="#agent">Agent path</a>
+        <a href="#phase">Phasing</a>
+        <a href="#open">Locked</a>
+      </nav>
+    </header>
+
+    <section id="diagnosis">
+      <h2>现在为什么拧巴</h2>
+      <p class="note">同一套视觉被讲了两遍，但两边都没把该讲的讲完。</p>
+      <div class="split" style="margin-top:18px">
+        <div class="card bad">
+          <h3>Paradigms · 画廊</h3>
+          <p>9 个完整 React 皮肤，约 2500 行 / 100KB，被 <code>gen:skill</code> 原样拷进 skill。</p>
+          <ul>
+            <li>saas / ops / darkdata 都是 dashboard，课重复</li>
+            <li>大量 <code>rgba</code> / hex / 强制暗色，违反 token 规则</li>
+            <li>SKILL.md 热路径根本不指向它们</li>
+            <li>模型要么看不见，要么整页吞掉</li>
+          </ul>
+        </div>
+        <div class="card good">
+          <h3>Templates · 门面</h3>
+          <p>8 个能力轴是对的（storage / http+llm / system / agent / install…）。</p>
+          <ul>
+            <li>看起来几乎都是 Header + Card 列表 + Primary button</li>
+            <li>还没用上 layout presets（<code>ListDetail</code> 已落，其余 5 个在做）</li>
+            <li>没有官方「把画廊风格融进去」的写法</li>
+            <li>所以模型抄完仍是灰卡</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="model">
+      <h2>两层，不要第三套样例</h2>
+      <p class="note">配色 × layout 的组合以 Look 为单位固化，不按笛卡尔积再复制成 template。</p>
+      <div class="layers" style="margin-top:18px">
+        <div class="layer">
+          <div class="id">01 · TEMPLATE</div>
+          <h4>能力门面</h4>
+          <p>可运行的 mini-app。<code>ctx.*</code> 轴 × kit preset × <b>已经戴好的默认 Look</b>。模型抄结构、命名、取消/进度、call 形状。产品文案中文。</p>
+        </div>
+        <div class="layer">
+          <div class="id">02 · LOOK</div>
+          <h4>风格配方</h4>
+          <p>一份 JSON/YAML 规格 + 一张 PNG。字段：何时用 / 何时不用、推荐 palette、layout grammar、surface、density、motion、<code>data-look</code> 与 class recipe。不是应用。</p>
+        </div>
+        <div class="layer">
+          <div class="id">03 · EXAMPLES</div>
+          <h4>组件用例</h4>
+          <p><code>ui-examples/src/components</code> 不动。继续按 <code>@exampleOf</code> 喂 catalog。不承担风格课。</p>
+        </div>
+      </div>
+      <p class="arrow">PRESET 解决滚动/分栏这类 agent 会写错的页面形状 · LOOK 解决半径/密度/玻璃/便当/等宽这些视觉语法</p>
+    </section>
+
+    <section id="lookbook">
+      <h2>Lookbook · 9 个冻结组合</h2>
+      <p class="note">盖住颜色，线框必须能分开。岛是「上半海报、底下两条」；便当是「六列三行铺满」。每条左 light、右 dark。</p>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">01</div>
+          <div>
+            <h2>Glass Island</h2>
+            <div class="zh">玻璃岛屿</div>
+          </div>
+          <div class="chips">
+            <span>Poster + dock</span><span>海报+底栏</span>
+            <span>Type on sky</span><span>字写在天上</span>
+            <span>Two slabs</span><span>底下两条玻璃</span>
+            <span>Not a mosaic</span><span>不是砌砖</span>
+          </div>
+          <p class="when"><b>When</b> 今日台子、锁屏式一屏。<b>Not</b> 总览启动器。上半没有卡片，数字直接写在天空上。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">glass-island</div><span class="mode">LIGHT</span></div>
+            <div class="stage island">
+              <div class="island-hero">
+                <div class="dow">星期五 · 微雨</div>
+                <div class="big">68°</div>
+                <div class="meta">8 月 28 日 · L 66° H 76°</div>
+              </div>
+              <div class="island-dock">
+                <div class="iw"><div class="cal"><span>一 24</span><span>二 25</span><span>三 26</span><span>四 27</span><b>28</b><span>六 29</span><span>日 30</span></div></div>
+                <div class="iw" style="display:flex;justify-content:space-between;font-size:12px"><span>工作 10:00</span><span>放学 16:50</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">glass-island</div><span class="mode">DARK</span></div>
+            <div class="stage island night">
+              <div class="island-hero">
+                <div class="dow">星期五 · 微雨</div>
+                <div class="big">68°</div>
+                <div class="meta">8 月 28 日 · L 66° H 76°</div>
+              </div>
+              <div class="island-dock">
+                <div class="iw"><div class="cal"><span>一 24</span><span>二 25</span><span>三 26</span><span>四 27</span><b>28</b><span>六 29</span><span>日 30</span></div></div>
+                <div class="iw" style="display:flex;justify-content:space-between;font-size:12px"><span>工作 10:00</span><span>放学 16:50</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">02</div>
+          <div>
+            <h2>Aurora Bento</h2>
+            <div class="zh">极光便当</div>
+          </div>
+          <div class="chips">
+            <span>6×3 mosaic</span><span>六列三行</span>
+            <span>Edge to edge</span><span>贴边铺满</span>
+            <span>Every cell a dest</span><span>每格都是入口</span>
+            <span>No sky</span><span>没有天空</span>
+          </div>
+          <p class="when"><b>When</b> 启动器、工作总览。<b>Not</b> 今日台子。矩形里全是砖，没有海报层。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">aurora-bento</div><span class="mode">LIGHT</span></div>
+            <div class="stage bento">
+              <div class="bento-grid">
+                <div class="bt hero s2 r2">从有序开始</div>
+                <div class="bt s2">日历<b>28</b></div>
+                <div class="bt s2">专注<b>3h 24</b></div>
+                <div class="bt blue s2">任务<b>5</b></div>
+                <div class="bt s2">笔记<b>12</b></div>
+                <div class="bt s3">+12k 本周完成</div>
+                <div class="bt photo s3">小小的进步</div>
+              </div>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">aurora-bento</div><span class="mode">DARK</span></div>
+            <div class="stage bento night">
+              <div class="bento-grid">
+                <div class="bt hero s2 r2">从有序开始</div>
+                <div class="bt s2">日历<b>28</b></div>
+                <div class="bt s2">专注<b>3h 24</b></div>
+                <div class="bt blue s2">任务<b>5</b></div>
+                <div class="bt s2">笔记<b>12</b></div>
+                <div class="bt s3">+12k 本周完成</div>
+                <div class="bt photo s3">小小的进步</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">03</div>
+          <div>
+            <h2>Desk Split</h2>
+            <div class="zh">精致分栏</div>
+          </div>
+          <div class="chips">
+            <span>Hairline</span><span>发丝描边</span>
+            <span>List / detail</span><span>主从分栏</span>
+            <span>Dense toolbar</span><span>全日工具</span>
+            <span>Paper</span><span>纸色</span>
+          </div>
+          <p class="when"><b>When</b> CRUD、工单、通讯录、对账。<b>Not</b> 营销页。Layout 是两栏，不是瓷砖。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">desk-split</div><span class="mode">LIGHT</span></div>
+            <div class="stage desk">
+              <div class="pane">
+                <div class="row"><span>全部 12</span><span class="pill">筛选</span></div>
+                <div class="row on"><span>核对 Q3 回款</span><span>财务</span></div>
+                <div class="row"><span>华东线索跟进</span><span>销售</span></div>
+                <div class="row"><span>导出对账单</span><span>开发</span></div>
+              </div>
+              <div class="pane detail"><h5>核对 Q3 回款</h5><p class="note">今天 09:30</p></div>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">desk-split</div><span class="mode">DARK</span></div>
+            <div class="stage desk night">
+              <div class="pane">
+                <div class="row"><span>全部 12</span><span class="pill">筛选</span></div>
+                <div class="row on"><span>核对 Q3 回款</span><span>财务</span></div>
+                <div class="row"><span>华东线索跟进</span><span>销售</span></div>
+                <div class="row"><span>导出对账单</span><span>开发</span></div>
+              </div>
+              <div class="pane detail"><h5>核对 Q3 回款</h5><p class="note">今天 09:30</p></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">04</div>
+          <div>
+            <h2>SaaS Board</h2>
+            <div class="zh">常规看板</div>
+          </div>
+          <div class="chips">
+            <span>Safe default</span><span>缺省专业</span>
+            <span>KPI strip</span><span>等宽指标行</span>
+            <span>Page padding</span><span>有页边</span>
+            <span>Token only</span><span>纯 token</span>
+          </div>
+          <p class="when"><b>When</b> 用户没提风格。<b>Not</b> 便当（等宽 KPI ≠ 不等跨度满铺）。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">saas-board</div><span class="mode">LIGHT</span></div>
+            <div class="stage saas">
+              <div class="hero" style="border:0"><div><div class="kicker">Overview</div><div style="font-size:20px;font-weight:600">本周概览</div></div><span class="pill">默认</span></div>
+              <div class="cards"><div class="sc"><span class="note">活跃</span><b>128</b></div><div class="sc"><span class="note">完成</span><b>86%</b></div><div class="sc"><span class="note">延迟</span><b>3</b></div></div>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">saas-board</div><span class="mode">DARK</span></div>
+            <div class="stage saas night">
+              <div class="hero" style="border:0"><div><div class="kicker">Overview</div><div style="font-size:20px;font-weight:600">本周概览</div></div><span class="pill">默认</span></div>
+              <div class="cards"><div class="sc"><span class="note">活跃</span><b>128</b></div><div class="sc"><span class="note">完成</span><b>86%</b></div><div class="sc"><span class="note">延迟</span><b>3</b></div></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">05</div>
+          <div>
+            <h2>Editorial</h2>
+            <div class="zh">编辑排版</div>
+          </div>
+          <div class="chips">
+            <span>Measure</span><span>行宽</span>
+            <span>Type first</span><span>字重层级</span>
+            <span>Hairline rules</span><span>刊头线</span>
+            <span>No card soup</span><span>少卡片</span>
+          </div>
+          <p class="when"><b>When</b> 周报、洞察、runbook。<b>Not</b> 监控墙、表格。Layout 是一篇文章。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">editorial</div><span class="mode">LIGHT</span></div>
+            <div class="stage edit">
+              <div class="vol">Vol.24 · Weekly</div>
+              <h5>记事的本质，是让人愿意回头再看</h5>
+              <p>衬线大标题、黑白灰加一枚强调色。没有卡片墙。</p>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">editorial</div><span class="mode">DARK</span></div>
+            <div class="stage edit night">
+              <div class="vol">Vol.24 · Weekly</div>
+              <h5>记事的本质，是让人愿意回头再看</h5>
+              <p>同一刊头，墨纸对调。不是把杂志做成暗色后台。</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">06</div>
+          <div>
+            <h2>Tape</h2>
+            <div class="zh">行情带</div>
+          </div>
+          <div class="chips">
+            <span>Tabular nums</span><span>等宽数字</span>
+            <span>Vertical rules</span><span>竖线分隔</span>
+            <span>Delta only</span><span>颜色只表涨跌</span>
+            <span>No card chrome</span><span>不要卡片</span>
+          </div>
+          <p class="when"><b>When</b> 值班屏、行情、事故带。<b>Not</b> 首页。浅色是纸本行情，不是把暗盘提亮。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">tape</div><span class="mode">LIGHT</span></div>
+            <div class="stage tape day">
+              <div class="nums"><div class="n"><span>Load</span><b>0.42</b></div><div class="n"><span>p95</span><b>82</b></div><div class="n"><span>Mem</span><b class="up">61%</b></div><div class="n"><span>Fail</span><b class="dn">2</b></div></div>
+              <div class="rows">
+                <div class="r"><span>api-gateway</span><span>12k/s</span><span>82ms</span><span class="up">ok</span></div>
+                <div class="r"><span>worker-queue</span><span>400/s</span><span>410ms</span><span class="dn">warn</span></div>
+                <div class="r"><span>auth</span><span>3k/s</span><span>44ms</span><span class="up">ok</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">tape</div><span class="mode">DARK</span></div>
+            <div class="stage tape">
+              <div class="nums"><div class="n"><span>Load</span><b>0.42</b></div><div class="n"><span>p95</span><b>82</b></div><div class="n"><span>Mem</span><b class="up">61%</b></div><div class="n"><span>Fail</span><b class="dn">2</b></div></div>
+              <div class="rows">
+                <div class="r"><span>api-gateway</span><span>12k/s</span><span>82ms</span><span class="up">ok</span></div>
+                <div class="r"><span>worker-queue</span><span>400/s</span><span>410ms</span><span class="dn">warn</span></div>
+                <div class="r"><span>auth</span><span>3k/s</span><span>44ms</span><span class="up">ok</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">07</div>
+          <div>
+            <h2>Void</h2>
+            <div class="zh">黑空</div>
+          </div>
+          <div class="chips">
+            <span>Sparse</span><span>极空</span>
+            <span>One line</span><span>一根细线</span>
+            <span>Huge type</span><span>巨大字</span>
+            <span>No dashboard</span><span>不是仪表盘</span>
+          </div>
+          <p class="when"><b>When</b> 高级感 / 极简。浅色是大留白纸，不是灰后台。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">void</div><span class="mode">LIGHT</span></div>
+            <div class="stage void day">
+              <div class="k">Mindflow · dark tech</div>
+              <h5>让思考更进一步</h5>
+              <div class="hair"></div>
+              <div class="ms"><span>1M+ 在用</span><span>99% 提升</span><span>24/7</span></div>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">void</div><span class="mode">DARK</span></div>
+            <div class="stage void">
+              <div class="k">Mindflow · dark tech</div>
+              <h5>让思考更进一步</h5>
+              <div class="hair"></div>
+              <div class="ms"><span>1M+ 在用</span><span>99% 提升</span><span>24/7</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">08</div>
+          <div>
+            <h2>Signage</h2>
+            <div class="zh">霓虹招牌</div>
+          </div>
+          <div class="chips">
+            <span>Display type</span><span>招牌字</span>
+            <span>Chroma wash</span><span>高彩铺底</span>
+            <span>Caption columns</span><span>小字栏</span>
+            <span>Not glow cards</span><span>不是发光卡片</span>
+          </div>
+          <p class="when"><b>When</b> 赛博 / 霓虹。浅色是白昼招牌（油墨色，不是辉光卡片）。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">signage</div><span class="mode">LIGHT</span></div>
+            <div class="stage sign day">
+              <div class="sign-in">
+                <div class="brand">NEONGRID</div>
+                <h5>连接<em>下一个</em><br>现实</h5>
+                <p class="sub">技术让更多可能发生。</p>
+                <div class="cols"><div>01 People<b>人</b></div><div>02 Technology<b>技术</b></div><div>03 Cities<b>城市</b></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">signage</div><span class="mode">DARK</span></div>
+            <div class="stage sign">
+              <div class="sign-in">
+                <div class="brand">NEONGRID</div>
+                <h5>连接<em>下一个</em><br>现实</h5>
+                <p class="sub">技术让更多可能发生。</p>
+                <div class="cols"><div>01 People<b>人</b></div><div>02 Technology<b>技术</b></div><div>03 Cities<b>城市</b></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="look">
+        <div class="look-head">
+          <div class="look-id">09</div>
+          <div>
+            <h2>Terminal</h2>
+            <div class="zh">终端等宽</div>
+          </div>
+          <div class="chips">
+            <span>Mono rows</span><span>等宽行</span>
+            <span>Status lamps</span><span>状态灯</span>
+            <span>Inset well</span><span>内凹井</span>
+            <span>Colour = state</span><span>颜色只表状态</span>
+          </div>
+          <p class="when"><b>When</b> 日志、agent 进度。浅色是纸本终端，不是把绿字糊在白卡片上。</p>
+        </div>
+        <div class="pair">
+          <div class="chrome">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">terminal</div><span class="mode">LIGHT</span></div>
+            <div class="stage term day">
+              <div class="term-bar"><i class="lamp" style="background:#ff5f57"></i><i class="lamp" style="background:#febc2e"></i><i class="lamp" style="background:#28c840"></i> deploy --watch</div>
+              <pre>12:04:01  ok    compile ui.tsx
+12:04:02  run   ctx.agent streamTo
+12:04:08  warn  retry llm timeout
+12:04:11  ok    push progress 4/7</pre>
+            </div>
+          </div>
+          <div class="chrome night">
+            <div class="chrome-bar"><span class="dots"><i></i><i></i><i></i></span><div class="url">terminal</div><span class="mode">DARK</span></div>
+            <div class="stage term">
+              <div class="term-bar"><i class="lamp" style="background:#ff5f57"></i><i class="lamp" style="background:#febc2e"></i><i class="lamp" style="background:#28c840"></i> deploy --watch</div>
+              <pre>12:04:01  ok    compile ui.tsx
+12:04:02  run   ctx.agent streamTo
+12:04:08  warn  retry llm timeout
+12:04:11  ok    push progress 4/7</pre>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="fusion">
+      <h2>官方融合方式</h2>
+      <p class="lede" style="font-size:16px">这是推荐实践，不是框架闸门。kit 不增 Look API；模型可以完全手写。我们只保证：门面自己已经用这些实践做好看，Look 规格 + PNG 在被问到风格时够抄。</p>
+      <div class="split" style="margin-top:18px">
+        <div class="card">
+          <h3>推荐，不强制</h3>
+          <p>颜色走 token / <code>color-mix</code>，页面形状走 preset，视觉语法抄规格里的 Tailwind 字面量。SKILL.md 已有的那条仍成立：库是便利，自由发挥是预期。Look 目录是参考，不是必须点名一个 id。</p>
+          <pre style="margin-top:12px">"classes": {
+  "root": "h-full p-6 gap-3",
+  "island": "rounded-3xl backdrop-blur-2xl bg-card/40 border-border/50",
+  "widget": "rounded-3xl bg-card/35 p-5"
+}</pre>
+        </div>
+        <div class="card">
+          <h3><code>data-look</code> 只是一种可选配方</h3>
+          <p>规格可以展示「根节点挂一个 look id、下面用同一组 class」这种写法，方便换肤。它不是运行时协议，不进 globals.css，模型不用也可以。换风格 = 改 class / 结构，不动 <code>call</code>。</p>
+          <pre style="margin-top:12px">/* optional, not a platform attribute */
+&lt;div data-look="glass-island" className={classes.root}&gt;
+  &lt;section className={classes.island}&gt;…&lt;/section&gt;
+&lt;/div&gt;</pre>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px">
+        唯一要锁的是 <b>catalog 自己不漂</b>：Look JSON 是预览/PNG 的源；demo-host fixture 读它来截图。不扫门面源码、不要求 <code>ui.tsx</code> 含 signature class。硬约束仍只有现有的那些：无 hex、无出目录 import、preset 自己的滚动契约。
+      </p>
+    </section>
+
+    <section id="templates">
+      <h2>七座门面 · 七种运转</h2>
+      <p class="note">切的是 loop，不是 API 名。抄错一座，app 的运转方式就错。骨架另算。表单 / 编辑器 / 日历 / 聊天不是门面，是套件。</p>
+      <div style="overflow:auto;margin-top:16px">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>门面</th>
+              <th>运转</th>
+              <th>Preset</th>
+              <th>默认 Look</th>
+              <th>抄它，当用户要的是</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">0</td>
+              <td><b>骨架</b> <span class="mono">minimal</span></td>
+              <td>跑通一轮 call</td>
+              <td>AppShell</td>
+              <td>—</td>
+              <td>连通性 / 空壳</td>
+            </tr>
+            <tr>
+              <td class="mono">1</td>
+              <td><b>今日台子</b> <span class="mono">today</span></td>
+              <td>打开就看见我的一屏，点进去是一条记录</td>
+              <td>ListDetail + 岛</td>
+              <td>glass-island</td>
+              <td>先干哪个、我的东西</td>
+            </tr>
+            <tr>
+              <td class="mono">2</td>
+              <td><b>阶段看板</b> <span class="mono">board</span></td>
+              <td>多条在二维状态里移动</td>
+              <td>无（Kanban + Sheet）</td>
+              <td>aurora-bento</td>
+              <td>卡住了、在等谁、按阶段追</td>
+            </tr>
+            <tr>
+              <td class="mono">3</td>
+              <td><b>信息雷达</b> <span class="mono">radar</span></td>
+              <td>我触发 → 等 → 读一篇（可取消）</td>
+              <td>Dashboard / Wizard</td>
+              <td>editorial-prose</td>
+              <td>拉源、做简报、长任务</td>
+            </tr>
+            <tr>
+              <td class="mono">4</td>
+              <td><b>表格台</b> <span class="mono">sheets</span></td>
+              <td>文件进，格子上干活，哪里变了</td>
+              <td>TablePage</td>
+              <td>desk-split</td>
+              <td>xlsx / 对比 / 列统计 / 安装库</td>
+            </tr>
+            <tr>
+              <td class="mono">5</td>
+              <td><b>执行器</b> <span class="mono">runner</span></td>
+              <td>模型自己走多步，UI 就是这条 run</td>
+              <td>手写 timeline</td>
+              <td>terminal-log</td>
+              <td>agent、多步、边跑边看</td>
+            </tr>
+            <tr>
+              <td class="mono">6</td>
+              <td><b>一键杂事</b> <span class="mono">chores</span></td>
+              <td>按钮、已知脚本、这台机器、看输出。无模型</td>
+              <td>AppShell</td>
+              <td>terminal-log</td>
+              <td>整理下载、备份、一个按钮</td>
+            </tr>
+            <tr>
+              <td class="mono">7</td>
+              <td><b>值班屏</b> <span class="mono">watch</span></td>
+              <td>打开就自己在跳。没有「开始」</td>
+              <td>DashboardShell</td>
+              <td>tape</td>
+              <td>活的状态、灯、切走后台要停</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:12px">
+        不占门面的 Look：<code>saas-board</code> 缺省专业；<code>void</code> / <code>signage</code> 点名才套。用户说「赛博值班」→ 抄 <code>watch</code> 的运转（tape），排字按 <code>signage</code> 改。不加第八座产品。
+        <code>chores</code> 必须是按钮；一做成 prompt 就和 <code>runner</code> 撞车。
+      </p>
+    </section>
+
+    <section id="spec">
+      <h2>规格化数据 + PNG</h2>
+      <p class="note">skill 热路径不再拷 400 行 TSX。有视觉的模型先看 PNG；没有视觉的模型读字段。fixture 仍留在 demo-host，只为人类预览和截图，不进 skill。</p>
+      <div class="split" style="margin-top:18px">
+        <pre>{
+  "id": "glass-island",
+  "name": { "en": "Glass Island", "zh": "玻璃岛屿" },
+  "when": "Personal dashboards, widget clusters, media-style side panels.",
+  "whenNot": "Dense DataGrid, incident walls, small widths.",
+  "palette": {
+    "prefer": "default",
+    "themeFile": null,
+    "note": "Tint via color-mix(primary); never hex."
+  },
+  "layout": {
+    "preset": null,
+    "grammar": "island-bento",
+    "recipe": "grid 1fr 2fr / widget row-span-2 …"
+  },
+  "surface": { "radius": "1.5rem", "blur": "24px", "density": "comfortable" },
+  "motion": { "enter": "Reveal", "hover": "none" },
+  "classes": {
+    "root": "h-full p-6 gap-3",
+    "island": "rounded-3xl backdrop-blur-2xl bg-card/40"
+  },
+  "preview": "looks/glass-island.png"
+}</pre>
+        <div class="card">
+          <h3>PNG 合同</h3>
+          <ul>
+            <li>画幅固定：<b>1280×720</b>，内容是 <b>mini-app 面板</b>，不是营销整站。</li>
+            <li>Chrome 可以画一条假地址栏，方便视觉模型认出「这是 UI 预览」。</li>
+            <li>每个 Look 一张特征模式图；不强制再出一张反色对图（规格里写明 light/dark 都能用）。</li>
+            <li>由 Playwright 截 demo-host lookbook 生成，<code>check:skill</code> 要求每个 id 都有 png。</li>
+            <li>现有 <code>semantic.tsx</code> 不再当 Look：那是 theme 课，写进 <code>styling.md</code> 一行。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="agent">
+      <h2>模型怎么读（省 token）</h2>
+      <div class="path" style="margin-top:18px">
+        <div class="card"><div class="num">1</div><p>SKILL.md 表：按运转选门面。默认不打开 looks。</p></div>
+        <div class="card"><div class="num">2</div><p>打开那一座。它已经戴好默认 Look，是可抄的产品，不是灰卡。</p></div>
+        <div class="card"><div class="num">3</div><p>仅当用户点名风格：<code>looks/index.md</code> → PNG → 规格。</p></div>
+        <div class="card"><div class="num">4</div><p>把 class / grammar 融进这座门面。不新开应用，不强制 Look id。</p></div>
+      </div>
+      <p class="note" style="margin-top:14px">
+        现在 paradigms 进 skill 约 100KB 且不在热路径。替换后：index 表 ~2KB + 被选中的一份规格 ~2KB + 一张图。demo-host 继续做真人画廊和截图源。
+      </p>
+    </section>
+
+    <section id="phase">
+      <h2>落地顺序（仍不在这次做）</h2>
+      <div class="split" style="margin-top:18px">
+        <div class="card">
+          <h3>可以先于剩余 presets</h3>
+          <ul>
+            <li>Look 规格 schema + 9 个 id</li>
+            <li>demo-host lookbook（fixture，不再叫 paradigms）</li>
+            <li>Playwright PNG 管道</li>
+            <li>skill：<code>references/looks/</code>，停止拷 TSX</li>
+            <li>Look JSON + PNG 进 skill；fixture 只为截图。不新增运行时 API，不扫门面 class</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>仍应等 presets（TODO P1-1）</h3>
+          <ul>
+            <li>七座门面按 loop 重写，戴上默认 Look。等 TablePage / DashboardShell / WizardShell / FormSheet 齐，避免写两遍</li>
+            <li>扔掉：todo / review / insights / jira / monitor / agentrun / spreadsheet 这些课名文件夹</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="open">
+      <h2>已锁定</h2>
+      <div class="q"><b>两层。</b> 门面 = 可抄的产品（loop）。Look = 规格 + 1280×720 面板 PNG。不再用 paradigm TSX 进 skill。</div>
+      <div class="q"><b>9 Looks。</b> glass-island / aurora-bento / desk-split / saas-board / editorial / tape / void / signage / terminal。扔掉 dark-ops、neon-console（两块普通暗盘）。</div>
+      <div class="q"><b>7+1 门面。</b> 台子 / 看板 / 雷达 / 表格台 / 执行器 / 杂事 / 值班屏 + 骨架。切 loop，不切 API 名。</div>
+      <div class="q"><b>推荐，不闸。</b> kit 零 Look API。规格里的 class 和可选 data-look 只是配方。模型可以不选、可以混、可以手写。</div>
+    </section>
+  </div>
+</body>
+</html>

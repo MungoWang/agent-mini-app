@@ -15,7 +15,7 @@ When you need an object or an array, use this path — do not experiment with "p
 
 ## `ctx.llm` example
 
-Full RSS + `./lib` + schema in `templates/insights/`.
+Full RSS + `./lib` + schema in `templates/radar/`.
 
 ```ts
 const SCHEMA = {

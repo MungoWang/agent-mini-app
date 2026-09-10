@@ -33,7 +33,7 @@ function readTemplateFiles(name: string): Record<string, string> {
 }
 
 describe("headless skill templates", () => {
-  it("registers minimal + todo templates via AppsManager", async () => {
+  it("registers minimal + today templates via AppsManager", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "mma-samples-"));
     let services: HostServices | undefined;
     const host = createHost(
@@ -53,12 +53,12 @@ describe("headless skill templates", () => {
     expect(tools.definitions().length).toBeGreaterThan(5);
 
     await apps.register("com.example.minimal", readTemplateFiles("minimal"));
-    await apps.register("com.example.todo", readTemplateFiles("todo"));
+    await apps.register("com.example.today", readTemplateFiles("today"));
 
     const list = await apps.list();
     expect(list.map((a) => a.id).sort()).toEqual([
       "com.example.minimal",
-      "com.example.todo",
+      "com.example.today",
     ]);
 
     // minimal exposes its own api keys — call the real one and assert a shape

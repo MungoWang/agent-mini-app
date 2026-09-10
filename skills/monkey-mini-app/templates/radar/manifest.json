@@ -1,0 +1,8 @@
+{
+  "id": "com.example.radar",
+  "name": "信息雷达",
+  "description": "拉源、做简报、长任务可取消",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "acronym": "LD"
+}

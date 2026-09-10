@@ -21,10 +21,10 @@ ctx.agent(goal: string, opts?: {
 ## Authoring notes
 
 - Long jobs must honour `ctx.signal` and stream progress with `ctx.push(...)` (or `opts.streamTo`) — the UI subscribes, it does not poll.
-- Prefer `templates/agentrun/` for the working pattern.
+- Prefer `templates/runner/` for the working pattern.
 - Do not invent MCP-style `{ input: "..." }` wrappers for tool args.
 
 ## Related
 
 - Skill: `skills/monkey-mini-app/references/ctx.md`, `llm-json.md`
-- Template: `skills/monkey-mini-app/templates/agentrun/`
+- Template: `skills/monkey-mini-app/templates/runner/`

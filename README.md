@@ -41,9 +41,9 @@ those too.
 Once your own tools are connected, the same pattern lands on them: a Jira board over your
 JQL, an internal API behind a form, CI runs and their failing steps, a worklog posted back.
 
-Eight starting points ship with the authoring skill, so none of the above starts from an
-empty directory: a Jira board, a daily digest, a system monitor, a spreadsheet summariser,
-a task runner, a fix-and-verify bench, a todo list, and a bare skeleton. See
+Starting facades ship with the authoring skill, so none of the above starts from an
+empty directory: today's desk, a stage board, an info radar, a spreadsheet bench,
+an agent runner, one-button chores, a watch strip, and a bare skeleton. See
 [`skills/monkey-mini-app/templates/`](skills/monkey-mini-app/templates/).
 
 ## How one gets built

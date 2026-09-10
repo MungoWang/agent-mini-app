@@ -23,7 +23,7 @@ export default function Ui() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // ⭐ key: don't setState after the component unmounts (long/slow tasks with cancellation: see insights / agentrun)
+    // ⭐ key: don't setState after the component unmounts (long/slow tasks with cancellation: see radar / runner)
     let alive = true;
     (async () => {
       try {

@@ -1,0 +1,8 @@
+{
+  "id": "com.example.board",
+  "name": "阶段看板",
+  "description": "多条东西按阶段往前推 · 看板/表格 · AI 记一笔",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "acronym": "KB"
+}

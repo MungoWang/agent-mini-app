@@ -22,6 +22,7 @@ import { fileURLToPath } from "node:url"
 import { loadFamilies } from "./families.mjs"
 import { buildRecords } from "./extract.mjs"
 import { loadExamples, writeSkillExamples } from "./examples.mjs"
+import { writeSkillLooks } from "./looks.mjs"
 import { renderCatalog, renderCatalogJson, renderContract, renderFamilyContract } from "./render.mjs"
 import { generateThemeDoc } from "./theme.mjs"
 
@@ -128,6 +129,7 @@ function main() {
  JSON.stringify(renderCatalogJson(entries, families), null, 2) + "\n"
 )
 
+ writeSkillLooks({ repoRoot, skillRef })
  const tokenCount = generateThemeDoc()
  const withTypes = components.filter((c) => c.types?.length).length
  const parts = primitives.reduce((n, f) => n + f.parts.length + f.helpers.length, 0)

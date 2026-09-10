@@ -1,0 +1,8 @@
+{
+  "id": "com.example.sheets",
+  "name": "表格台",
+  "description": "文件进，格子上干活，哪里变了",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "acronym": "BG"
+}

@@ -69,18 +69,18 @@ describe("S6 · skill artifacts stay in sync with the UI lib", () => {
     expect([...new Set(illos)].sort()).toEqual(real);
   });
 
-  it("references the templates README + all 8 templates", () => {
+  it("references the templates README + all facades", () => {
     const templates = readdirSync(path.join(skill, "templates"))
       .filter((n) => !n.endsWith(".md") && !n.startsWith("."));
     expect(templates.sort()).toEqual([
-      "agentrun",
-      "insights",
-      "jira",
+      "board",
+      "chores",
       "minimal",
-      "monitor",
-      "review",
-      "spreadsheet",
-      "todo",
+      "radar",
+      "runner",
+      "sheets",
+      "today",
+      "watch",
     ]);
     const readme = readFileSync(path.join(skill, "templates", "README.md"), "utf8");
     for (const t of templates) expect(readme).toContain(`./${t}/`);

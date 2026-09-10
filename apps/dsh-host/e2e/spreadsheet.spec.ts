@@ -13,7 +13,7 @@ import { expectFrameAlive, fixturePath, openApp } from "./helpers.ts";
  *
  * Numbers come from `scripts/gen/dsh-e2e-xlsx.mts`, which prints them on regeneration.
  */
-const APP = "报表摘要";
+const APP = "表格台";
 const FILE = "运输明细.xlsx";
 
 async function upload(page: Page) {

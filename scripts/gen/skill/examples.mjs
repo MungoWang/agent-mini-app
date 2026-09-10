@@ -43,18 +43,13 @@ function walkTs(dir, out = []) {
 /**
  * Parse every example under packages/ui-examples/src.
  * `src/components/<dir>/…` → published at `references/examples/<dir>/…`
- * `src/paradigms/…`         → published at `references/examples/paradigms/…` (keeps ./shared)
+ * Looks live under `src/looks/` and are **not** copied here — `looks.mjs` writes markdown specs.
  */
 export function loadExamples(examplesRoot) {
   const out = []
   for (const f of walkTs(path.join(examplesRoot, "src/components"))) {
     const src = fs.readFileSync(f, "utf8")
     out.push({ file: f, dir: path.basename(path.dirname(f)), base: path.basename(f), src, ...readMeta(src) })
-  }
-  for (const f of walkTs(path.join(examplesRoot, "src/paradigms"))) {
-    if (path.basename(f) === "index.tsx") continue
-    const src = fs.readFileSync(f, "utf8")
-    out.push({ file: f, dir: "paradigms", base: path.basename(f), src, ...readMeta(src) })
   }
   return out
 }
@@ -78,10 +73,6 @@ export function writeSkillExamples({ skillRef, examples, sharedRoot, subjectSlug
     const dest = path.join(outRoot, ex.dir, ex.base)
     fs.mkdirSync(path.dirname(dest), { recursive: true })
     fs.writeFileSync(dest, code)
-    if (ex.dir === "paradigms") {
-      const helper = path.join(examplesRoot, "src/paradigms", "shared.tsx")
-      if (fs.existsSync(helper)) fs.copyFileSync(helper, path.join(outRoot, "paradigms", "shared.tsx"))
-    }
     const href = `${ex.dir}/${ex.base}`
     const entry = {
       href,

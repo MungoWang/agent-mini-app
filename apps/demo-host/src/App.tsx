@@ -16,31 +16,14 @@ import {
   DateExamples,
   EditorExamples,
   FormExamples,
+  LOOKS,
   OverlayExamples,
   PrimitiveExamples,
   ProductExamples,
-  SaasParadigms,
-  MinimalParadigm,
-  TerminalParadigm,
-  EditorialParadigm,
-  DarkDataParadigm,
-  SemanticParadigm,
-  DeskParadigm,
-  OpsParadigm,
-  GlassParadigm,
 } from "@monkey-mini-app/ui-examples"
 import { useTheme, type Palette } from "./components/theme-provider"
 
-const sectionIds = [
-  "style-glass",
-  "style-glow",
-  "style-minimal",
-  "style-terminal",
-  "style-editorial",
-  "style-dark",
-  "style-semantic",
-  "style-desk",
-  "style-ops",
+const kitIds = [
   "data",
   "dates",
   "forms",
@@ -51,19 +34,11 @@ const sectionIds = [
   "blocks",
 ] as const
 
-type Section = (typeof sectionIds)[number]
+type KitId = (typeof kitIds)[number]
+type Section = (typeof LOOKS)[number]["id"] | KitId
 
-const navLabel: Record<UiLocale, Record<Section, string>> = {
+const kitLabel: Record<UiLocale, Record<KitId, string>> = {
   en: {
-    "style-glass": "Liquid Glass",
-    "style-glow": "Glow Minimal",
-    "style-minimal": "Minimal",
-    "style-terminal": "Terminal",
-    "style-editorial": "Editorial",
-    "style-dark": "Dark Data",
-    "style-semantic": "Semantic",
-    "style-desk": "Desk",
-    "style-ops": "Ops Console",
     data: "Data",
     dates: "Dates",
     forms: "Forms",
@@ -74,15 +49,6 @@ const navLabel: Record<UiLocale, Record<Section, string>> = {
     blocks: "Charts & blocks",
   },
   zh: {
-    "style-glass": "液态玻璃",
-    "style-glow": "辉光简约",
-    "style-minimal": "极简留白",
-    "style-terminal": "终端等宽",
-    "style-editorial": "编辑排版",
-    "style-dark": "暗夜数据",
-    "style-semantic": "语义色板",
-    "style-desk": "精致桌面",
-    "style-ops": "运维控制台",
     data: "数据",
     dates: "日期",
     forms: "表单",
@@ -137,7 +103,7 @@ function readLocale(): UiLocale {
 }
 
 export function App() {
-  const [section, setSection] = React.useState<Section>("style-glass")
+  const [section, setSection] = React.useState<Section>("glass-island")
   const [locale, setLocale] = React.useState<UiLocale>(readLocale)
   const { theme, setTheme, palette, setPalette } = useTheme()
   const paletteMeta = palettes.find((item) => item.id === palette) ?? palettes[0]!
@@ -224,24 +190,24 @@ export function App() {
         sidebar={
           <nav className="flex flex-col gap-1">
             <div className="mb-2 px-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              样式风格
+              Looks
             </div>
-            {sectionIds.slice(0, 9).map((id) => (
+            {LOOKS.map((look) => (
               <Button
-                key={id}
+                key={look.id}
                 size="sm"
-                variant={section === id ? "default" : "ghost"}
+                variant={section === look.id ? "default" : "ghost"}
                 className="justify-start"
-                data-testid={`nav-${id}`}
-                onClick={() => setSection(id)}
+                data-testid={`nav-${look.id}`}
+                onClick={() => setSection(look.id)}
               >
-                {navLabel[locale][id]}
+                {locale === "zh" ? look.zh : look.title}
               </Button>
             ))}
             <div className="mt-4 mb-2 px-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
               组件
             </div>
-            {sectionIds.slice(9).map((id) => (
+            {kitIds.map((id) => (
               <Button
                 key={id}
                 size="sm"
@@ -250,21 +216,21 @@ export function App() {
                 data-testid={`nav-${id}`}
                 onClick={() => setSection(id)}
               >
-                {navLabel[locale][id]}
+                {kitLabel[locale][id]}
               </Button>
             ))}
           </nav>
         }
       >
-        {section === "style-glass" ? <GlassParadigm /> : null}
-        {section === "style-glow" ? <SaasParadigms /> : null}
-        {section === "style-minimal" ? <MinimalParadigm /> : null}
-        {section === "style-terminal" ? <TerminalParadigm /> : null}
-        {section === "style-editorial" ? <EditorialParadigm /> : null}
-        {section === "style-dark" ? <DarkDataParadigm /> : null}
-        {section === "style-semantic" ? <SemanticParadigm /> : null}
-        {section === "style-desk" ? <DeskParadigm /> : null}
-        {section === "style-ops" ? <OpsParadigm /> : null}
+        {LOOKS.map((look) => {
+          if (section !== look.id) return null
+          const View = look.View
+          return (
+            <div key={look.id} className="-m-4 flex h-[calc(100%+2rem)] min-h-0 flex-col overflow-hidden">
+              <View />
+            </div>
+          )
+        })}
         {section === "data" ? <DataExamples /> : null}
         {section === "dates" ? <DateExamples /> : null}
         {section === "forms" ? <FormExamples /> : null}

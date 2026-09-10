@@ -257,21 +257,22 @@ export default defineApp({
 | Human debugging of host `:17880` / curl | [references/test.md](references/test.md) (≠ `ctx.http`) |
 | Errors | [references/troubleshoot.md](references/troubleshoot.md) |
 | Versioning / rollback | [references/history.md](references/history.md) |
+| **A named visual style** (only if the user asked) | [references/looks/index.md](references/looks/index.md) — recipes, not apps |
 
-**Templates are reference material, not a menu you must choose one from.** Read [`templates/README.md`](templates/README.md) to find the closest starting point, and open whichever others cover your app's capabilities (a dashboard that calls the model = `monitor` + `insights`). **Extract the pattern you need — structure, naming, cancellation, progress events — rather than pasting whole files** (`jira/ui.tsx` is 300+ lines), and read one file at a time so you spend tokens on the user's app, not on the samples.
+**Templates are product facades, cut by interaction loop.** Read [`templates/README.md`](templates/README.md). Lift the pattern — do not paste whole files. Looks are optional; do not open them unless the user named a style.
 
-| Scenario | Template |
+| Loop | Template |
 |---|---|
-| Minimal runnable baseline | `templates/minimal/` |
-| Local CRUD + filtering + derived stats | `templates/todo/` |
-| Web data → model summary (long job / sampling / cancel) | `templates/insights/` |
-| Live machine metrics dashboard (`system` + `bash`) | `templates/monitor/` |
-| Edit / diff / logs / test cases (complex components) | `templates/review/` |
-| `ctx.agent` multi-step job + progress / cancel | `templates/agentrun/` |
-| Board + table dual view + editing + AI (flagship) | `templates/jira/` |
-| Local `.xlsx` parsing via an installed library + model digest | `templates/spreadsheet/` (needs `mini_app_install` first) |
+| One `call` / connectivity | `templates/minimal/` |
+| Open → my screen → one record | `templates/today/` |
+| Items move in 2D status | `templates/board/` |
+| Trigger → wait → read (cancel) | `templates/radar/` |
+| File in, grid work (`mini_app_install`) | `templates/sheets/` |
+| The UI *is* the run (`ctx.agent`) | `templates/runner/` |
+| Named buttons, this machine, no model | `templates/chores/` |
+| Numbers move by themselves | `templates/watch/` |
 
-For plain storage CRUD **start from the skeleton above** — don't read the whole Todo app to take a note. Templates are style references: product copy in the user's language, `call` owns loading/error, backend may use TypeScript.
+For a plain note **start from the skeleton above**. Product copy follows the host locale.
 
 ## Checklist
 

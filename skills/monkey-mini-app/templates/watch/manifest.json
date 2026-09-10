@@ -1,0 +1,8 @@
+{
+  "id": "com.example.watch",
+  "name": "值班屏",
+  "description": "打开就自己在跳。没有开始按钮。",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "acronym": "ZB"
+}

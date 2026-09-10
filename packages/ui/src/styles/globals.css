@@ -10,6 +10,7 @@
    it), so their classes are never missed. */
 @source "../../../../apps/**/*.{ts,tsx}";
 @source "../../../../packages/ui/src/**/*.{ts,tsx}";
+@source "../../../../packages/ui-examples/src/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
 @theme inline {

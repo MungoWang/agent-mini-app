@@ -15,12 +15,12 @@ import { bootstrapHostConfig, createHost, type HostCapabilities } from "@monkey-
 
 const port = Number(process.argv[2] || 17900);
 const base = path.resolve("skills/monkey-mini-app/templates");
-const TEMPLATES = ["minimal", "todo", "monitor", "review", "insights", "agentrun", "jira", "spreadsheet"];
+const TEMPLATES = ["minimal", "today", "board", "radar", "sheets", "runner", "chores", "watch"];
 
 // Templates that need a library outside the platform surface (mini_app_install).
 // The demo host installs them so `call("list")` on first paint does not hit BACKEND_IMPORT.
 const NEEDS_PACKAGES: Record<string, { name: string }[]> = {
-  spreadsheet: [{ name: "exceljs" }],
+  sheets: [{ name: "exceljs" }],
 };
 
 function readTemplate(name: string) {

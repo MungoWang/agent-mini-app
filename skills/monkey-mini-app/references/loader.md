@@ -54,4 +54,4 @@ UI: `@monkey-mini-app/ui` + `react` + `lodash`. Backend: `@monkey-mini-app/api` 
 
 Fetch web content with `ctx.http("https://…", { timeout: 8000 })` and inspect `r.ok` / `r.text` / `r.json`; keep parsing in `api/`. Local machine commands use `ctx.bash`.
 
-Editing `ui.tsx` / `main.api.ts` or any helper module under the app dir triggers a recompile by mtime. A full RSS + `shared/` example lives in `templates/insights/`.
+Editing `ui.tsx` / `main.api.ts` or any helper module under the app dir triggers a recompile by mtime. A full RSS + `shared/` example lives in `templates/radar/`.

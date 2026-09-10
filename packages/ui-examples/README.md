@@ -24,7 +24,7 @@ Use `Icon` from the UI package for icons, and rely on types the UI package re-ex
 src/
   areas/<area>.tsx             group showcases (Forms / Data / Dates / …)
   components/<Name>/<name>-NN.tsx   per-component canonical examples
-  paradigms/                    (still in apps/demo-host until Icon-ized)
+  looks/                        live Look fixtures (catalog.json is the skill source)
   shared/                       Example wrapper + sample data (import-safe)
   index.ts                      barrel for demo-host
 ```
@@ -38,7 +38,7 @@ Folder is **category**, not identity. The component↔example link is the JSDoc 
  */
 ```
 
-Files without `@exampleOf` (layouts, paradigms) carry `@group <slug>` instead and roll up
+Files without `@exampleOf` (layouts) carry `@group <slug>` instead and roll up
 to `references/examples/<group>.md` in the skill.
 
 ## Consumers

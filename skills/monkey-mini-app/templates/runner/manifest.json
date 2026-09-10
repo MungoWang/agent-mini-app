@@ -1,0 +1,8 @@
+{
+  "id": "com.example.runner",
+  "name": "执行器",
+  "description": "模型自己走多步，UI 就是这条 run，可取消",
+  "version": "0.1.0",
+  "entry": "ui.tsx",
+  "acronym": "ZX"
+}
