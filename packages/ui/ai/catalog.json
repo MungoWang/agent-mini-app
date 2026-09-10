@@ -1364,6 +1364,13 @@
       ],
       "helpers": []
     },
+    "TablePage": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Page shape: one wide filterable table is the product — inventories, ledgers, saved views",
+      "contract": "references/contracts/table-page.md"
+    },
     "Tabs": {
       "componentType": "component",
       "family": "Navigation",

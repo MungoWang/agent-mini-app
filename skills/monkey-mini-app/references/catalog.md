@@ -21,6 +21,7 @@ Shell / split / scroll containers and display atoms — they arrange, they don't
 | `DescriptionList` | block | — | Detail/inspector panel of a selected row — the default “show one record” view. | [docs](contracts/description-list.md) |
 | `ListDetail` | block | — | Page shape: click a row, then read or edit that one record beside the list — orders, tickets, contacts, log lines | [docs](contracts/list-detail.md) |
 | `PageHeader` | block | — | Top of a page inside AppShell main | [docs](contracts/page-header.md) |
+| `TablePage` | block | — | Page shape: one wide filterable table is the product — inventories, ledgers, saved views | [docs](contracts/table-page.md) |
 | `AspectRatio` | component | `AspectRatio` | Keeping an image/video/embed from shifting the layout while loading. | [docs](contracts/aspect-ratio.md) |
 | `Avatar` | component | `Avatar` `AvatarBadge` +4 | User initials/photo next to a name in rows, comments, pickers. | [docs](contracts/avatar.md) |
 | `Collapsible` | component | `Collapsible` `CollapsibleContent` +1 | A single disclosure (advanced options). Several stacked → `Accordion`. | [docs](contracts/collapsible.md) |
