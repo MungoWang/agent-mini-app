@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import {
+  DashboardShell,
   Reveal,
   Sparkline,
   Table,
@@ -72,85 +73,98 @@ export default function Ui() {
   const memPct = snap?.memory.usedPct ?? 0;
 
   return (
-    // ⭐ Look: tape — numerals + vertical rules, no card chrome. Reveal only lives on this facade.
-    <div className="flex h-full min-h-0 flex-col bg-background font-mono">
-      <div className="text-muted-foreground flex items-center justify-between border-b px-4 py-2 text-xs tracking-widest uppercase">
-        <span>{snap?.hostname ?? "值班屏"}</span>
-        <span>每 2 秒 · {fmtUptime(snap?.uptimeSec ?? 0)}</span>
-      </div>
-      {error ? (
-        <p className="text-destructive px-4 py-2 text-sm">{error}</p>
-      ) : null}
-      <Reveal>
-        {/* four columns written out, not switched on at `md:` — the panel width is
+    // ⭐ Look: tape — numerals + vertical rules, no card chrome. The shape is DashboardShell:
+    //   the hostname row and the KPI band are pinned, and the sparklines + process table are the
+    //   one scroller. Hand-rolled, that scroller tends to land on the outer column, and the first
+    //   table scroll takes the numbers off the top of a screen meant to be read from across a room.
+    <div className="h-full min-h-0 font-mono">
+      <DashboardShell
+        header={
+          <div className="text-muted-foreground flex items-center justify-between border-b px-4 py-2 text-xs tracking-widest uppercase">
+            <span>{snap?.hostname ?? "值班屏"}</span>
+            <span>每 2 秒 · {fmtUptime(snap?.uptimeSec ?? 0)}</span>
+          </div>
+        }
+        kpis={
+          <Reveal>
+            {/* four columns written out, not switched on at `md:` — the panel width is
             user-dragged, so a breakpoint here is a lie (see `today`). */}
-        <div className="grid grid-cols-4 divide-x divide-border">
-          <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
-              Load
+            <div className="grid grid-cols-4 divide-x divide-border">
+              <div className="px-4 py-5">
+                <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+                  Load
+                </div>
+                <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+                  {load ? Number(load["1m"]).toFixed(2) : "—"}
+                </div>
+              </div>
+              <div className="px-4 py-5">
+                <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+                  Mem
+                </div>
+                <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+                  {memPct}%
+                </div>
+              </div>
+              <div className="px-4 py-5">
+                <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+                  Disk
+                </div>
+                <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+                  {snap?.disk ? `${snap.disk.usedPct}%` : "—"}
+                </div>
+              </div>
+              <div className="px-4 py-5">
+                <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+                  CPU
+                </div>
+                <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+                  {snap ? snap.cpu.count : "—"}
+                </div>
+              </div>
             </div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
-              {load ? Number(load["1m"]).toFixed(2) : "—"}
+          </Reveal>
+        }
+        main={
+          <>
+            {error ? (
+              <p className="text-destructive px-4 py-2 text-sm">{error}</p>
+            ) : null}
+            <div className="grid grid-cols-2 gap-0 border-t">
+              <div className="border-r p-4">
+                <Sparkline data={memHist.map((v) => ({ value: v }))} />
+              </div>
+              <div className="p-4">
+                <Sparkline data={loadHist.map((v) => ({ value: v }))} />
+              </div>
             </div>
-          </div>
-          <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
-              Mem
+            <div className="border-t">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-20">PID</TableHead>
+                    <TableHead className="w-24">CPU%</TableHead>
+                    <TableHead className="w-24">MEM%</TableHead>
+                    <TableHead>PROC</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {procs.map((p) => (
+                    <TableRow key={p.pid}>
+                      <TableCell className="font-mono">{p.pid}</TableCell>
+                      <TableCell>{p.cpu.toFixed(1)}</TableCell>
+                      <TableCell>{p.mem.toFixed(1)}</TableCell>
+                      <TableCell className="max-w-[420px] truncate">
+                        {p.name}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
-              {memPct}%
-            </div>
-          </div>
-          <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
-              Disk
-            </div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
-              {snap?.disk ? `${snap.disk.usedPct}%` : "—"}
-            </div>
-          </div>
-          <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
-              CPU
-            </div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
-              {snap ? snap.cpu.count : "—"}
-            </div>
-          </div>
-        </div>
-      </Reveal>
-      <div className="grid grid-cols-2 gap-0 border-t">
-        <div className="border-r p-4">
-          <Sparkline data={memHist.map((v) => ({ value: v }))} />
-        </div>
-        <div className="p-4">
-          <Sparkline data={loadHist.map((v) => ({ value: v }))} />
-        </div>
-      </div>
-      <div className="min-h-0 flex-1 overflow-auto border-t">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-20">PID</TableHead>
-              <TableHead className="w-24">CPU%</TableHead>
-              <TableHead className="w-24">MEM%</TableHead>
-              <TableHead>PROC</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {procs.map((p) => (
-              <TableRow key={p.pid}>
-                <TableCell className="font-mono">{p.pid}</TableCell>
-                <TableCell>{p.cpu.toFixed(1)}</TableCell>
-                <TableCell>{p.mem.toFixed(1)}</TableCell>
-                <TableCell className="max-w-[420px] truncate">
-                  {p.name}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+          </>
+        }
+      />
     </div>
   );
 }

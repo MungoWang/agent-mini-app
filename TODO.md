@@ -9,6 +9,12 @@
 > [`docs/archive/tasks/ci-gate-parity-2026-09-08.md`](docs/archive/tasks/ci-gate-parity-2026-09-08.md)。
 > Playwright 按机主决定继续只在本地跑，口径写在 `AGENTS.md` → Gates。
 >
+> 2026-09-10：P1「layout presets」六个 preset 全部落地（组件 + 断言其存在理由的契约测试 +
+> 画廊示例 + `gen:skill`），逐条踩坑与 canary 记录见
+> [`docs/archive/tasks/layout-presets-2026-09-10.md`](docs/archive/tasks/layout-presets-2026-09-10.md)。
+> 同一版里定了换壳：`watch` → `DashboardShell` 已做；`sheets` **不换** `TablePage`——它的网格本就在
+> `ListDetail` 的 detail 栏里，再包一层是嵌套滚动，正是这族要消灭的东西。下面的编号因此前移一位。
+>
 > 2026-09-08：「AI 风向雷达」实战报告里的问题已修完一轮（`f3a026a` `afe6b29` `8f8ad0f` `4ab5b37`
 > + 本次 storage）：CSS 缓存永不失效、`reload` 不告诉 agent 清了啥、`view_eval` 把慢报成卡死、
 > `llm + schema` 的 1024 默认值与不保证解析、`sheet/dialog` 隐藏宽度锁、事件名口口相传、
@@ -20,35 +26,20 @@
 
 ## P1 — 功能工作，按依赖排序
 
-1. **layout presets** — `docs/rfcs/authoring-surface.md` §4（workstream 2），**进行中 1/6**。
-   已落：`ListDetail`（§4.2 顺序 1，S1/S6）— `packages/ui/src/blocks/list-detail.tsx` + 5 条
-   jsdom 类契约测试 + `apps/demo-host/e2e/list-detail.spec.ts`（浏览器里证明两栏各自滚、toolbar
-   不动，canary 验过：去掉 `overflow-y-auto` 它就红）+ `list-detail-01` 示例 + `listDetail` 中英
-   label + 合同已 `gen:skill`。
-   待做（按 §4.2 顺序）：`TablePage` → `DashboardShell` → `SettingsSplit` → `WizardShell` → `FormSheet`；
-   每个都要齐这四件：组件、断言该 preset 存在理由的测试、一条 `@scenario` 不重复的示例、`pnpm gen:skill`。
-   顺手修掉的两个真 bug（都是这一族带出来的）：
-   • `components/resizable.tsx` 的 `@example` 教的是 `direction="horizontal"`，而装的是
-     react-resizable-panels v4（prop 叫 `orientation`）——生成的合同一直在教 agent 写一个不存在的属性；
-   • `hooks/use-mobile.ts` 在无 `matchMedia` 的环境（SSR / 裸 jsdom）直接抛，任何用 `Sidebar` 的
-     渲染都会炸；现在按「未知即宽屏」返回 false。
-    被谁挡：没有。门面已按现状落地（`today` / `sheets` 用 `ListDetail`），preset 齐了再换壳：
-   `sheets` → `TablePage`，`watch` → `DashboardShell`。
-
-2. **Look 预览图** — looks + 门面重做已落地（见 `docs/architecture/looks-and-templates.md`，§7 记了配色与踩坑）。
+1. **Look 预览图** — looks + 门面重做已落地（见 `docs/architecture/looks-and-templates.md`，§7 记了配色与踩坑）。
    **只剩**：每个 Look 的 light / dark PNG（机主手截，截 demo-host 的 Looks 栏），
    `catalog.json` 里给 `preview` 留了位。截完补一句到 `references/looks/index.md` 的生成器里。
 
 ## P2 — 质量，无先后
 
-3. **`shared/**` 的「纯同构」只是约定，没有静态门禁。**
+2. **`shared/**` 的「纯同构」只是约定，没有静态门禁。**
    `layerOfRel`（`packages/host/src/compile/static-check.ts:147`）只把 findings **按层归类**，没有任何规则拦 `shared/` 里的 React / `ctx` / DOM / Node import。而 `AGENTS.md` → Hard constraints (3) 说的是「双向强制」。
    做法：按层加一条 import specifier 规则 + 植入 canary 证明它会红。
 
-4. **kit 测试没有覆盖率阈值。**
+3. **kit 测试没有覆盖率阈值。**
    `vitest.config.ts:32-35` 的 `lines: 85` 只覆盖 `host` / `panel` / `dsh`，`packages/ui` 没有地板——那批 `.test.tsx` 只要再一次和 include 规则错开，没人报警。`kit` project 已经接进 workspace（`vitest.workspace.ts:43`），缺的就是阈值这半边。
 
-5. **`packages/panel/src/host-shell.ts` 是全仓最低覆盖：81.4 % lines / 64.1 % branch。**
+4. **`packages/panel/src/host-shell.ts` 是全仓最低覆盖：81.4 % lines / 64.1 % branch。**
    panel 的阈值是聚合 glob，被同目录别的文件抬着过线，所以没人察觉。纯补测试，与功能无关。
 
 ## 触发式 — 条件出现才开工

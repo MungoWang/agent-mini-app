@@ -88,7 +88,7 @@ Cut by loop: copying the wrong facade would copy the wrong _kind of running_.
 | `sheets`  | `表格台`   | file in, grid work, what changed       | DataGrid (+ later `TablePage`)      | `desk-split`   |
 | `runner`  | `执行器`   | the model walks; the UI _is_ the run   | `RunTimeline` + `Terminal`          | `terminal`     |
 | `chores`  | `一键杂事` | named buttons, known script, no model  | `AppShell`                          | `terminal`     |
-| `watch`   | `值班屏`   | numbers move by themselves; no Start   | Tailwind (+ later `DashboardShell`) | `tape`         |
+| `watch`   | `值班屏`   | numbers move by themselves; no Start   | `DashboardShell`                  | `tape`         |
 
 `chores` must stay buttons. A prompt box makes it `runner`.
 
@@ -111,7 +111,13 @@ Facades and look fixtures prefer `@monkey-mini-app/ui` (`AppShell`, `PageHeader`
 
 ## 6. Out of this RFC
 
-- Remaining layout presets (`TablePage`, `DashboardShell`, `SettingsSplit`, `WizardShell`, `FormSheet`) — still P1-1.
+- ~~Remaining layout presets~~ — all six landed 2026-09-10
+  ([`archive/tasks/layout-presets-2026-09-10.md`](../archive/tasks/layout-presets-2026-09-10.md)).
+  `watch` now wears `DashboardShell`. `sheets` deliberately keeps `ListDetail`: its grid lives in
+  the detail pane, which already owns that pane's scroller, so `TablePage` would nest a second one
+  — the exact failure class the preset table exists to remove. `TablePage` / `SettingsSplit` /
+  `WizardShell` / `FormSheet` have no facade user yet, which §4.0 allows (the "must first be used
+  by a real template" gate was withdrawn): they ship for agents to reach through the catalog.
 - Look PNG pipeline (Playwright). Specs reserve `preview.light` / `preview.dark` paths; files come later.
 - Custom host theme files for neon (`theme-neon.css`) — only when the user asks, existing contract.
 

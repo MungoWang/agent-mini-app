@@ -2,8 +2,9 @@
 
 > Date: 2026-09-05
 > Status: **partly shipped** — (4) README intent ✅ · (5) custom-theme contract + skill ✅ ·
-> (1a) lodash vendor ✅ · (1b) `motion` vendor + kit `Reveal` ✅ · (2) layout presets
-> in progress (`ListDetail` landed) · (3) templates/paradigms **superseded** by
+> (1a) lodash vendor ✅ · (1b) `motion` vendor + kit `Reveal` ✅ · (2) layout presets ✅ (all six,
+> 2026-09-10 — [`layout-presets-2026-09-10.md`](../archive/tasks/layout-presets-2026-09-10.md)) ·
+> (3) templates/paradigms **superseded** by
 > [`looks-and-templates.md`](../architecture/looks-and-templates.md) (shipped; does not wait on remaining presets)
 > Source: items 1–5 of [`rough-ideas.md`](./rough-ideas.md)
 > Packages: `packages/ui` · `packages/api` · `packages/host` · `packages/panel` · skill / templates / README
@@ -300,6 +301,12 @@ how badly they get it wrong without help.
 | 4 | `SettingsSplit` | S4, S8 | side nav + section content with `Scrollspy` wired to real section ids; unsaved-changes bar pinned to the content pane, not the window | `nav`, `sections`, `footer?` |
 | 5 | `WizardShell` | S5 | `Stepper` + scrollable body + **sticky** footer; back/next disabled state derived from step validity; body keeps its height between steps so the footer does not jump | `stepper`, `body`, `footer` |
 | 6 | `FormSheet` | S6 | a `Sheet` whose header/footer stay fixed while only the form scrolls; single submit path; Escape-dirty confirm | `header`, `body`, `footer` |
+
+**All six shipped 2026-09-10** — `pnpm gen:skill` publishes them, each with a contract test
+that was canary-verified by re-introducing the bug it guards, and one gallery example.
+`watch` was re-skinned onto `DashboardShell`; `sheets` deliberately stays on `ListDetail`
+(its grid already lives in a pane that owns a scroller — wrapping it again would nest
+scrollers, the failure class this table exists to remove).
 
 S7 (`jira`'s board) and S9 (first-run) stay hand-written: `Kanban` already exists and the
 `empty` component plus Tailwind covers a centred column — a preset for either would be a
