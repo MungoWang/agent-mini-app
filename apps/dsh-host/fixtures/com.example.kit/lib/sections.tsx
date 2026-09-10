@@ -77,6 +77,7 @@ import MiscChartsBlocks03Example from "./examples/misc-charts-blocks/misc-charts
 import MiscChartsBlocks04Example from "./examples/misc-charts-blocks/misc-charts-blocks-04";
 import MiscChartsBlocks05Example from "./examples/misc-charts-blocks/misc-charts-blocks-05";
 import MiscChartsBlocks06Example from "./examples/misc-charts-blocks/misc-charts-blocks-06";
+import DashboardShell01Example from "./examples/dashboard-shell/dashboard-shell-01";
 import DetailPanel01Example from "./examples/detail-panel/detail-panel-01";
 import ListDetail01Example from "./examples/list-detail/list-detail-01";
 import TablePage01Example from "./examples/table-page/table-page-01";
@@ -352,6 +353,9 @@ export const SECTION_BODIES: Record<SectionId, () => JSX.Element> = {
       </Example>
       <Example id="inspect" title="DescriptionList / RequestInspector / Terminal / FileTree / AttachmentGallery">
         <MiscChartsBlocks06Example />
+      </Example>
+      <Example id="dashboard-shell" title="DashboardShell" hint="Scroll the chart column — the header and KPI strip stay; narrow the panel and the rail folds underneath">
+        <DashboardShell01Example />
       </Example>
       <Example id="detail-panel" title="DetailPanel">
         <DetailPanel01Example />

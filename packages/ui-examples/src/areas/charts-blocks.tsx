@@ -1,3 +1,4 @@
+import DashboardShell01Example from "../components/dashboard-shell/dashboard-shell-01";
 import DetailPanel01Example from "../components/detail-panel/detail-panel-01";
 import ListDetail01Example from "../components/list-detail/list-detail-01";
 import MiscChartsBlocks01Example from "../components/misc-charts-blocks/misc-charts-blocks-01";
@@ -34,6 +35,13 @@ export function ChartBlockExamples() {
         title="DescriptionList / RequestInspector / Terminal / FileTree / AttachmentGallery"
       >
         <MiscChartsBlocks06Example />
+      </Example>
+      <Example
+        id="dashboard-shell"
+        title="DashboardShell"
+        hint="Scroll the chart column — the header and KPI strip stay; narrow the panel and the rail folds underneath"
+      >
+        <DashboardShell01Example />
       </Example>
       <Example id="detail-panel" title="DetailPanel">
         <DetailPanel01Example />

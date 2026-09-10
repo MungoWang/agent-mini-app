@@ -453,6 +453,13 @@
       "when": "Money fields; keeps the raw string out of your state.",
       "contract": "references/contracts/currency-input.md"
     },
+    "DashboardShell": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Page shape: metrics up top, charts below, optional activity rail — ops overviews, monitor walls",
+      "contract": "references/contracts/dashboard-shell.md"
+    },
     "DataGrid": {
       "componentType": "product",
       "family": "Data & tables",
