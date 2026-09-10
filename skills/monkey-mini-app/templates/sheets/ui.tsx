@@ -138,6 +138,10 @@ export default function Ui() {
     await refresh();
   };
 
+  // ⭐ key: ListDetail shows `empty` only when `detail` is literally undefined. Passing an
+  //   always-present wrapper div swallows the drop target, and the app opens on a blank pane.
+  const hasRecord = Boolean(report) || busy === "reading" || Boolean(error);
+
   const sheets = report?.sheets ?? [];
   const active = useMemo(() => sheets.find((s) => s.name === sheet) ?? sheets[0], [sheets, sheet]);
 
@@ -212,6 +216,7 @@ export default function Ui() {
             </ul>
           }
           detail={
+            hasRecord ? (
             <div className="flex flex-col gap-4 p-4">
               {error ? (
                 <div className="text-destructive border-destructive/40 bg-destructive/10 flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
@@ -307,6 +312,7 @@ export default function Ui() {
                 </>
               ) : null}
             </div>
+            ) : undefined
           }
           empty={
             <div className="mx-auto w-full max-w-xl pt-6">
@@ -317,7 +323,7 @@ export default function Ui() {
               </div>
             </div>
           }
-          mobileView={report ? "detail" : "list"}
+          mobileView={hasRecord ? "detail" : "list"}
           onMobileBack={() => setReport(null)}
         />
       </div>
