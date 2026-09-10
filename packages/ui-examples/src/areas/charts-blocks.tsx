@@ -11,6 +11,7 @@ import RunTimeline01Example from "../components/run-timeline/run-timeline-01";
 import Scrollspy01Example from "../components/scrollspy/scrollspy-01";
 import SettingsSplit01Example from "../components/settings-split/settings-split-01";
 import TablePage01Example from "../components/table-page/table-page-01";
+import WizardShell01Example from "../components/wizard-shell/wizard-shell-01";
 import { Example } from "../shared/example";
 
 export function ChartBlockExamples() {
@@ -67,6 +68,13 @@ export function ChartBlockExamples() {
         hint="Scroll the sections — the nav highlight follows; the save bar never scrolls out of view"
       >
         <SettingsSplit01Example />
+      </Example>
+      <Example
+        id="wizard-shell"
+        title="WizardShell"
+        hint="Step 2 starts invalid — Next is disabled until the mapping is filled in"
+      >
+        <WizardShell01Example />
       </Example>
       <Example id="run-timeline" title="RunTimeline">
         <RunTimeline01Example />

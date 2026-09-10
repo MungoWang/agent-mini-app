@@ -24,6 +24,7 @@ Shell / split / scroll containers and display atoms — they arrange, they don't
 | `PageHeader` | block | — | Top of a page inside AppShell main | [docs](contracts/page-header.md) |
 | `SettingsSplit` | block | — | Page shape: a settings page, integration config, or a long report with anchored sections | [docs](contracts/settings-split.md) |
 | `TablePage` | block | — | Page shape: one wide filterable table is the product — inventories, ledgers, saved views | [docs](contracts/table-page.md) |
+| `WizardShell` | block | — | Page shape: create / import / onboarding, one step at a time with validation per step | [docs](contracts/wizard-shell.md) |
 | `AspectRatio` | component | `AspectRatio` | Keeping an image/video/embed from shifting the layout while loading. | [docs](contracts/aspect-ratio.md) |
 | `Avatar` | component | `Avatar` `AvatarBadge` +4 | User initials/photo next to a name in rows, comments, pickers. | [docs](contracts/avatar.md) |
 | `Collapsible` | component | `Collapsible` `CollapsibleContent` +1 | A single disclosure (advanced options). Several stacked → `Accordion`. | [docs](contracts/collapsible.md) |

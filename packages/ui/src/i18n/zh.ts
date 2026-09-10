@@ -238,6 +238,13 @@ export const zh: UiMessages = {
   listDetail: {
     back: "返回列表",
   },
+  wizardShell: {
+    back: "上一步",
+    next: "下一步",
+    finish: "完成",
+    working: "处理中…",
+    stepOf: (n: number, total: number) => `第 ${n} / ${total} 步`,
+  },
   settingsSplit: {
     nav: "章节导航",
   },

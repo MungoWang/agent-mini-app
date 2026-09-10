@@ -142,4 +142,5 @@ export * from "./blocks/table-page";
 export * from "./blocks/terminal";
 export * from "./blocks/test-step-list";
 export * from "./blocks/trend-card";
+export * from "./blocks/wizard-shell";
 export * from "./lib/illustrations";

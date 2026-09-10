@@ -254,6 +254,13 @@ export const en = {
   listDetail: {
     back: "Back to list",
   },
+  wizardShell: {
+    back: "Back",
+    next: "Next",
+    finish: "Finish",
+    working: "Working…",
+    stepOf: (n: number, total: number) => `Step ${n} of ${total}`,
+  },
   settingsSplit: {
     nav: "Section navigation",
   },
