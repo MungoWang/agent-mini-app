@@ -35,7 +35,7 @@
     被谁挡：没有。门面已按现状落地（`today` / `sheets` 用 `ListDetail`），preset 齐了再换壳：
    `sheets` → `TablePage`，`watch` → `DashboardShell`。
 
-2. **Look 预览图** — looks + 门面重做已落地（见 `docs/rfcs/looks-and-templates.md`）。
+2. **Look 预览图** — looks + 门面重做已落地（见 `docs/architecture/looks-and-templates.md`，§7 记了配色与踩坑）。
    **只剩**：每个 Look 的 light / dark PNG（机主手截，截 demo-host 的 Looks 栏），
    `catalog.json` 里给 `preview` 留了位。截完补一句到 `references/looks/index.md` 的生成器里。
 

@@ -4,13 +4,13 @@
 
 ## Where to write
 
-| Dir | For | When |
-|-----|-----|------|
-| [`architecture/`](./architecture/) | Live architecture (short, executable) | Layer / seam / install-path changes |
-| [`contracts/`](./contracts/) | Long-lived behavior | `ctx.agent`, file tools, other public protocol |
-| [`rfcs/`](./rfcs/) | Unshipped research | New ideas, host ports; fold into the two columns above after landing |
-| [`archive/`](./archive/) | History, read-only (`archive/tasks/` = finished task records moved out of `TODO.md`) | **Do not stack new design here** |
-| [`assets/`](./assets/) | Previews / HTML / CSS samples | Non-contract material |
+| Dir                                | For                                                                                  | When                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| [`architecture/`](./architecture/) | Live architecture (short, executable)                                                | Layer / seam / install-path changes                                  |
+| [`contracts/`](./contracts/)       | Long-lived behavior                                                                  | `ctx.agent`, file tools, other public protocol                       |
+| [`rfcs/`](./rfcs/)                 | Unshipped research                                                                   | New ideas, host ports; fold into the two columns above after landing |
+| [`archive/`](./archive/)           | History, read-only (`archive/tasks/` = finished task records moved out of `TODO.md`) | **Do not stack new design here**                                     |
+| [`assets/`](./assets/)             | Previews / HTML / CSS samples                                                        | Non-contract material                                                |
 
 ## Do not
 
@@ -27,10 +27,10 @@
 - [contracts/app-events.md](./contracts/app-events.md) — `ctx.push` → `useApp().on` SSE, per-app scoping, replay buffer
 - [contracts/runtime-diagnostics.md](./contracts/runtime-diagnostics.md) — how a UI that compiled green still reports its own crash + DOM outline back to the agent
 - [contracts/skill-sync.md](./contracts/skill-sync.md) — how the skill is generated, the `@family`/`componentType` taxonomy, prop-provenance rule, and what `pnpm check:skill` blocks
+- [architecture/looks-and-templates.md](./architecture/looks-and-templates.md) — **shipped**: the Look catalog, the seven facades, per-app `theme.css` palettes, and the material-pass method (§7)
 - [rfcs/pi-extension-port.md](./rfcs/pi-extension-port.md) — next host (pi / pi-web), **not implemented**
 - [rfcs/authoring-protocol.md](./rfcs/authoring-protocol.md) — **landed**: one author package (`@monkey-mini-app/ui`), `defineApp`, `ui`/`api`/`shared` import bounds
 - [rfcs/authoring-surface.md](./rfcs/authoring-surface.md) — **proposal**: vendors/lodash, layout presets, project intent/boundary, custom theme files (§5 templates/paradigms superseded)
-- [rfcs/looks-and-templates.md](./rfcs/looks-and-templates.md) — **landing**: Look catalog + product facades (replaces paradigms TSX in the skill)
 - [rfcs/per-app-packages.md](./rfcs/per-app-packages.md) — **proposal**: on-demand backend `mini_app_install` into the app dir (not a default npm project, not a host driver list)
 - [rfcs/view-eval-metrics.md](./rfcs/view-eval-metrics.md) — **deferred**: observation metrics that must exist before reshaping `mini_app_view_eval` again
 - [rfcs/scripts-layout.md](./rfcs/scripts-layout.md) — **proposal**: `scripts/` by lifecycle stage, naming rules, `check/scripts` gate
