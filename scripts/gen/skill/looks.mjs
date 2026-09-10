@@ -56,6 +56,16 @@ export function writeSkillLooks({ repoRoot, skillRef }) {
       "",
       look.notes ? `**How to copy it:** ${look.notes}` : null,
       "",
+      look.style
+        ? [
+            "## Style (inline — Tailwind drops multi-layer shadows)",
+            "",
+            "```tsx",
+            `const GLASS = ${JSON.stringify(look.style, null, 2)} as const;`,
+            "```",
+            "",
+          ]
+        : [],
       "## Classes (copy literals)",
       "",
       classes,
@@ -77,7 +87,7 @@ export function writeSkillLooks({ repoRoot, skillRef }) {
       "",
       "Tokens only — no hex in `ui.tsx`. Light and dark must both read. Optional `data-look` on a root is a recipe, not a platform attribute.",
       "",
-    ].filter((line) => line !== null)
+    ].filter((line) => line !== null).flat()
     fs.writeFileSync(path.join(outDir, `${look.id}.md`), body.join("\n"))
   }
 }

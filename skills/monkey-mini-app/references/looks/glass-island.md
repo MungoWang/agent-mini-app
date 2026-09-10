@@ -10,14 +10,26 @@ id: `glass-island` · grammar: `poster-dock`
 
 **Not:** Launchers, DataGrid, incident walls. Not a 2D mosaic.
 
-**How to copy it:** The sky is the palette (bg-background), never a gradient painted over it. The cluster is capped and centred so the sky stays visible around it. Spans are written out (grid-cols-6 + col-span-*), not switched on at md:. backdrop-blur only reads if a wash sits behind the slabs.
+**How to copy it:** Four things, and blur is only one of them. (1) `saturate()` on the backdrop — blur alone desaturates and reads as grey film. (2) A specular top edge that is genuinely LIGHTER than the fill: mix --card against --background, not against transparent, or the rim has no contrast and vanishes. Add the faint dark bounce on the bottom edge. (3) Two shadows — tight contact + wide lift. (4) The ground needs structure to sample: backdrop-filter over a flat fill renders flat whatever the radius, so keep light pools behind the cluster. Inline style is required (Tailwind keeps one layer of an arbitrary shadow-[…]). Sky = palette; cap and centre the cluster; write spans out, not md:. Small text over glass is where legibility dies — deepen the fill before shrinking the blur.
+
+## Style (inline — Tailwind drops multi-layer shadows)
+
+```tsx
+const GLASS = {
+  "backgroundColor": "color-mix(in oklch, var(--card) 30%, transparent)",
+  "backgroundImage": "linear-gradient(to bottom, color-mix(in oklch, var(--card) 48%, transparent) 0%, color-mix(in oklch, var(--card) 16%, transparent) 38%, transparent 74%)",
+  "boxShadow": "inset 0 1px 0 0 color-mix(in oklch, var(--card) 88%, var(--background)), inset 0 -1px 0 0 color-mix(in oklch, var(--background) 52%, transparent), 0 2px 6px -2px color-mix(in oklch, var(--foreground) 26%, transparent), 0 18px 40px -18px color-mix(in oklch, var(--foreground) 40%, transparent)",
+  "borderColor": "color-mix(in oklch, var(--card) 28%, transparent)",
+  "backdropFilter": "blur(16px) saturate(180%) brightness(1.06)"
+} as const;
+```
 
 ## Classes (copy literals)
 
 - `root`: `bg-background relative flex h-full min-h-0 flex-col gap-3 overflow-hidden p-5`
 - `hero`: `text-foreground`
-- `slab`: `rounded-3xl border border-border/60 bg-card/80 shadow-sm backdrop-blur-xl`
-- `wash`: `pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(560px_200px_at_18%_0%,color-mix(in_oklch,var(--primary)_26%,transparent),transparent_70%)]`
+- `slab`: `rounded-3xl border`
+- `wash`: `pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(620px_260px_at_16%_-6%,color-mix(in_oklch,var(--primary)_38%,transparent),transparent_68%)]`
 - `content`: `relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3`
 
 ## Palette (optional `theme.css` in the app dir)
@@ -30,25 +42,25 @@ pick a host palette. Omit the file to follow the host palette instead.
 /* name: 玻璃岛屿 */
 /* Look-owned palette: the island is the sky, so the hue is part of the grammar. */
 :root[data-mode="light"] {
-  --bg: #a9c3d6;
+  --bg: #8fabc6;
   --fg: #1b2833;
-  --surface: #eaf1f6;
+  --surface: #e9f1f7;
   --surface-fg: #1b2833;
-  --border: #8ba7bd;
-  --muted: #c2d5e2;
-  --muted-fg: #40586a;
+  --border: #7494ae;
+  --muted: #9dbdd2;
+  --muted-fg: #33505f;
   --primary: #3d6a88;
   --primary-fg: #f4f8fb;
-  --secondary: #c2d5e2;
+  --secondary: #9dbdd2;
   --secondary-fg: #1b2833;
-  --accent: #d3e2ed;
+  --accent: #b9d0e0;
   --accent-fg: #1b2833;
   --destructive: #b42318;
   --destructive-fg: #ffffff;
   --ring: #3d6a88;
-  --input: #8ba7bd;
+  --input: #7494ae;
   --radius: 18px;
-  --shadow: rgba(27, 40, 51, 0.12);
+  --shadow: rgba(18, 34, 48, 0.32);
 }
 :root[data-mode="dark"] {
   --bg: #0d141c;

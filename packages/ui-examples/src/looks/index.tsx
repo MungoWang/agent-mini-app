@@ -9,6 +9,28 @@ import { Badge, Button, Icon, ListDetail, Reveal, Separator, Terminal } from "@m
 
 import { useLookPalette } from "./palette";
 
+/**
+ * The same three glass layers `templates/today` uses, in one place so the preview cannot drift
+ * from the facade: translucent fill, elevation shadow, bright inner top edge. Inline because
+ * Tailwind drops the extra inset layers of an arbitrary `shadow-[…]`.
+ */
+const GLASS = {
+  backgroundColor: "color-mix(in oklch, var(--card) 30%, transparent)",
+  backgroundImage:
+    "linear-gradient(to bottom," +
+    " color-mix(in oklch, var(--card) 48%, transparent) 0%," +
+    " color-mix(in oklch, var(--card) 16%, transparent) 38%," +
+    " transparent 74%)",
+  boxShadow:
+    "inset 0 1px 0 0 color-mix(in oklch, var(--card) 88%, var(--background))," +
+    "inset 0 -1px 0 0 color-mix(in oklch, var(--background) 52%, transparent)," +
+    "0 2px 6px -2px color-mix(in oklch, var(--foreground) 26%, transparent)," +
+    "0 18px 40px -18px color-mix(in oklch, var(--foreground) 40%, transparent)",
+  borderColor: "color-mix(in oklch, var(--card) 28%, transparent)",
+  backdropFilter: "blur(16px) saturate(180%) brightness(1.06)",
+  WebkitBackdropFilter: "blur(16px) saturate(180%) brightness(1.06)",
+} as const;
+
 export function GlassIslandLook() {
   const palette = useLookPalette("glass-island");
   return (
@@ -20,11 +42,12 @@ export function GlassIslandLook() {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(560px 200px at 18% 0%, color-mix(in oklch, var(--primary) 26%, transparent), transparent 70%)," +
-            "radial-gradient(520px 220px at 82% 100%, color-mix(in oklch, var(--primary) 14%, transparent), transparent 72%)",
+            "radial-gradient(620px 260px at 16% -6%, color-mix(in oklch, var(--primary) 38%, transparent), transparent 68%)," +
+            "radial-gradient(460px 220px at 92% 6%, color-mix(in oklch, var(--primary) 24%, transparent), transparent 70%)," +
+            "radial-gradient(520px 300px at 50% 108%, color-mix(in oklch, var(--foreground) 12%, transparent), transparent 70%)",
         }}
       />
       <Reveal>
@@ -34,7 +57,7 @@ export function GlassIslandLook() {
       </Reveal>
       {/* capped and centred: an island stretched to every edge is just a page with rounded corners */}
       <div className="relative mx-auto flex w-full max-w-md flex-col gap-2">
-        <div className="rounded-3xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm backdrop-blur-xl">
+        <div style={GLASS} className="rounded-3xl border px-4 py-3">
           <div className="text-muted-foreground flex justify-between text-xs">
             <span>一 24</span>
             <span>二 25</span>
@@ -47,7 +70,7 @@ export function GlassIslandLook() {
             <span>日 30</span>
           </div>
         </div>
-        <div className="rounded-3xl border border-border/60 bg-card/80 flex justify-between px-4 py-3 text-sm shadow-sm backdrop-blur-xl">
+        <div style={GLASS} className="flex justify-between rounded-3xl border px-4 py-3 text-sm">
           <span>工作 10:00</span>
           <span>放学 16:50</span>
         </div>

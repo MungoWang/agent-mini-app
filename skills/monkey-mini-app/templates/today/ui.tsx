@@ -25,10 +25,42 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 const WEEK_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
 
-// One frosted surface, repeated on purpose: an island is a *shape*, so the same literal is
-// shared rather than re-typed (and never composed into `bg-${x}`).
-const ISLAND =
-  "rounded-3xl border border-border/60 bg-card/80 shadow-sm backdrop-blur-xl";
+/**
+ * The frosted surface every island shares. Blur alone is a grey film — four things make a pane
+ * read as glass, in the order the eye picks them up:
+ *
+ * 1. **`saturate()` on the backdrop.** Pulling the ground's colour up through the pane is what
+ *    sells the material; a plain `blur()` just desaturates whatever is behind it.
+ * 2. **A specular top edge that is genuinely lighter than the fill**, plus a faint darker bounce
+ *    along the bottom. Both mix `--card` against `--background`, so the edge keeps its contrast in
+ *    either mode — mixing `--card` with `transparent` only changes alpha, and the rim vanishes.
+ * 3. **Two shadows**: a tight contact shadow and a wide lift. One soft blur looks floaty; two
+ *    look like an object sitting above a surface.
+ * 4. **A ground with structure to sample.** `backdrop-filter` over a flat fill renders flat no
+ *    matter the radius, so the sky carries light pools behind the cluster (see below).
+ *
+ * Inline `style`, because Tailwind parses the colour out of an arbitrary `shadow-[…]` and keeps a
+ * single layer. `color-mix()` on tokens stays inside the palette, so a different ThemePop choice
+ * or dark mode still works; a mini-app never carries a colour literal.
+ */
+const GLASS = {
+  backgroundColor: "color-mix(in oklch, var(--card) 30%, transparent)",
+  backgroundImage:
+    "linear-gradient(to bottom," +
+    " color-mix(in oklch, var(--card) 48%, transparent) 0%," +
+    " color-mix(in oklch, var(--card) 16%, transparent) 38%," +
+    " transparent 74%)",
+  boxShadow:
+    "inset 0 1px 0 0 color-mix(in oklch, var(--card) 88%, var(--background))," +
+    "inset 0 -1px 0 0 color-mix(in oklch, var(--background) 52%, transparent)," +
+    "0 2px 6px -2px color-mix(in oklch, var(--foreground) 26%, transparent)," +
+    "0 18px 40px -18px color-mix(in oklch, var(--foreground) 40%, transparent)",
+  borderColor: "color-mix(in oklch, var(--card) 28%, transparent)",
+  backdropFilter: "blur(16px) saturate(180%) brightness(1.06)",
+  WebkitBackdropFilter: "blur(16px) saturate(180%) brightness(1.06)",
+} as const;
+
+const ISLAND = "rounded-3xl";
 
 export default function Ui() {
   const { call } = useApp();
@@ -108,11 +140,13 @@ export default function Ui() {
       {/* backdrop-blur needs something behind it: one soft primary wash, token-derived */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(560px 200px at 18% 0%, color-mix(in oklch, var(--primary) 26%, transparent), transparent 70%)," +
-            "radial-gradient(420px 180px at 88% 8%, color-mix(in oklch, var(--primary) 16%, transparent), transparent 72%)",
+            "radial-gradient(560px 340px at 12% -6%, color-mix(in oklch, var(--primary) 44%, transparent), transparent 62%)," +
+            "radial-gradient(420px 300px at 90% 4%, color-mix(in oklch, var(--primary) 28%, transparent), transparent 64%)," +
+            "radial-gradient(520px 320px at 58% 62%, color-mix(in oklch, var(--card) 24%, transparent), transparent 66%)," +
+            "radial-gradient(640px 360px at 6% 106%, color-mix(in oklch, var(--foreground) 22%, transparent), transparent 68%)",
         }}
       />
 
@@ -124,7 +158,8 @@ export default function Ui() {
       <div className="relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3">
         <div className="grid grid-cols-6 gap-3">
           <div
-            className={`${ISLAND} col-span-2 row-span-2 flex flex-col justify-between p-4`}
+            style={GLASS}
+            className="col-span-2 row-span-2 flex flex-col justify-between p-4"
           >
             <p className="text-muted-foreground text-xs tracking-[0.18em] uppercase">
               {weekday}
@@ -136,7 +171,8 @@ export default function Ui() {
           </div>
 
           <div
-            className={`${ISLAND} col-span-4 flex items-center justify-between p-3`}
+            style={GLASS}
+            className="col-span-4 flex items-center justify-between p-3"
           >
             {week.map((d) => (
               <span
@@ -153,13 +189,13 @@ export default function Ui() {
             ))}
           </div>
 
-          <div className={`${ISLAND} col-span-2 p-4`}>
+          <div style={GLASS} className="col-span-2 p-4">
             <p className="text-muted-foreground text-[11px]">进行中</p>
             <p className="mt-1 text-2xl font-medium tabular-nums">
               {stats.active}
             </p>
           </div>
-          <div className={`${ISLAND} col-span-2 p-4`}>
+          <div style={GLASS} className="col-span-2 p-4">
             <p className="text-muted-foreground text-[11px]">已完</p>
             <p className="mt-1 text-2xl font-medium tabular-nums">
               {stats.done}
@@ -168,7 +204,7 @@ export default function Ui() {
         </div>
 
         {/* the working set: controls in its own header, ListDetail owns the remaining height */}
-        <div className={`${ISLAND} relative flex min-h-0 flex-1 flex-col`}>
+        <div style={GLASS} className="relative flex min-h-0 flex-1 flex-col">
           <div className="border-border/60 flex flex-wrap items-center gap-2 border-b p-3">
             {FILTERS.map((f) => (
               <Button
