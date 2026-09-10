@@ -289,7 +289,7 @@ export function TapeLook() {
             <span className="text-foreground">{r[0]}</span>
             <span>{r[1]}</span>
             <span>{r[2]}</span>
-            <span className={r[3] === "warn" ? "text-destructive" : "text-emerald-600"}>{r[3]}</span>
+            <span className={r[3] === "warn" ? "text-destructive" : "text-primary"}>{r[3]}</span>
           </div>
         ))}
       </div>

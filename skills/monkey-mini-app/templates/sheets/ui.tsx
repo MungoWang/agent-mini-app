@@ -291,7 +291,7 @@ export default function Ui() {
 
                   {report && busy !== "reading" ? (
                     <>
-                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                         <StatCard title="工作表" value={report.sheetCount} />
                         <StatCard title="数据行" value={report.rowCount} />
                         <StatCard title="数值列" value={numeric.length} />

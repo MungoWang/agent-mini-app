@@ -78,24 +78,44 @@ export default function Ui() {
         <span>{snap?.hostname ?? "值班屏"}</span>
         <span>每 2 秒 · {fmtUptime(snap?.uptimeSec ?? 0)}</span>
       </div>
-      {error ? <p className="text-destructive px-4 py-2 text-sm">{error}</p> : null}
+      {error ? (
+        <p className="text-destructive px-4 py-2 text-sm">{error}</p>
+      ) : null}
       <Reveal>
-        <div className="grid grid-cols-2 divide-x divide-border md:grid-cols-4">
+        {/* four columns written out, not switched on at `md:` — the panel width is
+            user-dragged, so a breakpoint here is a lie (see `today`). */}
+        <div className="grid grid-cols-4 divide-x divide-border">
           <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">Load</div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">{load ? Number(load["1m"]).toFixed(2) : "—"}</div>
+            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+              Load
+            </div>
+            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+              {load ? Number(load["1m"]).toFixed(2) : "—"}
+            </div>
           </div>
           <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">Mem</div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">{memPct}%</div>
+            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+              Mem
+            </div>
+            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+              {memPct}%
+            </div>
           </div>
           <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">Disk</div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">{snap?.disk ? `${snap.disk.usedPct}%` : "—"}</div>
+            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+              Disk
+            </div>
+            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+              {snap?.disk ? `${snap.disk.usedPct}%` : "—"}
+            </div>
           </div>
           <div className="px-4 py-5">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">CPU</div>
-            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">{snap ? snap.cpu.count : "—"}</div>
+            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
+              CPU
+            </div>
+            <div className="mt-1 text-3xl font-medium tracking-tight tabular-nums">
+              {snap ? snap.cpu.count : "—"}
+            </div>
           </div>
         </div>
       </Reveal>
@@ -123,7 +143,9 @@ export default function Ui() {
                 <TableCell className="font-mono">{p.pid}</TableCell>
                 <TableCell>{p.cpu.toFixed(1)}</TableCell>
                 <TableCell>{p.mem.toFixed(1)}</TableCell>
-                <TableCell className="max-w-[420px] truncate">{p.name}</TableCell>
+                <TableCell className="max-w-[420px] truncate">
+                  {p.name}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

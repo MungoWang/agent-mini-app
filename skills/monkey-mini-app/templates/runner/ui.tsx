@@ -27,11 +27,13 @@ type TimelineItem = {
   status?: "pass" | "fail" | "running" | "skipped";
 };
 
+// Token hues only: under this look's phosphor palette a literal `bg-emerald-400` fights the
+// ground, and the rule is colour = state, nothing else.
 const LAMP: Record<string, string> = {
   idle: "bg-muted-foreground/40",
-  running: "bg-amber-400",
-  done: "bg-emerald-400",
-  cancelled: "bg-muted-foreground",
+  running: "bg-primary/50",
+  done: "bg-primary",
+  cancelled: "bg-muted-foreground/70",
   error: "bg-destructive",
 };
 
