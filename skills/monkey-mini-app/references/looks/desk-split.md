@@ -30,6 +30,60 @@ const GLASS = {
 - `root`: `relative h-full min-h-0 bg-background (walnut wood, DESK wash overlay)`
 - `pane`: `cream paper: bg-card, hairline edge, contact + lift shadow, top highlight (PAPER)`
 
-This look follows the host palette on purpose — no `theme.css`.
+## Palette (optional `theme.css` in the app dir)
+
+This look's identity depends on hue, so it ships a palette. Writing it to `theme.css`
+makes the app use it by default (ThemePop lists it as the row tagged **`本应用`**); the user can still
+pick a host palette. Omit the file to follow the host palette instead.
+
+```css
+/* name: 桌面分栏 */
+/* Look-owned palette: walnut desk + amber desk-lamp. The papers are cream in BOTH modes —
+   a dark desk with lamp-lit paper is the desk; dark papers would read as mud. All ink is
+   dark in both modes for the same reason, so `--foreground` is never painted on the wood. */
+:root[data-mode="light"] {
+  --bg: #8a6845;
+  --fg: #33260f;
+  --surface: #faf5ea;
+  --surface-fg: #33260f;
+  --border: #6b4f2c;
+  --muted: #ebdfc6;
+  --muted-fg: #74603f;
+  --primary: #a8741c;
+  --primary-fg: #fdf6e7;
+  --secondary: #efe3c8;
+  --secondary-fg: #33260f;
+  --accent: #e9d9b4;
+  --accent-fg: #33260f;
+  --destructive: #a13d2d;
+  --destructive-fg: #fff8ee;
+  --ring: #c98f2e;
+  --input: #c7ab7d;
+  --radius: 12px;
+  --shadow: rgba(48, 32, 12, 0.42);
+}
+:root[data-mode="dark"] {
+  --bg: #2f2311;
+  --fg: #2e2113;
+  --surface: #f0e6cf;
+  --surface-fg: #2e2113;
+  --border: #7a5a30;
+  --muted: #e2d5b8;
+  --muted-fg: #5f4d30;
+  --primary: #a8741c;
+  --primary-fg: #fdf6e7;
+  --secondary: #e6d9b6;
+  --secondary-fg: #2e2113;
+  --accent: #dfcf9f;
+  --accent-fg: #2e2113;
+  --destructive: #b04938;
+  --destructive-fg: #fff3ec;
+  --ring: #d9a643;
+  --input: #e2d3ae;
+  --radius: 12px;
+  --shadow: rgba(8, 5, 1, 0.6);
+}
+```
+
 
 Tokens only — no hex in `ui.tsx`. Light and dark must both read. Optional `data-look` on a root is a recipe, not a platform attribute.

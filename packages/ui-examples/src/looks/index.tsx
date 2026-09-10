@@ -316,22 +316,43 @@ export function SignageLook() {
 export function TerminalLook() {
   const palette = useLookPalette("terminal");
   return (
-    <div style={palette} className="bg-background flex h-full min-h-0 flex-col text-foreground">
-      <div className="text-muted-foreground flex items-center gap-2 border-b px-3 py-2 font-mono text-xs">
-        <Icon.Circle className="size-2 fill-red-400 text-red-400" />
-        <Icon.Circle className="size-2 fill-amber-400 text-amber-400" />
-        <Icon.Circle className="size-2 fill-emerald-400 text-emerald-400" />
+    // Mirrors templates/runner: token well (not the kit's hard zinc), phosphor glow,
+    // scanlines + vignette on an overlay, squared corners.
+    <div
+      style={palette}
+      className="bg-background flex h-full min-h-0 flex-col font-mono text-xs text-foreground"
+    >
+      <div className="text-muted-foreground flex items-center gap-2 border-b px-3 py-2">
+        <span className="size-2 rounded-full bg-red-400" />
+        <span className="size-2 rounded-full bg-amber-400" />
+        <span className="size-2 rounded-full bg-emerald-400" />
         deploy --watch
       </div>
-      <div className="min-h-0 flex-1">
-        <Terminal
-          lines={[
-            "12:04:01  ok    compile ui.tsx",
-            "12:04:02  run   ctx.agent streamTo",
-            "12:04:08  warn  retry llm timeout",
-            "12:04:11  ok    push progress 4/7",
-          ]}
-        />
+      <div className="min-h-0 flex-1 p-3">
+        <div
+          className="border-border relative h-full min-h-0 overflow-hidden rounded-lg border"
+          style={{ textShadow: "0 0 6px color-mix(in oklch, var(--primary) 65%, transparent)" }}
+        >
+          <Terminal
+            className="border-border bg-card text-card-foreground h-full rounded-lg"
+            lines={[
+              "12:04:01  ok    compile ui.tsx",
+              "12:04:02  run   ctx.agent streamTo",
+              "12:04:08  warn  retry llm timeout",
+              "12:04:11  ok    push progress 4/7",
+              "$ █",
+            ]}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, color-mix(in oklch, var(--foreground) 7%, transparent) 0 1px, transparent 1px 3px)," +
+                "radial-gradient(120% 90% at 50% 40%, transparent 62%, var(--shadow))",
+            }}
+          />
+        </div>
       </div>
     </div>
   );

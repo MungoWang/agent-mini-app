@@ -14,6 +14,7 @@ Fixed-width console block.
 
 | field | type | required | note |
 |---|---|:---:|---|
+| `className` | `string \| undefined` |  |  |
 | `lines` | `string[]` | ✓ |  |
 
 ## Example

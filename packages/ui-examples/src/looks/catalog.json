@@ -57,7 +57,6 @@
         "pane": "cream paper: bg-card, hairline edge, contact + lift shadow, top highlight (PAPER)"
       },
       "defaultFor": ["sheets"],
-      "palette": "themes/desk-split.css",
       "style": {
         "backgroundImage": "repeating-linear-gradient(90deg, fg 5% 2px stripes / 96px bands), radial lamp pool from --primary at top-left, vignette at bottom",
         "paper": {
@@ -66,7 +65,8 @@
           "borderColor": "fg/12"
         }
       },
-      "notes": "The desk IS the palette: walnut `bg-background`, cream papers (`bg-card`) in BOTH modes — lamp-lit paper on a dark desk is the look; dark papers on wood read as mud. All ink (`foreground`) is dark in both modes and only ever lands on paper: chrome text (headers, captions) goes inside a paper strip, never directly on the wood. Wood grain = repeating stripe bands; one warm lamp pool from `--primary`; titles in ui-serif for the desk feel."
+      "notes": "The desk IS the palette: walnut `bg-background`, cream papers (`bg-card`) in BOTH modes — lamp-lit paper on a dark desk is the look; dark papers on wood read as mud. All ink (`foreground`) is dark in both modes and only ever lands on paper: chrome text (headers, captions) goes inside a paper strip, never directly on the wood. Wood grain = repeating stripe bands; one warm lamp pool from `--primary`; titles in ui-serif for the desk feel.",
+      "theme": "themes/desk-split.css"
     },
     {
       "id": "editorial",
@@ -147,7 +147,15 @@
         "well": "min-h-0 flex-1 overflow-auto"
       },
       "theme": "themes/terminal.css",
-      "defaultFor": ["runner", "chores"]
+      "defaultFor": ["runner", "chores"],
+      "style": {
+        "well": {
+          "className": "rounded-lg border bg-card text-card-foreground",
+          "textShadow": "0 0 6px color-mix(in oklch, var(--primary) 65%, transparent)",
+          "overlay": "repeating-linear-gradient(0deg, foreground 7% hairlines every 3px) + radial corner vignette"
+        }
+      },
+      "notes": "Phosphor-on-black CRT is the identity (green #3dff6e on #060904 in dark; a paper well with deep green ink in light). The Terminal block defaults to hard zinc-950 — override it with `bg-card text-card-foreground` (the app-side Tailwind theme has no `--color-surface`; use card tokens) or a host swap washes the well out (templates ship this look's theme.css for that reason). Scanlines + vignette sell the CRT; they live on an aria-hidden pointer-events-none overlay so they never eat clicks. Radius squared (8px): rounds read as a chat app, not a console. Colour = state, nothing else."
     }
   ]
 }

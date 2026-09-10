@@ -10,6 +10,19 @@ id: `terminal` · grammar: `mono-well`
 
 **Not:** Long-form reading.
 
+**How to copy it:** Phosphor-on-black CRT is the identity (green #3dff6e on #060904 in dark; a paper well with deep green ink in light). The Terminal block defaults to hard zinc-950 — override it with `bg-card text-card-foreground` (the app-side Tailwind theme has no `--color-surface`; use card tokens) or a host swap washes the well out (templates ship this look's theme.css for that reason). Scanlines + vignette sell the CRT; they live on an aria-hidden pointer-events-none overlay so they never eat clicks. Radius squared (8px): rounds read as a chat app, not a console. Colour = state, nothing else.
+
+## Style (inline — Tailwind drops multi-layer shadows)
+
+```tsx
+const GLASS = {
+  "well": {
+    "className": "rounded-lg border bg-card text-card-foreground",
+    "textShadow": "0 0 6px color-mix(in oklch, var(--primary) 65%, transparent)",
+    "overlay": "repeating-linear-gradient(0deg, foreground 7% hairlines every 3px) + radial corner vignette"
+  }
+} as const;
+```
 
 ## Classes (copy literals)
 
@@ -24,48 +37,50 @@ pick a host palette. Omit the file to follow the host palette instead.
 
 ```css
 /* name: 终端等宽 */
-/* Look-owned palette: phosphor green is the identity — a host palette would turn the well pink. */
+/* Look-owned palette: phosphor-on-black CRT is the identity — a host palette would turn the
+   well pink. Light mode is a paper well with deep green ink; dark is near-black with green
+   phosphor (#3dff6e). Radius is squared: rounds read as "chat app", not as a console. */
 :root[data-mode="light"] {
-  --bg: #f3f5f0;
-  --fg: #16241a;
-  --surface: #ffffff;
-  --surface-fg: #16241a;
-  --border: #d3dbd0;
-  --muted: #e6ebe2;
-  --muted-fg: #4a5a4e;
-  --primary: #1a7f37;
+  --bg: #ecefe4;
+  --fg: #12290f;
+  --surface: #f7faf1;
+  --surface-fg: #12290f;
+  --border: #ccd5c0;
+  --muted: #dfe6d4;
+  --muted-fg: #4c5f44;
+  --primary: #157a24;
   --primary-fg: #ffffff;
-  --secondary: #e6ebe2;
-  --secondary-fg: #16241a;
-  --accent: #e6f2e9;
-  --accent-fg: #16241a;
+  --secondary: #dfe6d4;
+  --secondary-fg: #12290f;
+  --accent: #e2ecd6;
+  --accent-fg: #12290f;
   --destructive: #b42318;
   --destructive-fg: #ffffff;
-  --ring: #1a7f37;
-  --input: #d3dbd0;
-  --radius: 10px;
-  --shadow: rgba(20, 40, 25, 0.1);
+  --ring: #157a24;
+  --input: #ccd5c0;
+  --radius: 8px;
+  --shadow: rgba(20, 40, 25, 0.12);
 }
 :root[data-mode="dark"] {
-  --bg: #12141a;
-  --fg: #d7f7c8;
-  --surface: #181b22;
-  --surface-fg: #d7f7c8;
-  --border: #262b34;
-  --muted: #1c2028;
-  --muted-fg: #8b96a5;
-  --primary: #7ee787;
-  --primary-fg: #0d1117;
-  --secondary: #1c2028;
-  --secondary-fg: #d7f7c8;
-  --accent: #1f2630;
-  --accent-fg: #d7f7c8;
-  --destructive: #ff7b72;
-  --destructive-fg: #0d1117;
-  --ring: #7ee787;
-  --input: #262b34;
-  --radius: 10px;
-  --shadow: rgba(0, 0, 0, 0.5);
+  --bg: #0a0d08;
+  --fg: #3dff6e;
+  --surface: #060904;
+  --surface-fg: #3dff6e;
+  --border: #1d2a18;
+  --muted: #10180d;
+  --muted-fg: #5f8a55;
+  --primary: #3dff6e;
+  --primary-fg: #0a0d08;
+  --secondary: #10180d;
+  --secondary-fg: #3dff6e;
+  --accent: #12200f;
+  --accent-fg: #3dff6e;
+  --destructive: #ff5341;
+  --destructive-fg: #0a0d08;
+  --ring: #3dff6e;
+  --input: #1d2a18;
+  --radius: 8px;
+  --shadow: rgba(0, 0, 0, 0.55);
 }
 ```
 

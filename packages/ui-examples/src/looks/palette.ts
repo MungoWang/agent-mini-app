@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import deskSplit from "./themes/desk-split.css?raw";
 import glassIsland from "./themes/glass-island.css?raw";
 import signage from "./themes/signage.css?raw";
 import terminal from "./themes/terminal.css?raw";
@@ -13,7 +14,12 @@ import terminal from "./themes/terminal.css?raw";
  * So the fixture applies the look's own palette, read from the same file a facade would ship.
  * The `.css` stays the single source; this only renames the keys.
  */
-const SOURCES: Record<string, string> = { "glass-island": glassIsland, signage, terminal };
+const SOURCES: Record<string, string> = {
+  "desk-split": deskSplit,
+  "glass-island": glassIsland,
+  signage,
+  terminal,
+};
 
 /** Short theme-file keys → mini-app tokens (the mapping `packages/panel`'s `cssVars` applies). */
 const TOKEN: Record<string, string> = {
