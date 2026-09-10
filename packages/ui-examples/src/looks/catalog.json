@@ -2,21 +2,28 @@
   "looks": [
     {
       "id": "glass-island",
-      "name": { "en": "Glass Island", "zh": "玻璃岛屿" },
+      "name": {
+        "en": "Glass Island",
+        "zh": "玻璃岛屿"
+      },
       "when": "Personal home, lock-screen style one-shot. Type sits on the sky; two glass slabs dock at the bottom.",
       "whenNot": "Launchers, DataGrid, incident walls. Not a 2D mosaic.",
       "grammar": "poster-dock",
       "classes": {
-        "root": "flex h-full min-h-0 flex-col justify-between bg-linear-to-b from-primary/15 to-muted p-5",
+        "root": "relative flex h-full min-h-0 flex-col gap-3 overflow-hidden bg-background p-5",
         "hero": "text-foreground",
-        "slab": "rounded-3xl border border-border/50 bg-card/40 p-4 backdrop-blur-xl"
+        "slab": "rounded-3xl border border-border/60 bg-card/80 shadow-sm backdrop-blur-xl",
+        "wash": "pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(560px_200px_at_18%_0%,color-mix(in_oklch,var(--primary)_26%,transparent),transparent_70%)]"
       },
       "theme": "themes/glass-island.css",
       "defaultFor": ["today"]
     },
     {
       "id": "aurora-bento",
-      "name": { "en": "Aurora Bento", "zh": "极光便当" },
+      "name": {
+        "en": "Aurora Bento",
+        "zh": "极光便当"
+      },
       "when": "Launcher / overview. The page is a 6×3 tessellation, every cell a destination.",
       "whenNot": "A lock-screen home. No sky, no poster layer.",
       "grammar": "tessellation",
@@ -29,7 +36,10 @@
     },
     {
       "id": "desk-split",
-      "name": { "en": "Desk Split", "zh": "精致分栏" },
+      "name": {
+        "en": "Desk Split",
+        "zh": "精致分栏"
+      },
       "when": "CRUD, tickets, contacts, ledgers. Two panes, hairline, dense toolbar.",
       "whenNot": "Marketing pages, lock-screen homes.",
       "grammar": "list-detail",
@@ -41,7 +51,10 @@
     },
     {
       "id": "editorial",
-      "name": { "en": "Editorial", "zh": "编辑排版" },
+      "name": {
+        "en": "Editorial",
+        "zh": "编辑排版"
+      },
       "when": "Weekly digest, insights, runbook, help. Type hierarchy, hairline rules, almost no cards.",
       "whenNot": "Monitor walls, dense tables.",
       "grammar": "prose-measure",
@@ -54,7 +67,10 @@
     },
     {
       "id": "tape",
-      "name": { "en": "Tape", "zh": "行情带" },
+      "name": {
+        "en": "Tape",
+        "zh": "行情带"
+      },
       "when": "Watch board, quotes, incident strip. Tabular numerals, vertical rules, colour = delta only.",
       "whenNot": "Homes, forms. No graph-paper grid, no card chrome.",
       "grammar": "numeral-strip",
@@ -67,7 +83,10 @@
     },
     {
       "id": "void",
-      "name": { "en": "Void", "zh": "黑空" },
+      "name": {
+        "en": "Void",
+        "zh": "黑空"
+      },
       "when": "Named 'premium / sparse / AI product'. Huge type, one hairline, almost empty.",
       "whenNot": "Dense tables, watch boards. Opt-in only.",
       "grammar": "sparse-hero",
@@ -80,7 +99,10 @@
     },
     {
       "id": "signage",
-      "name": { "en": "Signage", "zh": "霓虹招牌" },
+      "name": {
+        "en": "Signage",
+        "zh": "霓虹招牌"
+      },
       "when": "Named cyberpunk / neon. Display type, chroma wash, caption columns — not glow cards.",
       "whenNot": "A dark dashboard with extra shadow. Opt-in only.",
       "grammar": "display-type",
@@ -94,7 +116,10 @@
     },
     {
       "id": "terminal",
-      "name": { "en": "Terminal", "zh": "终端等宽" },
+      "name": {
+        "en": "Terminal",
+        "zh": "终端等宽"
+      },
       "when": "Logs, agent progress, a command well. Mono rows, lamps, colour = state.",
       "whenNot": "Long-form reading.",
       "grammar": "mono-well",

@@ -7,16 +7,33 @@ import * as React from "react";
 
 import { Badge, Button, Icon, ListDetail, Reveal, Separator, Terminal } from "@monkey-mini-app/ui";
 
+import { useLookPalette } from "./palette";
+
 export function GlassIslandLook() {
+  const palette = useLookPalette("glass-island");
   return (
-    <div className="flex h-full min-h-0 flex-col justify-between bg-linear-to-b from-muted-foreground/30 to-muted p-6 text-foreground">
+    // Mirrors templates/today: the sky is `bg-background` (the look ships its own theme.css),
+    // one soft primary wash so the frost has something to blur, two slabs on top.
+    <div
+      style={palette}
+      className="relative flex h-full min-h-0 flex-col justify-between overflow-hidden bg-background p-6 text-foreground"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        style={{
+          background:
+            "radial-gradient(560px 200px at 18% 0%, color-mix(in oklch, var(--primary) 26%, transparent), transparent 70%)," +
+            "radial-gradient(520px 220px at 82% 100%, color-mix(in oklch, var(--primary) 14%, transparent), transparent 72%)",
+        }}
+      />
       <Reveal>
         <p className="text-sm tracking-wide text-muted-foreground">星期五 · 微雨</p>
         <p className="mt-1 font-serif text-6xl leading-none tracking-tight">68°</p>
         <p className="text-muted-foreground mt-2 text-sm">8 月 28 日 · L 66° H 76°</p>
       </Reveal>
-      <div className="flex flex-col gap-2">
-        <div className="rounded-3xl border border-border/50 bg-card/40 px-4 py-3 backdrop-blur-xl">
+      <div className="relative flex flex-col gap-2">
+        <div className="rounded-3xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm backdrop-blur-xl">
           <div className="text-muted-foreground flex justify-between text-xs">
             <span>一 24</span>
             <span>二 25</span>
@@ -29,7 +46,7 @@ export function GlassIslandLook() {
             <span>日 30</span>
           </div>
         </div>
-        <div className="rounded-3xl border border-border/50 bg-card/40 flex justify-between px-4 py-3 text-sm backdrop-blur-xl">
+        <div className="rounded-3xl border border-border/60 bg-card/80 flex justify-between px-4 py-3 text-sm shadow-sm backdrop-blur-xl">
           <span>工作 10:00</span>
           <span>放学 16:50</span>
         </div>
@@ -197,8 +214,9 @@ export function VoidLook() {
 }
 
 export function SignageLook() {
+  const palette = useLookPalette("signage");
   return (
-    <div className="relative h-full min-h-0 overflow-hidden bg-background p-6">
+    <div style={palette} className="relative h-full min-h-0 overflow-hidden bg-background p-6">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -228,8 +246,9 @@ export function SignageLook() {
 }
 
 export function TerminalLook() {
+  const palette = useLookPalette("terminal");
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div style={palette} className="bg-background flex h-full min-h-0 flex-col text-foreground">
       <div className="text-muted-foreground flex items-center gap-2 border-b px-3 py-2 font-mono text-xs">
         <Icon.Circle className="size-2 fill-red-400 text-red-400" />
         <Icon.Circle className="size-2 fill-amber-400 text-amber-400" />

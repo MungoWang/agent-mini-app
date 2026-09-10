@@ -75,19 +75,40 @@ export default function Ui() {
   }
 
   const now = new Date();
+  const weekday = now.toLocaleDateString("zh-CN", { weekday: "long" });
   const dateLabel = `${now.getMonth() + 1} 月 ${now.getDate()} 日`;
 
   return (
-    // ⭐ Look: glass-island — type on the sky, two slabs, then ListDetail for the working set.
-    <div className="flex h-full min-h-0 flex-col bg-linear-to-b from-primary/15 to-background">
-      <div className="px-5 pt-5 pb-3">
-        <p className="text-muted-foreground text-sm tracking-wide">{dateLabel}</p>
-        <p className="mt-1 font-serif text-4xl tracking-tight">先干哪个</p>
-        <p className="text-muted-foreground mt-1 text-sm">
+    // ⭐ Look: glass-island (references/looks/glass-island.md) — a poster on the sky plus two
+    //   frosted slabs, NOT a 2D tile wall. The sky IS the palette: this app ships theme.css, so
+    //   `bg-background` is the look's own blue-grey. Do not paint a gradient over it toward
+    //   `--muted` — that flattens the ground and the 70% slabs stop reading as glass.
+    <div className="relative flex h-full min-h-0 flex-col gap-3 overflow-hidden bg-background p-5">
+      {/* Frost needs something to blur. A flat gradient behind the slabs reads as "pale box";
+          one soft primary wash (token-derived, not a hex) is what makes `backdrop-blur` show. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-64"
+        style={{
+          background:
+            "radial-gradient(560px 200px at 18% 0%, color-mix(in oklch, var(--primary) 26%, transparent), transparent 70%)," +
+            "radial-gradient(420px 180px at 88% 8%, color-mix(in oklch, var(--primary) 16%, transparent), transparent 72%)",
+        }}
+      />
+      {/* poster: one oversized numeral, everything else is its caption */}
+      <div className="relative flex items-end gap-4 px-1 pt-2 pb-1">
+        <p className="font-serif text-7xl leading-[0.8] font-medium tracking-tight tabular-nums">
+          {now.getDate()}
+        </p>
+        <div className="pb-1">
+          <p className="text-sm tracking-wide">{weekday}</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">{dateLabel}</p>
+        </div>
+        <p className="text-muted-foreground ml-auto pb-2 text-xs tabular-nums">
           {stats.active} 件进行中 · {stats.done} 已完
         </p>
       </div>
-      <div className="mx-5 mb-3 rounded-3xl border border-border/50 bg-card/40 p-3 backdrop-blur-xl">
+      <div className="relative rounded-3xl border border-border/60 bg-card/80 p-3 shadow-sm backdrop-blur-xl">
         <div className="flex flex-wrap gap-1">
           {FILTERS.map((f) => (
             <Button key={f.id} size="sm" variant={filter === f.id ? "default" : "ghost"} onClick={() => setFilter(f.id)}>
@@ -113,8 +134,8 @@ export default function Ui() {
         </div>
         {error ? <p className="text-destructive mt-2 text-sm">{error}</p> : null}
       </div>
-      <div className="min-h-0 flex-1 px-5 pb-5">
-        <div className="h-full overflow-hidden rounded-3xl border border-border/50 bg-card/40 backdrop-blur-xl">
+      <div className="relative min-h-0 flex-1">
+        <div className="h-full overflow-hidden rounded-3xl border border-border/60 bg-card/80 shadow-sm backdrop-blur-xl">
           <ListDetail
             list={
               <ul>

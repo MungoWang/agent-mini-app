@@ -12,9 +12,10 @@ id: `glass-island` · grammar: `poster-dock`
 
 ## Classes (copy literals)
 
-- `root`: `flex h-full min-h-0 flex-col justify-between bg-linear-to-b from-primary/15 to-muted p-5`
+- `root`: `relative flex h-full min-h-0 flex-col gap-3 overflow-hidden bg-background p-5`
 - `hero`: `text-foreground`
-- `slab`: `rounded-3xl border border-border/50 bg-card/40 p-4 backdrop-blur-xl`
+- `slab`: `rounded-3xl border border-border/60 bg-card/80 shadow-sm backdrop-blur-xl`
+- `wash`: `pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(560px_200px_at_18%_0%,color-mix(in_oklch,var(--primary)_26%,transparent),transparent_70%)]`
 
 ## Palette (optional `theme.css` in the app dir)
 
@@ -26,23 +27,23 @@ pick a host palette. Omit the file to follow the host palette instead.
 /* name: 玻璃岛屿 */
 /* Look-owned palette: the island is the sky, so the hue is part of the grammar. */
 :root[data-mode="light"] {
-  --bg: #c5d4e2;
+  --bg: #a9c3d6;
   --fg: #1b2833;
-  --surface: #e8eef3;
+  --surface: #eaf1f6;
   --surface-fg: #1b2833;
-  --border: #9eb4c4;
-  --muted: #d5e0e9;
-  --muted-fg: #4a6270;
+  --border: #8ba7bd;
+  --muted: #c2d5e2;
+  --muted-fg: #40586a;
   --primary: #3d6a88;
   --primary-fg: #f4f8fb;
-  --secondary: #d5e0e9;
+  --secondary: #c2d5e2;
   --secondary-fg: #1b2833;
-  --accent: #dbe7f0;
+  --accent: #d3e2ed;
   --accent-fg: #1b2833;
   --destructive: #b42318;
   --destructive-fg: #ffffff;
   --ring: #3d6a88;
-  --input: #9eb4c4;
+  --input: #8ba7bd;
   --radius: 18px;
   --shadow: rgba(27, 40, 51, 0.12);
 }
