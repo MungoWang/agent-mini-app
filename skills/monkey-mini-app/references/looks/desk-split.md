@@ -10,11 +10,25 @@ id: `desk-split` · grammar: `list-detail`
 
 **Not:** Marketing pages, lock-screen homes.
 
+**How to copy it:** The desk IS the palette: walnut `bg-background`, cream papers (`bg-card`) in BOTH modes — lamp-lit paper on a dark desk is the look; dark papers on wood read as mud. All ink (`foreground`) is dark in both modes and only ever lands on paper: chrome text (headers, captions) goes inside a paper strip, never directly on the wood. Wood grain = repeating stripe bands; one warm lamp pool from `--primary`; titles in ui-serif for the desk feel.
+
+## Style (inline — Tailwind drops multi-layer shadows)
+
+```tsx
+const GLASS = {
+  "backgroundImage": "repeating-linear-gradient(90deg, fg 5% 2px stripes / 96px bands), radial lamp pool from --primary at top-left, vignette at bottom",
+  "paper": {
+    "backgroundColor": "var(--card)",
+    "boxShadow": "0 1px 2px fg/24, 0 18px 44px -18px var(--shadow), inset 0 1px 0 card/72",
+    "borderColor": "fg/12"
+  }
+} as const;
+```
 
 ## Classes (copy literals)
 
-- `root`: `h-full min-h-0 bg-background`
-- `pane`: `rounded-xl border border-border bg-card`
+- `root`: `relative h-full min-h-0 bg-background (walnut wood, DESK wash overlay)`
+- `pane`: `cream paper: bg-card, hairline edge, contact + lift shadow, top highlight (PAPER)`
 
 This look follows the host palette on purpose — no `theme.css`.
 

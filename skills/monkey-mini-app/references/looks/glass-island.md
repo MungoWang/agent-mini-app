@@ -65,25 +65,25 @@ pick a host palette. Omit the file to follow the host palette instead.
   --shadow: rgba(28, 42, 92, 0.3);
 }
 :root[data-mode="dark"] {
-  --bg: #131736;
+  --bg: #0e1128;
   --fg: #e9edff;
-  --surface: #1e2344;
+  --surface: #21264c;
   --surface-fg: #e9edff;
-  --border: #2c3360;
-  --muted: #21264c;
-  --muted-fg: #9aabdd;
-  --primary: #8397f0;
+  --border: #2e3566;
+  --muted: #1d2046;
+  --muted-fg: #a3b0e6;
+  --primary: #8b94fa;
   --primary-fg: #12142c;
-  --secondary: #252a50;
+  --secondary: #232757;
   --secondary-fg: #e9edff;
-  --accent: #232850;
+  --accent: #1d2046;
   --accent-fg: #e9edff;
   --destructive: #f97066;
   --destructive-fg: #20120d;
-  --ring: #8397f0;
-  --input: #2c3360;
+  --ring: #8b94fa;
+  --input: #2e3566;
   --radius: 18px;
-  --shadow: rgba(2, 6, 26, 0.6);
+  --shadow: rgba(0, 4, 24, 0.66);
 }
 ```
 

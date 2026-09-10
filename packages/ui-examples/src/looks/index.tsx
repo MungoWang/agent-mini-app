@@ -31,6 +31,23 @@ const GLASS = {
   WebkitBackdropFilter: "blur(18px) saturate(200%) brightness(1.08)",
 } as const;
 
+// Mirrors templates/sheets: walnut grain + one amber lamp pool + vignette; the papers are
+// cream in both modes (lamp-lit paper on a dark desk is the look, dark papers are mud).
+const DESK =
+  "repeating-linear-gradient(90deg, color-mix(in oklch, var(--foreground) 5%, transparent) 0 2px, transparent 2px 26px)," +
+  "repeating-linear-gradient(90deg, color-mix(in oklch, var(--foreground) 8%, transparent) 0 1px, transparent 1px 96px)," +
+  "radial-gradient(620px 320px at 12% -12%, color-mix(in oklch, var(--primary) 42%, transparent), transparent 70%)," +
+  "radial-gradient(560px 620px at 64% 116%, color-mix(in oklch, var(--foreground) 16%, transparent), transparent 72%)";
+const PAPER = {
+  backgroundColor: "var(--card)",
+  color: "var(--card-foreground)",
+  boxShadow:
+    "0 1px 2px color-mix(in oklch, var(--foreground) 24%, transparent)," +
+    "0 18px 44px -18px var(--shadow)," +
+    "inset 0 1px 0 color-mix(in oklch, var(--card) 72%, transparent)",
+  borderColor: "color-mix(in oklch, var(--foreground) 12%, transparent)",
+} as const;
+
 export function GlassIslandLook() {
   const palette = useLookPalette("glass-island");
   return (
@@ -110,6 +127,7 @@ export function AuroraBentoLook() {
 }
 
 export function DeskSplitLook() {
+  const palette = useLookPalette("desk-split");
   const [sel, setSel] = React.useState("a");
   const rows = [
     { id: "a", title: "核对 Q3 回款", tag: "财务" },
@@ -118,42 +136,68 @@ export function DeskSplitLook() {
   ];
   const cur = rows.find((r) => r.id === sel)!;
   return (
-    <div className="h-full min-h-0">
-      <ListDetail
-        toolbar={
-          <div className="flex items-center gap-2 border-b px-3 py-2">
-            <span className="text-sm font-medium">全部 {rows.length}</span>
-            <Badge variant="outline">筛选</Badge>
-          </div>
-        }
-        list={
-          <ul>
-            {rows.map((r) => (
-              <li key={r.id}>
-                <button
-                  type="button"
-                  className={`flex w-full justify-between px-3 py-2 text-left text-sm ${sel === r.id ? "bg-muted" : ""}`}
-                  onClick={() => setSel(r.id)}
-                >
-                  <span>{r.title}</span>
-                  <span className="text-muted-foreground">{r.tag}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        }
-        detail={
-          <div className="p-4">
-            <Reveal>
-              <h3 className="text-base font-semibold">{cur.title}</h3>
-              <p className="text-muted-foreground mt-1 text-sm">今天 09:30</p>
-              <Button className="mt-4" size="sm">
-                打开
-              </Button>
-            </Reveal>
-          </div>
-        }
-      />
+    // Mirrors templates/sheets: the desk is the palette's walnut `bg-background`, the papers
+    // (`bg-card`) stay cream in both modes — lamp-lit paper on a dark desk IS the look.
+    <div style={palette} className="bg-background relative flex h-full min-h-0 flex-col overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundImage: DESK }} />
+      <header
+        style={PAPER}
+        className="border-b relative mx-4 mt-3 flex items-center gap-2 rounded-t-2xl border px-4 py-2.5"
+      >
+        <span className="font-serif text-base font-semibold tracking-tight">全部 {rows.length}</span>
+        <Badge variant="outline">筛选</Badge>
+        <Badge variant="outline">本机</Badge>
+      </header>
+      <div className="relative mx-4 mb-4 flex min-h-0 flex-1">
+        <div
+          style={PAPER}
+          className="flex h-full min-h-0 w-full overflow-hidden rounded-b-2xl border border-t-0"
+        >
+          <ListDetail
+            className="flex-1"
+            toolbar={
+              <div className="text-muted-foreground flex items-center gap-2 border-b px-3 py-2 text-xs font-medium tracking-wide uppercase">
+                <Icon.List className="size-3.5" />
+                待办
+              </div>
+            }
+            list={
+              <ul className="divide-border divide-y">
+                {rows.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      type="button"
+                      className={`flex w-full justify-between px-3 py-2 text-left text-sm ${sel === r.id ? "bg-accent" : ""}`}
+                      onClick={() => setSel(r.id)}
+                    >
+                      <span>{r.title}</span>
+                      <span className="text-muted-foreground">{r.tag}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            }
+            detail={
+              <div className="flex flex-col gap-3 p-4">
+                <Reveal>
+                  <h3 className="font-serif text-lg font-semibold tracking-tight">{cur.title}</h3>
+                  <p className="text-muted-foreground mt-0.5 text-xs">今天 09:30 · {cur.tag}</p>
+                </Reveal>
+                <div className="grid grid-cols-3 gap-2">
+                  {["¥128k 应收", "¥96k 已回款", "12 账单"].map((k) => (
+                    <div key={k} className="border-border rounded-lg border px-2 py-1.5 text-xs tabular-nums">
+                      {k}
+                    </div>
+                  ))}
+                </div>
+                <Button size="sm" className="self-start">
+                  打开
+                </Button>
+              </div>
+            }
+          />
+        </div>
+      </div>
     </div>
   );
 }
