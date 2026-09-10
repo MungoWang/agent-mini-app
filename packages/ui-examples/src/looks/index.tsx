@@ -32,7 +32,8 @@ export function GlassIslandLook() {
         <p className="mt-1 font-serif text-6xl leading-none tracking-tight">68°</p>
         <p className="text-muted-foreground mt-2 text-sm">8 月 28 日 · L 66° H 76°</p>
       </Reveal>
-      <div className="relative flex flex-col gap-2">
+      {/* capped and centred: an island stretched to every edge is just a page with rounded corners */}
+      <div className="relative mx-auto flex w-full max-w-md flex-col gap-2">
         <div className="rounded-3xl border border-border/60 bg-card/80 px-4 py-3 shadow-sm backdrop-blur-xl">
           <div className="text-muted-foreground flex justify-between text-xs">
             <span>一 24</span>

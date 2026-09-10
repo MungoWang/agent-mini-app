@@ -10,6 +10,7 @@ id: `tape` · grammar: `numeral-strip`
 
 **Not:** Homes, forms. No graph-paper grid, no card chrome.
 
+
 ## Classes (copy literals)
 
 - `root`: `h-full min-h-0 bg-background font-mono`

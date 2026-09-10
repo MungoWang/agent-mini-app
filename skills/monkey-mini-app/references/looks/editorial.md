@@ -10,6 +10,7 @@ id: `editorial` · grammar: `prose-measure`
 
 **Not:** Monitor walls, dense tables.
 
+
 ## Classes (copy literals)
 
 - `root`: `mx-auto max-w-2xl px-6 py-8`

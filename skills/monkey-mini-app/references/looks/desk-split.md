@@ -10,6 +10,7 @@ id: `desk-split` · grammar: `list-detail`
 
 **Not:** Marketing pages, lock-screen homes.
 
+
 ## Classes (copy literals)
 
 - `root`: `h-full min-h-0 bg-background`

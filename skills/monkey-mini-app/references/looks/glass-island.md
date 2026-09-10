@@ -10,12 +10,15 @@ id: `glass-island` · grammar: `poster-dock`
 
 **Not:** Launchers, DataGrid, incident walls. Not a 2D mosaic.
 
+**How to copy it:** The sky is the palette (bg-background), never a gradient painted over it. The cluster is capped and centred so the sky stays visible around it. Spans are written out (grid-cols-6 + col-span-*), not switched on at md:. backdrop-blur only reads if a wash sits behind the slabs.
+
 ## Classes (copy literals)
 
-- `root`: `relative flex h-full min-h-0 flex-col gap-3 overflow-hidden bg-background p-5`
+- `root`: `bg-background relative flex h-full min-h-0 flex-col gap-3 overflow-hidden p-5`
 - `hero`: `text-foreground`
 - `slab`: `rounded-3xl border border-border/60 bg-card/80 shadow-sm backdrop-blur-xl`
 - `wash`: `pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(560px_200px_at_18%_0%,color-mix(in_oklch,var(--primary)_26%,transparent),transparent_70%)]`
+- `content`: `relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3`
 
 ## Palette (optional `theme.css` in the app dir)
 

@@ -54,6 +54,8 @@ export function writeSkillLooks({ repoRoot, skillRef }) {
       "",
       `**Not:** ${look.whenNot}`,
       "",
+      look.notes ? `**How to copy it:** ${look.notes}` : null,
+      "",
       "## Classes (copy literals)",
       "",
       classes,
@@ -75,7 +77,7 @@ export function writeSkillLooks({ repoRoot, skillRef }) {
       "",
       "Tokens only — no hex in `ui.tsx`. Light and dark must both read. Optional `data-look` on a root is a recipe, not a platform attribute.",
       "",
-    ]
+    ].filter((line) => line !== null)
     fs.writeFileSync(path.join(outDir, `${look.id}.md`), body.join("\n"))
   }
 }

@@ -10,6 +10,7 @@ id: `signage` · grammar: `display-type`
 
 **Not:** A dark dashboard with extra shadow. Opt-in only.
 
+
 ## Classes (copy literals)
 
 - `root`: `relative h-full min-h-0 overflow-hidden bg-background p-6`

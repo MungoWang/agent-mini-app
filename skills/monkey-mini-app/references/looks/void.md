@@ -10,6 +10,7 @@ id: `void` · grammar: `sparse-hero`
 
 **Not:** Dense tables, watch boards. Opt-in only.
 
+
 ## Classes (copy literals)
 
 - `root`: `flex h-full min-h-0 flex-col justify-center px-8 py-10`

@@ -10,6 +10,7 @@ id: `aurora-bento` · grammar: `tessellation`
 
 **Not:** A lock-screen home. No sky, no poster layer.
 
+
 ## Classes (copy literals)
 
 - `root`: `grid h-full min-h-0 grid-cols-6 grid-rows-3 gap-1.5 p-1.5 bg-muted`

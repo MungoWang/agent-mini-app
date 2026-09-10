@@ -10,6 +10,7 @@ id: `terminal` · grammar: `mono-well`
 
 **Not:** Long-form reading.
 
+
 ## Classes (copy literals)
 
 - `root`: `flex h-full min-h-0 flex-col bg-background`
