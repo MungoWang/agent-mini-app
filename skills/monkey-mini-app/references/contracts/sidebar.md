@@ -14,7 +14,7 @@ Compound: compose the parts below — **do not invent part names**.
 
 | part | own props |
 |---|---|
-| `Sidebar` | `collapsible?=none/icon/offcanvas` `side?=left/right` `variant?=sidebar/floating/inset` |
+| `Sidebar` | `collapsible?=none/icon/offcanvas` `side?=right/left` `variant?=sidebar/floating/inset` |
 | `SidebarContent` | — |
 | `SidebarFooter` | — |
 | `SidebarGroup` | — |

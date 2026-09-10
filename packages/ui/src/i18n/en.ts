@@ -254,6 +254,12 @@ export const en = {
   listDetail: {
     back: "Back to list",
   },
+  formSheet: {
+    discardTitle: "Discard these changes?",
+    discardBody: "They have not been saved. Closing now throws them away.",
+    keepEditing: "Keep editing",
+    discard: "Discard",
+  },
   wizardShell: {
     back: "Back",
     next: "Next",

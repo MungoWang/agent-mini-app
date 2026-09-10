@@ -18,7 +18,7 @@ Compound: compose the parts below — **do not invent part names**.
 |---|---|
 | `Sheet` | `actionsRef?` `defaultOpen?` `defaultTriggerId?` `disablePointerDismissal?` `handle?` `modal?` `onOpenChange?` `onOpenChangeComplete?` `open?` `triggerId?` |
 | `SheetClose` | `nativeButton?` `render?` |
-| `SheetContent` | `finalFocus?` `initialFocus?` `render?` `showCloseButton?` `side?=top/bottom/left/right` `width?` |
+| `SheetContent` | `finalFocus?` `initialFocus?` `render?` `showCloseButton?` `side?=top/right/bottom/left` `width?` |
 | `SheetDescription` | `render?` |
 | `SheetFooter` | — |
 | `SheetHeader` | — |

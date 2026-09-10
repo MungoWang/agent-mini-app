@@ -121,6 +121,7 @@ export * from "./blocks/detail-panel";
 export * from "./blocks/donut-chart";
 export * from "./blocks/env-badge";
 export * from "./blocks/env-table";
+export * from "./blocks/form-sheet";
 export * from "./blocks/file-tree";
 export * from "./blocks/filter-bar";
 export * from "./blocks/gauge";

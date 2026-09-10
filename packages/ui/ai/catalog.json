@@ -674,6 +674,13 @@
       "when": "Above DataGrid or any filtered list",
       "contract": "references/contracts/filter-bar.md"
     },
+    "FormSheet": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Page shape: focused create/edit over a list — new record, edit record, wizard-less config",
+      "contract": "references/contracts/form-sheet.md"
+    },
     "Gantt": {
       "componentType": "product",
       "family": "Calendar & date",

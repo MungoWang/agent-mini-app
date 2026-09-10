@@ -238,6 +238,12 @@ export const zh: UiMessages = {
   listDetail: {
     back: "返回列表",
   },
+  formSheet: {
+    discardTitle: "放弃这次修改？",
+    discardBody: "改动还没有保存，现在关闭就会丢掉。",
+    keepEditing: "继续编辑",
+    discard: "放弃",
+  },
   wizardShell: {
     back: "上一步",
     next: "下一步",

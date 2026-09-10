@@ -23,6 +23,7 @@ import Attachment01Example from "./examples/attachment/attachment-01";
 import Item01Example from "./examples/item/item-01";
 import AspectRatio01Example from "./examples/aspect-ratio/aspect-ratio-01";
 import MiscPrimitives03Example from "./examples/misc-primitives/misc-primitives-03";
+import FormSheet01Example from "./examples/form-sheet/form-sheet-01";
 import Dialog01Example from "./examples/dialog/dialog-01";
 import MiscOverlays01Example from "./examples/misc-overlays/misc-overlays-01";
 import MiscOverlays02Example from "./examples/misc-overlays/misc-overlays-02";
@@ -170,6 +171,9 @@ export const SECTION_BODIES: Record<SectionId, () => JSX.Element> = {
   ),
   overlays: () => (
     <>
+      <Example id="form-sheet" title="FormSheet" hint="Change a field, then press Escape — the discard prompt appears; without a change it closes straight away">
+        <FormSheet01Example />
+      </Example>
       <Example id="dialog" title="Dialog">
         <Dialog01Example />
       </Example>

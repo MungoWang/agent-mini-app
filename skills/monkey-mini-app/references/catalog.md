@@ -20,6 +20,7 @@ Shell / split / scroll containers and display atoms — they arrange, they don't
 | `AppShell` | block | — | Root layout for a mini-app page | [docs](contracts/app-shell.md) |
 | `DashboardShell` | block | — | Page shape: metrics up top, charts below, optional activity rail — ops overviews, monitor walls | [docs](contracts/dashboard-shell.md) |
 | `DescriptionList` | block | — | Detail/inspector panel of a selected row — the default “show one record” view. | [docs](contracts/description-list.md) |
+| `FormSheet` | block | — | Page shape: focused create/edit over a list — new record, edit record, wizard-less config | [docs](contracts/form-sheet.md) |
 | `ListDetail` | block | — | Page shape: click a row, then read or edit that one record beside the list — orders, tickets, contacts, log lines | [docs](contracts/list-detail.md) |
 | `PageHeader` | block | — | Top of a page inside AppShell main | [docs](contracts/page-header.md) |
 | `SettingsSplit` | block | — | Page shape: a settings page, integration config, or a long report with anchored sections | [docs](contracts/settings-split.md) |
