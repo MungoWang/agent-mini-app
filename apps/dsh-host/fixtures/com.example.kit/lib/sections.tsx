@@ -81,6 +81,7 @@ import DashboardShell01Example from "./examples/dashboard-shell/dashboard-shell-
 import DetailPanel01Example from "./examples/detail-panel/detail-panel-01";
 import ListDetail01Example from "./examples/list-detail/list-detail-01";
 import TablePage01Example from "./examples/table-page/table-page-01";
+import SettingsSplit01Example from "./examples/settings-split/settings-split-01";
 import RunTimeline01Example from "./examples/run-timeline/run-timeline-01";
 import Scrollspy01Example from "./examples/scrollspy/scrollspy-01";
 
@@ -365,6 +366,9 @@ export const SECTION_BODIES: Record<SectionId, () => JSX.Element> = {
       </Example>
       <Example id="table-page" title="TablePage" hint="Scroll the table — the toolbar stays put; select rows — the bar floats over, it never pushes rows down">
         <TablePage01Example />
+      </Example>
+      <Example id="settings-split" title="SettingsSplit" hint="Scroll the sections — the nav highlight follows; the save bar never scrolls out of view">
+        <SettingsSplit01Example />
       </Example>
       <Example id="run-timeline" title="RunTimeline">
         <RunTimeline01Example />

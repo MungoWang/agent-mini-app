@@ -215,7 +215,8 @@ export const en = {
     newBelow: "New logs below",
     scrollLatest: "Scroll to latest",
     lines: (n: number) => `${n} lines`,
-    linesFiltered: (shown: number, total: number) => `${shown} / ${total} lines`,
+    linesFiltered: (shown: number, total: number) =>
+      `${shown} / ${total} lines`,
   },
   envTable: {
     empty: "No environment variables.",
@@ -240,7 +241,8 @@ export const en = {
   },
   appError: {
     title: "This mini-app hit an error",
-    renderHint: "A component threw while rendering. Nothing else in the panel is affected.",
+    renderHint:
+      "A component threw while rendering. Nothing else in the panel is affected.",
     moduleHint: "The UI bundle did not load — it usually needs recompiling.",
     uncaughtHint: "An unhandled error stopped this view.",
     asyncHint: "A background task failed without being handled.",
@@ -252,6 +254,9 @@ export const en = {
   listDetail: {
     back: "Back to list",
   },
-}
+  settingsSplit: {
+    nav: "Section navigation",
+  },
+};
 
-export type UiMessages = typeof en
+export type UiMessages = typeof en;

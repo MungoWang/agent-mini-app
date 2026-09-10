@@ -9,6 +9,7 @@ import MiscChartsBlocks05Example from "../components/misc-charts-blocks/misc-cha
 import MiscChartsBlocks06Example from "../components/misc-charts-blocks/misc-charts-blocks-06";
 import RunTimeline01Example from "../components/run-timeline/run-timeline-01";
 import Scrollspy01Example from "../components/scrollspy/scrollspy-01";
+import SettingsSplit01Example from "../components/settings-split/settings-split-01";
 import TablePage01Example from "../components/table-page/table-page-01";
 import { Example } from "../shared/example";
 
@@ -59,6 +60,13 @@ export function ChartBlockExamples() {
         hint="Scroll the table — the toolbar stays put; select rows — the bar floats over, it never pushes rows down"
       >
         <TablePage01Example />
+      </Example>
+      <Example
+        id="settings-split"
+        title="SettingsSplit"
+        hint="Scroll the sections — the nav highlight follows; the save bar never scrolls out of view"
+      >
+        <SettingsSplit01Example />
       </Example>
       <Example id="run-timeline" title="RunTimeline">
         <RunTimeline01Example />

@@ -1193,6 +1193,13 @@
       ],
       "helpers": []
     },
+    "SettingsSplit": {
+      "componentType": "block",
+      "family": "Layout & structure",
+      "primitive": false,
+      "when": "Page shape: a settings page, integration config, or a long report with anchored sections",
+      "contract": "references/contracts/settings-split.md"
+    },
     "SeverityChip": {
       "componentType": "block",
       "family": "Feedback & status",

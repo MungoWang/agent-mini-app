@@ -1,4 +1,4 @@
-import type { UiMessages } from "./en"
+import type { UiMessages } from "./en";
 
 export const zh: UiMessages = {
   common: {
@@ -238,4 +238,7 @@ export const zh: UiMessages = {
   listDetail: {
     back: "返回列表",
   },
-}
+  settingsSplit: {
+    nav: "章节导航",
+  },
+};
