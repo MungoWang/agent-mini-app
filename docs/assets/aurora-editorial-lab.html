@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>极光便当 · 编辑排版 — 打样</title>
+  <style>
+    :root { font: 13px/1.5 ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f2f3f5; }
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 20px 80px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 15px; margin: 34px 0 4px; }
+    .lede { color: #555; margin: 6px 0 14px; font-size: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 14px; }
+    .card { background: #fff; border: 1px solid #e4e6ea; border-radius: 12px; overflow: hidden; }
+    .head { padding: 8px 12px; border-bottom: 1px solid #edf0f3; font-size: 12px; letter-spacing: 0.04em; font-weight: 600; }
+    .pair { display: flex; }
+    .field { position: relative; overflow: hidden; height: 280px; flex: 1; color: var(--fg); }
+
+    /* ---- aurora recipe (locked): hue-mesh ground + opaque raised tiles ---- */
+    .field.aurora {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(60% 55% at 8% 0%, color-mix(in oklch, var(--h1) 78%, transparent), transparent 62%),
+        radial-gradient(55% 60% at 92% 12%, color-mix(in oklch, var(--h2) 70%, transparent), transparent 64%),
+        radial-gradient(70% 65% at 45% 108%, color-mix(in oklch, var(--h3) 66%, transparent), transparent 66%);
+    }
+    .bento { position: absolute; inset: 14px; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(3, 1fr); gap: 7px; }
+    .tile {
+      border-radius: 16px; padding: 10px 12px; font-size: 11px; overflow: hidden;
+      background: var(--tile);
+      color: var(--tile-ink);
+      box-shadow: 0 1px 2px color-mix(in oklch, #000 18%, transparent), 0 14px 30px -14px color-mix(in oklch, #000 42%, transparent);
+    }
+    .tile b { display: block; font-size: 20px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .hero { grid-column: span 2; grid-row: span 2; background: var(--hero); color: var(--hero-ink); }
+    .hero .big { font-size: 22px; font-weight: 600; margin-top: 10px; line-height: 1.15; }
+    .t2 { grid-column: span 2; }
+    .t3 { grid-column: span 3; }
+    .accent-tile { background: color-mix(in oklch, var(--acc) 26%, var(--tile)); }
+
+    /* ---- editorial recipe (locked): paper, ink, hairlines, serif display ---- */
+    .field.edit { background: var(--bg); }
+    .col { max-width: 62ch; margin: 0 auto; padding: 18px 20px; }
+    .kicker { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--mut); }
+    .display { font-family: ui-serif, Georgia, serif; font-size: 25px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; margin: 6px 0 4px; color: var(--ink); }
+    .byline { font-size: 10px; color: var(--mut); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 6px 0; margin-bottom: 10px; }
+    .body { font-size: 12px; line-height: 1.75; color: var(--ink); }
+    .body p + p { margin-top: 8px; }
+    .lead::first-letter { font-family: ui-serif, Georgia, serif; font-size: 30px; float: left; line-height: 1; padding-right: 5px; color: var(--acc); font-weight: 700; }
+    .rule { border: 0; border-top: 1px solid var(--rule); margin: 10px 0; }
+    .stat { display: flex; gap: 14px; }
+    .stat div { flex: 1; border-top: 2px solid var(--acc); padding-top: 5px; }
+    .stat b { display: block; font-family: ui-serif, Georgia, serif; font-size: 19px; color: var(--ink); }
+    .stat span { font-size: 10px; color: var(--mut); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>极光便当 / 编辑排版 · 打样</h1>
+
+    <h2>一、极光便当（board）— 极光地面 × 不透明抬升砖</h2>
+    <p class="lede">
+      砖的配方锁死：不透明卡面 + 双层投影抬起，hero 砖用前景反相。区别只在地面是哪一片极光（三个色相池 h1/h2/h3）。
+      玻璃留给 glass-island —— 这里是实心砖压在色相网上，两块不撞。
+    </p>
+    <div class="grid" id="aurora"></div>
+
+    <h2>二、编辑排版（radar）— 纸、墨、细线、衬线标题</h2>
+    <p class="lede">
+      排版锁死：kicker 大字距 + 衬线 display + 首字下沉 + 细线分隔 + 强调色顶边的数据条。
+      区别只在纸色 / 墨色 / 强调色三件套。
+    </p>
+    <div class="grid" id="edit"></div>
+  </div>
+
+  <script>
+    // ---------- aurora candidates ----------
+    const AUR = [
+      {
+        id: "A1 靛紫青（Linear 式）",
+        light: { bg: "#c9cdf1", h1: "#8b7cf0", h2: "#5aa7f0", h3: "#b98ae8", tile: "#ffffff", tileInk: "#20213a", hero: "#20213a", heroInk: "#ffffff", acc: "#6d5ae0" },
+        dark: { bg: "#161726", h1: "#4a3cb8", h2: "#1f5fb0", h3: "#6b3fa8", tile: "#1c1e2f", tileInk: "#e8e9f5", hero: "#e8e9f5", heroInk: "#161726", acc: "#8f7ff5" },
+      },
+      {
+        id: "A2 石墨极光绿（Vercel 式，暗色为主）",
+        light: { bg: "#dfe6e3", h1: "#39c48f", h2: "#4bb8d8", h3: "#9fd8b8", tile: "#ffffff", tileInk: "#15211c", hero: "#122019", heroInk: "#d9f7e7", acc: "#0f9d6a" },
+        dark: { bg: "#0e1512", h1: "#0d7d55", h2: "#12708f", h3: "#0a5f45", tile: "#141d19", tileInk: "#dff2e8", hero: "#eafff5", heroInk: "#0e1512", acc: "#3ee39a" },
+      },
+      {
+        id: "A3 暮色珊瑚金（暖）",
+        light: { bg: "#f2d9cd", h1: "#f0956a", h2: "#e9c26a", h3: "#d97b9c", tile: "#fffaf6", tileInk: "#3a2018", hero: "#3a2018", heroInk: "#ffefe6", acc: "#dd6a3a" },
+        dark: { bg: "#1b1210", h1: "#a04a26", h2: "#8a6a1e", h3: "#7d2f4a", tile: "#241814", tileInk: "#f5e2d6", hero: "#f8ece2", heroInk: "#241814", acc: "#ff9a66" },
+      },
+      {
+        id: "A4 森野青柠",
+        light: { bg: "#dfe8cf", h1: "#9fd04a", h2: "#3fb98f", h3: "#cfe06a", tile: "#ffffff", tileInk: "#1c2413", hero: "#1c2413", heroInk: "#f0f6e2", acc: "#5a9e1f" },
+        dark: { bg: "#101508", h1: "#4a7a16", h2: "#0f7a5c", h3: "#7a8a1a", tile: "#161d0d", tileInk: "#e6f2cf", hero: "#eef7dc", heroInk: "#101508", acc: "#a8e05f" },
+      },
+    ];
+
+    // ---------- editorial candidates ----------
+    const EDT = [
+      {
+        id: "E1 新闻纸（米白 + 黑墨 + 朱红）",
+        light: { bg: "#f6f2e9", ink: "#1c1a16", mut: "#6d675c", rule: "#d9d2c2", acc: "#c0402a" },
+        dark: { bg: "#191713", ink: "#ece5d6", mut: "#9a927f", rule: "#332f28", acc: "#e2705a" },
+      },
+      {
+        id: "E2 象牙冷白（近白 + 炭墨 + 群青）",
+        light: { bg: "#fbfbf9", ink: "#191b1f", mut: "#6a6f78", rule: "#e2e4e8", acc: "#2f4bd0" },
+        dark: { bg: "#14161a", ink: "#e8eaee", mut: "#9aa0aa", rule: "#2a2d33", acc: "#7f95f5" },
+      },
+      {
+        id: "E3 暗夜阅读（深棕纸 + 米墨 + 芥黄）",
+        light: { bg: "#efe8db", ink: "#2a2418", mut: "#75694f", rule: "#d8cdb7", acc: "#9a7b1c" },
+        dark: { bg: "#171410", ink: "#ded2b8", mut: "#93866a", rule: "#2c271d", acc: "#d6b04a" },
+      },
+      {
+        id: "E4 冷灰白（杂志灰 + 纯黑 + 大红）",
+        light: { bg: "#f0f1f2", ink: "#101112", mut: "#63676d", rule: "#dcdfe3", acc: "#d11f2a" },
+        dark: { bg: "#101112", ink: "#f0f1f2", mut: "#8b9096", rule: "#25272a", acc: "#ff4d54" },
+      },
+    ];
+
+    function mk(cls, v, inner) {
+      const f = document.createElement("div");
+      f.className = "field " + cls;
+      for (const [k, val] of Object.entries(v)) f.style.setProperty("--" + k, val);
+      f.innerHTML = inner;
+      return f;
+    }
+    function pair(cands, hostId, cls, map, inner) {
+      const host = document.getElementById(hostId);
+      for (const p of cands) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<div class="head">${p.id}</div>`;
+        const row = document.createElement("div");
+        row.className = "pair";
+        for (const mode of ["light", "dark"]) {
+          const v = map(p[mode]);
+          row.appendChild(mk(cls, v, inner(v)));
+        }
+        card.appendChild(row);
+        host.appendChild(card);
+      }
+    }
+
+    const BENTO = `
+      <div class="bento">
+        <div class="tile hero"><span>本周推进</span><div class="big">6 项<br>进入下一列</div></div>
+        <div class="tile t2">进行<b>14</b></div>
+        <div class="tile t2">阻塞<b>2</b></div>
+        <div class="tile t2 accent-tile">今日完成<b>5</b></div>
+        <div class="tile t2">已归档<b>8</b></div>
+        <div class="tile t3">按泳道 · 记一笔</div>
+        <div class="tile t3">7 日吞吐 +12k</div>
+      </div>`;
+
+    pair(
+      AUR,
+      "aurora",
+      "aurora",
+      (v) => ({ bg: v.bg, h1: v.h1, h2: v.h2, h3: v.h3, tile: v.tile, "tile-ink": v.tileInk, hero: v.hero, "hero-ink": v.heroInk, acc: v.acc, fg: v.tileInk }),
+      () => BENTO,
+    );
+
+    const ARTICLE = `
+      <div class="col">
+        <div class="kicker">Week 35 · 雷达</div>
+        <div class="display">这一周，队列在变短</div>
+        <div class="byline">扫描 6 个源 · 142 条更新 · 23:10 生成</div>
+        <div class="body">
+          <p class="lead">本周新增 12 条待办里，有 9 条来自同一个供应商变更。其余三条是老账，建议直接归档。</p>
+          <p>把源接上之后，每天夜里扫一遍，早上打开就是结论；不需要再手动整理。</p>
+        </div>
+        <hr class="rule" />
+        <div class="stat">
+          <div><b>142</b><span>更新条目</span></div>
+          <div><b>23</b><span>需要判断</span></div>
+          <div><b>9</b><span>同源归并</span></div>
+        </div>
+      </div>`;
+
+    pair(
+      EDT,
+      "edit",
+      "edit",
+      (v) => ({ bg: v.bg, ink: v.ink, mut: v.mut, rule: v.rule, acc: v.acc, fg: v.ink }),
+      () => ARTICLE,
+    );
+  </script>
+</body>
+</html>

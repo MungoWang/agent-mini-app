@@ -48,6 +48,18 @@ const PAPER = {
   borderColor: "color-mix(in oklch, var(--foreground) 12%, transparent)",
 } as const;
 
+// Mirrors templates/board: the aurora is three hue pools mixed out of the palette's primary
+// (toward the ink for depth, toward destructive for the warm drift); tiles stay OPAQUE and
+// raised — glass is glass-island's job.
+const AURORA =
+  "radial-gradient(42% 40% at 10% 2%, color-mix(in oklch, var(--primary) 92%, transparent), transparent 58%)," +
+  "radial-gradient(38% 44% at 90% 10%, color-mix(in oklch, var(--primary) 62%, var(--foreground)), transparent 60%)," +
+  "radial-gradient(52% 46% at 42% 104%, color-mix(in oklch, var(--primary) 58%, var(--destructive)), transparent 62%)";
+const RAISED = {
+  boxShadow:
+    "0 1px 2px color-mix(in oklch, var(--foreground) 14%, transparent)," + "0 14px 30px -14px var(--shadow)",
+} as const;
+
 export function GlassIslandLook() {
   const palette = useLookPalette("glass-island");
   return (
@@ -97,31 +109,45 @@ export function GlassIslandLook() {
 }
 
 export function AuroraBentoLook() {
-  const tile = "rounded-lg bg-card p-3 text-sm overflow-hidden";
+  const palette = useLookPalette("aurora-bento");
+  const tile = "bg-card relative rounded-2xl p-3 text-sm overflow-hidden";
   return (
-    <div className="bg-muted grid h-full min-h-0 grid-cols-6 grid-rows-3 gap-1.5 p-1.5">
-      <div className="bg-foreground text-background col-span-2 row-span-2 rounded-lg p-4">
+    // Mirrors templates/board: an aurora field with opaque raised tiles on top. The ground is
+    // the look — `bg-muted` here would just be an admin dashboard.
+    <div
+      style={palette}
+      className="bg-background relative grid h-full min-h-0 grid-cols-6 grid-rows-3 gap-1.5 overflow-hidden p-1.5 text-foreground"
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundImage: AURORA }} />
+      <div
+        className="bg-foreground text-background relative col-span-2 row-span-2 rounded-2xl p-4"
+        style={RAISED}
+      >
         <p className="text-xs opacity-70">高效生活</p>
         <p className="mt-2 text-xl font-medium">从有序开始</p>
       </div>
-      <div className={`${tile} col-span-2`}>
+      <div className={`${tile} col-span-2`} style={RAISED}>
         日历
         <b className="mt-1 block text-lg">28</b>
       </div>
-      <div className={`${tile} col-span-2`}>
+      <div className={`${tile} col-span-2`} style={RAISED}>
         专注
         <b className="mt-1 block text-lg">3h 24</b>
       </div>
-      <div className={`${tile} col-span-2 bg-primary/10`}>
+      <div className={`${tile} col-span-2`} style={RAISED}>
         任务
         <b className="mt-1 block text-lg">5</b>
       </div>
-      <div className={`${tile} col-span-2`}>
+      <div className={`${tile} col-span-2`} style={RAISED}>
         笔记
         <b className="mt-1 block text-lg">12</b>
       </div>
-      <div className={`${tile} col-span-3`}>+12k 本周完成</div>
-      <div className={`${tile} col-span-3 bg-primary/20`}>小小的进步</div>
+      <div className={`${tile} col-span-3`} style={RAISED}>
+        +12k 本周完成
+      </div>
+      <div className={`${tile} col-span-3`} style={RAISED}>
+        小小的进步
+      </div>
     </div>
   );
 }
@@ -203,22 +229,27 @@ export function DeskSplitLook() {
 }
 
 export function EditorialLook() {
+  const palette = useLookPalette("editorial");
   return (
-    <div className="mx-auto max-w-2xl px-6 py-8">
-      <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">Vol.24 · Weekly</p>
-      <Reveal>
-        <h2 className="mt-2 font-serif text-3xl font-bold tracking-tight">
-          记事的本质，是让人愿意<span className="text-primary">回头再看</span>
-        </h2>
-      </Reveal>
-      <Separator className="my-6" />
-      <p className="text-muted-foreground max-w-xl text-sm leading-relaxed">
-        衬线大标题、黑白灰加一枚强调色、刊头线。没有卡片墙。
-      </p>
-      <div className="mt-6 flex gap-2">
-        <Badge variant="outline">01 归档</Badge>
-        <Badge variant="outline">02 置顶</Badge>
-        <Badge variant="outline">03 清理</Badge>
+    // Mirrors templates/radar: paper and ink ARE the look — under the default palette this is
+    // just text on white. Kicker → serif display → hairline → first-letter paragraph.
+    <div style={palette} className="bg-background h-full min-h-0 overflow-y-auto text-foreground">
+      <div className="mx-auto max-w-2xl px-6 py-8">
+        <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">Vol.24 · Weekly</p>
+        <Reveal>
+          <h2 className="mt-2 font-serif text-3xl font-bold tracking-tight">
+            记事的本质，是让人愿意<span className="text-primary">回头再看</span>
+          </h2>
+        </Reveal>
+        <Separator className="my-6" />
+        <p className="max-w-xl text-sm leading-relaxed first-letter:text-primary first-letter:font-serif first-letter:float-left first-letter:mt-0.5 first-letter:mr-1 first-letter:text-3xl first-letter:font-bold">
+          衬线大标题、纸与墨、刊头细线、一枚强调色。没有卡片墙，也没有渐变地面——那是极光便当的事。
+        </p>
+        <div className="mt-6 flex gap-2">
+          <Badge variant="outline">01 归档</Badge>
+          <Badge variant="outline">02 置顶</Badge>
+          <Badge variant="outline">03 清理</Badge>
+        </div>
       </div>
     </div>
   );

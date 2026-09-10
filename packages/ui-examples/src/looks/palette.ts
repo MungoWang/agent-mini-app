@@ -1,21 +1,25 @@
 import * as React from "react";
 
+import auroraBento from "./themes/aurora-bento.css?raw";
 import deskSplit from "./themes/desk-split.css?raw";
+import editorial from "./themes/editorial.css?raw";
 import glassIsland from "./themes/glass-island.css?raw";
 import signage from "./themes/signage.css?raw";
 import terminal from "./themes/terminal.css?raw";
 
 /**
  * Look fixtures are rendered by the demo host, which paints them with **the host palette**.
- * Three looks carry their own `theme.css` because their identity is the hue (the island's sky,
- * neon signage, phosphor green) — shown under the default 黑白 they collapse into "a page with
+ * Hue-dependent looks carry their own `theme.css` because their identity IS the colour (the
+ * island's sky, the desk's walnut, phosphor green, the aurora, newsprint) — shown under the default 黑白 they collapse into "a page with
  * big text", which is exactly the misreading a PNG preview must not teach.
  *
  * So the fixture applies the look's own palette, read from the same file a facade would ship.
  * The `.css` stays the single source; this only renames the keys.
  */
 const SOURCES: Record<string, string> = {
+  "aurora-bento": auroraBento,
   "desk-split": deskSplit,
+  editorial,
   "glass-island": glassIsland,
   signage,
   terminal,

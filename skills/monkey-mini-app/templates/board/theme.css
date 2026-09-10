@@ -1,0 +1,46 @@
+/* name: 极光便当 */
+/* Look-owned palette: the ground is an aurora, so the hue IS the identity. Light is the
+   indigo-violet field (A1), dark the graphite aurora-green (A2) — the lab picked the best
+   side of each; a palette file has two blocks, so that is legal and reads intentional. */
+:root[data-mode="light"] {
+  --bg: #c9cdf1;
+  --fg: #20213a;
+  --surface: #ffffff;
+  --surface-fg: #20213a;
+  --border: #c2c6e8;
+  --muted: #dfe2f5;
+  --muted-fg: #565a7e;
+  --primary: #6d5ae0;
+  --primary-fg: #ffffff;
+  --secondary: #e2e4f6;
+  --secondary-fg: #20213a;
+  --accent: #e9e3fb;
+  --accent-fg: #20213a;
+  --destructive: #c0392b;
+  --destructive-fg: #ffffff;
+  --ring: #6d5ae0;
+  --input: #c2c6e8;
+  --radius: 16px;
+  --shadow: rgba(35, 30, 90, 0.35);
+}
+:root[data-mode="dark"] {
+  --bg: #0e1512;
+  --fg: #dff2e8;
+  --surface: #141d19;
+  --surface-fg: #dff2e8;
+  --border: #1e2c25;
+  --muted: #101f19;
+  --muted-fg: #6f9784;
+  --primary: #3ee39a;
+  --primary-fg: #06140d;
+  --secondary: #16241d;
+  --secondary-fg: #dff2e8;
+  --accent: #13281f;
+  --accent-fg: #dff2e8;
+  --destructive: #ff6b5e;
+  --destructive-fg: #14060a;
+  --ring: #3ee39a;
+  --input: #1e2c25;
+  --radius: 16px;
+  --shadow: rgba(0, 0, 0, 0.55);
+}

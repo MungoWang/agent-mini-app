@@ -10,6 +10,7 @@ id: `editorial` · grammar: `prose-measure`
 
 **Not:** Monitor walls, dense tables.
 
+**How to copy it:** Paper and ink are the identity: under the default palette this look is just text on white and reads unfinished, so it ships a theme.css (newsprint + vermilion by day, cool night-reading stock + ultramarine by night). Keep the measure near 65ch, use hairlines (`border` / `Separator`) instead of cards, one accent only for links and emphasis, `font-serif` for display, and `first-letter:` for a drop cap. Radius stays small — this look is type and rules, not tiles.
 
 ## Classes (copy literals)
 
@@ -17,6 +18,61 @@ id: `editorial` · grammar: `prose-measure`
 - `kicker`: `text-xs tracking-[0.2em] uppercase text-muted-foreground`
 - `display`: `font-serif text-3xl font-bold tracking-tight`
 
-This look follows the host palette on purpose — no `theme.css`.
+## Palette (optional `theme.css` in the app dir)
+
+This look's identity depends on hue, so it ships a palette. Writing it to `theme.css`
+makes the app use it by default (ThemePop lists it as the row tagged **`本应用`**); the user can still
+pick a host palette. Omit the file to follow the host palette instead.
+
+```css
+/* name: 编辑排版 */
+/* Look-owned palette: paper and ink are the identity — under the default kit palette the
+   page is just text and reads as "unfinished". Light is newsprint with vermilion (E1),
+   dark is cool night-reading stock with ultramarine (E2). Radius is small: this look is
+   rules and type, not cards. */
+:root[data-mode="light"] {
+  --bg: #f6f2e9;
+  --fg: #1c1a16;
+  --surface: #fffdf7;
+  --surface-fg: #1c1a16;
+  --border: #e0d9c9;
+  --muted: #ece5d6;
+  --muted-fg: #6d675c;
+  --primary: #c0402a;
+  --primary-fg: #fff8f5;
+  --secondary: #efe8da;
+  --secondary-fg: #1c1a16;
+  --accent: #f1e9d9;
+  --accent-fg: #1c1a16;
+  --destructive: #8f2d22;
+  --destructive-fg: #fff4f1;
+  --ring: #c0402a;
+  --input: #d9d2c2;
+  --radius: 6px;
+  --shadow: rgba(60, 50, 30, 0.18);
+}
+:root[data-mode="dark"] {
+  --bg: #14161a;
+  --fg: #e8eaee;
+  --surface: #191c22;
+  --surface-fg: #e8eaee;
+  --border: #262a31;
+  --muted: #1d2128;
+  --muted-fg: #9aa0aa;
+  --primary: #7f95f5;
+  --primary-fg: #0f1216;
+  --secondary: #1d2128;
+  --secondary-fg: #e8eaee;
+  --accent: #1a2030;
+  --accent-fg: #e8eaee;
+  --destructive: #ff6b63;
+  --destructive-fg: #14060a;
+  --ring: #7f95f5;
+  --input: #2a2d31;
+  --radius: 6px;
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+```
+
 
 Tokens only — no hex in `ui.tsx`. Light and dark must both read. Optional `data-look` on a root is a recipe, not a platform attribute.

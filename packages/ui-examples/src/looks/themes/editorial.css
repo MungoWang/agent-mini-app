@@ -1,0 +1,47 @@
+/* name: 编辑排版 */
+/* Look-owned palette: paper and ink are the identity — under the default kit palette the
+   page is just text and reads as "unfinished". Light is newsprint with vermilion (E1),
+   dark is cool night-reading stock with ultramarine (E2). Radius is small: this look is
+   rules and type, not cards. */
+:root[data-mode="light"] {
+  --bg: #f6f2e9;
+  --fg: #1c1a16;
+  --surface: #fffdf7;
+  --surface-fg: #1c1a16;
+  --border: #e0d9c9;
+  --muted: #ece5d6;
+  --muted-fg: #6d675c;
+  --primary: #c0402a;
+  --primary-fg: #fff8f5;
+  --secondary: #efe8da;
+  --secondary-fg: #1c1a16;
+  --accent: #f1e9d9;
+  --accent-fg: #1c1a16;
+  --destructive: #8f2d22;
+  --destructive-fg: #fff4f1;
+  --ring: #c0402a;
+  --input: #d9d2c2;
+  --radius: 6px;
+  --shadow: rgba(60, 50, 30, 0.18);
+}
+:root[data-mode="dark"] {
+  --bg: #14161a;
+  --fg: #e8eaee;
+  --surface: #191c22;
+  --surface-fg: #e8eaee;
+  --border: #262a31;
+  --muted: #1d2128;
+  --muted-fg: #9aa0aa;
+  --primary: #7f95f5;
+  --primary-fg: #0f1216;
+  --secondary: #1d2128;
+  --secondary-fg: #e8eaee;
+  --accent: #1a2030;
+  --accent-fg: #e8eaee;
+  --destructive: #ff6b63;
+  --destructive-fg: #14060a;
+  --ring: #7f95f5;
+  --input: #2a2d31;
+  --radius: 6px;
+  --shadow: rgba(0, 0, 0, 0.5);
+}

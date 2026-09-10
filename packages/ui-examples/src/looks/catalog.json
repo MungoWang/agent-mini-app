@@ -37,11 +37,19 @@
       "whenNot": "A lock-screen home. No sky, no poster layer.",
       "grammar": "tessellation",
       "classes": {
-        "root": "grid h-full min-h-0 grid-cols-6 grid-rows-3 gap-1.5 p-1.5 bg-muted",
-        "tile": "rounded-lg bg-card p-3 overflow-hidden",
-        "hero": "col-span-2 row-span-2 bg-foreground text-background p-4 rounded-lg"
+        "root": "mx-auto grid w-full max-w-5xl grid-cols-6 gap-2.5 (spans written out, no sm:)",
+        "tile": "bg-card relative rounded-2xl p-3 overflow-hidden + style={RAISED}",
+        "hero": "bg-foreground text-background col-span-2 row-span-2 rounded-2xl p-4"
       },
-      "defaultFor": ["board"]
+      "defaultFor": ["board"],
+      "theme": "themes/aurora-bento.css",
+      "style": {
+        "ground": "tight radial pools: --primary 92% (top-left), --primary mixed --foreground (top-right), --primary mixed --destructive (bottom) — token-derived, no literals",
+        "RAISED": {
+          "boxShadow": "0 1px 2px color-mix(in oklch, var(--foreground) 14%, transparent), 0 14px 30px -14px var(--shadow)"
+        }
+      },
+      "notes": "A flat `bg-muted` ground turns this into an admin dashboard — the aurora IS the look. Three hue pools mixed out of the palette's own primary (toward --foreground for depth, toward --destructive for a warm drift) so no colour literal appears in ui.tsx, and they stay TIGHT (40-50% radii) so they read as light sources rather than a wallpaper wash. Cap the grid (`max-w-5xl mx-auto`) and gap it: an edge-to-edge tile wall hides the field, and the field is the look. Write spans out (`col-span-2`), never `sm:col-span-*` — the panel width is user-dragged. Tiles are OPAQUE and raised (contact + lift shadow): translucent tiles would collide with glass-island. The hero tile inverts to `bg-foreground text-background`. Every tile is a destination, never a stat readout. Light and dark may carry different hue families — this look's palette is indigo-violet by day, aurora green by night."
     },
     {
       "id": "desk-split",
@@ -82,7 +90,9 @@
         "kicker": "text-xs tracking-[0.2em] uppercase text-muted-foreground",
         "display": "font-serif text-3xl font-bold tracking-tight"
       },
-      "defaultFor": ["radar"]
+      "defaultFor": ["radar"],
+      "theme": "themes/editorial.css",
+      "notes": "Paper and ink are the identity: under the default palette this look is just text on white and reads unfinished, so it ships a theme.css (newsprint + vermilion by day, cool night-reading stock + ultramarine by night). Keep the measure near 65ch, use hairlines (`border` / `Separator`) instead of cards, one accent only for links and emphasis, `font-serif` for display, and `first-letter:` for a drop cap. Radius stays small — this look is type and rules, not tiles."
     },
     {
       "id": "tape",

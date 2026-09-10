@@ -10,13 +10,79 @@ id: `aurora-bento` · grammar: `tessellation`
 
 **Not:** A lock-screen home. No sky, no poster layer.
 
+**How to copy it:** A flat `bg-muted` ground turns this into an admin dashboard — the aurora IS the look. Three hue pools mixed out of the palette's own primary (toward --foreground for depth, toward --destructive for a warm drift) so no colour literal appears in ui.tsx, and they stay TIGHT (40-50% radii) so they read as light sources rather than a wallpaper wash. Cap the grid (`max-w-5xl mx-auto`) and gap it: an edge-to-edge tile wall hides the field, and the field is the look. Write spans out (`col-span-2`), never `sm:col-span-*` — the panel width is user-dragged. Tiles are OPAQUE and raised (contact + lift shadow): translucent tiles would collide with glass-island. The hero tile inverts to `bg-foreground text-background`. Every tile is a destination, never a stat readout. Light and dark may carry different hue families — this look's palette is indigo-violet by day, aurora green by night.
+
+## Style (inline — Tailwind drops multi-layer shadows)
+
+```tsx
+const GLASS = {
+  "ground": "tight radial pools: --primary 92% (top-left), --primary mixed --foreground (top-right), --primary mixed --destructive (bottom) — token-derived, no literals",
+  "RAISED": {
+    "boxShadow": "0 1px 2px color-mix(in oklch, var(--foreground) 14%, transparent), 0 14px 30px -14px var(--shadow)"
+  }
+} as const;
+```
 
 ## Classes (copy literals)
 
-- `root`: `grid h-full min-h-0 grid-cols-6 grid-rows-3 gap-1.5 p-1.5 bg-muted`
-- `tile`: `rounded-lg bg-card p-3 overflow-hidden`
-- `hero`: `col-span-2 row-span-2 bg-foreground text-background p-4 rounded-lg`
+- `root`: `mx-auto grid w-full max-w-5xl grid-cols-6 gap-2.5 (spans written out, no sm:)`
+- `tile`: `bg-card relative rounded-2xl p-3 overflow-hidden + style={RAISED}`
+- `hero`: `bg-foreground text-background col-span-2 row-span-2 rounded-2xl p-4`
 
-This look follows the host palette on purpose — no `theme.css`.
+## Palette (optional `theme.css` in the app dir)
+
+This look's identity depends on hue, so it ships a palette. Writing it to `theme.css`
+makes the app use it by default (ThemePop lists it as the row tagged **`本应用`**); the user can still
+pick a host palette. Omit the file to follow the host palette instead.
+
+```css
+/* name: 极光便当 */
+/* Look-owned palette: the ground is an aurora, so the hue IS the identity. Light is the
+   indigo-violet field (A1), dark the graphite aurora-green (A2) — the lab picked the best
+   side of each; a palette file has two blocks, so that is legal and reads intentional. */
+:root[data-mode="light"] {
+  --bg: #c9cdf1;
+  --fg: #20213a;
+  --surface: #ffffff;
+  --surface-fg: #20213a;
+  --border: #c2c6e8;
+  --muted: #dfe2f5;
+  --muted-fg: #565a7e;
+  --primary: #6d5ae0;
+  --primary-fg: #ffffff;
+  --secondary: #e2e4f6;
+  --secondary-fg: #20213a;
+  --accent: #e9e3fb;
+  --accent-fg: #20213a;
+  --destructive: #c0392b;
+  --destructive-fg: #ffffff;
+  --ring: #6d5ae0;
+  --input: #c2c6e8;
+  --radius: 16px;
+  --shadow: rgba(35, 30, 90, 0.35);
+}
+:root[data-mode="dark"] {
+  --bg: #0e1512;
+  --fg: #dff2e8;
+  --surface: #141d19;
+  --surface-fg: #dff2e8;
+  --border: #1e2c25;
+  --muted: #101f19;
+  --muted-fg: #6f9784;
+  --primary: #3ee39a;
+  --primary-fg: #06140d;
+  --secondary: #16241d;
+  --secondary-fg: #dff2e8;
+  --accent: #13281f;
+  --accent-fg: #dff2e8;
+  --destructive: #ff6b5e;
+  --destructive-fg: #14060a;
+  --ring: #3ee39a;
+  --input: #1e2c25;
+  --radius: 16px;
+  --shadow: rgba(0, 0, 0, 0.55);
+}
+```
+
 
 Tokens only — no hex in `ui.tsx`. Light and dark must both read. Optional `data-look` on a root is a recipe, not a platform attribute.
