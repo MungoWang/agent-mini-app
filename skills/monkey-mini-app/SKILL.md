@@ -158,7 +158,7 @@ export default function Ui() {
 - **Layout is Tailwind** (`flex flex-col gap-3 p-4 grid md:grid-cols-3 w-full space-y-4`)
 - **`cn` is already in the kit** — `import { cn } from "@monkey-mini-app/ui"` (`clsx` + `tailwind-merge`). Prefer it over concatenating class strings.
 - **Tailwind is compiled per app from your source** — variants (`hover:` `group-hover:` `md:`), the default palette (`bg-rose-500`) and arbitrary values (`w-[437px]`) all work, so **do not fall back to inline `style` out of caution**. The one trap: class names must be complete literals — `` `bg-${x}-500` `` generates nothing, silently → **[references/styling.md](references/styling.md)**
-- **Colour is tokens, never hex** — the user's palette rewrites token values under `<html>`, a literal breaks dark mode → **[references/theme.md](references/theme.md)** (generated token table). **Do not invent a theme in `ui.tsx`.** A host-global custom palette (`themes/theme-<id>.css`) only when the user asks — same page, *Custom host theme file*.
+- **Colour is tokens, never hex** — the user's palette rewrites token values under `<html>`, a literal breaks dark mode → **[references/theme.md](references/theme.md)** (generated token table). **Do not invent a theme in `ui.tsx`.** Two escape hatches, both rare: a host-global custom palette (`themes/theme-<id>.css`) when the user asks for a named brand — *Custom host theme file*; or an app-local `theme.css` when the **style itself depends on a hue** (a look the app carries, e.g. neon signage) — *App-local palette*. A plain CRUD/table/settings app ships neither.
 - **`lodash` is a platform module** on UI and backend (`import { groupBy, debounce } from "lodash"`). Prefer it over hand-rolled `groupBy` / `uniqBy` / `pick` / `debounce`. Bare `axios` / `ramda` / `dayjs` still fail.
 - **`motion` is a platform module** (UI only — `import { motion, AnimatePresence } from "motion/react"`). Use it for enter/exit/layout, Tailwind `transition` for a one-property hover, and kit `<Reveal delay={i * 60}>` for a staggered entrance. Custom `@keyframes` are allowed — give them your own name, since keyframe names are global inside the app's document and the platform already defines `spin` / `pulse` / `enter` / `exit` / … → **[references/styling.md](references/styling.md)** *Animation*.
 - **Need a library the platform does not ship** (a real file format, a binary protocol, a vendor SDK): `mini_app_install({ appId, packages: [{ name: "exceljs" }] })`, then `import ExcelJS from "exceljs"` in `main.api.ts`. Order of preference: `ctx.http` → `ctx.bash` / `ctx.tool` → install. Backend only — the UI still gets JSON through `call`.
@@ -194,10 +194,12 @@ export default function Ui() {
   "description": "One line description for the app",
   "version": "0.1.0",
   "entry": "ui.tsx",
-  "theme": { "followsHost": true },
   "acronym": "MA"
 }
 ```
+
+There is **no theme block**. Colour comes from the host palette unless the app ships its own
+`theme.css` — see [references/theme.md](references/theme.md) → *App-local palette*.
 
 Product strings (`name`, `description`, every label the user sees) follow the **host locale** — the shipped host defaults to Chinese, so the samples are Chinese. Instructions and comments stay English.
 

@@ -24,7 +24,13 @@
     "currentApp": "当前小程序",
     "openAppFirst": "打开小程序后可用",
     "saveTo": "保存到「{{name}}」",
-    "followGlobal": "跟随全局（清除本应用主题）"
+    "followGlobal": "跟随全局",
+    "apply": "应用到",
+    "appearance": "外观",
+    "palettes": "色板",
+    "chipSystem": "系统",
+    "chipApp": "本应用",
+    "resetApp": "恢复该应用默认"
   },
   "palette": {
     "default": "默认",

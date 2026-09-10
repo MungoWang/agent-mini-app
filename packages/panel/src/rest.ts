@@ -14,6 +14,7 @@ import type {
   PanelHost as PanelHostIF,
   UpdateCheck,
 } from "./panel-host.ts";
+import { LOCAL_PALETTE_ID, parseThemeCss, themeLabelFromCss } from "./themes.ts";
 import type {
   AppItem,
   CardStyle,
@@ -228,6 +229,17 @@ export function subscribeHostEvents(origin: string, handlers: HostEventHandlers)
   };
 }
 
+function parseLocalPalette(css: unknown): AppItem["localPalette"] {
+  if (typeof css !== "string" || !css.trim()) return null;
+  const tokens = parseThemeCss(css, LOCAL_PALETTE_ID);
+  if (!tokens) return null;
+  return {
+    label: themeLabelFromCss(css, LOCAL_PALETTE_ID),
+    swatch: tokens.dark.primary || tokens.light.primary,
+    tokens,
+  };
+}
+
 function parseAppTheme(raw: unknown): AppItem["theme"] {
   if (raw === null) return null;
   if (!isRecord(raw)) return undefined;
@@ -277,6 +289,7 @@ export function parseAppsResponse(raw: unknown): AppItem[] {
       commits: typeof item.commits === "number" ? item.commits : undefined,
       version: typeof item.version === "string" ? item.version : undefined,
       theme: parseAppTheme(item.theme),
+      localPalette: parseLocalPalette(item.localThemeCss),
     });
   }
   return out;

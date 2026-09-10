@@ -1,3 +1,5 @@
+import type { TokenSet } from "./themes.ts";
+
 export const LOCALE_IDS = ["zh-CN", "en"] as const;
 export type LocaleId = (typeof LOCALE_IDS)[number];
 
@@ -9,6 +11,12 @@ export type AppItem = {
   commits?: number;
   version?: string;
   theme?: { theme: string; palette: string } | null;
+  /** Parsed from the app's `theme.css` when present. */
+  localPalette?: {
+    label: string;
+    swatch: string;
+    tokens: { light: TokenSet; dark: TokenSet };
+  } | null;
 };
 
 export type TabKind = "all" | "app";

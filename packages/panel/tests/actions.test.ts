@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  activeAppFrom,
   capabilitiesOf,
   clampPaletteId,
   createPanelActions,
@@ -74,6 +75,16 @@ describe("createPanelActions + FakePanelHost", () => {
     expect(getPanelState().tabs.some((t) => t.id === "app:com.example.todo")).toBe(false);
   });
 
+  it("activeAppFrom is null on the list tab even if an app tab is still open", () => {
+    const { actions } = actionsFor();
+    actions.openAppTab(todo);
+    setPanelState({ themeScope: "app" });
+    expect(activeAppFrom(getPanelState())?.id).toBe("com.example.todo");
+    actions.switchTab("all");
+    expect(activeAppFrom(getPanelState())).toBeNull();
+    expect(getPanelState().themeScope).toBe("global");
+  });
+
   it("does not close the all tab", () => {
     const { actions } = actionsFor();
     actions.closeTab("all");
@@ -106,22 +117,37 @@ describe("createPanelActions + FakePanelHost", () => {
     expect(host.calls.syncEnv).toBe(1);
   });
 
-  it("setAppearance with app scope saves per-app theme and syncs frames", async () => {
+  it("setAppearance with app scope saves per-app theme and does not rewrite global prefs", async () => {
     const host = createFakePanelHost({ apps: [todo], withAppTheme: true });
     const { actions } = actionsFor(host);
     actions.openAppTab(todo);
-    actions.setAppearance({ theme: "dark" }, "app");
+    actions.setAppearance({ theme: "dark", palette: "tokyo" }, "app");
     await flush();
     expect(host.calls.appThemeSave).toEqual([
-      { appId: "com.example.todo", theme: "dark", palette: "default" },
+      { appId: "com.example.todo", theme: "dark", palette: "tokyo" },
     ]);
-    expect(getPanelState().apps[0]?.theme).toEqual({ theme: "dark", palette: "default" });
+    expect(host.calls.persistTheme).toEqual([]);
+    expect(getPanelState().theme).toBe("light");
+    expect(getPanelState().palette).toBe("default");
+    expect(getPanelState().apps[0]?.theme).toEqual({ theme: "dark", palette: "tokyo" });
     expect(host.calls.syncEnv).toBe(1);
     actions.clearAppTheme();
     await flush();
     expect(host.calls.appThemeClear).toEqual(["com.example.todo"]);
     expect(getPanelState().apps[0]?.theme).toBeNull();
     expect(host.calls.syncEnv).toBe(2);
+  });
+
+  it("setAppearance with app scope can store follow-system", async () => {
+    const host = createFakePanelHost({ apps: [todo], withAppTheme: true });
+    const { actions } = actionsFor(host);
+    actions.openAppTab(todo);
+    actions.setAppearance({ theme: "system", palette: "tokyo" }, "app");
+    await flush();
+    expect(host.calls.appThemeSave).toEqual([
+      { appId: "com.example.todo", theme: "system", palette: "tokyo" },
+    ]);
+    expect(getPanelState().apps[0]?.theme).toEqual({ theme: "system", palette: "tokyo" });
   });
 
   it("toggleSettings loads config; saveHostConfig writes i18n saved message", async () => {

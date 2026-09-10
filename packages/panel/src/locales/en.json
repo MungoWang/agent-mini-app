@@ -24,7 +24,13 @@
     "currentApp": "Current app",
     "openAppFirst": "Open an app first",
     "saveTo": "Save to \"{{name}}\"",
-    "followGlobal": "Follow global (clear app theme)"
+    "followGlobal": "Follow global",
+    "apply": "Apply to",
+    "appearance": "Appearance",
+    "palettes": "Palette",
+    "chipSystem": "System",
+    "chipApp": "This app",
+    "resetApp": "Restore this app default"
   },
   "palette": {
     "default": "Default",

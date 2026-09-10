@@ -1,19 +1,23 @@
 import { defaultHideThemePop } from "../actions.ts";
 import { usePanelActions, usePanelI18n } from "../context.tsx";
 import { usePanelState } from "../store.ts";
-import { PALETTES } from "../themes.ts";
+import { GLOBAL_PALETTE_ID, LOCAL_PALETTE_ID, PALETTES, selectedPalette } from "../themes.ts";
 
 export function ThemePop() {
   const s = usePanelState();
   const actions = usePanelActions();
   const { t } = usePanelI18n();
   const app = actions.getActiveApp();
-  const appTheme = app ? app.theme : null;
+  const appScope = Boolean(app) && s.themeScope === "app";
+  const viewTheme = appScope ? (app?.theme?.theme ?? s.theme) : s.theme;
+  const viewPalette = appScope
+    ? selectedPalette(app?.theme?.palette, Boolean(app?.localPalette))
+    : s.palette;
   const customs = s.customPalettes || {};
+  const canApp = Boolean(app && s.capabilities.appTheme);
 
   return (
     <>
-      {/* Covers panel + iframe; parent document listeners miss iframe clicks. */}
       {s.themePopOpen ? (
         <div
           className="mma-pop-scrim"
@@ -33,77 +37,115 @@ export function ThemePop() {
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
-      <div className="mma-pop-seg">
-        {(["system", "light", "dark"] as const).map((mode) => (
+        <div className="mma-pop-lab">{t("theme.apply")}</div>
+        <div className="mma-pop-seg">
           <button
-            key={mode}
             type="button"
-            data-mode={mode}
-            data-on={s.theme === mode ? "1" : "0"}
-            onClick={() => actions.setAppearance({ theme: mode }, s.themeScope)}
+            data-scope="global"
+            data-on={s.themeScope === "global" ? "1" : "0"}
+            onClick={() => actions.setThemeScope("global")}
           >
-            {t(`theme.${mode}`)}
+            {t("theme.global")}
           </button>
-        ))}
-      </div>
-      <div className="mma-pop-list">
-        {PALETTES.map((p) => (
           <button
-            key={p.id}
             type="button"
-            className="mma-swatch"
-            data-palette={p.id}
-            role="menuitem"
-            data-on={s.palette === p.id ? "1" : "0"}
-            onClick={() => actions.setAppearance({ palette: p.id }, s.themeScope)}
+            data-scope="app"
+            id="mma-scope-app"
+            title={app ? t("theme.saveTo", { name: app.name }) : t("theme.openAppFirst")}
+            data-on={appScope ? "1" : "0"}
+            disabled={!canApp}
+            onClick={() => actions.setThemeScope("app")}
           >
-            <i className="mma-dot" style={{ background: p.swatch }} />
-            <span>{t(`palette.${p.id}`)}</span>
+            {app ? app.name : t("theme.currentApp")}
           </button>
-        ))}
-        {Object.keys(customs).map((id) => (
+        </div>
+
+        <div className="mma-pop-lab">{t("theme.appearance")}</div>
+        <div className="mma-pop-seg">
+          {(["system", "light", "dark"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              data-mode={mode}
+              data-on={viewTheme === mode ? "1" : "0"}
+              onClick={() => actions.setAppearance({ theme: mode }, s.themeScope)}
+            >
+              {t(`theme.${mode}`)}
+            </button>
+          ))}
+        </div>
+
+        <div className="mma-pop-lab">{t("theme.palettes")}</div>
+        <div className="mma-pop-list">
+          {appScope ? (
+            <button
+              type="button"
+              className="mma-swatch"
+              id="mma-follow-global"
+              data-on={viewPalette === GLOBAL_PALETTE_ID ? "1" : "0"}
+              role="menuitem"
+              onClick={() => actions.setAppearance({ palette: GLOBAL_PALETTE_ID }, "app")}
+            >
+              <i className="mma-dot" style={{ background: "linear-gradient(135deg,#888,#ddd)" }} />
+              <span>{t("theme.followGlobal")}</span>
+            </button>
+          ) : null}
+          {PALETTES.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="mma-swatch"
+              data-palette={p.id}
+              role="menuitem"
+              data-on={viewPalette === p.id ? "1" : "0"}
+              onClick={() => actions.setAppearance({ palette: p.id }, s.themeScope)}
+            >
+              <i className="mma-dot" style={{ background: p.swatch }} />
+              <span>{t(`palette.${p.id}`)}</span>
+              <i className="mma-custom-badge">{t("theme.chipSystem")}</i>
+            </button>
+          ))}
+          {Object.keys(customs).map((id) => (
+            <button
+              key={id}
+              type="button"
+              className="mma-swatch"
+              data-palette={id}
+              data-custom="1"
+              role="menuitem"
+              data-on={viewPalette === id ? "1" : "0"}
+              onClick={() => actions.setAppearance({ palette: id }, s.themeScope)}
+            >
+              <i className="mma-dot" style={{ background: customs[id].swatch || "#888" }} />
+              <span>{customs[id].label || id}</span>
+              <i className="mma-custom-badge">{t("theme.custom")}</i>
+            </button>
+          ))}
+          {appScope && app?.localPalette ? (
+            <button
+              type="button"
+              className="mma-swatch"
+              data-palette={LOCAL_PALETTE_ID}
+              role="menuitem"
+              data-on={viewPalette === LOCAL_PALETTE_ID ? "1" : "0"}
+              onClick={() => actions.setAppearance({ palette: LOCAL_PALETTE_ID }, "app")}
+            >
+              <i className="mma-dot" style={{ background: app.localPalette.swatch }} />
+              <span>{app.localPalette.label}</span>
+              <i className="mma-custom-badge">{t("theme.chipApp")}</i>
+            </button>
+          ) : null}
+        </div>
+        {appScope && app?.theme ? (
           <button
-            key={id}
             type="button"
-            className="mma-swatch"
-            data-palette={id}
-            data-custom="1"
-            role="menuitem"
-            data-on={s.palette === id ? "1" : "0"}
-            onClick={() => actions.setAppearance({ palette: id }, s.themeScope)}
+            className="mma-textbtn"
+            id="mma-reset-app-theme"
+            onClick={() => actions.clearAppTheme()}
           >
-            <i className="mma-dot" style={{ background: customs[id].swatch || "#888" }} />
-            <span>{customs[id].label || id}</span>
-            <i className="mma-custom-badge">{t("theme.custom")}</i>
+            {t("theme.resetApp")}
           </button>
-        ))}
-      </div>
-      <div className="mma-pop-seg mma-scope-seg">
-        <button
-          type="button"
-          data-scope="global"
-          data-on={s.themeScope === "global" ? "1" : "0"}
-          onClick={() => actions.setThemeScope("global")}
-        >
-          {t("theme.global")}
-        </button>
-        <button
-          type="button"
-          data-scope="app"
-          id="mma-scope-app"
-          title={app ? t("theme.saveTo", { name: app.name }) : t("theme.openAppFirst")}
-          data-on={s.themeScope === "app" ? "1" : "0"}
-          disabled={!app || !s.capabilities.appTheme}
-          onClick={() => actions.setThemeScope("app")}
-        >
-          {app ? app.name : t("theme.currentApp")}
-        </button>
-      </div>
-      {s.themeScope === "app" && appTheme ? (
-        <button type="button" className="mma-textbtn" id="mma-clear-app-theme" onClick={() => actions.clearAppTheme()}>
-          {t("theme.followGlobal")}
-        </button>
-      ) : null}
+        ) : null}
       </div>
     </>
   );

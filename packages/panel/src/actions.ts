@@ -3,13 +3,11 @@ import type { PanelHost } from "./panel-host.ts";
 import { capabilitiesOf } from "./panel-host.ts";
 import { isHostUnreachable } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
-import { applyThemeTo, clampPalette, type CustomPaletteMap, resolveMode } from "./themes.ts";
+import { applyThemeTo, clampPalette, type CustomPaletteMap } from "./themes.ts";
 import type { AppItem, CardStyle, DockId, PanelActions, PanelState, TabItem } from "./types.ts";
 
 export function activeAppFrom(state: PanelState): AppItem | null {
-  const tab =
-    state.tabs.find((t) => t.kind === "app" && t.id === state.active) ||
-    state.tabs.find((t) => t.kind === "app");
+  const tab = state.tabs.find((t) => t.kind === "app" && t.id === state.active);
   return tab?.app ?? null;
 }
 
@@ -65,13 +63,17 @@ export function createPanelActions(
       setPanelState({
         tabs: s.tabs.filter((t) => t.id !== id),
         active: s.active === id ? "all" : s.active,
+        ...(s.active === id ? { themeScope: "global" as const } : {}),
       });
       if (tab?.app) host.frame.unmount(tab.app.id);
     },
     switchTab: (id) => {
-      setPanelState({ active: id });
       const s = getPanelState();
       const tab = s.tabs.find((t) => t.id === id && t.kind === "app");
+      setPanelState({
+        active: id,
+        ...(!tab?.app ? { themeScope: "global" as const } : {}),
+      });
       if (tab?.app) host.frame.mount(tab.app.id);
     },
     setDock: (next: DockId) => {
@@ -90,35 +92,33 @@ export function createPanelActions(
     },
     setAppearance: (next, scope) => {
       const s = getPanelState();
-      const theme = next.theme ? String(next.theme) : s.theme;
-      const palette = next.palette ? String(next.palette) : s.palette;
-      const resolved = resolveMode(theme);
-      setPanelState({ theme, palette });
-      const root = getRootEl();
-      if (root) {
-        applyThemeTo(root, theme, palette, asCustomPalettes(s.customPalettes));
-      }
       if (scope === "app") {
-        const app = activeAppFrom(getPanelState());
+        const app = activeAppFrom(s);
         if (app && host.appTheme) {
-          // App themes are concrete light/dark — resolve system first.
-          const nextTheme = { theme: resolved, palette };
+          const base = app.theme ?? { theme: s.theme, palette: s.palette };
+          const nextTheme = {
+            theme: next.theme ? String(next.theme) : base.theme,
+            palette: next.palette ? String(next.palette) : base.palette,
+          };
           host.appTheme.save(app.id, nextTheme).catch(() => {});
           const cur = getPanelState();
+          const patchApp = (a: AppItem): AppItem => (a.id === app.id ? { ...a, theme: nextTheme } : a);
           setPanelState({
             apps: cur.apps.some((a) => a.id === app.id)
-              ? cur.apps.map((a) => (a.id === app.id ? { ...a, theme: nextTheme } : a))
+              ? cur.apps.map(patchApp)
               : [...cur.apps, { ...app, theme: nextTheme }],
-            tabs: cur.tabs.map((t) =>
-              t.app?.id === app.id ? { ...t, app: { ...t.app, theme: nextTheme } } : t,
-            ),
+            tabs: cur.tabs.map((t) => (t.app?.id === app.id ? { ...t, app: { ...t.app, theme: nextTheme } } : t)),
           });
         }
       } else {
-        // Persist the **preference** (may be "system") everywhere: host.json, localStorage
-        // and the iframe env all take it as-is, and the runner resolves "system" to a
-        // concrete mode. Storing the resolved value here is what made "follow system"
-        // come back as a fixed light/dark on the next open.
+        const theme = next.theme ? String(next.theme) : s.theme;
+        const palette = next.palette ? String(next.palette) : s.palette;
+        setPanelState({ theme, palette });
+        const root = getRootEl();
+        if (root) {
+          applyThemeTo(root, theme, palette, asCustomPalettes(s.customPalettes));
+        }
+        // Persist the **preference** (may be "system") — do not store the resolved mode.
         host.persistTheme?.(theme, palette);
       }
       host.frame.syncEnv?.();

@@ -4,8 +4,10 @@ import path from "node:path";
 
 export type AppTheme = { theme: string; palette: string };
 
-function clampMode(theme: unknown): "light" | "dark" {
-  return theme === "dark" ? "dark" : "light";
+/** Per-app override may follow the OS, same as the host preference. */
+function clampMode(theme: unknown): "light" | "dark" | "system" {
+  if (theme === "dark" || theme === "system") return theme;
+  return "light";
 }
 
 export function appThemeFile(dir: string): string {

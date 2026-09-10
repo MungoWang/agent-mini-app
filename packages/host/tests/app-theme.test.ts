@@ -28,6 +28,15 @@ describe("app theme.json", () => {
     expect(readAppTheme(dir)).toEqual({ theme: "dark", palette: "ocean" });
   });
 
+  it("round-trips follow-system as a stored preference", () => {
+    const dir = tmpDir();
+    expect(writeAppTheme(dir, { theme: "system", palette: "tokyo" })).toEqual({
+      theme: "system",
+      palette: "tokyo",
+    });
+    expect(readAppTheme(dir)).toEqual({ theme: "system", palette: "tokyo" });
+  });
+
   it("clamps an unknown mode to light and a non-string palette to default", () => {
     const dir = tmpDir();
     const written = writeAppTheme(dir, {

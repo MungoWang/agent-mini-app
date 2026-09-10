@@ -24,7 +24,6 @@ describe("parseManifest", () => {
       description: undefined,
       permissions: [],
       acronym: undefined,
-      theme: undefined,
     });
   });
 
@@ -34,18 +33,18 @@ describe("parseManifest", () => {
         description: "d",
         acronym: "DB",
         permissions: ["http", 7, null, "bash"],
-        theme: { followsHost: false },
       }),
     );
     expect(m.description).toBe("d");
     expect(m.acronym).toBe("DB");
     expect(m.permissions).toEqual(["http", "bash"]);
-    expect(m.theme).toEqual({ followsHost: false });
   });
 
-  it("ignores a malformed theme block instead of failing the app", () => {
-    expect(parseManifest(manifestJson({ theme: { followsHost: "yes" } })).theme).toBeUndefined();
-    expect(parseManifest(manifestJson({ theme: "dark" })).theme).toBeUndefined();
+  it("ignores unknown keys instead of failing the app", () => {
+    const m = parseManifest(manifestJson({ futureThing: { enabled: true }, note: "x" }));
+    expect(m).not.toHaveProperty("futureThing");
+    expect(m).not.toHaveProperty("note");
+    expect(m.id).toBe("com.example.todo");
   });
 
   it("rejects invalid JSON, non-objects and bad ids", () => {

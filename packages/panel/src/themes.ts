@@ -1,3 +1,37 @@
+/** Reserved palette id for an app's own `theme.css` (shown only in app scope). */
+export const LOCAL_PALETTE_ID = "__local__";
+/** Reserved palette id meaning "ignore any `theme.css`, use the host palette". */
+export const GLOBAL_PALETTE_ID = "__global__";
+
+/**
+ * Which palette an app actually renders with.
+ *
+ * An explicit user pick wins. With no pick, a shipped `theme.css` wins — that is what lets a
+ * facade carry its own look. `__global__` is the pick for "ignore the file": deleting
+ * `theme.json` would land back on the file, so "follow global" has to be stored, not cleared.
+ */
+export function effectivePalette(
+  stored: string | null | undefined,
+  hasLocalTheme: boolean,
+  hostPalette: string,
+): string {
+  if (stored && stored !== GLOBAL_PALETTE_ID) return stored;
+  if (!stored && hasLocalTheme) return LOCAL_PALETTE_ID;
+  return hostPalette;
+}
+
+/**
+ * What ThemePop ticks. Not the same as `effectivePalette`: following the host is one row, not a
+ * tick on whichever host palette happens to be selected — otherwise "inherit" and "pinned to
+ * 东京夜" would look identical.
+ */
+export function selectedPalette(
+  stored: string | null | undefined,
+  hasLocalTheme: boolean,
+): string {
+  return stored ?? (hasLocalTheme ? LOCAL_PALETTE_ID : GLOBAL_PALETTE_ID);
+}
+
 export type PaletteId =
   | "default"
   | "tokyo"

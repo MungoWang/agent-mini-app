@@ -178,3 +178,19 @@ Skeleton (fill values; do not ship this empty file):
   --shadow: ;
 }
 ```
+
+## App-local palette (theme.css)
+
+A mini-app may ship its own palette: `theme.css` **in the app directory** (unlike the host-global file above, `mini_app_edit` / `mini_app_write` can write it).
+
+**Only when the style depends on the hue** — a look the app carries (a neon signage surface, a glass island whose sky is part of the layout). A plain CRUD / table / settings app must NOT ship one: it should follow whatever palette the user picked. The manifest has no theme block; the file's presence is the whole decision.
+
+Same contract as the host-global file: short keys, both `:root[data-mode]` blocks, a `/* name: … */` header. ui.tsx still never contains a colour literal.
+
+Behaviour in the panel:
+
+- With the file present the app uses it by default; the theme pop lists it under the current app, tagged **`本应用`**.
+- The user can pick a host palette (or **`跟随全局`**) for that app; that is stored per app and does not delete the file.
+- Light / dark still follows the host — the file carries both densities.
+
+Reuse the skeleton from *Custom host theme file* above verbatim — same keys, same two blocks — and write it to `<appDir>/theme.css`.

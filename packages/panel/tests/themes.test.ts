@@ -4,8 +4,12 @@ import { describe, expect, it } from "vitest";
 import {
   applyThemeTo,
   clampPalette,
+  effectivePalette,
+  GLOBAL_PALETTE_ID,
+  LOCAL_PALETTE_ID,
   parseThemeCss,
   runnerThemeCss,
+  selectedPalette,
   themeLabelFromCss,
   tokensOf,
 } from "@monkey-mini-app/panel";
@@ -93,6 +97,31 @@ describe("themes", () => {
     expect(el.getAttribute("data-theme")).toBe("dark");
     expect(el.getAttribute("data-palette")).toBe("tokyo");
     expect(el.style.getPropertyValue("--primary")).toBe("#7aa2f7");
+  });
+});
+
+describe("per-app palette resolution", () => {
+  it("ships its own palette by default when theme.css exists", () => {
+    expect(effectivePalette(undefined, true, "tokyo")).toBe(LOCAL_PALETTE_ID);
+  });
+
+  it("follows the host when there is no theme.css and no pick", () => {
+    expect(effectivePalette(undefined, false, "tokyo")).toBe("tokyo");
+  });
+
+  it("跟随全局 is stored, not cleared — clearing would land back on the file", () => {
+    expect(effectivePalette(GLOBAL_PALETTE_ID, true, "matcha")).toBe("matcha");
+  });
+
+  it("an explicit host palette beats the app's theme.css", () => {
+    expect(effectivePalette("forest", true, "tokyo")).toBe("forest");
+  });
+
+  it("the ticked row is the pick, never the inherited host palette", () => {
+    expect(selectedPalette(undefined, true)).toBe(LOCAL_PALETTE_ID);
+    expect(selectedPalette(undefined, false)).toBe(GLOBAL_PALETTE_ID);
+    expect(selectedPalette(GLOBAL_PALETTE_ID, true)).toBe(GLOBAL_PALETTE_ID);
+    expect(selectedPalette("forest", true)).toBe("forest");
   });
 });
 

@@ -438,7 +438,18 @@ export class HttpGateway {
 
     app.get("/api/apps", async (c) => {
       const apps = await this.apps.list();
-      return c.json({ apps });
+      return c.json({
+        apps: apps.map((a) => {
+          const dir = this.apps.dirOf(a.id);
+          let localThemeCss: string | null = null;
+          try {
+            localThemeCss = fs.readFileSync(path.join(dir, "theme.css"), "utf8");
+          } catch {
+            localThemeCss = null;
+          }
+          return { ...a, theme: readAppTheme(dir), localThemeCss };
+        }),
+      });
     });
 
     /** Custom palettes only; builtins live in panel. */

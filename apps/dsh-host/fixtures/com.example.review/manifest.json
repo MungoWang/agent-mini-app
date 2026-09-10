@@ -4,6 +4,5 @@
   "description": "编辑 → diff → 用例表格，改完写回",
   "version": "0.1.0",
   "entry": "ui.tsx",
-  "theme": { "followsHost": true },
   "acronym": "XF"
 }

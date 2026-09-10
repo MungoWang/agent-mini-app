@@ -9,7 +9,6 @@ export type AppManifest = {
   description?: string;
   permissions: string[];
   acronym?: string;
-  theme?: { followsHost?: boolean };
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -46,11 +45,6 @@ export function parseManifest(raw: string): AppManifest {
     : [];
   const description = typeof parsed.description === "string" ? parsed.description : undefined;
   const acronym = typeof parsed.acronym === "string" ? parsed.acronym : undefined;
-  const themeRaw = parsed.theme;
-  const theme =
-    isRecord(themeRaw) && typeof themeRaw.followsHost === "boolean"
-      ? { followsHost: themeRaw.followsHost }
-      : undefined;
   return {
     id,
     name: requireString(parsed, "name"),
@@ -59,7 +53,6 @@ export function parseManifest(raw: string): AppManifest {
     description,
     permissions,
     acronym,
-    theme,
   };
 }
 

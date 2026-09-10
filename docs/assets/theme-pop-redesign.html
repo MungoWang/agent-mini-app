@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Theme pop redesign — interactive</title>
+  <style>
+    :root {
+      --pop: #2a2c31; --line: #3a3d44; --fg: #f2f3f5; --muted: #9aa0a6; --on: #3d4048; --accent: #6ea8ff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.45 ui-sans-serif, system-ui, sans-serif; background: #0e0f12; color: var(--fg); }
+    .page { max-width: 1120px; margin: 0 auto; padding: 28px 20px 80px; }
+    h1 { font-size: 22px; font-weight: 650; margin: 0 0 6px; }
+    .lede { color: var(--muted); max-width: 48rem; margin-bottom: 18px; }
+    .kicker { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+    .row { display: grid; grid-template-columns: 340px 1fr; gap: 28px; align-items: start; }
+    @media (max-width: 860px) { .row { grid-template-columns: 1fr; } }
+    .stage { background: #111214; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; min-height: 440px; display: flex; flex-direction: column; }
+    .topbar { display: flex; justify-content: flex-end; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+    .iconbtn { width: 32px; height: 32px; border-radius: 8px; border: 0; background: #22242a; color: var(--fg); cursor: pointer; }
+    .iconbtn[data-open="1"] { background: #3a3d44; }
+    .body { display: flex; flex: 1; min-height: 0; }
+    .rail { width: 52px; border-right: 1px solid var(--line); background: #16171b; }
+    .canvas { flex: 1; margin: 16px; border-radius: 12px; padding: 22px 20px; border: 1px solid color-mix(in srgb, var(--c-fg) 12%, transparent); background: var(--c-bg); color: var(--c-fg); transition: background .2s, color .2s; }
+    .canvas h2 { margin: 0 0 6px; font-size: 20px; }
+    .canvas p { margin: 0; opacity: .72; font-size: 13px; }
+    .chip { display: inline-block; margin-top: 12px; font-size: 11px; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--c-fg) 10%, transparent); }
+    .pop { position: absolute; right: 12px; top: 46px; width: 264px; background: var(--pop); border: 1px solid var(--line); border-radius: 14px; padding: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.45); z-index: 5; color-scheme: dark; }
+    .pop[hidden] { display: none; }
+    .popwrap { position: relative; }
+    .lab { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 8px 4px 6px; }
+    .seg { display: flex; background: #1f2126; border-radius: 10px; padding: 3px; gap: 2px; }
+    .seg button, .list button { border: 0; background: transparent; color: var(--fg); cursor: pointer; font: inherit; }
+    .seg button { flex: 1; padding: 6px 0; border-radius: 8px; font-size: 12px; }
+    .seg button[data-on="1"] { background: var(--on); }
+    .hint { font-size: 11px; color: var(--muted); padding: 6px 6px 0; }
+    .list { max-height: 220px; overflow: auto; margin-top: 4px; scrollbar-width: thin; scrollbar-color: #5c616a transparent; }
+    .list::-webkit-scrollbar { width: 8px; }
+    .list::-webkit-scrollbar-track { background: transparent; }
+    .list::-webkit-scrollbar-thumb { background: #5c616a; border-radius: 99px; }
+    .list button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 8px; border-radius: 8px; text-align: left; font-size: 13px; }
+    .list button[data-on="1"] { background: var(--on); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .tag { margin-left: auto; font-size: 10px; line-height: 1; padding: 3px 6px; border-radius: 999px; background: #3d4048; color: #c8ccd2; }
+    .scenes { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 14px; }
+    .scenes button { border: 1px solid var(--line); background: #17181c; color: var(--fg); border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 12px; }
+    .scenes button[data-on="1"] { border-color: var(--accent); background: #1a2740; }
+    .story { background: #17181c; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #c5c9ce; }
+    .story h3 { margin: 0 0 6px; color: var(--fg); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="kicker">Interactive mock · not landed</div>
+    <h1>Theme pop v2</h1>
+    <p class="lede">
+      外观永远是「跟随系统 / 浅色 / 深色」，全局和应用两套各自完整。
+      「跟随全局」只出现在应用作用域的色板列表第一项。自带色板也是列表里的一行，chip 标一下。
+    </p>
+    <div class="scenes" id="scenes"></div>
+    <div class="row">
+      <div class="popwrap">
+        <div class="stage">
+          <div class="topbar"><button class="iconbtn" id="gear" type="button">◐</button></div>
+          <div class="body">
+            <div class="rail"></div>
+            <div class="canvas" id="canvas">
+              <h2>今日台子</h2>
+              <p>打开就看见我的一屏</p>
+              <span class="chip" id="badge"></span>
+            </div>
+          </div>
+          <div class="pop" id="pop"></div>
+        </div>
+      </div>
+      <div class="story" id="story"></div>
+    </div>
+  </div>
+  <script>
+    const HOST = [
+      { id: "default", label: "默认", swatch: "#2563eb", bgL: "#f7f7f8", fgL: "#111", bgD: "#0b0b0c", fgD: "#f4f4f5" },
+      { id: "tokyo", label: "东京夜", swatch: "#7aa2f7", bgL: "#d5d6db", fgL: "#343b59", bgD: "#1a1b26", fgD: "#c0caf5" },
+      { id: "forest", label: "苔原", swatch: "#a7c080", bgL: "#e8efe4", fgL: "#2d3a2e", bgD: "#1c241c", fgD: "#d4e0c8" },
+      { id: "matcha", label: "草莓抹茶", swatch: "#ee9aa6", bgL: "#f6ecee", fgL: "#3a2428", bgD: "#24181c", fgD: "#f0d4d8" },
+      { id: "slate", label: "石墨", swatch: "#3f3f46", bgL: "#ececee", fgL: "#18181b", bgD: "#18181b", fgD: "#e4e4e7" },
+    ];
+    const CUSTOM = [
+      { id: "crimson", label: "暗红", swatch: "#c0392b", tag: "自定义", bgL: "#f7f2f1", fgL: "#2b1410", bgD: "#1a0c0b", fgD: "#f6e4e1" },
+      { id: "ocean", label: "海洋", swatch: "#2e7de9", tag: "自定义", bgL: "#eef4fb", fgL: "#102033", bgD: "#0b1220", fgD: "#d7e6f7" },
+      { id: "mist", label: "晨雾", swatch: "#8b9bb4", tag: "自定义", bgL: "#f3f4f7", fgL: "#1c2230", bgD: "#141820", fgD: "#e4e7ee" },
+    ];
+    const OWNED = [
+      { id: "glass-island", label: "玻璃岛屿", swatch: "#8fa9be", tag: "本应用", bgL: "#c5d4e2", fgL: "#1b2833", bgD: "#0d141c", fgD: "#e6eef4" },
+    ];
+    const osDark = matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const state = {
+      open: true,
+      scope: "global",
+      global: { mode: "system", palette: "slate" },
+      app: null, // null = follow global (mode + palette). else { mode, palette }
+    };
+
+    const resolve = (mode) => (mode === "system" ? (osDark ? "dark" : "light") : mode);
+
+    function skin(id) {
+      return HOST.find((p) => p.id === id) || CUSTOM.find((p) => p.id === id) || OWNED.find((p) => p.id === id);
+    }
+
+    function used() {
+      const src = state.app || state.global;
+      const pal = skin(src.palette);
+      const dark = resolve(src.mode) === "dark";
+      return {
+        mode: src.mode,
+        pal,
+        dark,
+        bg: dark ? pal.bgD : pal.bgL,
+        fg: dark ? pal.fgD : pal.fgL,
+        via: state.app ? "应用" : "全局",
+      };
+    }
+
+    function view() {
+      if (state.scope === "global") return state.global;
+      return state.app || { mode: state.global.mode, palette: "follow" };
+    }
+
+    function setScope(scope) {
+      state.scope = scope;
+      draw();
+    }
+
+    function setMode(mode) {
+      if (state.scope === "global") {
+        state.global.mode = mode;
+      } else if (!state.app) {
+        state.app = { mode, palette: state.global.palette };
+      } else {
+        state.app.mode = mode;
+      }
+      draw();
+    }
+
+    function setPalette(id) {
+      if (state.scope === "global") {
+        if (id === "follow") return;
+        state.global.palette = id;
+      } else if (id === "follow") {
+        state.app = null;
+      } else if (!state.app) {
+        state.app = { mode: state.global.mode, palette: id };
+      } else {
+        state.app.palette = id;
+      }
+      draw();
+    }
+
+    function draw() {
+      const u = used();
+      const canvas = document.getElementById("canvas");
+      canvas.style.setProperty("--c-bg", u.bg);
+      canvas.style.setProperty("--c-fg", u.fg);
+      const modeLab = u.mode === "system" ? `跟随系统 · 现${osDark ? "深" : "浅"}` : u.mode === "dark" ? "深色" : "浅色";
+      document.getElementById("badge").textContent = `${u.via} · ${u.pal.label} · ${modeLab}`;
+
+      const v = view();
+      const appScope = state.scope === "app";
+      const palOn = v.palette;
+      const modeOn = v.mode;
+
+      let html = "";
+      html += `<div class="lab">应用到</div>
+        <div class="seg">
+          <button type="button" data-on="${!appScope ? "1" : "0"}" data-act="scope" data-id="global">全局</button>
+          <button type="button" data-on="${appScope ? "1" : "0"}" data-act="scope" data-id="app">今日台子</button>
+        </div>`;
+      html += `<div class="lab">外观</div>
+        <div class="seg">
+          <button type="button" data-on="${modeOn === "system" ? "1" : "0"}" data-act="mode" data-id="system">跟随系统</button>
+          <button type="button" data-on="${modeOn === "light" ? "1" : "0"}" data-act="mode" data-id="light">浅色</button>
+          <button type="button" data-on="${modeOn === "dark" ? "1" : "0"}" data-act="mode" data-id="dark">深色</button>
+        </div>`;
+      html += `<div class="lab">色板</div><div class="list">`;
+      if (appScope) {
+        html += `<button type="button" data-on="${palOn === "follow" ? "1" : "0"}" data-act="pal" data-id="follow">
+          <i class="dot" style="background:linear-gradient(135deg,#666,#ddd)"></i>跟随全局
+        </button>`;
+      }
+      for (const p of HOST) {
+        html += `<button type="button" data-on="${palOn === p.id ? "1" : "0"}" data-act="pal" data-id="${p.id}">
+          <i class="dot" style="background:${p.swatch}"></i>${p.label}<span class="tag">系统</span>
+        </button>`;
+      }
+      for (const p of CUSTOM) {
+        html += `<button type="button" data-on="${palOn === p.id ? "1" : "0"}" data-act="pal" data-id="${p.id}">
+          <i class="dot" style="background:${p.swatch}"></i>${p.label}<span class="tag">${p.tag}</span>
+        </button>`;
+      }
+      if (appScope) {
+        for (const p of OWNED) {
+          html += `<button type="button" data-on="${palOn === p.id ? "1" : "0"}" data-act="pal" data-id="${p.id}">
+            <i class="dot" style="background:${p.swatch}"></i>${p.label}<span class="tag">${p.tag}</span>
+          </button>`;
+        }
+      }
+      html += `</div>`;
+
+      const pop = document.getElementById("pop");
+      pop.innerHTML = html;
+      pop.querySelectorAll("[data-act]").forEach((el) => {
+        el.onclick = () => {
+          const act = el.dataset.act, id = el.dataset.id;
+          if (act === "scope") setScope(id);
+          if (act === "mode") setMode(id);
+          if (act === "pal") setPalette(id);
+        };
+      });
+    }
+
+    document.getElementById("gear").onclick = () => {
+      const pop = document.getElementById("pop");
+      pop.hidden = !pop.hidden;
+      document.getElementById("gear").dataset.open = pop.hidden ? "0" : "1";
+    };
+
+    const SCENES = [
+      {
+        label: "全局 · 跟随系统",
+        apply: () => { state.scope = "global"; state.global = { mode: "system", palette: "slate" }; state.app = null; },
+        title: "全局外观完整",
+        body: "跟随系统 / 浅 / 深 三档都在。色板是宿主那一列。跟随系统时画布按 OS 走，弹层不再多一行解释。",
+      },
+      {
+        label: "切到应用 · 还在跟随",
+        apply: () => { state.scope = "app"; state.global = { mode: "system", palette: "slate" }; state.app = null; },
+        title: "作用域变了，勾也要变",
+        body: "外观仍是三档，此刻显示全局正在用的「跟随系统」（因为应用还没有自己的覆盖）。色板第一项「跟随全局」勾上。在这里改外观或点东京夜，才会写出应用覆盖。",
+      },
+      {
+        label: "应用 · 自己跟随系统 + 东京夜",
+        apply: () => { state.scope = "app"; state.global = { mode: "light", palette: "slate" }; state.app = { mode: "system", palette: "tokyo" }; },
+        title: "应用也可以跟随系统",
+        body: "全局锁浅色+石墨，应用是跟随系统+东京夜。两边外观互不替换。iframe 按 OS 走深浅，色用东京夜。",
+      },
+      {
+        label: "切回全局",
+        apply: () => { state.scope = "global"; state.global = { mode: "light", palette: "slate" }; state.app = { mode: "system", palette: "tokyo" }; },
+        title: "全局勾回来，覆盖还在",
+        body: "弹层立刻显示浅色+石墨。画布仍是应用的东京夜（跟随系统）。没有多余警告——看画布和勾就够。",
+      },
+      {
+        label: "应用点跟随全局",
+        apply: () => { state.scope = "app"; state.global = { mode: "light", palette: "slate" }; state.app = null; },
+        title: "清覆盖",
+        body: "点色板第一项「跟随全局」即清。外观勾回到全局那套。没有第二颗确认按钮。",
+      },
+      {
+        label: "应用 · 自带色板",
+        apply: () => { state.scope = "app"; state.global = { mode: "system", palette: "default" }; state.app = { mode: "system", palette: "glass-island" }; },
+        title: "自带就是列表里一行",
+        body: "「玻璃岛屿」和东京夜排在一起，chip 写本应用。想换就点别的；想跟宿主就点跟随全局。外观三档照常，文件里本来就是 light/dark 一对。",
+      },
+    ];
+
+    const box = document.getElementById("scenes");
+    SCENES.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.textContent = s.label;
+      b.onclick = () => {
+        s.apply();
+        document.getElementById("pop").hidden = false;
+        document.getElementById("gear").dataset.open = "1";
+        [...box.children].forEach((c, j) => { c.dataset.on = j === i ? "1" : "0"; });
+        document.getElementById("story").innerHTML = `<h3>${s.title}</h3><p>${s.body}</p>`;
+        draw();
+      };
+      box.appendChild(b);
+    });
+    box.children[0].click();
+  </script>
+</body>
+</html>

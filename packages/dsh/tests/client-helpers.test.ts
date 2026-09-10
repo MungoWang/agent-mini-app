@@ -90,7 +90,16 @@ describe("apps host / frame url", () => {
 describe("parse helpers", () => {
   it("parseAppsResponse reads { apps }", () => {
     expect(parseAppsResponse({ apps: [{ id: "com.example.todo", name: "Todo" }] })).toEqual([
-      { id: "com.example.todo", name: "Todo", description: undefined, acronym: undefined, commits: undefined, version: undefined, theme: undefined },
+      {
+        id: "com.example.todo",
+        name: "Todo",
+        description: undefined,
+        acronym: undefined,
+        commits: undefined,
+        version: undefined,
+        theme: undefined,
+        localPalette: null,
+      },
     ]);
     expect(parseAppsResponse(null)).toEqual([]);
   });

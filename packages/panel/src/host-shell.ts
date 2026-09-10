@@ -14,7 +14,14 @@ import { createMiniAppPanel, type PanelInstance } from "./panel.tsx";
 import type { PanelHost } from "./panel-host.ts";
 import { appFrameUrl,createRestPanelHost, relayViewEval, subscribeHostEvents } from "./rest.ts";
 import { getPanelState, setPanelState } from "./store.ts";
-import { applyThemeTo, type CustomPaletteMap, resolveMode, themeCssVars } from "./themes.ts";
+import {
+  applyThemeTo,
+  type CustomPaletteMap,
+  effectivePalette,
+  LOCAL_PALETTE_ID,
+  resolveMode,
+  themeCssVars,
+} from "./themes.ts";
 import type { CardStyle, DockId } from "./types.ts";
 
 export type HostShellOptions = {
@@ -129,13 +136,21 @@ export function createHostShell(opts: HostShellOptions): HostShellInstance {
   function envFor(appId: string): { theme: string; palette: string; dock: string; vars: Record<string, string> } {
     const s = getPanelState();
     const app = s.apps.find((a) => a.id === appId);
-    const theme = resolveMode(app?.theme?.theme || s.theme);
-    const palette = app?.theme?.palette || s.palette;
+    const theme = app?.theme?.theme || s.theme;
+    const palette = effectivePalette(app?.theme?.palette, Boolean(app?.localPalette), s.palette);
+    const custom: CustomPaletteMap = { ...(s.customPalettes as CustomPaletteMap) };
+    if (app?.localPalette) {
+      custom[LOCAL_PALETTE_ID] = {
+        label: app.localPalette.label,
+        swatch: app.localPalette.swatch,
+        tokens: app.localPalette.tokens,
+      };
+    }
     return {
       theme,
       palette,
       dock: s.dock,
-      vars: themeCssVars(theme, palette, s.customPalettes as CustomPaletteMap),
+      vars: themeCssVars(resolveMode(theme), palette, custom),
     };
   }
 

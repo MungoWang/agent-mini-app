@@ -158,6 +158,41 @@ function appendCustomThemeFileDoc(lines, fileKeys) {
   lines.push("");
 }
 
+/**
+ * The app-local file is the *same contract* as the host-global one, so it is documented from the
+ * same key list — two tables that must agree would drift the first time a key is added.
+ */
+function appendAppLocalThemeDoc(lines) {
+  lines.push("## App-local palette (theme.css)");
+  lines.push("");
+  lines.push(
+    "A mini-app may ship its own palette: `theme.css` **in the app directory** (unlike the host-global file above, `mini_app_edit` / `mini_app_write` can write it)."
+  );
+  lines.push("");
+  lines.push(
+    "**Only when the style depends on the hue** — a look the app carries (a neon signage surface, a glass island whose sky is part of the layout). A plain CRUD / table / settings app must NOT ship one: it should follow whatever palette the user picked. The manifest has no theme block; the file's presence is the whole decision."
+  );
+  lines.push("");
+  lines.push(
+    "Same contract as the host-global file: short keys, both `:root[data-mode]` blocks, a `/* name: … *\/` header. ui.tsx still never contains a colour literal."
+  );
+  lines.push("");
+  lines.push("Behaviour in the panel:");
+  lines.push("");
+  lines.push(
+    "- With the file present the app uses it by default; the theme pop lists it under the current app, tagged **`本应用`**."
+  );
+  lines.push(
+    "- The user can pick a host palette (or **`跟随全局`**) for that app; that is stored per app and does not delete the file."
+  );
+  lines.push("- Light / dark still follows the host — the file carries both densities.");
+  lines.push("");
+  lines.push(
+    "Reuse the skeleton from *Custom host theme file* above verbatim — same keys, same two blocks — and write it to `<appDir>/theme.css`."
+  );
+  lines.push("");
+}
+
 export function generateThemeDoc() {
   if (!fs.existsSync(cssPath)) {
     console.error(`[gen-theme] missing stylesheet: ${cssPath}`);
@@ -262,6 +297,7 @@ export function generateThemeDoc() {
   );
   lines.push("");
   appendCustomThemeFileDoc(lines, fileKeys);
+  appendAppLocalThemeDoc(lines);
 
   fs.writeFileSync(outPath, lines.join("\n"), "utf8");
   return names.length;
