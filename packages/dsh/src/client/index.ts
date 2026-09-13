@@ -4,6 +4,7 @@ import type { ViewEvalQuery } from "@monkey-mini-app/panel";
 import { defaultHideThemePop, getPanelState, relayViewEval, subscribePanel } from "@monkey-mini-app/panel";
 
 import { installFootCss } from "./css.ts";
+import { readDshClientLocale, resolveClientLocale, subscribeDshClientLocale } from "./locale.ts";
 import { DshShell } from "./shell.ts";
 
 import "./globals.ts";
@@ -19,6 +20,9 @@ type SlotsCtx = {
     inject?: (slot: string, fn: () => unknown) => () => void;
     register?: (meta: { name: string; id: string; order: number }, component: unknown) => unknown;
   };
+  get?: (name: string) => unknown;
+  on?: (event: string, listener: (...args: unknown[]) => void) => unknown;
+  locale?: unknown;
 };
 
 let shell: DshShell | null = null;
@@ -182,8 +186,17 @@ export function apply(ctx: SlotsCtx): () => void {
   const current = getShell();
   // Footer slot renders before the panel opens — install styles on client boot.
   installFootCss();
-  current.bindPanel();
+  const dshLocale = readDshClientLocale(ctx);
+  current.setLocale(resolveClientLocale(ctx), { fromDsh: dshLocale != null });
   const disposers: Array<() => void> = [];
+  try {
+    disposers.push(
+      subscribeDshClientLocale(ctx, (locale) => current.setLocale(locale, { fromDsh: true })),
+    );
+  } catch {
+    /* locale plugin absent — stay on the resolved fallback */
+  }
+  current.bindPanel();
   try {
     if (ctx && ctx.slots && typeof ctx.slots.inject === "function") {
       disposers.push(

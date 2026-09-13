@@ -136,9 +136,17 @@ export {
   UiCompiler,
 } from "./compile/ui-compiler.ts";
 export { bootstrapHostConfig } from "./config/bootstrap.ts";
-export { detectSystemLocale, localeFromLanguageTag } from "./config/detect-locale.ts";
-export type { SystemLocaleSources } from "./config/detect-locale.ts";
 export { DEFAULT_HOST_CONFIG_SEED } from "./config/defaults.ts";
+export type { DshLocaleSources, SystemLocaleSources } from "./config/detect-locale.ts";
+export {
+  defaultDshSettingsPath,
+  detectDshOrSystemLocale,
+  detectSystemLocale,
+  localeFromDshPreference,
+  localeFromLanguageTag,
+  parseDshLocalePreference,
+  readDshLocalePreference,
+} from "./config/detect-locale.ts";
 export { ensureHostConfig } from "./config/ensure.ts";
 export { loadHostConfig } from "./config/load.ts";
 export { parseHostConfig } from "./config/parse.ts";

@@ -2,6 +2,7 @@ import type {
   CustomPaletteMap,
   FrameController,
   FrameEnv,
+  LocaleId,
   PanelHost,
   PanelInstance,
 } from "@monkey-mini-app/panel";
@@ -72,8 +73,10 @@ export class DshShell {
   panel: PanelInstance | null = null;
   private lastDock: DockId | null = null;
   private framesBound = false;
+  /** When true, host.json locale must not overwrite a live dsh language. */
+  private localeFollowsDsh = false;
 
-  constructor() {
+  constructor(opts?: { locale?: LocaleId }) {
     const storage = safeStorage();
     this.origin = resolveAppsOrigin(undefined, storage);
     this.cardStyle = clampCardStyle(storage?.getItem("mma-card-style"));
@@ -84,7 +87,7 @@ export class DshShell {
       envOf: (appId) => this.envFor(appId),
     });
 
-    const locale = detectBrowserLocale();
+    const locale = opts?.locale ?? detectBrowserLocale();
     this.host = createRestPanelHost({
       hostUrl: this.origin,
       getHostUrl: () => this.origin,
@@ -113,6 +116,14 @@ export class DshShell {
         syncEnv: () => this.frames.postEnvAll(),
       },
     });
+  }
+
+  /** Update panel chrome locale + emptyText. `fromDsh` pins follow-mode. */
+  setLocale(locale: LocaleId, opts?: { fromDsh?: boolean }): void {
+    if (opts?.fromDsh) this.localeFollowsDsh = true;
+    this.host.locale = locale;
+    this.host.emptyText = EMPTY_TEXT[locale];
+    setPanelState({ locale, emptyText: EMPTY_TEXT[locale] });
   }
 
   private envFor(appId: string): FrameEnv {
@@ -362,8 +373,8 @@ export class DshShell {
         this.origin = next;
         writeStoredAppsOrigin(safeStorage(), next);
       }
-      if (form.locale === "zh-CN" || form.locale === "en") {
-        this.host.locale = form.locale;
+      if (!this.localeFollowsDsh && (form.locale === "zh-CN" || form.locale === "en")) {
+        this.setLocale(form.locale);
       }
       // Prefer localStorage (written on every switch) so a failed/stale host POST
       // cannot wipe the user's choice on the next sync.

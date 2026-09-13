@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-import { resetPanelState } from "@monkey-mini-app/panel";
+import { getPanelState, resetPanelState } from "@monkey-mini-app/panel";
 
 import { apply, FooterButton, name } from "../src/client/index.ts";
 
@@ -202,6 +202,29 @@ describe("client apply / FooterButton", () => {
       },
     });
     expect(window.__mmaOpenBound).toBe(true);
+    stop();
+  });
+
+  it("follows ctx.locale and locale/change for panel chrome", () => {
+    let active = "en";
+    const listeners: Array<(snap: unknown) => void> = [];
+    const stop = apply({
+      slots: {
+        inject: () => () => undefined,
+        register: () => undefined,
+      },
+      locale: { getLocale: () => ({ active }) },
+      on: (_event: string, fn: (snap: unknown) => void) => {
+        listeners.push(fn);
+        return () => undefined;
+      },
+    } as never);
+    expect(getPanelState().locale).toBe("en");
+    expect(getPanelState().emptyText).toMatch(/No mini apps yet/);
+    active = "zh";
+    listeners[0]?.({ active: "zh" });
+    expect(getPanelState().locale).toBe("zh-CN");
+    expect(getPanelState().emptyText).toMatch(/还没有小程序/);
     stop();
   });
 });

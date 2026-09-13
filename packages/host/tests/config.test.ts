@@ -9,7 +9,7 @@ import {
   asAbsolutePath,
   bootstrapHostConfig,
   DEFAULT_HOST_CONFIG_SEED,
-  detectSystemLocale,
+  detectDshOrSystemLocale,
   ensureHostConfig,
   HostConfigError,
   loadHostConfig,
@@ -144,10 +144,10 @@ describe("parseHostConfig", () => {
 });
 
 describe("bootstrapHostConfig", () => {
-  it("fills theme from the seed and locale from the OS", () => {
+  it("fills theme from the seed and locale from dsh preference (else OS)", () => {
     const dir = mkdtempSync(path.join(tmpdir(), "mma-host-"));
     const cfg = bootstrapHostConfig({ runtimeRoot: dir });
-    const expectedLocale = detectSystemLocale();
+    const expectedLocale = detectDshOrSystemLocale();
     expect(cfg.theme).toBe(DEFAULT_HOST_CONFIG_SEED.theme);
     expect(cfg.locale).toBe(expectedLocale);
     expect(cfg.chatLanguage).toBe(expectedLocale);
@@ -174,11 +174,24 @@ describe("bootstrapHostConfig", () => {
     expect(cfg.llm).toEqual({ provider: "p", model: "m" });
   });
 
-  it("keeps an explicit locale even when chatLanguage falls back to OS detect", () => {
+  it("prefers dsh locale.preference over OS detect when settings.yaml is present", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "mma-host-"));
+    const dsh = mkdtempSync(path.join(tmpdir(), "mma-dsh-"));
+    const settings = path.join(dsh, "settings.yaml");
+    writeFileSync(settings, "locale:\n  preference: zh\n");
+    const cfg = bootstrapHostConfig(
+      { runtimeRoot: dir },
+      { settingsPath: settings, intlLocale: "en-US", env: { LANG: "en_US.UTF-8" } },
+    );
+    expect(cfg.locale).toBe("zh-CN");
+    expect(cfg.chatLanguage).toBe("zh-CN");
+  });
+
+  it("keeps an explicit locale even when chatLanguage falls back to dsh/OS detect", () => {
     const dir = mkdtempSync(path.join(tmpdir(), "mma-host-"));
     const cfg = bootstrapHostConfig({ runtimeRoot: dir, locale: "en" });
     expect(cfg.locale).toBe("en");
-    expect(cfg.chatLanguage).toBe(detectSystemLocale());
+    expect(cfg.chatLanguage).toBe(detectDshOrSystemLocale());
   });
 
   it("expands a seeded home runtimeRoot to an absolute path", () => {
@@ -262,8 +275,8 @@ describe("ensureHostConfig", () => {
     expect(first.wrote).toBe(true);
     const paths = new WorkspacePaths(asAbsolutePath(dir));
     const written = loadHostConfig(paths);
-    expect(written.locale).toBe(detectSystemLocale());
-    expect(written.chatLanguage).toBe(detectSystemLocale());
+    expect(written.locale).toBe(detectDshOrSystemLocale());
+    expect(written.chatLanguage).toBe(detectDshOrSystemLocale());
 
     // Simulate a user who later chose English (or Chinese) explicitly.
     const flipped = written.locale === "en" ? "zh-CN" : "en";

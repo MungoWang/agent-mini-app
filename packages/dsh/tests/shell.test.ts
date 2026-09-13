@@ -163,6 +163,16 @@ describe("DshShell", () => {
   });
 
 
+  it("accepts an injected locale and updates emptyText via setLocale", () => {
+    const zh = new DshShell({ locale: "zh-CN" });
+    expect(zh.host.locale).toBe("zh-CN");
+    expect(zh.host.emptyText).toMatch(/还没有小程序/);
+    zh.setLocale("en");
+    expect(zh.host.locale).toBe("en");
+    expect(zh.host.emptyText).toMatch(/No mini apps yet/);
+    zh.dispose();
+  });
+
   it("uses browser language for initial host locale and emptyText", () => {
     Object.defineProperty(window.navigator, "language", {
       configurable: true,
