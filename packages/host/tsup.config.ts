@@ -14,6 +14,7 @@ export default defineConfig({
     "node:*",
     "@hono/node-server",
     "@monkey-mini-app/ui",
+    "@tailwindcss/cli",
     "diff",
     "esbuild",
     "esbuild-wasm",
@@ -22,5 +23,6 @@ export default defineConfig({
     "isomorphic-git",
     "lodash-es",
     "sucrase",
+    "tailwindcss",
   ],
 });

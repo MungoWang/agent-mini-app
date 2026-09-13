@@ -767,9 +767,10 @@ export class HttpGateway {
       }
     });
 
-    // Per-app stylesheet: the app's own utilities, compiled reliably from a temp copy
-    // of its UI source (Tailwind `@source` a real file — never no-ops on app-only
-    // classes). Falls back to the shared stylesheet.
+    // Per-app stylesheet: the app's own utilities. A compile failure must NOT
+    // substitute the shared kit sheet — that looks "styled" (kit classes work)
+    // while app-only utilities never appear and `.autogen/` is never written.
+    // Shared `/ui.css` still serves the kit base.
     app.get("/api/app/:appId/ui.css", async (c) => {
       const appId = c.req.param("appId");
       const dir = this.apps.dirOf(asAppId(appId));
@@ -777,17 +778,12 @@ export class HttpGateway {
         const css = await this.css.compile(dir);
         return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
       } catch (cause) {
-        try {
-          const css = fs.readFileSync(
-            path.join(resolveUiDistDir(), "globals.css"),
-            "utf8",
-          );
-          return c.body(css, 200, {
-            "Content-Type": "text/css; charset=utf-8",
-          });
-        } catch {
-          return c.text(`app ui.css failed: ${errorMessage(cause)}`, 500);
-        }
+        console.error(`[mma] per-app ui.css compile failed appId=${appId}`, cause);
+        return c.body(
+          `/* app ui.css failed for ${appId}: ${errorMessage(cause)} */\n`,
+          500,
+          { "Content-Type": "text/css; charset=utf-8" },
+        );
       }
     });
 

@@ -16,7 +16,11 @@
  * so we never import it by absolute path (Tailwind v4 strips that to a no-op), which keeps
  * working after publish (the npm package ships `dist/` only).
  *
- * `tailwindcss` is a dependency of `@monkey-mini-app/ui`, so the CLI is resolvable at runtime.
+ * `tailwindcss` + `@tailwindcss/cli` are runtime dependencies of `@monkey-mini-app/ui` and
+ * `@monkey-mini-app/host` (v4 split the CLI out of the `tailwindcss` package — it has no
+ * `bin`). Resolution uses `createRequire` from the ui dist / this host file so pnpm isolated
+ * installs still find the CLI after an npm-installed plugin; walking `node_modules/.bin` up
+ * from `resolveUiDistDir()` misses the `.pnpm` virtual store unless we realpath first.
  * Because the app dir has no `node_modules`, we link `tailwindcss` into a SHARED runtime-root
  * `node_modules` (an ancestor of every app), so the import resolves. Freshness is the app's own
  * source mtime: an in-process rebuild happens whenever a source file is newer than the last build
@@ -29,6 +33,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   statSync,
   symlinkSync,
@@ -36,6 +41,7 @@ import {
 } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type { WorkspacePaths } from "../paths/workspace-paths.ts";
 import { resolveUiDistDir } from "./ui-compiler.ts";
@@ -44,7 +50,13 @@ const AUTOGEN = ".autogen";
 const GEN_CSS = "tailwind-gen.css";
 const UI_CSS = "ui.css";
 
-type TailwindBin = { bin: string; root: string };
+export type TailwindBin = { bin: string; root: string };
+
+/** Optional search roots — tests use empty lists to prove a missing CLI is an error. */
+export type TailwindSearch = {
+  requireFrom?: string[];
+  walkFrom?: string[];
+};
 
 function hasFile(fp: string): boolean {
   try {
@@ -54,19 +66,112 @@ function hasFile(fp: string): boolean {
   }
 }
 
-function findTailwind(): TailwindBin {
-  for (let dir = resolveUiDistDir(); dir !== path.dirname(dir); dir = path.dirname(dir)) {
+function binFromPackageJson(pkgJsonPath: string): string | null {
+  try {
+    const pkg = JSON.parse(readFileSync(pkgJsonPath, "utf8")) as {
+      bin?: string | Record<string, string>;
+    };
+    const rel = typeof pkg.bin === "string" ? pkg.bin : pkg.bin?.tailwindcss;
+    if (!rel) return null;
+    const bin = path.resolve(path.dirname(pkgJsonPath), rel);
+    return hasFile(bin) ? bin : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveFromFile(fromFile: string): TailwindBin | null {
+  let req: ReturnType<typeof createRequire>;
+  try {
+    req = createRequire(fromFile);
+  } catch {
+    return null;
+  }
+  // Tailwind v4: `tailwindcss` has no bin; `@tailwindcss/cli` is the published CLI.
+  // Try the engine package first (as authors expect), then the CLI package.
+  for (const spec of ["tailwindcss/package.json", "@tailwindcss/cli/package.json"]) {
+    try {
+      const pkgJson = req.resolve(spec);
+      const bin = binFromPackageJson(pkgJson);
+      if (bin) return { bin, root: path.dirname(pkgJson) };
+    } catch {
+      /* next specifier */
+    }
+  }
+  return null;
+}
+
+function walkBin(start: string): TailwindBin | null {
+  let dir: string;
+  try {
+    dir = realpathSync(start);
+  } catch {
+    dir = start;
+  }
+  for (; dir !== path.dirname(dir); dir = path.dirname(dir)) {
     const bin = path.join(dir, "node_modules", ".bin", "tailwindcss");
     if (hasFile(bin)) return { bin, root: dir };
   }
-  throw new Error("tailwindcss CLI not found (run: pnpm install && node scripts/build-ui.mjs)");
+  return null;
 }
 
-/** Resolve the tailwindcss package dir from a tailwind project root (has .bin/tailwindcss). */
-function resolveTailwindPackage(root: string): string {
-  const req = createRequire(path.join(root, "package.json"));
-  const pkgJson = req.resolve("tailwindcss/package.json");
-  return path.dirname(pkgJson);
+function defaultRequireFrom(): string[] {
+  const out: string[] = [fileURLToPath(import.meta.url)];
+  try {
+    out.unshift(path.join(resolveUiDistDir(), "index.js"));
+  } catch {
+    /* ui dist missing — still try host */
+  }
+  return out;
+}
+
+function defaultWalkFrom(): string[] {
+  const out: string[] = [path.dirname(fileURLToPath(import.meta.url))];
+  try {
+    out.unshift(resolveUiDistDir());
+  } catch {
+    /* ui dist missing */
+  }
+  return out;
+}
+
+/**
+ * Locate the Tailwind v4 CLI. Prefers `createRequire` from the ui package / this host
+ * file (works under pnpm isolated + npm-installed plugins) over walking `.bin`.
+ */
+export function findTailwind(search?: TailwindSearch): TailwindBin {
+  const requireFrom = search?.requireFrom ?? defaultRequireFrom();
+  for (const from of requireFrom) {
+    const found = resolveFromFile(from);
+    if (found) return found;
+  }
+  const walkFrom = search?.walkFrom ?? defaultWalkFrom();
+  for (const start of walkFrom) {
+    const found = walkBin(start);
+    if (found) return found;
+  }
+  throw new Error(
+    "tailwindcss CLI not found — installed hosts need the runtime CLI (@tailwindcss/cli + tailwindcss, shipped with @monkey-mini-app/ui and @monkey-mini-app/host). Reinstall the plugin, then pnpm install / npm install.",
+  );
+}
+
+/** Resolve the tailwindcss package dir so `@import "tailwindcss"` works from an app dir. */
+function resolveTailwindCssPackage(tw: TailwindBin): string {
+  const from = [tw.bin, path.join(tw.root, "package.json"), fileURLToPath(import.meta.url)];
+  try {
+    from.push(path.join(resolveUiDistDir(), "index.js"));
+  } catch {
+    /* ui dist missing */
+  }
+  for (const f of from) {
+    try {
+      const req = createRequire(f);
+      return path.dirname(req.resolve("tailwindcss/package.json"));
+    } catch {
+      /* next */
+    }
+  }
+  throw new Error("tailwindcss package not resolvable to link into the app runtime");
 }
 
 /** All app source files whose classes belong in the app's css (UI + sub-components). */
@@ -199,12 +304,7 @@ export class AppCssCompiler {
     const link = path.join(parent, "tailwindcss");
     if (existsSync(link)) return;
     mkdirSync(parent, { recursive: true });
-    let target = path.join(parent, "tailwindcss");
-    try {
-      target = resolveTailwindPackage(tw.root);
-    } catch {
-      /* leave target as-is; symlink below will fail loudly if unresolvable */
-    }
+    const target = resolveTailwindCssPackage(tw);
     symlinkSync(target, link, "dir");
   }
 }

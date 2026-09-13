@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   Host} from "@monkey-mini-app/host";
 import {
+  AppCssCompiler,
   AppsManager,
   bootstrapHostConfig,
   createHost,
@@ -506,6 +507,32 @@ export default defineApp({
     expect(res.headers.get("content-type")).toMatch(/css/);
     const css = await res.text();
     expect(css.length).toBeGreaterThan(10);
+  });
+
+  it("GET /api/app/:appId/ui.css returns 500 on compile failure (does not serve kit globals)", async () => {
+    const services = await startHost();
+    await services.apps.register("com.example.todo", {
+      "manifest.json": manifest,
+      "ui.tsx": simpleUi,
+      "main.api.ts": pingApi,
+    });
+    const err = new Error("tailwindcss CLI not found — installed hosts need the runtime CLI");
+    vi.spyOn(AppCssCompiler.prototype, "compile").mockRejectedValue(err);
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const res = await fetch(`${origin()}/api/app/com.example.todo/ui.css`);
+    expect(res.status).toBe(500);
+    const body = await res.text();
+    expect(body).toMatch(/app ui\.css failed/);
+    expect(body).toMatch(/com\.example\.todo/);
+    expect(body).toMatch(/CLI not found/);
+    expect(body).not.toMatch(/--color-background|--font-sans/);
+    expect(spy).toHaveBeenCalled();
+    expect(String(spy.mock.calls[0]?.[0] ?? "")).toMatch(/com\.example\.todo/);
+
+    const kit = await fetch(`${origin()}/ui.css`);
+    expect(kit.status).toBe(200);
+    expect((await kit.text()).length).toBeGreaterThan(10);
   });
 
   it("GET /api/apps/:id/history and storage return browse payloads", async () => {

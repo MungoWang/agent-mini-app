@@ -1,4 +1,4 @@
-import { mkdtempSync, utimesSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   bootstrapHostConfig,
   createHost,
+  findTailwind,
   type Host,
   type HostCapabilities,
   type HostConfig,
@@ -79,8 +80,22 @@ async function css(): Promise<string> {
   return res.text();
 }
 
+describe("findTailwind", () => {
+  it("resolves the v4 CLI from the ui / host install", () => {
+    const tw = findTailwind();
+    expect(existsSync(tw.bin), `CLI path missing: ${tw.bin}`).toBe(true);
+  });
+
+  it("throws when no CLI is reachable", () => {
+    const empty = mkdtempSync(path.join(tmpdir(), "mma-no-tw-"));
+    expect(() => findTailwind({ requireFrom: [], walkFrom: [empty] })).toThrow(
+      /tailwindcss CLI not found/,
+    );
+  });
+});
+
 describe("app ui.css compilation", () => {
-  it("emits the app's own utility and picks up a class added after the first build", async () => {
+  it("emits the app's own utility, writes .autogen, and picks up a class added after the first build", async () => {
     const services = await start();
     await services.apps.register(APP, {
       "manifest.json": JSON.stringify({
@@ -96,6 +111,9 @@ describe("app ui.css compilation", () => {
 
     const first = await css();
     expect(first).toContain("437px");
+    const autogen = path.join(uiFile, ".autogen", "ui.css");
+    expect(existsSync(autogen), "successful compile must write .autogen/ui.css").toBe(true);
+    expect(readFileSync(autogen, "utf8")).toContain("437px");
 
     // A later edit by the agent: new class in the source, so the compiled css must change too.
     writeFileSync(path.join(uiFile, "ui.tsx"), uiWith("w-[612px]"), "utf8");
@@ -106,5 +124,6 @@ describe("app ui.css compilation", () => {
     const second = await css();
     expect(second, "ui.css served a stale build after the source changed").toContain("612px");
     expect(second).not.toContain("437px");
+    expect(readFileSync(autogen, "utf8")).toContain("612px");
   });
 });

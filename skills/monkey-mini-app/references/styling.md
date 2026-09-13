@@ -1,7 +1,8 @@
 # Styling a mini-app
 
 Two things are decided for you and cannot be changed: **Tailwind is compiled per app at
-reload time**, and **colours come from theme tokens**. Everything below follows from that.
+reload time** (the installed host must ship the runtime CLI), and **colours come from theme
+tokens**. Everything below follows from that.
 
 **Reload ↔ CSS contract:** every `mini_app_reload` drops the in-memory app CSS memo
 (`caches.appCss: "dropped"`). The tool also defaults to `cleanCaches: true`, which deletes
@@ -13,16 +14,21 @@ reload time**, and **colours come from theme tokens**. Everything below follows 
 
 The host runs Tailwind v4 against the app directory on every compile
 (`@import "tailwindcss" source(none)` + `@source` globs over your `.ts`/`.tsx`), and serves
-the result as the app's own stylesheet next to the shared base. So the answer to "is this
-class available?" is:
+the result as the app's own stylesheet next to the shared kit base at `/ui.css`. **Installed
+hosts need the runtime CLI** (`@tailwindcss/cli` + `tailwindcss`, shipped as dependencies of
+`@monkey-mini-app/ui` and `@monkey-mini-app/host` from 0.1.11). Without it the app endpoint
+returns **500** and `.autogen/` is never written — only kit classes from `/ui.css` apply.
+Arbitrary values do **not** "always work" on an older / broken install. So the answer to
+"is this class available?" is:
 
 | You write | Works? | Why |
 |---|---|---|
 | `hover:bg-muted` `group-hover:opacity-100` `focus-visible:ring-2` | ✅ | variants are generated from your source |
 | `md:grid-cols-3` `dark:border` | ✅ | responsive + the host's `dark` class |
 | `bg-rose-500` `text-emerald-300` | ✅ | the default palette is emitted with the sheet |
-| `w-[437px]` `grid-cols-[1fr_auto]` `top-[7px]` | ✅ | arbitrary values are compiled like any other class |
+| `w-[437px]` `grid-cols-[1fr_auto]` `top-[7px]` | ✅ if CLI compiled | arbitrary values need a successful per-app compile (`.autogen/ui.css`) |
 | `bg-card text-muted-foreground` | ✅ | semantic tokens → [theme.md](theme.md) |
+| `bg-card/60` `backdrop-blur-md` | ⚠️ | token opacity + blur often fail against the host skin — see below |
 | `` className={`bg-${c}-500`} `` | ❌ **silently** | see below |
 
 **The one real trap: class names must appear as complete literals in your source.**
@@ -43,9 +49,42 @@ const map = {
 <span className={map[tone]} />
 ```
 
-Because of this, **do not fall back to inline `style` "to be safe"**. That is strictly
-worse: you lose variants, dark mode, and the theme tokens, and you gain nothing — arbitrary
-values and variants already compile.
+Because of this, **do not fall back to inline `style` "to be safe"** for layout or
+variants. That is strictly worse: you lose hover/dark and you gain nothing — **when the
+runtime CLI compiled the app sheet**, arbitrary values and variants already work. The
+exceptions below (token opacity, backdrop-blur vs the skin) are the only places `style` +
+`color-mix` is the workaround, not a precaution.
+
+## Token opacity and backdrop-blur vs the host skin
+
+`bg-card/60` (and any `token/opacity`) is compiled as `color-mix` against `--color-card`,
+which is itself `var(--card)`. The host skin rewrites `--card` under `<html>`; that extra
+indirection often makes the opacity utility a no-op (transparent or solid, never 60%).
+`backdrop-blur-*` is an **app-compiled** utility — it is not in the kit sheet — and blur
+over the iframe/skin is unreliable even when it compiled.
+
+Write the mix yourself on the token the skin actually sets:
+
+```tsx
+// ✓ follows the palette, including opacity
+<div style={{ backgroundColor: "color-mix(in oklch, var(--card) 60%, transparent)" }} />
+
+// ✗ often compiles to nothing useful against a rewritten --card
+<div className="bg-card/60 backdrop-blur-md" />
+```
+
+Same pattern for a wash / glass edge: `color-mix(in oklch, var(--primary) 28%, transparent)`
+on `background` / `border`, not `bg-primary/28`. Looks that need glass already do this
+(`references/looks/glass-island.md`).
+
+## The UI build does not typecheck
+
+`mini_app_reload`'s UI step (sucrase + esbuild) **strips types**. It does not run `tsc`.
+A wrong key on a typed helper — `useStore({ items })` when the store is `{ rows }`, a
+mistyped `call("lisst")`, an extra prop the component does not have — compiles green and
+throws `TypeError` at render. `mini_app_errors` is the only signal; the static check only
+catches unbound identifiers, not bad keys. Prove the object shape from the contract /
+catalog, do not trust the compile.
 
 ## Colour: tokens, not literals
 
@@ -176,12 +215,16 @@ Rules that keep this from breaking:
 
 ## What is actually on disk
 
-`.autogen/` inside an app holds the generated Tailwind output. It is overwritten on the
-next compile — never edit it, and never import from it.
+`.autogen/` inside an app holds the generated Tailwind output. A successful compile always
+writes `.autogen/ui.css`. It is overwritten on the next compile — never edit it, and never
+import from it. If the directory is missing after a reload, the CLI never ran — check the
+host log and `GET /api/app/<id>/ui.css` (must not be the same bytes as `/ui.css`).
 
 ## Checklist
 
 - [ ] every class name is a complete literal in the source (no `` `bg-${x}-500` ``)
+- [ ] `/api/app/<id>/ui.css` is 200 and `.autogen/ui.css` exists (runtime CLI installed)
+- [ ] no `bg-card/60` / `backdrop-blur-*` against the skin — `color-mix` on `var(--card)`
 - [ ] no hex / rgb literals for themeable colour — tokens only
 - [ ] sized against the viewport, not a fixed height
 - [ ] animations use `motion` / kit `Reveal`, or a Tailwind transition — and any custom

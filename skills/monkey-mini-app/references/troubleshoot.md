@@ -21,6 +21,10 @@ mini_app_reload → mini_app_open → mini_app_errors → mini_app_view_eval
 
 If the ring is empty you probably never opened it — the hint says so. An app that renders **but looks wrong** is a `mini_app_view_eval` question, not an error question.
 
+The UI compile **strips types and does not typecheck**. Wrong `useStore` keys, a mistyped
+`call("…")`, or a prop the component does not have all compile green and throw `TypeError`
+at render (`kind: render` in `mini_app_errors`). Fix the key against the contract.
+
 ### `mini_app_view_eval` did not answer
 
 | `view` | Meaning | Next step |
@@ -143,6 +147,9 @@ same thing, one layer down.
 | Symptom | Check first | Note |
 |---|---|---|
 | A class did nothing | Whether the class name is a **complete literal** | Tailwind scans source text: `` `bg-${x}-500` `` generates **no CSS and no error**. Full names only → [styling.md](styling.md) |
+| Kit classes work, `w-[437px]` / `backdrop-blur-*` do not; no `.autogen/` | Per-app CSS compile failed. Older hosts **silently served `/ui.css`** as the app sheet | `GET /api/app/<id>/ui.css` must not equal `GET /ui.css`. 0.1.11+ returns **500** + a CSS comment and logs `appId`. Upgrade the plugin; installed hosts need the runtime CLI |
+| `bg-card/60` is solid or invisible | Token opacity through `--color-card` → `--card` after the skin rewrite | `style={{ backgroundColor: "color-mix(in oklch, var(--card) 60%, transparent)" }}` → [styling.md](styling.md) |
+| `backdrop-blur-*` did nothing | App-compiled utility (not in the kit sheet) and blur over the iframe/skin is unreliable | Same `color-mix` wash; do not rely on `backdrop-blur-*` for glass |
 | Colours wrong in dark mode | Any hardcoded hex | Use tokens → [theme.md](theme.md); the user's palette rewrites token values |
 | Custom theme file does not appear | Wrote `--background` or only one mode | File keys are `--bg` / `--fg` / `--primary` in **both** light and dark → [theme.md](theme.md) *Custom host theme file*; reopen the theme pop |
 | A node rendered to nothing | Its box and its classes, from the view | `mini_app_view_eval({ appId, code: 'return mma.$$("#root *").filter(n => !n.getBoundingClientRect().width).map(mma.selector)' })` — usually a class that never compiled, or a condition that never matched |
@@ -163,3 +170,4 @@ same thing, one layer down.
 |---|---|
 | `:17880/api/apps` returns 404 | Plugin not started, or the port is not 17880 — see [test.md](test.md) |
 | `@monkey-mini-app/... dist not found` | Host install is missing build output; a maintainer runs `node scripts/build/ui.mjs && node scripts/build/sdk.mjs` |
+| `tailwindcss CLI not found` / `app ui.css failed` 500 | `@tailwindcss/cli` was only a **devDependency** of `@monkey-mini-app/ui` before 0.1.11, so an npm-installed plugin under pnpm had no CLI. Upgrade `dsh-mini-app` / `host` / `ui` to ≥0.1.11 and reinstall. `/ui.css` (kit) can stay 200 while `/api/app/<id>/ui.css` is 500 |

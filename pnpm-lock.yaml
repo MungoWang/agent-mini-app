@@ -317,6 +317,9 @@ importers:
       '@monkey-mini-app/ui':
         specifier: workspace:*
         version: link:../ui
+      '@tailwindcss/cli':
+        specifier: ^4.3.3
+        version: 4.3.3
       diff:
         specifier: ^9.0.0
         version: 9.0.0
@@ -341,6 +344,9 @@ importers:
       sucrase:
         specifier: ^3.35.1
         version: 3.35.1
+      tailwindcss:
+        specifier: ^4
+        version: 4.3.3
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
@@ -422,6 +428,9 @@ importers:
       '@shadcn/react':
         specifier: ^0.3.0
         version: 0.3.0(@types/react@19.2.18)(react@19.2.8)
+      '@tailwindcss/cli':
+        specifier: ^4.3.3
+        version: 4.3.3
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -482,6 +491,9 @@ importers:
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
+      tailwindcss:
+        specifier: ^4
+        version: 4.3.3
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -549,9 +561,6 @@ importers:
       shiki:
         specifier: ^4.4.3
         version: 4.4.3
-      tailwindcss:
-        specifier: ^4
-        version: 4.3.3
       typescript:
         specifier: ~5.9.2
         version: 5.9.3

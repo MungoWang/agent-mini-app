@@ -20,6 +20,7 @@
   "dependencies": {
     "@hono/node-server": "^2.1.1",
     "@monkey-mini-app/ui": "workspace:*",
+    "@tailwindcss/cli": "^4.3.3",
     "diff": "^9.0.0",
     "esbuild": "^0.28.2",
     "esbuild-wasm": "^0.25.12",
@@ -28,6 +29,7 @@
     "isomorphic-git": "^1.29.0",
     "lodash-es": "^4.17.21",
     "sucrase": "^3.35.1",
+    "tailwindcss": "^4",
     "typescript": "^5.7.3",
     "@monkey-mini-app/api": "workspace:^"
   },

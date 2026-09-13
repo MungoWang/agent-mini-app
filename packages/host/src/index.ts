@@ -95,7 +95,8 @@ export type {
   HostCapabilities,
 } from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
-export { AppCssCompiler, appCssExists } from "./compile/app-css.ts";
+export type { TailwindBin, TailwindSearch } from "./compile/app-css.ts";
+export { AppCssCompiler, appCssExists, findTailwind } from "./compile/app-css.ts";
 export {
   keyframeNamesIn,
   platformKeyframeNames,
