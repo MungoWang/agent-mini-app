@@ -63,12 +63,14 @@ if [ ! -f "$PROFILE_DIR/package.json" ]; then
 }
 EOF
 fi
+# isolated, not hoisted: hoisted flattens peer trees and dsh plugins crash on
+# admitPromptContent / deepFreeze (LOCAL.md). Switch script rewrites this too.
 if [ ! -f "$PROFILE_DIR/pnpm-workspace.yaml" ]; then
   cat > "$PROFILE_DIR/pnpm-workspace.yaml" <<'EOF'
 packages:
   - .
 
-nodeLinker: hoisted
+nodeLinker: isolated
 autoInstallPeers: false
 EOF
 fi

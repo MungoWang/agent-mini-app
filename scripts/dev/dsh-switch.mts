@@ -2,9 +2,9 @@
  * Toggle the dsh web profile between local-dev and published-npm dependencies.
  *
  *   pnpm dev:dsh-debug → link @monkey-mini-app/* to this repo (dev loop)
- *   pnpm dev:dsh-prod  → use published @monkey-mini-app/* from npm
+ *   pnpm dev:dsh-prod  → published @monkey-mini-app/dsh-mini-app only (host/panel/ui/api transitively)
  *
- * Edits ~/.dsh/profiles/web (DSH_HOME if set): package.json deps + pnpm-workspace.yaml,
+ * Rewrites ~/.dsh/profiles/web (DSH_HOME if set): package.json deps + pnpm-workspace.yaml,
  * then reinstalls. No repo files change.
  *
  * Inputs:       argv: debug | prod; env DSH_HOME (default ~/.dsh)
@@ -17,6 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { applyProfileSwitch, readPluginVersion } from "./dsh-switch.lib.mts";
 
 const mode = process.argv[2];
 if (mode !== "debug" && mode !== "prod") {
@@ -34,49 +35,18 @@ if (!existsSync(pkgFile)) {
   process.exit(1);
 }
 
-const pkg = JSON.parse(readFileSync(pkgFile, "utf8"));
-pkg.dependencies = pkg.dependencies || {};
+const pluginVersion = readPluginVersion(repoRoot);
+const pkg = JSON.parse(readFileSync(pkgFile, "utf8")) as Record<string, unknown>;
+const next = applyProfileSwitch({ mode, pkg, repoRoot, pluginVersion });
 
-const repoPkgs = {
-  "@monkey-mini-app/dsh-mini-app": path.join(repoRoot, "packages", "dsh"),
-  "@monkey-mini-app/host": path.join(repoRoot, "packages", "host"),
-  "@monkey-mini-app/panel": path.join(repoRoot, "packages", "panel"),
-  "@monkey-mini-app/ui": path.join(repoRoot, "packages", "ui"),
-  "@monkey-mini-app/api": path.join(repoRoot, "packages", "api"),
-} as const;
+mkdirSync(profileDir, { recursive: true });
+writeFileSync(pkgFile, JSON.stringify(next.pkg, null, 2) + "\n");
+writeFileSync(wsFile, next.workspaceYaml);
 
-if (mode === "debug") {
-  for (const name of Object.keys(repoPkgs) as (keyof typeof repoPkgs)[]) {
-    pkg.dependencies[name] = `link:${repoPkgs[name]}`;
-  }
-} else {
-  for (const name of Object.keys(repoPkgs) as (keyof typeof repoPkgs)[]) {
-    pkg.dependencies[name] = "^0.1.0";
-  }
-}
-
-writeFileSync(pkgFile, JSON.stringify(pkg, null, 2) + "\n");
-
-// pnpm-workspace.yaml: include the repo packages only in debug so workspace:*/link deps
-// resolve locally; in prod leave them out (npm versions used).
-let ws = existsSync(wsFile) ? readFileSync(wsFile, "utf8") : "packages:\n  - .\n";
-for (const name of ["@monkey-mini-app/dsh-mini-app", "@monkey-mini-app/host", "@monkey-mini-app/panel", "@monkey-mini-app/ui", "@monkey-mini-app/api"]) {
-  void name;
-}
-const repoWorkspaceLines = ["packages/panel", "packages/host", "packages/ui", "packages/api"].map((p) =>
-  path.join(repoRoot, p),
-);
-const hasRepo = (line: string) => repoWorkspaceLines.some((p) => line.trim().includes(p));
-const wsLines = ws.split("\n").filter((line) => !hasRepo(line));
-if (mode === "debug") {
-  // insert repo packages right after `packages:`
-  const idx = wsLines.findIndex((line) => line.trim() === "packages:");
-  const insertAt = idx >= 0 ? idx + 1 : 0;
-  wsLines.splice(insertAt, 0, ...repoWorkspaceLines.map((p) => `  - ${p}`));
-}
-writeFileSync(wsFile, wsLines.join("\n") + "\n");
-
-console.log(`[dsh:${mode}] switched deps to ${mode === "debug" ? "LOCAL links (dev)" : "npm (published)"}`);
+const depNote =
+  mode === "debug"
+    ? "local link: dsh-mini-app + host + panel + ui + api"
+    : `npm ${pluginVersion} (dsh-mini-app only; host/panel/ui/api transitively)`;
+console.log(`[dsh:${mode}] switched profile to ${depNote}; nodeLinker=isolated`);
 execFileSync("pnpm", ["install"], { cwd: profileDir, stdio: "inherit" });
-const isDebug = mode === "debug";
-console.log(`[dsh:${mode}] done — dsh-mini-app = ${isDebug ? "local" : "npm"}, host/panel/ui = ${isDebug ? "local" : "npm"}`);
+console.log(`[dsh:${mode}] done`);

@@ -43,6 +43,8 @@ No file sits directly under `scripts/`. If you are about to add one, pick a stag
 | `dev/react-host.mts` | `pnpm dev:host` | temp runtime dirs | two local processes |
 | `dev/demo-templates.mts` | internal (spawned by `dev/react-host`) | OS temp workspace | host process on a port |
 | `dev/dsh-switch.mts` | `pnpm dev:dsh-debug` / `dev:dsh-prod` | `~/.dsh/profiles/web/**` | machine (`pnpm install`) |
+| `dev/dsh-switch.lib.mts` | imported by switch CLI + test | nothing | none |
+| `dev/dsh-switch.test.mts` | `pnpm test:dsh-switch` | nothing | none |
 | `setup/install-dsh-plugin.sh` | manual — developer machine only | `~/.dsh/profiles/web/**` | machine (path-link + install) |
 | `setup/host-config.mts` | `pnpm exec tsx scripts/setup/host-config.mts` | `runtime/host.json` | runtime dir |
 | `release/publish.mts` | `pnpm publish:packages` | package versions (with `--bump`) | npm publish (irreversible) |

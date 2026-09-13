@@ -6,6 +6,7 @@
   "scripts": {
     "build": "pnpm -r run build",
     "test": "vitest run",
+    "test:dsh-switch": "node --import tsx --test scripts/dev/dsh-switch.test.mts",
     "test:coverage": "vitest run --coverage packages/host/tests packages/panel/tests packages/dsh/tests && pnpm --filter @monkey-mini-app/ui exec vitest run --coverage",
     "lint": "eslint packages/host packages/api packages/ui packages/panel packages/dsh packages/ui-examples",
     "lint:fix": "eslint packages/host packages/api packages/ui packages/panel packages/dsh packages/ui-examples --fix",
