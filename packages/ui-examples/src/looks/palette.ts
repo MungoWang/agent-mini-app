@@ -11,7 +11,7 @@ import terminal from "./themes/terminal.css?raw";
  * Look fixtures are rendered by the demo host, which paints them with **the host palette**.
  * Hue-dependent looks carry their own `theme.css` because their identity IS the colour (the
  * island's sky, the desk's walnut, phosphor green, the aurora, newsprint) — shown under the default 黑白 they collapse into "a page with
- * big text", which is exactly the misreading a PNG preview must not teach.
+ * big text", which is exactly the misreading a monochrome fixture must not teach.
  *
  * So the fixture applies the look's own palette, read from the same file a facade would ship.
  * The `.css` stays the single source; this only renames the keys.

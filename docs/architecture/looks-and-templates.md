@@ -14,13 +14,11 @@ Split the overlapping `paradigms/` + `templates/` pile into two layers:
 | Layer                 | What it is                                                                                                                    | What it is not                                                            |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | **Facade** (template) | A runnable mini-app, cut by **interaction loop**. Already wears a default Look. The only thing an agent copies as a skeleton. | Not a `ctx.*` lesson name. Not a second gallery.                          |
-| **Look**              | A frozen colour-intent + layout grammar + surface recipe. Spec markdown (and later a light/dark PNG).                         | Not an app. Not a kit API. Not a cartesian product of palettes × layouts. |
+| **Look**              | A frozen colour-intent + layout grammar + surface recipe. Spec markdown + live fixture (and optional `theme.css`).              | Not an app. Not a kit API. Not a cartesian product of palettes × layouts. |
 
 Component examples (`ui-examples/src/components`) stay. They do not teach style.
 
 Style is **recommended practice**, not a gate. No `data-look` runtime, no Look components, no class-string lint on facades. `data-look` may appear in a spec as an optional recipe. Agents may ignore Looks entirely.
-
-PNG screenshots are **deferred** (owner will capture). Specs ship without image files.
 
 ### Per-app colour (approach B, as built)
 
@@ -69,7 +67,7 @@ Nine paradigm TSX files (~100 KB) were copied into the skill and never listed on
 | `signage`      | Display type + chroma wash + caption columns. Cyberpunk is signage, not glow cards. Opt-in.                             | —                  |
 | `terminal`     | Mono well, status lamps, colour = state.                                                                                | `runner`, `chores` |
 
-Every Look has a light and a dark pair (same hue family, two densities). Specs say so even before PNGs exist.
+Every Look has a light and a dark pair (same hue family, two densities) — shown by the live fixture and `theme.css`, not by image files.
 
 Source of truth: `packages/ui-examples/src/looks/catalog.json`. Live fixtures next to it (kit components, mini-app-portable) feed demo-host so a human can screenshot later. **Skill does not copy the TSX.** `pnpm gen:skill` writes `references/looks/*.md` from the JSON.
 
@@ -118,7 +116,6 @@ Facades and look fixtures prefer `@monkey-mini-app/ui` (`AppShell`, `PageHeader`
   — the exact failure class the preset table exists to remove. `TablePage` / `SettingsSplit` /
   `WizardShell` / `FormSheet` have no facade user yet, which §4.0 allows (the "must first be used
   by a real template" gate was withdrawn): they ship for agents to reach through the catalog.
-- Look PNG pipeline (Playwright). Specs reserve `preview.light` / `preview.dark` paths; files come later.
 - Custom host theme files for neon (`theme-neon.css`) — only when the user asks, existing contract.
 
 ## 7. Material pass (as built)

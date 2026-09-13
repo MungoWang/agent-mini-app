@@ -19,7 +19,7 @@ export function writeSkillLooks({ repoRoot, skillRef }) {
     "",
     "Recommended visual recipes (colour intent + layout grammar + surface). **Not apps.**",
     "Pick a facade first. Open a Look only when the user names a style.",
-    "No kit API — copy the class literals. Light and dark are a pair; PNG screenshots may arrive later.",
+    "No kit API — copy the class literals. Light and dark are a pair (live fixture + theme.css, not image previews).",
     "",
     "| id | name | when | default facade |",
     "|---|---|---|---|",

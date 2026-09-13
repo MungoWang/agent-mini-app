@@ -27,10 +27,10 @@ const GLASS = {
 ## Classes (copy literals)
 
 - `root`: `bg-background relative flex h-full min-h-0 flex-col gap-3 overflow-hidden p-5`
-- `defs`: `inline <svg> with #mma-liquid (displace) + #mma-grain (sky texture)`
-- `wash`: `absolute inset-0 multi-orb radial gradients (card + primary mixes) + grain svg opacity ~0.2`
-- `cluster`: `relative mx-auto max-w-5xl grid grid-cols-6 gap-3 — liquid GLASS style on each island only`
-- `work`: `WORK style: soft card blur(12px), not url(#mma-liquid) — keeps sky framing the cluster`
+- `wash`: `pointer-events-none absolute inset-0 (multi-hue soft orbs + grain — see facade)`
+- `cluster`: `relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3`
+- `island`: `liquid glass style object (radius var(--radius), blur+saturate+url(#mma-liquid))`
+- `work`: `soft card surface — NOT liquid glass (keeps sky around the cluster)`
 
 ## Palette (optional `theme.css` in the app dir)
 

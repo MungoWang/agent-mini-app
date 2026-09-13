@@ -3,8 +3,8 @@
 > Archived: 2026-09-13
 > Original location: in-progress looks/facades redesign (TODO + session work after layout presets)
 > Status: **done** — eight Looks, seven facades, per-app `theme.css`, liquid glass on `today` /
-> `glass-island`, host first-paint bake for local palettes. Remaining open item is **Look PNGs only**
-> (stays in `TODO.md` P1).
+> `glass-island`, host first-paint bake for local palettes. Look image previews were **dropped**
+> (no PNG pipeline, no `preview` paths) — live fixtures + specs only.
 
 ## What landed
 
@@ -40,6 +40,9 @@ Labs (review artifacts, kept under `docs/assets/`):
 
 ## Not in this archive (still open)
 
-- Look light/dark PNGs (`TODO.md` P1)
 - Facades adopting `TablePage` / `SettingsSplit` / `WizardShell` / `FormSheet` (none required)
 - P2 quality items and trigger-gated RFCs
+
+## Explicitly not doing
+
+- Look light/dark PNG previews / Playwright capture pipeline — removed 2026-09-13; fixtures + markdown specs are enough.
