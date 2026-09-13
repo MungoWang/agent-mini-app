@@ -17,7 +17,7 @@ export { createFrameController } from "./frame.ts";
 export type { HostShellInstance, HostShellOptions } from "./host-shell.ts";
 export { createHostShell } from "./host-shell.ts";
 export type { I18nParams, PanelI18n } from "./i18n.ts";
-export { createPanelI18n, resolvePanelLocale } from "./i18n.ts";
+export { createPanelI18n, detectBrowserLocale, localeFromLanguageTag, resolvePanelLocale } from "./i18n.ts";
 export { appBlurb, hue, monoOf } from "./lib.ts";
 export type { CreateMiniAppPanelOptions, PanelInstance } from "./panel.tsx";
 export { createMiniAppPanel } from "./panel.tsx";

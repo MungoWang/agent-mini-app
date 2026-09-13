@@ -82,3 +82,32 @@ export function resolvePanelLocale(value: string | undefined): LocaleId {
   }
   return value;
 }
+
+/**
+ * Map a BCP 47 language tag to a supported panel locale.
+ * `zh*` (case-insensitive) → `zh-CN`; anything else → `en`.
+ */
+export function localeFromLanguageTag(tag: string | null | undefined): LocaleId {
+  if (tag == null) return "en";
+  const raw = String(tag).trim();
+  if (!raw) return "en";
+  const normalized = raw.replace(/_/g, "-").toLowerCase();
+  return normalized === "zh" || normalized.startsWith("zh-") ? "zh-CN" : "en";
+}
+
+/** Browser locale for first paint before host.json is loaded. */
+export function detectBrowserLocale(languages?: readonly string[] | null): LocaleId {
+  const tags =
+    languages ??
+    (typeof navigator !== "undefined"
+      ? navigator.languages?.length
+        ? [...navigator.languages]
+        : navigator.language
+          ? [navigator.language]
+          : []
+      : []);
+  for (const tag of tags) {
+    if (tag) return localeFromLanguageTag(tag);
+  }
+  return "en";
+}

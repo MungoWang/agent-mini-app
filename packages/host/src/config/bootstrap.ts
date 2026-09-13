@@ -3,6 +3,7 @@ import path from "node:path";
 
 import type { HostConfig, HostConfigInitInput } from "../types.ts";
 import { DEFAULT_HOST_CONFIG_SEED } from "./defaults.ts";
+import { detectSystemLocale } from "./detect-locale.ts";
 import { parseHostConfig } from "./parse.ts";
 
 function expandHome(p: string): string {
@@ -26,6 +27,14 @@ export function bootstrapHostConfig(input: HostConfigInitInput): HostConfig {
     if (value !== undefined) {
       merged[key] = value;
     }
+  }
+  // First boot: follow OS language when the caller did not pin locale fields.
+  // Existing host.json is never rewritten by ensureHostConfig, so a saved choice sticks.
+  if (input.locale === undefined) {
+    merged.locale = detectSystemLocale();
+  }
+  if (input.chatLanguage === undefined) {
+    merged.chatLanguage = detectSystemLocale();
   }
   if (typeof merged.runtimeRoot === "string") {
     merged.runtimeRoot = resolveRuntimeRoot(merged.runtimeRoot);

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createPanelI18n, type LocaleId,PanelError, resolvePanelLocale } from "@monkey-mini-app/panel";
+import { createPanelI18n, detectBrowserLocale, localeFromLanguageTag, type LocaleId, PanelError, resolvePanelLocale } from "@monkey-mini-app/panel";
 
 const originalNodeEnv = process.env.NODE_ENV;
 
@@ -47,5 +47,22 @@ describe("createPanelI18n", () => {
   it("resolvePanelLocale defaults to zh-CN", () => {
     expect(resolvePanelLocale(undefined)).toBe("zh-CN");
     expect(resolvePanelLocale("en")).toBe("en");
+  });
+});
+
+describe("localeFromLanguageTag / detectBrowserLocale", () => {
+  it("maps zh* to zh-CN and everything else to en", () => {
+    expect(localeFromLanguageTag("zh-CN")).toBe("zh-CN");
+    expect(localeFromLanguageTag("zh-Hans")).toBe("zh-CN");
+    expect(localeFromLanguageTag("ZH")).toBe("zh-CN");
+    expect(localeFromLanguageTag("en-US")).toBe("en");
+    expect(localeFromLanguageTag("ja")).toBe("en");
+    expect(localeFromLanguageTag(undefined)).toBe("en");
+  });
+
+  it("picks the first browser language tag", () => {
+    expect(detectBrowserLocale(["en-US", "zh-CN"])).toBe("en");
+    expect(detectBrowserLocale(["zh-TW", "en"])).toBe("zh-CN");
+    expect(detectBrowserLocale([])).toBe("en");
   });
 });

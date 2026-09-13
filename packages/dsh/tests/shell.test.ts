@@ -162,6 +162,35 @@ describe("DshShell", () => {
     });
   });
 
+
+  it("uses browser language for initial host locale and emptyText", () => {
+    Object.defineProperty(window.navigator, "language", {
+      configurable: true,
+      get: () => "en-US",
+    });
+    Object.defineProperty(window.navigator, "languages", {
+      configurable: true,
+      get: () => ["en-US", "en"],
+    });
+    const enShell = new DshShell();
+    expect(enShell.host.locale).toBe("en");
+    expect(enShell.host.emptyText).toMatch(/No mini apps yet/);
+    enShell.dispose();
+
+    Object.defineProperty(window.navigator, "language", {
+      configurable: true,
+      get: () => "zh-CN",
+    });
+    Object.defineProperty(window.navigator, "languages", {
+      configurable: true,
+      get: () => ["zh-CN", "en"],
+    });
+    const zhShell = new DshShell();
+    expect(zhShell.host.locale).toBe("zh-CN");
+    expect(zhShell.host.emptyText).toMatch(/还没有小程序/);
+    zhShell.dispose();
+  });
+
   it("persists theme through the panel host hook", async () => {
     const shell = new DshShell();
     await act(async () => {

@@ -12,6 +12,7 @@ import {
   createMiniAppPanel,
   createRestPanelHost,
   defaultHideThemePop,
+  detectBrowserLocale,
   getPanelState,
   resolveMode,
   setPanelState,
@@ -39,6 +40,11 @@ import { clampCardStyle, css } from "./utils.ts";
 import "./globals.ts";
 
 const ANIM_MS = 320;
+
+const EMPTY_TEXT = {
+  "zh-CN": "还没有小程序。\n在对话里用 skill 生成，或把示例放到 runtime/apps/",
+  en: "No mini apps yet.\nGenerate one with a skill in chat, or put an example under runtime/apps/",
+} as const;
 
 function safeStorage(): Storage | null {
   try {
@@ -78,14 +84,15 @@ export class DshShell {
       envOf: (appId) => this.envFor(appId),
     });
 
+    const locale = detectBrowserLocale();
     this.host = createRestPanelHost({
       hostUrl: this.origin,
       getHostUrl: () => this.origin,
       storage: safeStorage(),
       cardStyle: this.cardStyle,
       getCardStyle: () => this.cardStyle,
-      locale: "zh-CN",
-      emptyText: "还没有小程序。\n在对话里用 skill 生成，或把示例放到 runtime/apps/",
+      locale,
+      emptyText: EMPTY_TEXT[locale],
       onOpen: () => this.openPanel(),
       onClose: () => this.closePanel(),
       onHostChange: (next) => {

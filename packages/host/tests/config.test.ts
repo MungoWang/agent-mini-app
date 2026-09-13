@@ -9,6 +9,8 @@ import {
   asAbsolutePath,
   bootstrapHostConfig,
   DEFAULT_HOST_CONFIG_SEED,
+  detectSystemLocale,
+  ensureHostConfig,
   HostConfigError,
   loadHostConfig,
   parseHostConfig,
@@ -142,12 +144,13 @@ describe("parseHostConfig", () => {
 });
 
 describe("bootstrapHostConfig", () => {
-  it("fills theme and locale from the seed", () => {
+  it("fills theme from the seed and locale from the OS", () => {
     const dir = mkdtempSync(path.join(tmpdir(), "mma-host-"));
     const cfg = bootstrapHostConfig({ runtimeRoot: dir });
+    const expectedLocale = detectSystemLocale();
     expect(cfg.theme).toBe(DEFAULT_HOST_CONFIG_SEED.theme);
-    expect(cfg.locale).toBe(DEFAULT_HOST_CONFIG_SEED.locale);
-    expect(cfg.chatLanguage).toBe(DEFAULT_HOST_CONFIG_SEED.chatLanguage);
+    expect(cfg.locale).toBe(expectedLocale);
+    expect(cfg.chatLanguage).toBe(expectedLocale);
     expect(cfg.palette).toBe(DEFAULT_HOST_CONFIG_SEED.palette);
     expect(cfg.hostPort).toBe(DEFAULT_HOST_CONFIG_SEED.hostPort);
     expect(cfg.llm).toBe(DEFAULT_HOST_CONFIG_SEED.llm);
@@ -160,13 +163,22 @@ describe("bootstrapHostConfig", () => {
       runtimeRoot: dir,
       theme: "dark",
       locale: "en",
+      chatLanguage: "en",
       hostPort: 0,
       llm: { provider: "p", model: "m" },
     });
     expect(cfg.theme).toBe("dark");
     expect(cfg.locale).toBe("en");
+    expect(cfg.chatLanguage).toBe("en");
     expect(cfg.hostPort).toBe(0);
     expect(cfg.llm).toEqual({ provider: "p", model: "m" });
+  });
+
+  it("keeps an explicit locale even when chatLanguage falls back to OS detect", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "mma-host-"));
+    const cfg = bootstrapHostConfig({ runtimeRoot: dir, locale: "en" });
+    expect(cfg.locale).toBe("en");
+    expect(cfg.chatLanguage).toBe(detectSystemLocale());
   });
 
   it("expands a seeded home runtimeRoot to an absolute path", () => {
@@ -240,5 +252,28 @@ describe("DEFAULT_HOST_CONFIG_SEED", () => {
       .filter((file) => readFileSync(file, "utf8").includes(".monkey-mini-app"))
       .map((file) => path.relative(hostSrcDir, file));
     expect(hits).toEqual(["config/defaults.ts"]);
+  });
+});
+
+describe("ensureHostConfig", () => {
+  it("writes detected locale on first boot and keeps a saved locale later", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "mma-host-"));
+    const first = ensureHostConfig({ runtimeRoot: dir });
+    expect(first.wrote).toBe(true);
+    const paths = new WorkspacePaths(asAbsolutePath(dir));
+    const written = loadHostConfig(paths);
+    expect(written.locale).toBe(detectSystemLocale());
+    expect(written.chatLanguage).toBe(detectSystemLocale());
+
+    // Simulate a user who later chose English (or Chinese) explicitly.
+    const flipped = written.locale === "en" ? "zh-CN" : "en";
+    writeFileSync(
+      paths.hostConfigFile(),
+      JSON.stringify({ ...written, locale: flipped, chatLanguage: flipped }),
+    );
+    const second = ensureHostConfig({ runtimeRoot: dir });
+    expect(second.wrote).toBe(false);
+    expect(loadHostConfig(paths).locale).toBe(flipped);
+    expect(loadHostConfig(paths).chatLanguage).toBe(flipped);
   });
 });
