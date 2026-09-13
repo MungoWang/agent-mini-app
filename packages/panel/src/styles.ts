@@ -2,7 +2,7 @@
 export const PANEL_CSS_TAG = "panel";
 
 const CSS = [
-  "#mma-host{color:var(--dsw-alias-fg,#111);background:var(--dsw-alias-bg,#f7f7f8);overflow:hidden;container-type:inline-size;container-name:mma-host;}",
+  "#mma-host{position:relative;color:var(--dsw-alias-fg,#111);background:var(--dsw-alias-bg,#f7f7f8);overflow:hidden;container-type:inline-size;container-name:mma-host;}",
   "#mma-host button,#mma-host input,#mma-host select{color:inherit;font:inherit;}",
   "#mma-host .mma-chrome{display:flex;align-items:center;gap:8px;height:46px;padding:0 10px;border-bottom:1px solid var(--dsw-alias-border,#e5e7eb);background:var(--dsw-alias-surface,#fff);flex:0 0 auto;}",
   "#mma-host .mma-tabs{display:flex;align-items:center;gap:2px;flex:1;min-width:0;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin;}",
@@ -18,8 +18,12 @@ const CSS = [
   "#mma-host .mma-toolbar .mma-ico{display:block;}",
   "#mma-host .mma-theme-wrap{position:relative;flex:0 0 auto;}",
   "#mma-host .mma-pop-scrim{position:fixed;inset:0;z-index:7;background:transparent;}",
-  "#mma-host .mma-pop{display:none;position:absolute;right:0;top:40px;z-index:8;width:260px;padding:12px 14px 14px;border-radius:12px;border:1px solid var(--dsw-alias-border,#e5e7eb);background:var(--dsw-alias-surface,#fff);box-shadow:0 12px 32px var(--dsw-alias-shadow,rgba(0,0,0,.14));}",
+  "#mma-host .mma-pop{display:none;position:absolute;right:0;top:40px;z-index:8;width:260px;box-sizing:border-box;padding:12px 14px 14px;border-radius:12px;border:1px solid var(--dsw-alias-border,#e5e7eb);background:var(--dsw-alias-surface,#fff);box-shadow:0 12px 32px var(--dsw-alias-shadow,rgba(0,0,0,.14));}",
   "#mma-host .mma-pop[data-open='1']{display:block;}",
+  // Side dock: theme button sits mid-toolbar; a 260px absolute pop overflows left and is
+  // clipped by #mma-host{overflow:hidden}. Anchor to the host instead.
+  "#mma-host[data-dock='side'] .mma-theme-wrap{position:static;}",
+  "#mma-host[data-dock='side'] .mma-pop{top:46px;left:10px;right:10px;width:auto;}",
   "#mma-host .mma-pop-seg{display:flex;gap:4px;margin:0 0 12px;padding:3px;border-radius:9px;background:var(--dsw-alias-muted,#f3f4f6);}",
   "#mma-host .mma-pop-seg button{flex:1;height:28px;padding:0;line-height:1;border:0;border-radius:7px;background:transparent;cursor:pointer;font-size:12px;color:inherit;display:flex;align-items:center;justify-content:center;}",
   "#mma-host .mma-pop-seg button[data-on='1']{background:var(--dsw-alias-surface,#fff);font-weight:600;box-shadow:0 1px 2px var(--dsw-alias-shadow,rgba(0,0,0,.06));color:var(--dsw-alias-primary,#2563eb);}",
@@ -255,6 +259,11 @@ const CSS = [
   "#mma-host .mma-storage-notice-copy{font-weight:600;}",
 ];
 
+/** Full injected stylesheet (for tests / adapters). */
+export function panelCssText(): string {
+  return CSS.join("\n");
+}
+
 export function injectPanelCss(): void {
   if (typeof document === "undefined") return;
   let tag = document.querySelector(`style[data-plugin-css="${PANEL_CSS_TAG}"]`) as HTMLStyleElement | null;
@@ -264,5 +273,5 @@ export function injectPanelCss(): void {
     tag.dataset.pluginCss = PANEL_CSS_TAG;
     document.head.appendChild(tag);
   }
-  tag.textContent = CSS.join("\n");
+  tag.textContent = panelCssText();
 }

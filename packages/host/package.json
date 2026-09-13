@@ -1,6 +1,6 @@
 {
   "name": "@monkey-mini-app/host",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Agent-agnostic mini-app host: Host, apps, git, Hono HTTP, compile, tools facade",
   "type": "module",
   "main": "./dist/index.js",
