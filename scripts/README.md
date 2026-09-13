@@ -62,7 +62,7 @@ Canonical form is **`verb:object`**:
 | `pnpm format:examples` / `check:format` | prettier over `packages/ui-examples` (the check runs inside `pnpm verify`) |
 | `pnpm skill` | gen then check |
 | `pnpm verify` | **post-refactor one-shot**: build ui/sdk/api → skill → templates → lint → tsc → tests → dsh build |
-| `pnpm verify:coverage` | `verify` + `test:coverage` thresholds |
+| `pnpm verify:coverage` | `verify` + `test:coverage` (host/panel/dsh ≥85% lines; kit ≥40% lines floor) |
 | `pnpm build:ui` / `build:sdk (iframe → ui/dist)` | package dist |
 | `pnpm dev:host` | Vite + demo host |
 | `pnpm dev:dsh-debug` / `dev:dsh-prod` | path-link vs published dsh profile |

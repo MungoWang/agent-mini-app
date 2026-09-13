@@ -14,6 +14,10 @@
 > [`docs/archive/tasks/looks-liquid-glass-2026-09-13.md`](docs/archive/tasks/looks-liquid-glass-2026-09-13.md)。
 > Look PNG 预览整条砍掉不做（只要 live fixture + 规格 md）。
 >
+> 2026-09-13：P2「kit 覆盖率阈值」+「host-shell 覆盖」已做：`packages/ui` vitest 覆盖率地板
+> lines ≥40%（防 kit 套件再次静默不跑）；`host-shell.ts` 补测后 lines ~97%。
+>
+>
 > 2026-09-10：P1「layout presets」六个 preset 全部落地（组件 + 断言其存在理由的契约测试 +
 > 画廊示例 + `gen:skill`），逐条踩坑与 canary 记录见
 > [`docs/archive/tasks/layout-presets-2026-09-10.md`](docs/archive/tasks/layout-presets-2026-09-10.md)。
@@ -38,12 +42,6 @@
 1. **`shared/**` 的「纯同构」只是约定，没有静态门禁。**
    `layerOfRel`（`packages/host/src/compile/static-check.ts:147`）只把 findings **按层归类**，没有任何规则拦 `shared/` 里的 React / `ctx` / DOM / Node import。而 `AGENTS.md` → Hard constraints (3) 说的是「双向强制」。
    做法：按层加一条 import specifier 规则 + 植入 canary 证明它会红。
-
-2. **kit 测试没有覆盖率阈值。**
-   `vitest.config.ts:32-35` 的 `lines: 85` 只覆盖 `host` / `panel` / `dsh`，`packages/ui` 没有地板——那批 `.test.tsx` 只要再一次和 include 规则错开，没人报警。`kit` project 已经接进 workspace（`vitest.workspace.ts:43`），缺的就是阈值这半边。
-
-3. **`packages/panel/src/host-shell.ts` 是全仓最低覆盖：81.4 % lines / 64.1 % branch。**
-   panel 的阈值是聚合 glob，被同目录别的文件抬着过线，所以没人察觉。纯补测试，与功能无关。
 
 ## 触发式 — 条件出现才开工
 

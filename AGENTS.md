@@ -119,7 +119,7 @@ pnpm lint
 pnpm skill           # gen:skill + check:skill
 pnpm check:templates
 pnpm test
-pnpm test:coverage   # host/panel/dsh lines ≥85% (also: pnpm verify:coverage)
+pnpm test:coverage   # host/panel/dsh lines ≥85%; kit (packages/ui) lines ≥40% floor (also: pnpm verify:coverage)
 pnpm typecheck       # every tsconfig in the repo (root aggregate + each package's own)
 pnpm --filter @monkey-mini-app/dsh-mini-app build
 ```
