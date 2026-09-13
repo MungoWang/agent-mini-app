@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>液态玻璃 · 边缘透镜结构</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.5 ui-sans-serif, system-ui, sans-serif; background: #0e0f13; color: #eee; }
+  h1 { font-size: 16px; margin: 18px 20px 4px; }
+  p.note { margin: 0 20px 14px; color: #9aa; max-width: 82ch; }
+  .row { display: flex; gap: 16px; padding: 0 20px 22px; flex-wrap: wrap; }
+  .cell { width: 330px; }
+  .cell b { display: block; font-size: 12px; }
+  .cell small { color: #889; font-size: 11px; display: block; margin-bottom: 6px; }
+  .stage { position: relative; height: 240px; border-radius: 16px; overflow: hidden; }
+
+  /* ---- grounds: the pane can only bend what is behind it ---- */
+  .g { position: absolute; inset: 0; }
+  .g.smooth {
+    background:
+      radial-gradient(42% 40% at 12% 4%, #9b8bf0 0%, transparent 60%),
+      radial-gradient(38% 44% at 88% 12%, #4d7fd0 0%, transparent 62%),
+      linear-gradient(#a8bfe5, #8fa8d8);
+  }
+  /* wallpaper-ish: soft bokeh + fine grain. This is what gives the lens something to refract. */
+  .g.wall {
+    background:
+      radial-gradient(26% 34% at 18% 12%, #b7a6ff 0%, transparent 62%),
+      radial-gradient(22% 30% at 78% 20%, #6fb2ff 0%, transparent 60%),
+      radial-gradient(30% 26% at 62% 78%, #ff9ecb 0%, transparent 58%),
+      radial-gradient(18% 22% at 30% 72%, #8effd0 0%, transparent 58%),
+      linear-gradient(#93a7d6, #7d8fc4);
+  }
+  .wall .grain { position: absolute; inset: 0; opacity: .5; }
+
+  /* ---- glass stack: center layer first, rim lens on top (their masks are disjoint) ---- */
+  .glass { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 250px; height: 128px; border-radius: 30px; }
+  .center, .rim { position: absolute; inset: 0; border-radius: inherit; }
+  /* Two disjoint layers, painted centre-first then rim:
+     the rim therefore samples the RAW ground, not the blurred sheet under it. */
+  .center {
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(3px) saturate(150%);
+    -webkit-backdrop-filter: blur(3px) saturate(150%);
+    /* keep only the inner rect */
+    -webkit-mask: linear-gradient(#000 0 0) content-box;
+            mask: linear-gradient(#000 0 0) content-box;
+  }
+  .rim {
+    /* keep only the band: border-box minus content-box */
+    -webkit-mask: linear-gradient(#000 0 0) border-box, linear-gradient(#000 0 0) content-box;
+            mask: linear-gradient(#000 0 0) border-box, linear-gradient(#000 0 0) content-box;
+    -webkit-mask-composite: source-out;
+            mask-composite: subtract;
+  }
+  /* A: no refraction at all (what ships today) */
+  .A .center { backdrop-filter: blur(18px) saturate(200%) brightness(1.08);
+               mask: none; -webkit-mask: none; }
+  .A .rim { display: none; }
+
+  /* B: uniform refraction over the whole pane */
+  .B .center { backdrop-filter: blur(2px) url(#lens_soft); mask: none; -webkit-mask: none; }
+  .B .rim { display: none; }
+
+  /* C: rim-only lens (18px band) + a flat, barely-blurred centre */
+  .C .center { backdrop-filter: blur(2px) saturate(140%); }
+  .C .rim { padding: 18px; backdrop-filter: blur(1px) url(#lens_edge); }
+  .C .center { padding: 18px; backdrop-filter: blur(2px) saturate(140%); }
+
+  /* D: like C, deeper band + the thickness shadows */
+  .D .center { backdrop-filter: blur(3px) saturate(160%); }
+  .D .rim { padding: 24px; backdrop-filter: blur(1px) url(#lens_deep); }
+  .D .center { padding: 24px; backdrop-filter: blur(3px) saturate(160%); }
+  .thick {
+    position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.5),
+      inset 0 -1px 0 rgba(255,255,255,.2),
+      inset 0 0 22px rgba(255,255,255,.14),
+      0 12px 30px -8px rgba(10,20,50,.55);
+  }
+  .label { position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #fff; }
+  .label .big { font-size: 26px; font-weight: 600; letter-spacing: -.01em; }
+  .label .sub { font-size: 11px; opacity: .75; margin-top: 2px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:fixed;left:-9999px;top:-9999px">
+  <defs>
+    <filter id="lens_soft" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="2" seed="3" result="n"/>
+      <feGaussianBlur in="n" stdDeviation="1.8" result="m"/>
+      <feDisplacementMap in="SourceGraphic" in2="m" scale="60" xChannelSelector="R" yChannelSelector="B"/>
+    </filter>
+    <filter id="lens_edge" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.006" numOctaves="2" seed="11" result="n"/>
+      <feGaussianBlur in="n" stdDeviation="1.4" result="m"/>
+      <feDisplacementMap in="SourceGraphic" in2="m" scale="80" xChannelSelector="R" yChannelSelector="B"/>
+    </filter>
+    <filter id="lens_deep" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.005" numOctaves="3" seed="5" result="n"/>
+      <feGaussianBlur in="n" stdDeviation="1.1" result="m"/>
+      <feDisplacementMap in="SourceGraphic" in2="m" scale="120" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- the grain the wallpaper carries (structure for the lens to bend) -->
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+</svg>
+
+<h1>液态玻璃 · 边缘透镜结构</h1>
+<p class="note">
+  结论来自上一轮验证：① 折射必须有可折的细节，所以地面加 bokeh + 细颗粒；② 均匀折射会把字抖弯，所以改成「环带折射 + 中心近平」。
+  C/D 的层序是刻意的：中心层先画、环带层后画，两者遮罩互不重叠，环带采样到的仍是<b>原始背景</b>而不是已被模糊的那层。
+</p>
+<div class="row" id="grid"></div>
+
+<script>
+  const CANDS = [
+    ["A", "现在线上的（只有模糊）", "blur(18px) saturate(200%) — 无折射"],
+    ["B", "整片均匀折射（你的配方柔化）", "blur(2px) url(#lens_soft)"],
+    ["C", "环带折射 + 中心近平", "rim 18px url(#lens_edge)"],
+    ["D", "环带更深 + 厚度阴影", "rim 24px url(#lens_deep)"],
+  ];
+  const grid = document.getElementById("grid");
+  for (const [k, title, sub] of CANDS) {
+    for (const g of ["smooth", "wall"]) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML = `<b>${k} · ${title}</b><small>${sub} · ${g === "smooth" ? "平滑地面" : "壁纸地面"}</small>
+      <div class="stage">
+        <div class="g ${g}">${g === "wall" ? '<svg class="grain" width="100%" height="100%"><rect width="100%" height="100%" filter="url(#grain)" opacity="0.16"/></svg>' : ""}</div>
+        <div class="glass ${k}">
+          <div class="center"></div>
+          <div class="rim"></div>
+          <div class="thick"></div>
+          <div class="label"><span class="big">24°</span><span class="sub">星期四 · 局部多云</span></div>
+        </div>
+      </div>`;
+      grid.appendChild(cell);
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,27 +1,26 @@
 /* name: 玻璃岛屿 */
-/* Look-owned palette: the sky is a cool blue-violet field with cyan + indigo pools.
-   The ground carries the saturation; the panes stay mostly unsaturated so `saturate()`
-   is what lifts the colour through them. */
+/* Light: haze grey-blue a step deeper than pure fog, white glass, soft floating orbs that
+   actually read. Dark: deep indigo. Radius large for liquid glass on big panes. */
 :root[data-mode="light"] {
-  --bg: #a8bfe5;
-  --fg: #1e2740;
-  --surface: #f2f6ff;
-  --surface-fg: #1e2740;
-  --border: #d0daf2;
-  --muted: #c4d2ef;
-  --muted-fg: #46557c;
-  --primary: #4a63c8;
-  --primary-fg: #f4f8ff;
-  --secondary: #cfdaf4;
-  --secondary-fg: #1e2740;
-  --accent: #dde6fa;
-  --accent-fg: #1e2740;
+  --bg: #d5e0ed;
+  --fg: #243044;
+  --surface: #ffffff;
+  --surface-fg: #243044;
+  --border: #c2d0e0;
+  --muted: #c8d5e6;
+  --muted-fg: #5a6b80;
+  --primary: #6b8ab8;
+  --primary-fg: #ffffff;
+  --secondary: #d0dbe8;
+  --secondary-fg: #243044;
+  --accent: #e4ebf4;
+  --accent-fg: #243044;
   --destructive: #c63f4f;
   --destructive-fg: #ffffff;
-  --ring: #4a63c8;
-  --input: #b3c3ea;
-  --radius: 18px;
-  --shadow: rgba(28, 42, 92, 0.3);
+  --ring: #6b8ab8;
+  --input: #b8c8da;
+  --radius: 28px;
+  --shadow: rgba(60, 85, 120, 0.18);
 }
 :root[data-mode="dark"] {
   --bg: #0e1128;
@@ -41,6 +40,6 @@
   --destructive-fg: #20120d;
   --ring: #8b94fa;
   --input: #2e3566;
-  --radius: 18px;
+  --radius: 28px;
   --shadow: rgba(0, 4, 24, 0.66);
 }

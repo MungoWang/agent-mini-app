@@ -15,7 +15,10 @@ describe("appRunnerHtml", () => {
   });
 
   it("injects ThemeResource runner CSS into the style block", () => {
-    const html = appRunnerHtml("com.example.todo", 'html[data-theme="dark"]{--background:#111}');
+    const html = appRunnerHtml(
+      "com.example.todo",
+      'html[data-theme="dark"]{--background:#111}',
+    );
     expect(html).toContain('html[data-theme="dark"]{--background:#111}');
   });
 
@@ -24,16 +27,23 @@ describe("appRunnerHtml", () => {
   // diagnostics script silently failed to parse in the browser. So parse it for real.
   it("emits classic scripts that actually parse", () => {
     const html = appRunnerHtml("com.example.todo");
-    const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+      (m) => m[1],
+    );
     expect(blocks.length).toBeGreaterThanOrEqual(2);
     for (const [i, js] of blocks.entries()) {
-      expect(() => new Function(js), `script block ${i} is not valid JS`).not.toThrow();
+      expect(
+        () => new Function(js),
+        `script block ${i} is not valid JS`,
+      ).not.toThrow();
     }
   });
 
   it("embeds the app id in every injected script as one valid literal", () => {
     const html = appRunnerHtml(`com.exa"mple`);
-    const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+      (m) => m[1],
+    );
     const diagnostics = blocks.find((b) => b.includes("var APP_ID = "))!;
     const embedded = /var APP_ID = (.*?);$/m.exec(diagnostics);
     expect(embedded).not.toBeNull();
@@ -42,7 +52,9 @@ describe("appRunnerHtml", () => {
     const value = new Function(`return (${embedded![1]});`)();
     expect(value).toBe(`com.exa"mple`);
     // The view runtime receives the id the same way — a broken one answers no query.
-    expect(blocks.some((b) => b.includes(JSON.stringify(`com.exa"mple`)))).toBe(true);
+    expect(blocks.some((b) => b.includes(JSON.stringify(`com.exa"mple`)))).toBe(
+      true,
+    );
   });
 
   it("wires the error channel and the view query runtime", () => {
@@ -65,4 +77,21 @@ describe("appRunnerHtml", () => {
     expect(html).not.toMatch(/__CAP__|__MAX_NODES__|__APP_ID__/);
     expect(html).toContain('"cap":6144');
   });
+});
+
+it("bakes initialVars into the bootstrap apply() so first paint is not near-white", () => {
+  const html = appRunnerHtml("com.example.today", "", {
+    "--background": "#6e91c9",
+    "--primary": "#2f4fad",
+  });
+  expect(html).toContain('var initialVars = {"--background":"#6e91c9"');
+  expect(html).toContain(
+    'apply(concrete(q.get("theme") || "light"), q.get("palette") || "default", q.get("dock") || "fill", initialVars)',
+  );
+  // Still parses as classic JS.
+  const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+    (m) => m[1],
+  );
+  const boot = blocks.find((b) => b.includes("var initialVars = "))!;
+  expect(() => new Function(boot)).not.toThrow();
 });

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>液态玻璃 · 折射可行性验证</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.5 ui-sans-serif, system-ui, sans-serif; background: #111; color: #eee; }
+  h1 { font-size: 16px; margin: 18px 20px 4px; }
+  p.note { margin: 0 20px 14px; color: #999; max-width: 78ch; }
+  .row { display: flex; gap: 14px; padding: 0 20px 20px; flex-wrap: wrap; }
+  .cell { width: 300px; }
+  .cell b { display: block; font-size: 12px; margin-bottom: 4px; }
+  .cell code { font-size: 10px; color: #8fd; word-break: break-all; display: block; margin-bottom: 4px; }
+  .stage { position: relative; height: 220px; border-radius: 14px; overflow: hidden; }
+  .ground { position: absolute; inset: 0; }
+  .ground.smooth {
+    background:
+      radial-gradient(42% 40% at 12% 4%, #9b8bf0 0%, transparent 60%),
+      radial-gradient(38% 44% at 88% 12%, #4d7fd0 0%, transparent 62%),
+      linear-gradient(#a8bfe5, #8fa8d8);
+  }
+  /* the thing that makes refraction legible: high-frequency detail behind the pane */
+  .ground.detail {
+    background:
+      radial-gradient(42% 40% at 12% 4%, #9b8bf0 0%, transparent 60%),
+      radial-gradient(38% 44% at 88% 12%, #4d7fd0 0%, transparent 62%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 2px, transparent 2px 16px),
+      repeating-linear-gradient(0deg, rgba(20,30,60,.45) 0 2px, transparent 2px 16px),
+      linear-gradient(#a8bfe5, #8fa8d8);
+  }
+  .dots { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 12px; }
+  .dots i { border-radius: 6px; background: rgba(255,255,255,.35); }
+  .pane {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 210px; height: 108px; border-radius: 26px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; letter-spacing: .02em;
+    background: rgba(255,255,255,.10);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.45),
+      inset 0 -1px 0 rgba(255,255,255,.18),
+      inset 6px 6px 16px rgba(255,255,255,.12),
+      0 10px 28px rgba(0,0,0,.35);
+  }
+  .b0 { backdrop-filter: none; }
+  .b1 { backdrop-filter: blur(18px) saturate(200%) brightness(1.08); }
+  .b2 { backdrop-filter: blur(2px) url(#lg_strong); }
+  .b3 { backdrop-filter: blur(2px) url(#lg_soft); }
+  .b4 { backdrop-filter: url(#lg_strong); }
+  .b5 { backdrop-filter: blur(6px) url(#lg_edge); }
+  #report { margin: 0 20px 24px; padding: 10px 12px; border-radius: 10px; background: #1a1d24; font: 11px/1.7 ui-monospace, monospace; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:fixed;left:-9999px;top:-9999px">
+  <defs>
+    <!-- your recipe, verbatim -->
+    <filter id="lg_strong" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.003" numOctaves="2" seed="7" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="1.2" result="map"/>
+      <feDisplacementMap in="SourceGraphic" in2="map" scale="110" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- gentler warp -->
+    <filter id="lg_soft" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="2" seed="3" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="1.8" result="map"/>
+      <feDisplacementMap in="SourceGraphic" in2="map" scale="70" xChannelSelector="R" yChannelSelector="B"/>
+    </filter>
+    <!-- wavy, higher frequency -->
+    <filter id="lg_edge" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="2" seed="7" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="1.6" result="map"/>
+      <feDisplacementMap in="SourceGraphic" in2="map" scale="130" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<h1>液态玻璃 · 折射可行性</h1>
+<p class="note">
+  两条必须验的事实：① <code>backdrop-filter</code> 能不能同时写函数和 <code>url()</code>（不能的话整条会被丢掉，得改成纯 url 滤镜、把 blur 搬进 SVG）；
+  ② 位移图在<b>平滑渐变</b>背后几乎看不出，在地面有高频细节时才明显。所以每种滤镜各铺一次两种地面。
+</p>
+<div class="row" id="grid"></div>
+<div id="report"></div>
+
+<script>
+  const VARIANTS = [
+    ["b1 · 我现在做的（blur+saturate）", "blur(18px) saturate(200%) brightness(1.08)"],
+    ["b2 · 你的配方（blur 2 + url strong）", "blur(2px) url(#lg_strong)"],
+    ["b3 · 柔和（yChannel=B）", "blur(2px) url(#lg_soft)"],
+    ["b4 · 纯 url，不带函数", "url(#lg_strong)"],
+    ["b5 · blur6 + 高频 0.025", "blur(6px) url(#lg_edge)"],
+  ];
+  const GROUNDS = [["smooth", "渐变地面"], ["detail", "带细节地面"]];
+  const grid = document.getElementById("grid");
+  for (const [cls, label] of VARIANTS) {
+    for (const [g, glabel] of GROUNDS) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML = `<b>${label} · ${glabel}</b><code>${cls}</code>
+        <div class="stage">
+          <div class="ground ${g}"></div>
+          ${g === "detail" ? '<div class="dots">' + "<i></i>".repeat(12) + "</div>" : ""}
+          <div class="pane ${cls}" data-probe="${cls}">Hello World</div>
+        </div>`;
+      grid.appendChild(cell);
+    }
+  }
+  // Hard verification: what the engine actually kept, per variant.
+  const lines = [];
+  for (const [cls, decl] of VARIANTS) {
+    const el = document.querySelector(`[data-probe="${cls}"]`);
+    const got = getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter || "(none)";
+    const kept = got !== "none" && got.length > 0;
+    lines.push(`${kept ? "KEPT " : "DROPPED"}  ${cls}\n   wrote: ${decl}\n   got:   ${got}`);
+  }
+  lines.push("\nchrome: " + (navigator.userAgentData?.brands?.map(b=>b.brand+b.version).join(" ") || navigator.userAgent.slice(0,60)));
+  lines.push("supports url() in backdrop-filter: " + CSS.supports("backdrop-filter", "blur(2px) url(#lg_strong)"));
+  document.getElementById("report").textContent = lines.join("\n");
+</script>
+</body>
+</html>

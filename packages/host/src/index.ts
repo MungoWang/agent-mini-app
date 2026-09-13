@@ -23,7 +23,10 @@ export type {
 } from "./agent-events.ts";
 export type { AppCallContext } from "./app-runtime.ts";
 export { effectiveSignal } from "./app-runtime.ts";
-export type { AppPackageManifest, InstallOutcome } from "./apps/app-packages.ts";
+export type {
+  AppPackageManifest,
+  InstallOutcome,
+} from "./apps/app-packages.ts";
 export {
   installAppPackages,
   readAppManifest,
@@ -31,7 +34,11 @@ export {
   writeAppManifest,
 } from "./apps/app-packages.ts";
 export type { AppTheme } from "./apps/app-theme.ts";
-export { readAppTheme, writeAppTheme } from "./apps/app-theme.ts";
+export {
+  localThemeCssVars,
+  readAppTheme,
+  writeAppTheme,
+} from "./apps/app-theme.ts";
 export type {
   AfterMutateOptions,
   AfterMutateResult,
@@ -66,7 +73,7 @@ export {
   writeKey,
 } from "./apps/file-store.ts";
 export type { AppManifest } from "./apps/manifest.ts";
-export { acronymOf,parseManifest } from "./apps/manifest.ts";
+export { acronymOf, parseManifest } from "./apps/manifest.ts";
 export type { StorageTableInfo } from "./apps/storage.ts";
 export {
   listStorageNotices,
@@ -83,14 +90,22 @@ export {
   isAbsolutePath,
   isAppId,
 } from "./brand.ts";
-export type { BoundHostCapabilities, HostCapabilities } from "./capabilities.ts";
+export type {
+  BoundHostCapabilities,
+  HostCapabilities,
+} from "./capabilities.ts";
 export { bindCapsToContext } from "./capabilities.ts";
 export { AppCssCompiler, appCssExists } from "./compile/app-css.ts";
 export {
   keyframeNamesIn,
   platformKeyframeNames,
 } from "./compile/platform-keyframes.ts";
-export type { Vendor, VendorId, VendorResolve, VendorTarget } from "./compile/platform-modules.ts";
+export type {
+  Vendor,
+  VendorId,
+  VendorResolve,
+  VendorTarget,
+} from "./compile/platform-modules.ts";
 export {
   findVendor,
   resolveVendorSpecifier,
@@ -104,7 +119,10 @@ export {
   vendorSpecifierFilter,
 } from "./compile/platform-modules.ts";
 export { RUNNER_INLINE_CSS } from "./compile/runner-inline-css.ts";
-export type { StaticCheckResult, StaticFinding } from "./compile/static-check.ts";
+export type {
+  StaticCheckResult,
+  StaticFinding,
+} from "./compile/static-check.ts";
 export {
   checkAppSources,
   formatFinding,
@@ -188,7 +206,7 @@ export { WorkspacePaths } from "./paths/workspace-paths.ts";
 export type { CustomThemePalette, ThemeResource } from "./theme-resource.ts";
 export { EMPTY_THEME_RESOURCE } from "./theme-resource.ts";
 export type { ToolDefinition } from "./tools/tool-facade.ts";
-export { isMiniAppToolName,ToolFacade } from "./tools/tool-facade.ts";
+export { isMiniAppToolName, ToolFacade } from "./tools/tool-facade.ts";
 export type {
   HostConfig,
   HostConfigInitInput,

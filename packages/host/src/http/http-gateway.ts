@@ -13,12 +13,24 @@ import {
   resolveAboutInfo,
   type UpdateCheck,
 } from "../about.ts";
-import { readAppTheme, writeAppTheme } from "../apps/app-theme.ts";
+import {
+  localThemeCssVars,
+  readAppTheme,
+  writeAppTheme,
+} from "../apps/app-theme.ts";
 import type { AppItem, AppsManager } from "../apps/apps-manager.ts";
-import { listStorageNotices, listStorageTables, readJsonFile, readTableView } from "../apps/storage.ts";
+import {
+  listStorageNotices,
+  listStorageTables,
+  readJsonFile,
+  readTableView,
+} from "../apps/storage.ts";
 import { asAppId, isAppId } from "../brand.ts";
 import type { AppCssCompiler } from "../compile/app-css.ts";
-import { vendorIdFromFile, VENDORS_HREF_PREFIX } from "../compile/platform-modules.ts";
+import {
+  vendorIdFromFile,
+  VENDORS_HREF_PREFIX,
+} from "../compile/platform-modules.ts";
 import {
   resolveSdkDistDir,
   resolveUiDistDir,
@@ -48,12 +60,34 @@ const SSE_HEARTBEAT_MS = 25_000;
 
 /** Resolve a @fontsource-variable/geist font file (walk up from the ui dist). */
 function geistFontPath(name: string): string {
-  for (let dir = resolveUiDistDir(); dir !== path.dirname(dir); dir = path.dirname(dir)) {
-    const fp = path.join(dir, "..", "..", "node_modules", "@fontsource-variable", "geist", "files", name);
+  for (
+    let dir = resolveUiDistDir();
+    dir !== path.dirname(dir);
+    dir = path.dirname(dir)
+  ) {
+    const fp = path.join(
+      dir,
+      "..",
+      "..",
+      "node_modules",
+      "@fontsource-variable",
+      "geist",
+      "files",
+      name,
+    );
     const p = path.resolve(fp);
     if (fs.existsSync(p)) return p;
   }
-  return path.join(resolveUiDistDir(), "..", "..", "node_modules", "@fontsource-variable", "geist", "files", name);
+  return path.join(
+    resolveUiDistDir(),
+    "..",
+    "..",
+    "node_modules",
+    "@fontsource-variable",
+    "geist",
+    "files",
+    name,
+  );
 }
 
 function listenHttp(server: Server, port: number): Promise<number> {
@@ -90,7 +124,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function publicHostConfig(config: HostConfig, hostPort: number): Record<string, unknown> {
+function publicHostConfig(
+  config: HostConfig,
+  hostPort: number,
+): Record<string, unknown> {
   return {
     theme: config.theme,
     palette: config.palette,
@@ -122,11 +159,15 @@ function probePort(port: number): Promise<void> {
   });
 }
 
-function mergeHostConfigPatch(cur: HostConfig, body: Record<string, unknown>): HostConfig {
+function mergeHostConfigPatch(
+  cur: HostConfig,
+  body: Record<string, unknown>,
+): HostConfig {
   // `system` is a storable preference — clamping it here is what used to make
   // "follow system" revert to a concrete light/dark after a reload.
   const theme =
-    typeof body.theme === "string" && (THEME_PREF_IDS as readonly string[]).includes(body.theme)
+    typeof body.theme === "string" &&
+    (THEME_PREF_IDS as readonly string[]).includes(body.theme)
       ? (body.theme as ThemePref)
       : cur.theme;
   const palette =
@@ -134,7 +175,8 @@ function mergeHostConfigPatch(cur: HostConfig, body: Record<string, unknown>): H
       ? body.palette.trim()
       : cur.palette;
   const locale =
-    typeof body.locale === "string" && (LOCALE_IDS as readonly string[]).includes(body.locale)
+    typeof body.locale === "string" &&
+    (LOCALE_IDS as readonly string[]).includes(body.locale)
       ? (body.locale as LocaleId)
       : cur.locale;
   const chatLanguage =
@@ -146,7 +188,10 @@ function mergeHostConfigPatch(cur: HostConfig, body: Record<string, unknown>): H
   if (body.hostPort !== undefined) {
     const n = Number(body.hostPort);
     if (!Number.isInteger(n) || n < 0 || n > 65535) {
-      throw new HostError("INVALID_HOST_CONFIG", "hostPort must be an integer 0–65535");
+      throw new HostError(
+        "INVALID_HOST_CONFIG",
+        "hostPort must be an integer 0–65535",
+      );
     }
     hostPort = n;
   }
@@ -156,8 +201,16 @@ function mergeHostConfigPatch(cur: HostConfig, body: Record<string, unknown>): H
   } else if (isRecord(body.llm)) {
     const provider = body.llm.provider;
     const model = body.llm.model;
-    if (typeof provider !== "string" || !provider.trim() || typeof model !== "string" || !model.trim()) {
-      throw new HostError("INVALID_HOST_CONFIG", "llm requires non-empty provider and model");
+    if (
+      typeof provider !== "string" ||
+      !provider.trim() ||
+      typeof model !== "string" ||
+      !model.trim()
+    ) {
+      throw new HostError(
+        "INVALID_HOST_CONFIG",
+        "llm requires non-empty provider and model",
+      );
     }
     llm = { provider: provider.trim(), model: model.trim() };
   }
@@ -201,14 +254,18 @@ export class HttpGateway {
     if (this.server) {
       return this.boundPort;
     }
-    const listener = getRequestListener((request, env) => this.app.fetch(request, env));
+    const listener = getRequestListener((request, env) =>
+      this.app.fetch(request, env),
+    );
     const server = createServer(listener);
     try {
       this.boundPort = await listenHttp(server, port);
       this.server = server;
     } catch (cause) {
       server.close();
-      throw new HostError("HOST_LISTEN_FAILED", `failed to listen on ${port}`, { cause });
+      throw new HostError("HOST_LISTEN_FAILED", `failed to listen on ${port}`, {
+        cause,
+      });
     }
     return this.boundPort;
   }
@@ -316,7 +373,9 @@ export class HttpGateway {
           send("retry: 2000\n\n");
           if (gap) {
             // Ring buffer already evicted some: tell the UI to refetch a snapshot.
-            send(`event: app:gap\ndata: ${JSON.stringify({ appId, since })}\n\n`);
+            send(
+              `event: app:gap\ndata: ${JSON.stringify({ appId, since })}\n\n`,
+            );
           }
           for (const event of missed) {
             if (event.type !== "app:event") continue;
@@ -356,7 +415,9 @@ export class HttpGateway {
       });
     });
 
-    app.get("/api/about", (c) => c.json({ ok: true, ...resolveAboutInfo(this.about) }));
+    app.get("/api/about", (c) =>
+      c.json({ ok: true, ...resolveAboutInfo(this.about) }),
+    );
 
     // One UpdateCheck for the adapter package (what the panel's "check for updates" shows).
     app.get("/api/updates", async (c) => {
@@ -373,7 +434,10 @@ export class HttpGateway {
       if (!target) {
         return c.json({ ok: true, ...empty });
       }
-      return c.json({ ok: true, ...(await checkPackageUpdate(target.name, target.version)) });
+      return c.json({
+        ok: true,
+        ...(await checkPackageUpdate(target.name, target.version)),
+      });
     });
 
     app.post("/api/host-config", async (c) => {
@@ -392,12 +456,16 @@ export class HttpGateway {
         next = mergeHostConfigPatch(this.config, body);
       } catch (cause) {
         if (cause instanceof HostError) {
-          return c.json({ ok: false, error: cause.message, code: cause.code }, 400);
+          return c.json(
+            { ok: false, error: cause.message, code: cause.code },
+            400,
+          );
         }
         throw cause;
       }
 
-      const portChanged = next.hostPort !== this.boundPort && next.hostPort !== 0;
+      const portChanged =
+        next.hostPort !== this.boundPort && next.hostPort !== 0;
       if (portChanged) {
         try {
           await probePort(next.hostPort);
@@ -433,7 +501,10 @@ export class HttpGateway {
         });
       }
 
-      return c.json({ ok: true, ...publicHostConfig(this.config, responsePort) });
+      return c.json({
+        ok: true,
+        ...publicHostConfig(this.config, responsePort),
+      });
     });
 
     app.get("/api/apps", async (c) => {
@@ -443,7 +514,10 @@ export class HttpGateway {
           const dir = this.apps.dirOf(a.id);
           let localThemeCss: string | null = null;
           try {
-            localThemeCss = fs.readFileSync(path.join(dir, "theme.css"), "utf8");
+            localThemeCss = fs.readFileSync(
+              path.join(dir, "theme.css"),
+              "utf8",
+            );
           } catch {
             localThemeCss = null;
           }
@@ -474,7 +548,12 @@ export class HttpGateway {
         return c.json({ ok: false, error: "missing appId or method" }, 400);
       }
       try {
-        const value = await this.apps.call(appId, method, body.args, c.req.raw.signal);
+        const value = await this.apps.call(
+          appId,
+          method,
+          body.args,
+          c.req.raw.signal,
+        );
         return c.json({ ok: true, value });
       } catch (cause) {
         return c.json({ ok: false, error: errorMessage(cause) }, 400);
@@ -485,7 +564,10 @@ export class HttpGateway {
       const appId = asAppId(c.req.param("appId"));
       const dir = this.apps.dirOf(appId);
       const limitRaw = Number(c.req.query("limit"));
-      const limit = Math.min(Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 50, 200);
+      const limit = Math.min(
+        Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 50,
+        200,
+      );
       const list = await this.git.log(dir, limit);
       const commits = await Promise.all(
         list.map(async (entry) => ({
@@ -502,7 +584,9 @@ export class HttpGateway {
       const dir = this.apps.dirOf(appId);
       const stats = await this.git.fileStats(dir, commitId);
       const log = await this.git.log(dir, 200);
-      const meta = log.find((entry) => entry.id === commitId || entry.id.startsWith(commitId));
+      const meta = log.find(
+        (entry) => entry.id === commitId || entry.id.startsWith(commitId),
+      );
       const files = await Promise.all(
         stats.map(async (s) => ({
           ...s,
@@ -578,16 +662,29 @@ export class HttpGateway {
       } catch {
         items = [];
       }
-      const esc = (s: string) => s.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
+      const esc = (s: string) =>
+        s.replace(
+          /[&<>"']/g,
+          (ch) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[ch] as string,
+        );
       const cards = items
-        .map((a) => `<a class="card" href="/app/${encodeURIComponent(a.id)}">
+        .map(
+          (a) => `<a class="card" href="/app/${encodeURIComponent(a.id)}">
           <div class="mono">${esc(a.acronym || a.name.slice(0, 2).toUpperCase())}</div>
           <div>
             <div class="name">${esc(a.name)}</div>
             <div class="desc">${esc(a.description || a.id)}</div>
             <div class="meta">${esc(a.id)} · ${a.commits} commits</div>
           </div>
-        </a>`)
+        </a>`,
+        )
         .join("\n");
       const html = `<!doctype html>
 <html><head>
@@ -618,7 +715,10 @@ export class HttpGateway {
 
     app.get("/ui.css", (c) => {
       try {
-        const css = fs.readFileSync(path.join(resolveUiDistDir(), "globals.css"), "utf8");
+        const css = fs.readFileSync(
+          path.join(resolveUiDistDir(), "globals.css"),
+          "utf8",
+        );
         return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
       } catch (cause) {
         return c.text(`ui.css missing: ${errorMessage(cause)}`, 500);
@@ -627,7 +727,9 @@ export class HttpGateway {
 
     app.get(RUNTIME_HREF, (c) => {
       try {
-        const buf = fs.readFileSync(path.join(resolveSdkDistDir(), "runtime.js"));
+        const buf = fs.readFileSync(
+          path.join(resolveSdkDistDir(), "runtime.js"),
+        );
         return c.body(buf, 200, {
           "Content-Type": "application/javascript; charset=utf-8",
           "Cache-Control": "no-cache",
@@ -653,7 +755,9 @@ export class HttpGateway {
       const id = vendorIdFromFile(c.req.param("file") ?? "");
       if (!id) return c.text("unknown vendor", 404);
       try {
-        const buf = fs.readFileSync(path.join(resolveSdkDistDir(), "vendors", `${id}.js`));
+        const buf = fs.readFileSync(
+          path.join(resolveSdkDistDir(), "vendors", `${id}.js`),
+        );
         return c.body(buf, 200, {
           "Content-Type": "application/javascript; charset=utf-8",
           "Cache-Control": "no-cache",
@@ -674,8 +778,13 @@ export class HttpGateway {
         return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
       } catch (cause) {
         try {
-          const css = fs.readFileSync(path.join(resolveUiDistDir(), "globals.css"), "utf8");
-          return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8" });
+          const css = fs.readFileSync(
+            path.join(resolveUiDistDir(), "globals.css"),
+            "utf8",
+          );
+          return c.body(css, 200, {
+            "Content-Type": "text/css; charset=utf-8",
+          });
         } catch {
           return c.text(`app ui.css failed: ${errorMessage(cause)}`, 500);
         }
@@ -706,7 +815,9 @@ export class HttpGateway {
         column: typeof body.column === "number" ? body.column : undefined,
         stack: typeof body.stack === "string" ? body.stack : undefined,
         componentStack:
-          typeof body.componentStack === "string" ? body.componentStack : undefined,
+          typeof body.componentStack === "string"
+            ? body.componentStack
+            : undefined,
       });
       return c.body(null, 204);
     });
@@ -714,7 +825,8 @@ export class HttpGateway {
     app.get("/api/app/:appId/errors", (c) => {
       const bus = this.events;
       const appId = c.req.param("appId") || "";
-      if (!bus || !isAppId(appId)) return c.json({ ok: true, errors: [], lastSeq: 0, dropped: 0 });
+      if (!bus || !isAppId(appId))
+        return c.json({ ok: true, errors: [], lastSeq: 0, dropped: 0 });
       const sinceRaw = Number(c.req.query("since"));
       const since = Number.isFinite(sinceRaw) && sinceRaw > 0 ? sinceRaw : 0;
       return c.json({ ok: true, ...bus.appErrorsFor(appId, since) });
@@ -750,7 +862,10 @@ export class HttpGateway {
       }
       if (!isRecord(body)) return c.body(null, 204);
       // The runtime caps its own output, but this is a browser: bound it again on the way in.
-      if (typeof body.result === "string" && body.result.length > VIEW_EVAL_BYTE_CAP * 2) {
+      if (
+        typeof body.result === "string" &&
+        body.result.length > VIEW_EVAL_BYTE_CAP * 2
+      ) {
         body.result = body.result.slice(0, VIEW_EVAL_BYTE_CAP * 2);
         body.truncated = true;
       }
@@ -765,7 +880,10 @@ export class HttpGateway {
         const p = geistFontPath(name);
         const buf = fs.readFileSync(p);
         const ext = path.extname(name).toLowerCase();
-        return c.body(buf, 200, { "Content-Type": ext === ".woff2" ? "font/woff2" : "application/octet-stream" });
+        return c.body(buf, 200, {
+          "Content-Type":
+            ext === ".woff2" ? "font/woff2" : "application/octet-stream",
+        });
       } catch (cause) {
         return c.text(`font missing: ${errorMessage(cause)}`, 404);
       }
@@ -797,7 +915,33 @@ export class HttpGateway {
     });
 
     app.get("/app/:appId", (c) => {
-      const html = appRunnerHtml(c.req.param("appId"), this.themes.runnerCss());
+      const appId = c.req.param("appId");
+      const dir = this.apps.dirOf(asAppId(appId));
+      // First-paint palette: if the app ships theme.css and the request asks for (or defaults
+      // to) the local look, bake the tokens into the document so the iframe does not flash
+      // near-white while the panel's mma-set-env is still in flight — and so a bare /app/:id
+      // open still renders the look.
+      let localCss = "";
+      try {
+        localCss = fs.readFileSync(path.join(dir, "theme.css"), "utf8");
+      } catch {
+        /* no theme.css */
+      }
+      const qTheme = c.req.query("theme") || "light";
+      const qPal = c.req.query("palette");
+      const mode: "light" | "dark" =
+        qTheme === "dark"
+          ? "dark"
+          : qTheme === "system"
+            ? /* best-effort; the runner re-resolves system on the client */ "light"
+            : "light";
+      // Mirror panel effectivePalette: explicit host palette → leave alone; __local__ or bare
+      // open with a theme.css → ship the look's tokens.
+      const useLocal =
+        Boolean(localCss) &&
+        (qPal === "__local__" || qPal === undefined || qPal === "");
+      const initialVars = useLocal ? localThemeCssVars(localCss, mode) : null;
+      const html = appRunnerHtml(appId, this.themes.runnerCss(), initialVars);
       return c.html(html);
     });
 

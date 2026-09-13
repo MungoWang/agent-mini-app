@@ -10,26 +10,52 @@ import { Badge, Button, Icon, ListDetail, Reveal, Separator, Terminal } from "@m
 import { useLookPalette } from "./palette";
 
 /**
- * The same three glass layers `templates/today` uses, in one place so the preview cannot drift
- * from the facade: translucent fill, elevation shadow, bright inner top edge. Inline because
- * Tailwind drops the extra inset layers of an arbitrary `shadow-[…]`.
+ * Mirrors `templates/today`: liquid glass (SVG displacement + blur), not frosted film.
+ * Capability-gated — non-Chromium falls back to plain frost. Radius comes from the token.
  */
+const REFRACTS =
+  typeof CSS !== "undefined" &&
+  typeof CSS.supports === "function" &&
+  CSS.supports("backdrop-filter", "blur(2px) url(#mma-liquid)");
+
 const GLASS = {
-  backgroundColor: "color-mix(in oklch, var(--card) 26%, transparent)",
-  backgroundImage:
-    "linear-gradient(to bottom," +
-    " color-mix(in oklch, var(--card) 42%, transparent) 0%," +
-    " color-mix(in oklch, var(--card) 14%, transparent) 32%," +
-    " transparent 70%)",
+  borderRadius: "var(--radius)",
+  backgroundColor: "color-mix(in oklch, var(--card) 14%, transparent)",
   boxShadow:
-    "inset 0 1.5px 0 color-mix(in oklch, var(--card) 96%, transparent)," +
-    "inset 0 -1px 0 color-mix(in oklch, var(--card) 38%, transparent)," +
-    "0 2px 6px -2px color-mix(in oklch, var(--foreground) 30%, transparent)," +
-    "0 20px 42px -18px var(--shadow)",
-  borderColor: "color-mix(in oklch, var(--card) 34%, transparent)",
-  backdropFilter: "blur(18px) saturate(200%) brightness(1.08)",
-  WebkitBackdropFilter: "blur(18px) saturate(200%) brightness(1.08)",
+    "inset 0 1px 0 color-mix(in oklch, var(--card) 60%, transparent)," +
+    "inset 0 -1px 0 color-mix(in oklch, var(--card) 22%, transparent)," +
+    "inset 0 0 24px color-mix(in oklch, var(--card) 14%, transparent)," +
+    "0 14px 36px -10px var(--shadow)",
+  border: "1px solid color-mix(in oklch, var(--card) 28%, transparent)",
+  backdropFilter: REFRACTS
+    ? "blur(2px) saturate(160%) url(#mma-liquid)"
+    : "blur(18px) saturate(200%) brightness(1.08)",
+  WebkitBackdropFilter: REFRACTS ? "blur(2px) saturate(160%)" : "blur(18px) saturate(200%) brightness(1.08)",
 } as const;
+
+function LiquidDefs() {
+  return (
+    <svg aria-hidden className="pointer-events-none fixed -left-[9999px] top-0 h-0 w-0">
+      <defs>
+        <filter id="mma-liquid" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+          <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="2" seed="3" result="n" />
+          <feGaussianBlur in="n" stdDeviation="1.8" result="m" />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="m"
+            scale="45"
+            xChannelSelector="R"
+            yChannelSelector="B"
+          />
+        </filter>
+        <filter id="mma-grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
 
 // Mirrors templates/sheets: walnut grain + one amber lamp pool + vignette; the papers are
 // cream in both modes (lamp-lit paper on a dark desk is the look, dark papers are mud).
@@ -63,30 +89,39 @@ const RAISED = {
 export function GlassIslandLook() {
   const palette = useLookPalette("glass-island");
   return (
-    // Mirrors templates/today: the sky is `bg-background` (the look ships its own theme.css),
-    // one soft primary wash so the frost has something to blur, two slabs on top.
+    // Mirrors templates/today: liquid glass over a structured sky (grain + bokeh), radius from the token.
     <div
       style={palette}
       className="relative flex h-full min-h-0 flex-col justify-between overflow-hidden bg-background p-6 text-foreground"
     >
+      <LiquidDefs />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
+          // Floating orbs must read against the haze ground: higher alpha, clearer edges,
+          // white + soft primary only (still not a saturated sky).
           background:
-            "radial-gradient(620px 260px at 16% -6%, color-mix(in oklch, var(--primary) 38%, transparent), transparent 68%)," +
-            "radial-gradient(460px 220px at 92% 6%, color-mix(in oklch, var(--primary) 24%, transparent), transparent 70%)," +
-            "radial-gradient(520px 300px at 50% 108%, color-mix(in oklch, var(--foreground) 12%, transparent), transparent 70%)",
+            "radial-gradient(55% 58% at 10% -4%, color-mix(in oklch, var(--card) 92%, transparent), transparent 68%)," +
+            "radial-gradient(48% 52% at 92% 4%, color-mix(in oklch, var(--primary) 38%, transparent), transparent 66%)," +
+            "radial-gradient(50% 45% at 72% 88%, color-mix(in oklch, var(--card) 80%, transparent), transparent 64%)," +
+            "radial-gradient(42% 48% at 12% 82%, color-mix(in oklch, var(--primary) 28%, transparent), transparent 64%)," +
+            "radial-gradient(160px 160px at 32% 28%, color-mix(in oklch, var(--card) 95%, transparent), transparent 70%)," +
+            "radial-gradient(130px 130px at 78% 36%, color-mix(in oklch, var(--primary) 32%, transparent), transparent 70%)," +
+            "radial-gradient(140px 140px at 52% 62%, color-mix(in oklch, var(--card) 88%, transparent), transparent 68%)," +
+            "radial-gradient(110px 110px at 22% 58%, color-mix(in oklch, var(--primary) 24%, transparent), transparent 70%)",
         }}
       />
+      <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.2]">
+        <rect width="100%" height="100%" filter="url(#mma-grain)" />
+      </svg>
       <Reveal>
         <p className="text-sm tracking-wide text-muted-foreground">星期五 · 微雨</p>
         <p className="mt-1 font-serif text-6xl leading-none tracking-tight">68°</p>
         <p className="text-muted-foreground mt-2 text-sm">8 月 28 日 · L 66° H 76°</p>
       </Reveal>
-      {/* capped and centred: an island stretched to every edge is just a page with rounded corners */}
       <div className="relative mx-auto flex w-full max-w-md flex-col gap-2">
-        <div style={GLASS} className="rounded-3xl border px-4 py-3">
+        <div style={GLASS} className="px-4 py-3">
           <div className="text-muted-foreground flex justify-between text-xs">
             <span>一 24</span>
             <span>二 25</span>
@@ -99,7 +134,7 @@ export function GlassIslandLook() {
             <span>日 30</span>
           </div>
         </div>
-        <div style={GLASS} className="flex justify-between rounded-3xl border px-4 py-3 text-sm">
+        <div style={GLASS} className="flex justify-between px-4 py-3 text-sm">
           <span>工作 10:00</span>
           <span>放学 16:50</span>
         </div>

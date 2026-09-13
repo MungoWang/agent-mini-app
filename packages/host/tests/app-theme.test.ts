@@ -6,7 +6,11 @@ import { describe, expect, it } from "vitest";
 
 import type { AppTheme } from "@monkey-mini-app/host";
 
-import { appThemeFile, readAppTheme, writeAppTheme } from "../src/apps/app-theme.ts";
+import {
+  appThemeFile,
+  readAppTheme,
+  writeAppTheme,
+} from "../src/apps/app-theme.ts";
 
 function tmpDir(): string {
   return mkdtempSync(path.join(tmpdir(), "mma-theme-"));
@@ -81,5 +85,48 @@ describe("app theme.json", () => {
       palette: "default",
     });
     expect(readAppTheme(dir)).toEqual({ theme: "light", palette: "default" });
+  });
+});
+
+import { localThemeCssVars } from "../src/apps/app-theme.ts";
+
+const SAMPLE = `/* name: 玻璃岛屿 */
+:root[data-mode="light"] {
+  --bg: #6e91c9;
+  --fg: #122038;
+  --surface: #f5f8ff;
+  --surface-fg: #122038;
+  --primary: #2f4fad;
+  --primary-fg: #f4f8ff;
+  --radius: 28px;
+}
+:root[data-mode="dark"] {
+  --bg: #0e1128;
+  --fg: #e9edff;
+  --surface: #21264c;
+  --surface-fg: #e9edff;
+  --primary: #8b94fa;
+  --primary-fg: #12142c;
+  --radius: 28px;
+}
+`;
+
+describe("localThemeCssVars", () => {
+  it("maps short keys onto the kit custom properties the iframe actually reads", () => {
+    const vars = localThemeCssVars(SAMPLE, "light");
+    expect(vars).not.toBeNull();
+    expect(vars!["--background"]).toBe("#6e91c9");
+    expect(vars!["--card"]).toBe("#f5f8ff");
+    expect(vars!["--primary"]).toBe("#2f4fad");
+    expect(vars!["--radius"]).toBe("28px");
+  });
+
+  it("returns null when a mode block is missing the three primaries", () => {
+    expect(
+      localThemeCssVars(
+        `:root[data-mode="light"] { --bg: #fff; --fg: #000; }`,
+        "light",
+      ),
+    ).toBeNull();
   });
 });

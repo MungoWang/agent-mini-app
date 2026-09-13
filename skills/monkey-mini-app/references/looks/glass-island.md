@@ -10,17 +10,17 @@ id: `glass-island` · grammar: `poster-dock`
 
 **Not:** Launchers, DataGrid, incident walls. Not a 2D mosaic.
 
-**How to copy it:** Glass reads through THREE ingredient families, and all three must fire. (1) The ground is saturated (this look's theme.css carries the blue-violet field with cyan/indigo pools); a grey ground can never make glass, it can only make film. (2) The pane is LOW-alpha and near-neutral `blur() + saturate(200%)`, so the ground's hue is lifted through it by the filter rather than painted in the fill. (3) The top edge is a specular rim (color-mix card → ground), plus tight contact + wide lift shadows. Under-saturating the fill or the ground is the two ways cheap glass happens; muddy grey-blue is one of them. Sky = palette (bg-background); cap and centre the cluster; write spans out, not md:.
+**How to copy it:** Liquid glass (SVG displacement + blur), not frost. `backdrop-filter: blur(2px) saturate(160%) url(#mma-liquid)` with feTurbulence→blur→displace (scale ~45, yChannel=B). Light ground is haze-grey + white + a whisper of blue with large floating orbs — not a saturated sky; dark is deep indigo. Sky needs grain + orb edges or the lens bends nothing. Only the island cluster is liquid; the working set is a soft card so the sky still frames the cluster (wall-to-wall glass is why the facade used to look nothing like the prototype). Radius is large (`--radius: 28px`) on the style object. Non-Chromium falls back to frost. Host bakes local theme.css vars into `/app/:id` first paint so the look is not near-white while mma-set-env is in flight.
 
 ## Style (inline — Tailwind drops multi-layer shadows)
 
 ```tsx
 const GLASS = {
-  "backgroundColor": "color-mix(in oklch, var(--card) 26%, transparent)",
-  "backgroundImage": "linear-gradient(to bottom, color-mix(in oklch, var(--card) 42%, transparent) 0%, color-mix(in oklch, var(--card) 14%, transparent) 32%, transparent 70%)",
-  "boxShadow": "inset 0 1.5px 0 color-mix(in oklch, var(--card) 96%, transparent), inset 0 -1px 0 color-mix(in oklch, var(--card) 38%, transparent), 0 2px 6px -2px color-mix(in oklch, var(--foreground) 30%, transparent), 0 20px 42px -18px var(--shadow)",
-  "borderColor": "color-mix(in oklch, var(--card) 34%, transparent)",
-  "backdropFilter": "blur(18px) saturate(200%) brightness(1.08)"
+  "borderRadius": "var(--radius)",
+  "backgroundColor": "color-mix(in oklch, var(--card) 14%, transparent)",
+  "boxShadow": "inset 0 1px 0 card/60, inset 0 -1px 0 card/22, inset 0 0 24px card/14, 0 14px 36px -10px var(--shadow)",
+  "border": "1px solid color-mix(in oklch, var(--card) 28%, transparent)",
+  "backdropFilter": "blur(2px) saturate(160%) url(#mma-liquid)  /* Chromium; frost fallback otherwise */"
 } as const;
 ```
 
@@ -40,29 +40,28 @@ pick a host palette. Omit the file to follow the host palette instead.
 
 ```css
 /* name: 玻璃岛屿 */
-/* Look-owned palette: the sky is a cool blue-violet field with cyan + indigo pools.
-   The ground carries the saturation; the panes stay mostly unsaturated so `saturate()`
-   is what lifts the colour through them. */
+/* Light: haze grey-blue a step deeper than pure fog, white glass, soft floating orbs that
+   actually read. Dark: deep indigo. Radius large for liquid glass on big panes. */
 :root[data-mode="light"] {
-  --bg: #a8bfe5;
-  --fg: #1e2740;
-  --surface: #f2f6ff;
-  --surface-fg: #1e2740;
-  --border: #d0daf2;
-  --muted: #c4d2ef;
-  --muted-fg: #46557c;
-  --primary: #4a63c8;
-  --primary-fg: #f4f8ff;
-  --secondary: #cfdaf4;
-  --secondary-fg: #1e2740;
-  --accent: #dde6fa;
-  --accent-fg: #1e2740;
+  --bg: #d5e0ed;
+  --fg: #243044;
+  --surface: #ffffff;
+  --surface-fg: #243044;
+  --border: #c2d0e0;
+  --muted: #c8d5e6;
+  --muted-fg: #5a6b80;
+  --primary: #6b8ab8;
+  --primary-fg: #ffffff;
+  --secondary: #d0dbe8;
+  --secondary-fg: #243044;
+  --accent: #e4ebf4;
+  --accent-fg: #243044;
   --destructive: #c63f4f;
   --destructive-fg: #ffffff;
-  --ring: #4a63c8;
-  --input: #b3c3ea;
-  --radius: 18px;
-  --shadow: rgba(28, 42, 92, 0.3);
+  --ring: #6b8ab8;
+  --input: #b8c8da;
+  --radius: 28px;
+  --shadow: rgba(60, 85, 120, 0.18);
 }
 :root[data-mode="dark"] {
   --bg: #0e1128;
@@ -82,7 +81,7 @@ pick a host palette. Omit the file to follow the host palette instead.
   --destructive-fg: #20120d;
   --ring: #8b94fa;
   --input: #2e3566;
-  --radius: 18px;
+  --radius: 28px;
   --shadow: rgba(0, 4, 24, 0.66);
 }
 ```

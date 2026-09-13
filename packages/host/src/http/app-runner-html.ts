@@ -98,7 +98,16 @@ function diagnosticsScript(appId: string): string {
 
 /** Iframe entry HTML for a compiled mini-app UI bundle. */
 
-export function appRunnerHtml(appId: string, themeCss = ""): string {
+export function appRunnerHtml(
+  appId: string,
+  themeCss = "",
+  /**
+   * CSS variables applied on first paint (before any `mma-set-env`). Used so an app that ships
+   * `theme.css` does not flash the kit default near-white while the panel's postMessage is in
+   * flight — and so a direct `/app/:id` open still gets the look's palette.
+   */
+  initialVars: Record<string, string> | null = null,
+): string {
   const safe = JSON.stringify(appId);
   const title = appId.replace(/[&<>"']/g, (ch) => {
     switch (ch) {
@@ -115,6 +124,8 @@ export function appRunnerHtml(appId: string, themeCss = ""): string {
     }
   });
   const themeBlock = themeCss.trim() ? `${themeCss.trim()}\n  ` : "";
+  // A null becomes the JS literal null; an object is JSON so the IIFE can apply it immediately.
+  const initialVarsLit = initialVars ? JSON.stringify(initialVars) : "null";
   return `<!doctype html>
 <html>
 <head>
@@ -159,7 +170,8 @@ export function appRunnerHtml(appId: string, themeCss = ""): string {
     }
   }
   var q = new URLSearchParams(location.search);
-  apply(concrete(q.get("theme") || "light"), q.get("palette") || "default", q.get("dock") || "fill");
+  var initialVars = ${initialVarsLit};
+  apply(concrete(q.get("theme") || "light"), q.get("palette") || "default", q.get("dock") || "fill", initialVars);
   window.addEventListener("message", function (ev) {
     var d = ev.data;
     if (!d || d.type !== "mma-set-env") return;
