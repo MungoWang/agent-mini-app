@@ -173,6 +173,49 @@ describe("DshShell", () => {
     zh.dispose();
   });
 
+  it("remounts the panel when setLocale changes locale and #mma-host exists", async () => {
+    const shell = new DshShell({ locale: "en" });
+    await act(async () => {
+      shell.openPanel();
+    });
+    const host = document.getElementById("mma-host");
+    expect(host).toBeTruthy();
+    const before = shell.panel;
+    expect(before).toBeTruthy();
+    expect(host!.textContent ?? "").toMatch(/Appearance/);
+
+    await act(async () => {
+      shell.setLocale("zh-CN");
+    });
+    expect(shell.host.locale).toBe("zh-CN");
+    expect(shell.panel).toBeTruthy();
+    expect(shell.panel).not.toBe(before);
+    expect(host!.getAttribute("data-cardstyle")).toBe(shell.cardStyle);
+    expect(host!.textContent ?? "").toMatch(/外观/);
+
+    const mid = shell.panel;
+    await act(async () => {
+      shell.setLocale("zh-CN");
+    });
+    expect(shell.panel).toBe(mid);
+
+    await act(async () => {
+      shell.dispose();
+    });
+  });
+
+  it("drops a bound panel on locale change when #mma-host is absent", () => {
+    const shell = new DshShell({ locale: "en" });
+    const first = shell.bindPanel();
+    expect(shell.panel).toBe(first);
+    shell.setLocale("zh-CN");
+    expect(shell.panel).toBeNull();
+    const second = shell.bindPanel();
+    expect(second).not.toBe(first);
+    expect(shell.host.locale).toBe("zh-CN");
+    shell.dispose();
+  });
+
   it("uses browser language for initial host locale and emptyText", () => {
     Object.defineProperty(window.navigator, "language", {
       configurable: true,

@@ -121,9 +121,17 @@ export class DshShell {
   /** Update panel chrome locale + emptyText. `fromDsh` pins follow-mode. */
   setLocale(locale: LocaleId, opts?: { fromDsh?: boolean }): void {
     if (opts?.fromDsh) this.localeFollowsDsh = true;
+    const prev = this.host.locale;
     this.host.locale = locale;
     this.host.emptyText = EMPTY_TEXT[locale];
     setPanelState({ locale, emptyText: EMPTY_TEXT[locale] });
+    // createMiniAppPanel freezes createPanelI18n(locale) once — remount so chrome
+    // strings rebuild when the live locale actually changes.
+    if (locale === prev || !this.panel) return;
+    this.panel.unmount();
+    this.panel = null;
+    const hostEl = document.getElementById("mma-host");
+    if (hostEl) this.bindPanel().mount(hostEl);
   }
 
   private envFor(appId: string): FrameEnv {

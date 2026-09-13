@@ -116,6 +116,39 @@ describe("subscribeDshClientLocale", () => {
     expect(off).toHaveBeenCalled();
   });
 
+  it("installs both locale/change and locale.subscribe when both exist", () => {
+    const listeners: Array<(snap: unknown) => void> = [];
+    let notify: (() => void) | undefined;
+    const offEvent = vi.fn();
+    const offSub = vi.fn();
+    let active = "zh";
+    const ctx = {
+      on: (event: string, fn: (snap: unknown) => void) => {
+        expect(event).toBe("locale/change");
+        listeners.push(fn);
+        return offEvent;
+      },
+      locale: {
+        getLocale: () => ({ active }),
+        subscribe: (fn: () => void) => {
+          notify = fn;
+          return offSub;
+        },
+      },
+    };
+    const seen: string[] = [];
+    const stop = subscribeDshClientLocale(ctx, (locale) => {
+      seen.push(locale);
+    });
+    listeners[0]?.({ active: "en" });
+    active = "zh";
+    notify?.();
+    stop();
+    expect(seen).toEqual(["en", "zh-CN"]);
+    expect(offEvent).toHaveBeenCalled();
+    expect(offSub).toHaveBeenCalled();
+  });
+
   it("returns a no-op disposer when nothing is available", () => {
     expect(() => subscribeDshClientLocale({}, () => undefined)()).not.toThrow();
     expect(() => subscribeDshClientLocale(undefined, () => undefined)()).not.toThrow();

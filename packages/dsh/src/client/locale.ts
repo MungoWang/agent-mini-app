@@ -57,8 +57,9 @@ export function readDshClientLocale(ctx: unknown): LocaleId | null {
 }
 
 /**
- * Follow dsh language switches. Prefers `ctx.on('locale/change')`;
- * falls back to `ctx.locale.subscribe` when the event API is missing.
+ * Follow dsh language switches. Attach both `ctx.on('locale/change')` and
+ * `ctx.locale.subscribe` when available — preference adoption may bump the
+ * snapshot without the event (or the event may be missed). Soft-get locale.
  */
 export function subscribeDshClientLocale(
   ctx: unknown,
@@ -66,50 +67,54 @@ export function subscribeDshClientLocale(
 ): () => void {
   if (!isRecord(ctx)) return () => {};
   const rec = ctx as LooseCtx;
+  const disposers: Array<() => void> = [];
 
   const applySnapshot = (snapshot: unknown): void => {
     const mapped = panelLocaleFromDshActive(activeFromSnapshot(snapshot));
     if (mapped) onChange(mapped);
   };
 
-  try {
-    if (typeof rec.on === "function") {
-      const off = rec.on("locale/change", (snapshot: unknown) => {
-        applySnapshot(snapshot);
-      });
-      if (typeof off === "function") return () => {
+  const pushOff = (off: unknown): void => {
+    if (typeof off === "function") {
+      disposers.push(() => {
         try {
-          off();
+          (off as () => void)();
         } catch {
           /* ignore */
         }
-      };
-      // Listener installed; no disposer — still treat as subscribed.
-      return () => {};
+      });
+    }
+  };
+
+  try {
+    if (typeof rec.on === "function") {
+      pushOff(
+        rec.on("locale/change", (snapshot: unknown) => {
+          applySnapshot(snapshot);
+        }),
+      );
     }
   } catch {
-    /* fall through to subscribe */
+    /* ignore — still try subscribe */
   }
 
   const locale = softGet(rec, "locale");
   if (isRecord(locale) && typeof locale.subscribe === "function") {
     try {
-      const off = locale.subscribe(() => {
-        const mapped = readDshClientLocale(ctx);
-        if (mapped) onChange(mapped);
-      });
-      if (typeof off === "function") return () => {
-        try {
-          off();
-        } catch {
-          /* ignore */
-        }
-      };
+      pushOff(
+        locale.subscribe(() => {
+          const mapped = readDshClientLocale(ctx);
+          if (mapped) onChange(mapped);
+        }),
+      );
     } catch {
       /* ignore */
     }
   }
-  return () => {};
+
+  return () => {
+    for (const d of disposers) d();
+  };
 }
 
 /** dsh locale when the service is present; otherwise the browser language. */

@@ -10,7 +10,7 @@ import { DshShell } from "./shell.ts";
 import "./globals.ts";
 
 export const name = "monkey-mini-app-client";
-export const inject = ["slots"] as const;
+export const inject = ["slots", "locale"] as const;
 
 export { appsOrigin } from "./apps-host.ts";
 export { appFrameUrl, createMiniAppPanel } from "@monkey-mini-app/panel";
