@@ -186,6 +186,9 @@ function appendAppLocalThemeDoc(lines) {
     "- The user can pick a host palette (or **`跟随全局`**) for that app; that is stored per app and does not delete the file."
   );
   lines.push("- Light / dark still follows the host — the file carries both densities.");
+  lines.push(
+    "- **First paint:** the host bakes the file's tokens into the app runner HTML when the request uses the local palette (`palette=__local__` or a bare `/app/:id` open). The panel's `mma-set-env` can still override later; without the bake, the first frame is the kit default near-white."
+  );
   lines.push("");
   lines.push(
     "Reuse the skeleton from *Custom host theme file* above verbatim — same keys, same two blocks — and write it to `<appDir>/theme.css`."

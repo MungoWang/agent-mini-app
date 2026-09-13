@@ -6,18 +6,20 @@
         "en": "Glass Island",
         "zh": "玻璃岛屿"
       },
-      "when": "Personal home, lock-screen style one-shot. Type sits on the sky; two glass slabs dock at the bottom.",
-      "whenNot": "Launchers, DataGrid, incident walls. Not a 2D mosaic.",
+      "when": "Personal home, lock-screen style one-shot. Liquid glass islands float on a haze sky; the working set is a soft card below.",
+      "whenNot": "Launchers, DataGrid, incident walls. Not a 2D mosaic. Not wall-to-wall glass.",
       "grammar": "poster-dock",
       "classes": {
         "root": "bg-background relative flex h-full min-h-0 flex-col gap-3 overflow-hidden p-5",
-        "hero": "text-foreground",
-        "slab": "rounded-3xl border",
-        "wash": "pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(620px_260px_at_16%_-6%,color-mix(in_oklch,var(--primary)_38%,transparent),transparent_68%)]",
-        "content": "relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3"
+        "wash": "pointer-events-none absolute inset-0 (multi-hue soft orbs + grain — see facade)",
+        "cluster": "relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3",
+        "island": "liquid glass style object (radius var(--radius), blur+saturate+url(#mma-liquid))",
+        "work": "soft card surface — NOT liquid glass (keeps sky around the cluster)"
       },
       "theme": "themes/glass-island.css",
-      "defaultFor": ["today"],
+      "defaultFor": [
+        "today"
+      ],
       "notes": "Liquid glass (SVG displacement + blur), not frost. `backdrop-filter: blur(2px) saturate(160%) url(#mma-liquid)` with feTurbulence→blur→displace (scale ~45, yChannel=B). Light ground is haze-grey + white + a whisper of blue with large floating orbs — not a saturated sky; dark is deep indigo. Sky needs grain + orb edges or the lens bends nothing. Only the island cluster is liquid; the working set is a soft card so the sky still frames the cluster (wall-to-wall glass is why the facade used to look nothing like the prototype). Radius is large (`--radius: 28px`) on the style object. Non-Chromium falls back to frost. Host bakes local theme.css vars into `/app/:id` first paint so the look is not near-white while mma-set-env is in flight.",
       "style": {
         "borderRadius": "var(--radius)",
@@ -41,7 +43,9 @@
         "tile": "bg-card relative rounded-2xl p-3 overflow-hidden + style={RAISED}",
         "hero": "bg-foreground text-background col-span-2 row-span-2 rounded-2xl p-4"
       },
-      "defaultFor": ["board"],
+      "defaultFor": [
+        "board"
+      ],
       "theme": "themes/aurora-bento.css",
       "style": {
         "ground": "tight radial pools: --primary 92% (top-left), --primary mixed --foreground (top-right), --primary mixed --destructive (bottom) — token-derived, no literals",
@@ -64,7 +68,9 @@
         "root": "relative h-full min-h-0 bg-background (walnut wood, DESK wash overlay)",
         "pane": "cream paper: bg-card, hairline edge, contact + lift shadow, top highlight (PAPER)"
       },
-      "defaultFor": ["sheets"],
+      "defaultFor": [
+        "sheets"
+      ],
       "style": {
         "backgroundImage": "repeating-linear-gradient(90deg, fg 5% 2px stripes / 96px bands), radial lamp pool from --primary at top-left, vignette at bottom",
         "paper": {
@@ -90,7 +96,9 @@
         "kicker": "text-xs tracking-[0.2em] uppercase text-muted-foreground",
         "display": "font-serif text-3xl font-bold tracking-tight"
       },
-      "defaultFor": ["radar"],
+      "defaultFor": [
+        "radar"
+      ],
       "theme": "themes/editorial.css",
       "notes": "Paper and ink are the identity: under the default palette this look is just text on white and reads unfinished, so it ships a theme.css (newsprint + vermilion by day, cool night-reading stock + ultramarine by night). Keep the measure near 65ch, use hairlines (`border` / `Separator`) instead of cards, one accent only for links and emphasis, `font-serif` for display, and `first-letter:` for a drop cap. Radius stays small — this look is type and rules, not tiles."
     },
@@ -108,7 +116,9 @@
         "nums": "grid grid-cols-4 divide-x divide-border",
         "num": "px-4 py-5 text-3xl font-medium tracking-tight tabular-nums"
       },
-      "defaultFor": ["watch"]
+      "defaultFor": [
+        "watch"
+      ]
     },
     {
       "id": "void",
@@ -157,7 +167,10 @@
         "well": "min-h-0 flex-1 overflow-auto"
       },
       "theme": "themes/terminal.css",
-      "defaultFor": ["runner", "chores"],
+      "defaultFor": [
+        "runner",
+        "chores"
+      ],
       "style": {
         "well": {
           "className": "rounded-lg border bg-card text-card-foreground",

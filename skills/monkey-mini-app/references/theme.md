@@ -192,5 +192,6 @@ Behaviour in the panel:
 - With the file present the app uses it by default; the theme pop lists it under the current app, tagged **`本应用`**.
 - The user can pick a host palette (or **`跟随全局`**) for that app; that is stored per app and does not delete the file.
 - Light / dark still follows the host — the file carries both densities.
+- **First paint:** the host bakes the file's tokens into the app runner HTML when the request uses the local palette (`palette=__local__` or a bare `/app/:id` open). The panel's `mma-set-env` can still override later; without the bake, the first frame is the kit default near-white.
 
 Reuse the skeleton from *Custom host theme file* above verbatim — same keys, same two blocks — and write it to `<appDir>/theme.css`.

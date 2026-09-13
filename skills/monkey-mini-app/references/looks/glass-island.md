@@ -6,9 +6,9 @@ Also known as `玻璃岛屿` (sample product copy).
 
 id: `glass-island` · grammar: `poster-dock`
 
-**When:** Personal home, lock-screen style one-shot. Type sits on the sky; two glass slabs dock at the bottom.
+**When:** Personal home, lock-screen style one-shot. Liquid glass islands float on a haze sky; the working set is a soft card below.
 
-**Not:** Launchers, DataGrid, incident walls. Not a 2D mosaic.
+**Not:** Launchers, DataGrid, incident walls. Not a 2D mosaic. Not wall-to-wall glass.
 
 **How to copy it:** Liquid glass (SVG displacement + blur), not frost. `backdrop-filter: blur(2px) saturate(160%) url(#mma-liquid)` with feTurbulence→blur→displace (scale ~45, yChannel=B). Light ground is haze-grey + white + a whisper of blue with large floating orbs — not a saturated sky; dark is deep indigo. Sky needs grain + orb edges or the lens bends nothing. Only the island cluster is liquid; the working set is a soft card so the sky still frames the cluster (wall-to-wall glass is why the facade used to look nothing like the prototype). Radius is large (`--radius: 28px`) on the style object. Non-Chromium falls back to frost. Host bakes local theme.css vars into `/app/:id` first paint so the look is not near-white while mma-set-env is in flight.
 
@@ -27,10 +27,10 @@ const GLASS = {
 ## Classes (copy literals)
 
 - `root`: `bg-background relative flex h-full min-h-0 flex-col gap-3 overflow-hidden p-5`
-- `hero`: `text-foreground`
-- `slab`: `rounded-3xl border`
-- `wash`: `pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(620px_260px_at_16%_-6%,color-mix(in_oklch,var(--primary)_38%,transparent),transparent_68%)]`
-- `content`: `relative mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-3`
+- `defs`: `inline <svg> with #mma-liquid (displace) + #mma-grain (sky texture)`
+- `wash`: `absolute inset-0 multi-orb radial gradients (card + primary mixes) + grain svg opacity ~0.2`
+- `cluster`: `relative mx-auto max-w-5xl grid grid-cols-6 gap-3 — liquid GLASS style on each island only`
+- `work`: `WORK style: soft card blur(12px), not url(#mma-liquid) — keeps sky framing the cluster`
 
 ## Palette (optional `theme.css` in the app dir)
 

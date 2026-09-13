@@ -8,7 +8,7 @@ No kit API — copy the class literals. Light and dark are a pair; PNG screensho
 
 | id | name | when | default facade |
 |---|---|---|---|
-| [`glass-island`](./glass-island.md) | Glass Island (`玻璃岛屿`) | Personal home, lock-screen style one-shot. Type sits on the sky; two glass slabs dock at the bottom. | `today` |
+| [`glass-island`](./glass-island.md) | Glass Island (`玻璃岛屿`) | Personal home, lock-screen style one-shot. Liquid glass islands float on a haze sky; the working set is a soft card below. | `today` |
 | [`aurora-bento`](./aurora-bento.md) | Aurora Bento (`极光便当`) | Launcher / overview. The page is a 6×3 tessellation, every cell a destination. | `board` |
 | [`desk-split`](./desk-split.md) | Desk Split (`精致分栏`) | CRUD, tickets, contacts, ledgers. Two panes, hairline, dense toolbar. | `sheets` |
 | [`editorial`](./editorial.md) | Editorial (`编辑排版`) | Weekly digest, insights, runbook, help. Type hierarchy, hairline rules, almost no cards. | `radar` |

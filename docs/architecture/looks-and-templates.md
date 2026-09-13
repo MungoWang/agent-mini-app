@@ -60,7 +60,7 @@ Nine paradigm TSX files (~100 KB) were copied into the skill and never listed on
 
 | id             | Grammar (wireframe must differ with colour covered)                                                                     | Default on         |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| `glass-island` | Poster + dock: type sits on the sky; two glass slabs at the bottom. Not a mosaic.                                       | `today`            |
+| `glass-island` | Poster + dock: **liquid** glass islands (SVG displace) on a haze sky with floating orbs; working set is a soft card, not wall-to-wall glass. | `today`            |
 | `aurora-bento` | 6-column tessellation, every cell a destination, **on a hue-mesh field**. Tiles stay opaque; frost is `glass-island`'s. | `board`            |
 | `desk-split`   | Two panes, hairline, dense toolbar.                                                                                     | `sheets`           |
 | `editorial`    | Measure, type hierarchy, hairline rules, almost no cards.                                                               | `radar`            |
@@ -130,7 +130,7 @@ per round is how `glass-island` burned four rounds; a lab lets a human judge col
 
 | Lab (review artifact)                                                                                                                      | Shipped                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| — (glass recipe came from research: `saturate()` + a specular edge lighter than the fill + contact/lift shadows + a ground worth sampling) | `glass-island` ground B: lilac field by day, deep indigo by night          |
+| [`liquid-glass-refraction-lab.html`](../assets/liquid-glass-refraction-lab.html) + [`liquid-glass-rim-lab.html`](../assets/liquid-glass-rim-lab.html) (B = whole-pane soft displace; rim variants rejected) | `glass-island`: liquid `url(#mma-liquid)` + haze `#d5e0ed` light / indigo dark; cluster only liquid, work surface soft card; host bakes `theme.css` vars on first paint |
 | [`desk-split-material-lab.html`](../assets/desk-split-material-lab.html)                                                                   | `desk-split` ground A: walnut + amber lamp, **cream papers in both modes** |
 | [`terminal-material-lab.html`](../assets/terminal-material-lab.html)                                                                       | `terminal` ground B: phosphor green on near-black, paper well by day       |
 | [`aurora-editorial-lab.html`](../assets/aurora-editorial-lab.html)                                                                         | `aurora-bento` A1 day / A2 night; `editorial` E1 day / E2 night            |
@@ -159,3 +159,7 @@ Traps this pass paid for, all still true:
 6. A ground needs **structure to sample**: a flat fill plus `backdrop-filter` renders flat at any
    blur radius. Pools are tight (40–60% radii) so they read as light sources, and content is
    capped (`max-w-5xl`) so the field survives its own tiles.
+7. **First paint of a look-owned `theme.css` must not wait on the panel.** The runner used to
+   apply kit defaults until `mma-set-env` arrived, so bare `/app/:id` and the first iframe frame
+   were near-white. Host parses the app file and bakes `--background` / `--card` / … into the
+   HTML (`localThemeCssVars` + `appRunnerHtml(..., initialVars)`).

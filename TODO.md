@@ -9,6 +9,11 @@
 > [`docs/archive/tasks/ci-gate-parity-2026-09-08.md`](docs/archive/tasks/ci-gate-parity-2026-09-08.md)。
 > Playwright 按机主决定继续只在本地跑，口径写在 `AGENTS.md` → Gates。
 >
+> 2026-09-13：Looks + 门面 + 液态玻璃（`glass-island` / `today`）+ host 首屏 bake local `theme.css`
+> 已落地，记录见
+> [`docs/archive/tasks/looks-liquid-glass-2026-09-13.md`](docs/archive/tasks/looks-liquid-glass-2026-09-13.md)。
+> P1 只剩 Look light/dark PNG（机主手截）。
+>
 > 2026-09-10：P1「layout presets」六个 preset 全部落地（组件 + 断言其存在理由的契约测试 +
 > 画廊示例 + `gen:skill`），逐条踩坑与 canary 记录见
 > [`docs/archive/tasks/layout-presets-2026-09-10.md`](docs/archive/tasks/layout-presets-2026-09-10.md)。
@@ -26,9 +31,10 @@
 
 ## P1 — 功能工作，按依赖排序
 
-1. **Look 预览图** — looks + 门面重做已落地（见 `docs/architecture/looks-and-templates.md`，§7 记了配色与踩坑）。
-   **只剩**：每个 Look 的 light / dark PNG（机主手截，截 demo-host 的 Looks 栏），
-   `catalog.json` 里给 `preview` 留了位。截完补一句到 `references/looks/index.md` 的生成器里。
+1. **Look 预览图** — looks / 门面 / 液态玻璃已归档
+   （[`looks-liquid-glass-2026-09-13.md`](docs/archive/tasks/looks-liquid-glass-2026-09-13.md)）。
+   **只剩**：每个 Look 的 light / dark PNG（机主手截 demo-host 的 Looks 栏），
+   `catalog.json` 的 `preview` 位已留；截完接到 `references/looks/index.md` 的生成器。
 
 ## P2 — 质量，无先后
 
