@@ -1,6 +1,6 @@
 {
   "name": "@monkey-mini-app/api",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Mini-app backend author contract: defineApp + AppCtx types (host injects runtime)",
   "type": "module",
   "private": false,
