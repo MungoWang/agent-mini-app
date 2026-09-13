@@ -1,6 +1,6 @@
 {
   "name": "@monkey-mini-app/api",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Mini-app backend author contract: defineApp + AppCtx types (host injects runtime)",
   "type": "module",
   "private": false,
@@ -13,7 +13,10 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "node ../../scripts/build/api.mjs",
     "prepack": "node ../../scripts/build/api.mjs"
