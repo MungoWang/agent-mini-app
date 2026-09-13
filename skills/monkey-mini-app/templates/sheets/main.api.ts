@@ -182,6 +182,14 @@ export default defineApp({
       return Array.isArray(index) ? index : [];
     },
 
+    /** Full report (incl. sheets) for a history row — index alone has no payload. */
+    async get(ctx, args) {
+      const id = String(args?.id ?? "");
+      const stored = await ctx.storage.table("reports").get(id);
+      if (!stored) throw new Error("找不到该报表，请重新拖入文件");
+      return stored;
+    },
+
     async ingest(ctx, args) {
       const fileName = String(args?.fileName ?? "").trim() || "未命名报表";
       const base64 = String(args?.base64 ?? "");

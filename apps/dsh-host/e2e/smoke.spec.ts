@@ -12,7 +12,7 @@ test("footer opens the mini-app panel with fixture apps", async ({ page }) => {
   await expect(page.locator("#mma-host")).toContainText("待办");
   await expect(page.locator("#mma-host")).toContainText("修复基准");
   await expect(page.locator("#mma-host")).toContainText("组件库");
-  await expect(page.locator("#mma-host")).toContainText("报表摘要");
+  await expect(page.locator("#mma-host")).toContainText("表格台");
 });
 
 test("todo iframe renders inside the panel", async ({ page }) => {

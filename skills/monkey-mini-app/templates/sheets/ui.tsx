@@ -105,10 +105,14 @@ export default function Ui() {
   }, [refresh]);
 
   const open = async (id: string) => {
-    const found = history.find((r) => r.id === id);
-    if (!found) return;
-    setReport(found);
     setError("");
+    try {
+      const full = (await call("get", { id })) as Report & { sheets: Sheet[] };
+      setReport(full);
+      setSheet(full.sheets?.[0]?.name ?? "");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
   };
 
   const onFiles = async (files: File[]) => {

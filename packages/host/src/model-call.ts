@@ -150,7 +150,9 @@ export async function runLlmAttempts(
     .join("\n");
   throw new HostError(
     code,
-    `${wantsJson ? "no answer matched the schema" : "no usable answer"} after ${attempts.length} attempt(s):\n${detail}`,
+    // `llm: ` prefix matches other capability errors (`llm: no dsh model service…`) so apps and
+    // e2e can recognize a host-model failure without matching free-form transport text.
+    `llm: ${wantsJson ? "no answer matched the schema" : "no usable answer"} after ${attempts.length} attempt(s):\n${detail}`,
     { attempts },
   );
 }

@@ -76,8 +76,9 @@ test.describe("spreadsheet sample (per-app npm package)", () => {
     await page.reload();
     const again = await openApp(page, APP);
     // the sidebar lists the parsed report without uploading anything again
-    await expect(again.locator("aside").getByText(FILE).first()).toBeVisible();
-    await again.locator("aside").getByText(FILE).first().click();
+    const history = again.getByTestId("list-detail-list");
+    await expect(history.getByText(FILE).first()).toBeVisible();
+    await history.getByText(FILE).first().click();
     await expect(again.getByText("11", { exact: true }).first()).toBeVisible();
   });
 
@@ -93,7 +94,8 @@ test.describe("spreadsheet sample (per-app npm package)", () => {
     await expect(frame.locator("body")).not.toContainText("host capability not available");
 
     const digest = frame.getByText("由宿主模型基于整表的数值汇总生成");
-    const hostLlmError = frame.getByText(/^llm: /); // e.g. "llm: no dsh model service bound (ctx.llm)"
+    // Host LLM errors are prefixed `llm: ` (no service, empty stream, retry exhausted, …).
+    const hostLlmError = frame.getByText(/^llm: /);
     await expect
       .poll(async () => (await digest.count()) + (await hostLlmError.count()) > 0, { timeout: 40_000 })
       .toBe(true);

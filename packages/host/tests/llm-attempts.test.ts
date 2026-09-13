@@ -81,6 +81,7 @@ describe("runLlmAttempts", () => {
     const err = await runLlmAttempts("go", { schema: SCHEMA }, run).catch((e: unknown) => e);
 
     expect((err as HostError).code).toBe("LLM_RETRY_EXHAUSTED");
+    expect((err as HostError).message.startsWith("llm: ")).toBe(true);
     expect(attemptsOf(err).every((a) => a.kind === "transport")).toBe(true);
   });
 

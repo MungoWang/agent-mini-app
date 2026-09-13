@@ -91,6 +91,6 @@ export async function collectLlmStream(
     }
   }
   const out = acc.join("");
-  if (!out) throw new Error("llm stream empty");
+  if (!out) throw new Error("llm: stream empty");
   return coerceSchemaJson(out, opts);
 }
