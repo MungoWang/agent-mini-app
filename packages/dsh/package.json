@@ -1,6 +1,6 @@
 {
   "name": "@monkey-mini-app/dsh-mini-app",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "DeepSeek Harness plugin: mini-app host wiring, panel, and skills",
   "type": "module",
   "main": "./lib/index.js",
