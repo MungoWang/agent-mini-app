@@ -28,7 +28,7 @@ Arbitrary values do **not** "always work" on an older / broken install. So the a
 | `bg-rose-500` `text-emerald-300` | ✅ | the default palette is emitted with the sheet |
 | `w-[437px]` `grid-cols-[1fr_auto]` `top-[7px]` | ✅ if CLI compiled | arbitrary values need a successful per-app compile (`.autogen/ui.css`) |
 | `bg-card text-muted-foreground` | ✅ | semantic tokens → [theme.md](theme.md) |
-| `bg-card/60` `backdrop-blur-md` | ⚠️ | token opacity + blur often fail against the host skin — see below |
+| `bg-card/60` `bg-destructive` `border-destructive/25` | ✅ if CLI compiled | needs the host `@theme` bridge (0.1.12+); see below |
 | `` className={`bg-${c}-500`} `` | ❌ **silently** | see below |
 
 **The one real trap: class names must appear as complete literals in your source.**
@@ -51,31 +51,33 @@ const map = {
 
 Because of this, **do not fall back to inline `style` "to be safe"** for layout or
 variants. That is strictly worse: you lose hover/dark and you gain nothing — **when the
-runtime CLI compiled the app sheet**, arbitrary values and variants already work. The
-exceptions below (token opacity, backdrop-blur vs the skin) are the only places `style` +
-`color-mix` is the workaround, not a precaution.
+runtime CLI compiled the app sheet** (0.1.12+ with the `@theme` bridge), arbitrary values,
+variants, and token opacity utilities already work. Keep `style` + `color-mix` for glass
+looks or when you must support an older host.
 
-## Token opacity and backdrop-blur vs the host skin
+## Token opacity (`bg-card/60`) and bare token colors
 
-`bg-card/60` (and any `token/opacity`) is compiled as `color-mix` against `--color-card`,
-which is itself `var(--card)`. The host skin rewrites `--card` under `<html>`; that extra
-indirection often makes the opacity utility a no-op (transparent or solid, never 60%).
-`backdrop-blur-*` is an **app-compiled** utility — it is not in the kit sheet — and blur
-over the iframe/skin is unreliable even when it compiled.
+From **0.1.12**, the per-app Tailwind entry inlines the same `@theme` bridge as the kit
+(`--color-card: var(--card)`, …). That makes `bg-card/60`, `bg-muted/25`, bare
+`bg-destructive`, `border-destructive/25`, etc. compile into `@supports (color-mix…)` rules
+against `var(--card)` / `var(--destructive)` — the tokens the host skin actually sets.
 
-Write the mix yourself on the token the skin actually sets:
+**Before 0.1.12** (or if compile fails and you only have kit `/ui.css`): only token classes
+that already appear in the **kit** sheet work. Odd opacities like `/25` or bare
+`bg-destructive` silently do nothing (transparent / default border). That looks like a
+"half fixed" Tailwind install.
+
+`backdrop-blur-*` is still app-compiled (fine once CLI works). Glass over the iframe/skin
+can still look weak — for a guaranteed wash, `color-mix` on `var(--card)` in a small
+`<style>` is OK (`references/looks/glass-island.md`).
 
 ```tsx
-// ✓ follows the palette, including opacity
-<div style={{ backgroundColor: "color-mix(in oklch, var(--card) 60%, transparent)" }} />
+// ✓ 0.1.12+ with a successful `.autogen/ui.css` compile
+<div className="bg-card/60 bg-destructive border-destructive/25" />
 
-// ✗ often compiles to nothing useful against a rewritten --card
-<div className="bg-card/60 backdrop-blur-md" />
+// ✓ always-safe escape hatch (any host version)
+<div style={{ backgroundColor: "color-mix(in oklab, var(--card) 60%, transparent)" }} />
 ```
-
-Same pattern for a wash / glass edge: `color-mix(in oklch, var(--primary) 28%, transparent)`
-on `background` / `border`, not `bg-primary/28`. Looks that need glass already do this
-(`references/looks/glass-island.md`).
 
 ## The UI build does not typecheck
 
@@ -224,7 +226,7 @@ host log and `GET /api/app/<id>/ui.css` (must not be the same bytes as `/ui.css`
 
 - [ ] every class name is a complete literal in the source (no `` `bg-${x}-500` ``)
 - [ ] `/api/app/<id>/ui.css` is 200 and `.autogen/ui.css` exists (runtime CLI installed)
-- [ ] no `bg-card/60` / `backdrop-blur-*` against the skin — `color-mix` on `var(--card)`
+- [ ] prefer `bg-card/60` utilities on 0.1.12+; use `color-mix` on `var(--card)` only as escape hatch
 - [ ] no hex / rgb literals for themeable colour — tokens only
 - [ ] sized against the viewport, not a fixed height
 - [ ] animations use `motion` / kit `Reveal`, or a Tailwind transition — and any custom

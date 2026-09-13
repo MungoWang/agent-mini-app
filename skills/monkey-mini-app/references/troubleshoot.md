@@ -148,7 +148,7 @@ same thing, one layer down.
 |---|---|---|
 | A class did nothing | Whether the class name is a **complete literal** | Tailwind scans source text: `` `bg-${x}-500` `` generates **no CSS and no error**. Full names only → [styling.md](styling.md) |
 | Kit classes work, `w-[437px]` / `backdrop-blur-*` do not; no `.autogen/` | Per-app CSS compile failed. Older hosts **silently served `/ui.css`** as the app sheet | `GET /api/app/<id>/ui.css` must not equal `GET /ui.css`. 0.1.11+ returns **500** + a CSS comment and logs `appId`. Upgrade the plugin; installed hosts need the runtime CLI |
-| `bg-card/60` is solid or invisible | Token opacity through `--color-card` → `--card` after the skin rewrite | `style={{ backgroundColor: "color-mix(in oklch, var(--card) 60%, transparent)" }}` → [styling.md](styling.md) |
+| `bg-card/60` / bare `bg-destructive` transparent | App sheet missing `@theme` bridge (host < 0.1.12) or class not a full literal | Upgrade host; confirm `.autogen/ui.css` has `color-mix` for that class; escape hatch `color-mix` on `var(--card)` → [styling.md](styling.md) |
 | `backdrop-blur-*` did nothing | App-compiled utility (not in the kit sheet) and blur over the iframe/skin is unreliable | Same `color-mix` wash; do not rely on `backdrop-blur-*` for glass |
 | Colours wrong in dark mode | Any hardcoded hex | Use tokens → [theme.md](theme.md); the user's palette rewrites token values |
 | Custom theme file does not appear | Wrote `--background` or only one mode | File keys are `--bg` / `--fg` / `--primary` in **both** light and dark → [theme.md](theme.md) *Custom host theme file*; reopen the theme pop |

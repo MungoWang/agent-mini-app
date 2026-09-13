@@ -127,3 +127,35 @@ describe("app ui.css compilation", () => {
     expect(readFileSync(autogen, "utf8")).toContain("612px");
   });
 });
+
+describe("app ui.css theme tokens", () => {
+  it("emits working color-mix rules for token opacity and bare bg-destructive", async () => {
+    const services = await start();
+    await services.apps.register(APP, {
+      "manifest.json": JSON.stringify({
+        id: APP,
+        name: "AppCss",
+        version: "0.1.0",
+        entry: "ui.tsx",
+      }),
+      "ui.tsx": `export default function Ui() {
+  return (
+    <div className="bg-card/60 bg-muted/25 bg-foreground/10 bg-destructive border-destructive/25 min-w-[150px]" />
+  );
+}
+`,
+      "main.api.ts": api,
+    });
+
+    const sheet = await css();
+    // Fallback solid + @supports color-mix — without @theme, these selectors are absent.
+    expect(sheet).toMatch(/\.bg-card\\\/60\{/);
+    expect(sheet).toContain("color-mix(in oklab, var(--card) 60%, transparent)");
+    expect(sheet).toContain("color-mix(in oklab, var(--muted) 25%, transparent)");
+    expect(sheet).toContain("color-mix(in oklab, var(--foreground) 10%, transparent)");
+    expect(sheet).toContain("color-mix(in oklab, var(--destructive) 25%, transparent)");
+    expect(sheet).toMatch(/\.bg-destructive[,{]/);
+    expect(sheet).toContain("150px");
+  });
+});
+

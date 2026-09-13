@@ -12,9 +12,11 @@
  * should not hand-edit them — any edit is overwritten on the next compile). The entry only
  * emits the app's OWN utilities (import tailwindcss with source disabled + a source glob that
  * scans the app root one level up), so responsive, arbitrary and app-only classes land here.
- * The shared base (theme tokens + shadcn + repo utilities) is served separately at `/ui.css`,
- * so we never import it by absolute path (Tailwind v4 strips that to a no-op), which keeps
- * working after publish (the npm package ships `dist/` only).
+ * The shared kit sheet (shadcn + repo utilities) is still served separately at `/ui.css`.
+ * We also **inline** the ui `@theme` token bridge (`theme-tokens.css`) into the entry — without
+ * it, `bg-card/60` / bare `bg-destructive` never generate (or reference unset `--color-*`),
+ * while classes that happen to exist only in the kit sheet look "half fixed". Absolute-path
+ * `@import` of globals is stripped by Tailwind v4, so the tokens are copied as source text.
  *
  * `tailwindcss` + `@tailwindcss/cli` are runtime dependencies of `@monkey-mini-app/ui` and
  * `@monkey-mini-app/host` (v4 split the CLI out of the `tailwindcss` package — it has no
@@ -174,6 +176,60 @@ function resolveTailwindCssPackage(tw: TailwindBin): string {
   throw new Error("tailwindcss package not resolvable to link into the app runtime");
 }
 
+/**
+ * Semantic token bridge (`@theme inline { --color-card: var(--card); ... }`) from
+ * `@monkey-mini-app/ui`. Inlined into the per-app entry so opacity modifiers compile to
+ * `@supports (color-mix) { .bg-card\/60 { color-mix(... var(--card) ...) } }`.
+ */
+function resolveThemeTokensCss(): string {
+  const candidates: string[] = [];
+  try {
+    const dist = resolveUiDistDir();
+    candidates.push(
+      path.join(dist, "src/styles/theme-tokens.css"),
+      path.join(dist, "styles/theme-tokens.css"),
+    );
+  } catch {
+    /* ui dist missing */
+  }
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  candidates.push(
+    path.resolve(here, "../../../ui/src/styles/theme-tokens.css"),
+    path.resolve(here, "../../../../packages/ui/src/styles/theme-tokens.css"),
+  );
+  for (const fp of candidates) {
+    try {
+      if (hasFile(fp)) return readFileSync(fp, "utf8").trim() + "\n";
+    } catch {
+      /* next */
+    }
+  }
+  // Last-resort embedded bridge (keep aligned with packages/ui/src/styles/theme-tokens.css).
+  return [
+    "@theme inline {",
+    "  --color-border: var(--border);",
+    "  --color-destructive: var(--destructive);",
+    "  --color-muted-foreground: var(--muted-foreground);",
+    "  --color-muted: var(--muted);",
+    "  --color-secondary-foreground: var(--secondary-foreground);",
+    "  --color-secondary: var(--secondary);",
+    "  --color-primary-foreground: var(--primary-foreground);",
+    "  --color-primary: var(--primary);",
+    "  --color-popover-foreground: var(--popover-foreground);",
+    "  --color-popover: var(--popover);",
+    "  --color-card-foreground: var(--card-foreground);",
+    "  --color-card: var(--card);",
+    "  --color-foreground: var(--foreground);",
+    "  --color-background: var(--background);",
+    "  --color-accent-foreground: var(--accent-foreground);",
+    "  --color-accent: var(--accent);",
+    "  --color-input: var(--input);",
+    "  --color-ring: var(--ring);",
+    "}",
+    "",
+  ].join("\n");
+}
+
 /** All app source files whose classes belong in the app's css (UI + sub-components). */
 function appFiles(appDir: string): string[] {
   const out: string[] = [];
@@ -291,6 +347,8 @@ export class AppCssCompiler {
         '@import "tailwindcss" source(none);',
         '@source "../*.{ts,tsx,js,jsx}";',
         '@source "../**/*.{ts,tsx,js,jsx}";',
+        "",
+        resolveThemeTokensCss().trimEnd(),
       ].join("\n") + "\n",
     );
 

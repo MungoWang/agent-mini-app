@@ -31,11 +31,11 @@ Use the raw `var(--token)` only where a utility cannot reach: `style={{ … }}`,
 | `--input` | `border-input` | `oklch(0.922 0 0)` | `oklch(1 0 0 / 15%)` |
 | `--popover` | `bg-popover` | `oklch(1 0 0)` | `oklch(0.205 0 0)` |
 | `--sidebar` | `bg-sidebar` | `oklch(0.985 0 0)` | `oklch(0.205 0 0)` |
-| `--sidebar-accent` | `bg-sidebar-accent · text-sidebar-accent` | `oklch(0.97 0 0)` | `oklch(0.269 0 0)` |
-| `--sidebar-border` | `bg-sidebar-border · text-sidebar-border` | `oklch(0.922 0 0)` | `oklch(1 0 0 / 10%)` |
+| `--sidebar-accent` | `—` | `oklch(0.97 0 0)` | `oklch(0.269 0 0)` |
+| `--sidebar-border` | `—` | `oklch(0.922 0 0)` | `oklch(1 0 0 / 10%)` |
 | `--sidebar-foreground` | `text-sidebar-foreground` | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` |
-| `--sidebar-primary` | `bg-sidebar-primary · text-sidebar-primary` | `oklch(0.205 0 0)` | `oklch(0.488 0.243 264.376)` |
-| `--sidebar-ring` | `bg-sidebar-ring · text-sidebar-ring` | `oklch(0.708 0 0)` | `oklch(0.556 0 0)` |
+| `--sidebar-primary` | `—` | `oklch(0.205 0 0)` | `oklch(0.488 0.243 264.376)` |
+| `--sidebar-ring` | `—` | `oklch(0.708 0 0)` | `oklch(0.556 0 0)` |
 
 ### Text
 
@@ -72,11 +72,11 @@ Use the raw `var(--token)` only where a utility cannot reach: `style={{ … }}`,
 
 | Token | Tailwind | Light | Dark |
 |---|---|---|---|
-| `--chart-1` | `bg-chart-1 · text-chart-1` | `oklch(0.87 0 0)` | `oklch(0.87 0 0)` |
-| `--chart-2` | `bg-chart-2 · text-chart-2` | `oklch(0.556 0 0)` | `oklch(0.556 0 0)` |
-| `--chart-3` | `bg-chart-3 · text-chart-3` | `oklch(0.439 0 0)` | `oklch(0.439 0 0)` |
-| `--chart-4` | `bg-chart-4 · text-chart-4` | `oklch(0.371 0 0)` | `oklch(0.371 0 0)` |
-| `--chart-5` | `bg-chart-5 · text-chart-5` | `oklch(0.269 0 0)` | `oklch(0.269 0 0)` |
+| `--chart-1` | `—` | `oklch(0.87 0 0)` | `oklch(0.87 0 0)` |
+| `--chart-2` | `—` | `oklch(0.556 0 0)` | `oklch(0.556 0 0)` |
+| `--chart-3` | `—` | `oklch(0.439 0 0)` | `oklch(0.439 0 0)` |
+| `--chart-4` | `—` | `oklch(0.371 0 0)` | `oklch(0.371 0 0)` |
+| `--chart-5` | `—` | `oklch(0.269 0 0)` | `oklch(0.269 0 0)` |
 
 ### Radius, font & shadow
 
