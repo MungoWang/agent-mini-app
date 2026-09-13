@@ -147,10 +147,15 @@ function publishLocal(version: string): void {
         userconfig,
         [`registry=${REGISTRY}/`, "//127.0.0.1:4873/:_authToken=dsh-host", "always-auth=true", ""].join("\n"),
       );
-      execFileSync("npm", ["publish", "--registry", REGISTRY, "--access", "public", "--userconfig", userconfig], {
-        cwd: pkgDir,
-        stdio: "inherit",
-      });
+      // npm ≥10 refuses prerelease publishes without an explicit --tag (0.0.0-dshhost.*).
+      execFileSync(
+        "npm",
+        ["publish", "--registry", REGISTRY, "--access", "public", "--tag", "dshhost", "--userconfig", userconfig],
+        {
+          cwd: pkgDir,
+          stdio: "inherit",
+        },
+      );
     } finally {
       writeFileSync(pkgFile, original);
     }
