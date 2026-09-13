@@ -46,5 +46,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "bump": true
+  "bump": true,
+  "license": "MIT"
 }
