@@ -5,16 +5,20 @@ import type { LlmRunOptions } from "./model-call.ts";
 import { DEFAULT_AGENT_ATTEMPTS, runLlmAttempts } from "./model-call.ts";
 
 /**
- * Stateless host capabilities. First argument is always the call context;
- * user opts (2nd/3rd) stay pristine — do not mutate them.
+ * Agent-Client-provided capabilities injected into the host.
+ * First argument is always the call context; user opts stay pristine.
+ *
+ * The host never implements `llm` / `agent` — those belong to an Agent Client
+ * (in-proc or via http `connect`). See docs/rfcs/host-kernel-agent-client.md.
  */
-export interface HostCapabilities {
+export interface AgentCapabilities {
   bash?(
     ctx: AppCallContext,
     command: string,
   ): Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  /** Agent Client only — host never embeds a model provider. */
   llm?(ctx: AppCallContext, prompt: string, opts?: LlmRunOptions): Promise<string>;
-  /** Final answer is always a string; pass `opts.onEvent` for live process events. */
+  /** Agent Client only. Final answer is a string; pass `opts.onEvent` for live events. */
   agent?(ctx: AppCallContext, goal: string, opts?: AgentRunOptions): Promise<string>;
   tool?(ctx: AppCallContext, name: string, args?: Record<string, unknown>): Promise<unknown>;
   mcp?(ctx: AppCallContext, name: string, args?: Record<string, unknown>): Promise<unknown>;
@@ -25,10 +29,13 @@ export interface HostCapabilities {
   listTools?(ctx: AppCallContext): unknown[];
   /**
    * Fire one UI event to this app's open views (SSE). Injected by `createHost`,
-   * so adapters do not implement it.
+   * so Agent Clients do not implement it.
    */
   push?(ctx: AppCallContext, name: string, data?: unknown): void;
 }
+
+/** @deprecated Use {@link AgentCapabilities}. */
+export type HostCapabilities = AgentCapabilities;
 
 /**
  * Author-facing methods (no leading ctx — bound by bindCapsToContext).
@@ -58,7 +65,7 @@ function missingCap(name: string): never {
  */
 export function withAgentStreamBridge(
   ctx: AppCallContext,
-  caps: HostCapabilities,
+  caps: AgentCapabilities,
   opts?: AgentRunOptions,
 ): AgentRunOptions | undefined {
   if (!opts?.streamTo || !caps.push) return opts;
@@ -79,13 +86,13 @@ export function withAgentStreamBridge(
 
 /**
  * Bind caps.*(ctx, …) onto author-facing methods.
- * Keep this list next to HostCapabilities so new tools are not forgotten.
+ * Keep this list next to AgentCapabilities so new tools are not forgotten.
  */
 export function bindCapsToContext(
   ctx: AppCallContext,
-  caps: HostCapabilities,
+  caps: AgentCapabilities,
 ): BoundHostCapabilities {
-  // Hand-written (not Object.keys): keep next to HostCapabilities so new methods are not forgotten.
+  // Hand-written (not Object.keys): keep next to AgentCapabilities so new methods are not forgotten.
   // async wrappers turn missingCap sync throws into Promise rejections.
   //
   // Call through `caps.llm(...)` / `caps.agent(...)` — never destructure the methods off. Adapters

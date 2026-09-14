@@ -1,0 +1,70 @@
+{
+  "name": "@monkey-mini-app/pi-mini-app",
+  "version": "0.1.0",
+  "description": "pi Agent Client for monkey-mini-app: tools + served AgentCapabilities (no createHost)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "keywords": [
+    "pi-package",
+    "monkey-mini-app",
+    "pi"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "scripts": {
+    "build": "tsup && node ../../scripts/gen/skill/copy.mjs pi",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "pnpm build",
+    "postpack": "node ../../scripts/gen/skill/copy.mjs clean pi"
+  },
+  "dependencies": {
+    "@monkey-mini-app/host": "workspace:*",
+    "@monkey-mini-app/shell": "workspace:*"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": ">=0.1.0",
+    "@earendil-works/pi-coding-agent": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-ai": {
+      "optional": true
+    },
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.85.1",
+    "@types/node": "^22",
+    "tsup": "^8",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "extensions",
+    "skills"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

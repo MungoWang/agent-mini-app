@@ -21,3 +21,4 @@ apps/dsh-host/htpasswd
 apps/dsh-host/.npmrc.publish
 test-results/
 playwright-report/
+apps/mma-shell/src-tauri/target/

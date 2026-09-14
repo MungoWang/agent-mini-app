@@ -1,6 +1,6 @@
 import type { HttpGateway } from "./http/http-gateway.ts";
 import type { WorkspacePaths } from "./paths/workspace-paths.ts";
-import type { HostCapabilities } from "./capabilities.ts";
+import type { AgentCapabilities } from "./capabilities.ts";
 import { HostError } from "./errors.ts";
 import type { HostLifecycle, HostServices } from "./lifecycle.ts";
 import type { HostConfig } from "./types.ts";
@@ -12,7 +12,7 @@ export class Host {
   private active = false;
 
   constructor(
-    private readonly capabilities: HostCapabilities,
+    private readonly capabilities: AgentCapabilities,
     private readonly lifecycle: HostLifecycle,
     private readonly paths: WorkspacePaths,
     private readonly config: HostConfig,

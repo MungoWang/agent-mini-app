@@ -6,9 +6,12 @@
 
 | Package | npm | Role |
 |---|---|---|
-| `packages/host` | `@monkey-mini-app/host` | AppsManager / GitHistory / Hono / UiCompiler / ToolFacade / config |
-| `packages/panel` | `@monkey-mini-app/panel` | Host-agnostic React panel (`PanelHost` seam; no `/api`) |
-| `packages/dsh` | `@monkey-mini-app/dsh-mini-app` | dsh adapter: capabilities + lifecycle + client + skills |
+| `packages/host` | `@monkey-mini-app/host` | Kernel: AppsManager / Git / Hono / ToolPort / `AgentCapabilities` types + serve/connect |
+| `packages/panel` | `@monkey-mini-app/panel` | Host-agnostic React panel (`PanelHost` seam; HTTP only) |
+| `packages/dsh` | `@monkey-mini-app/dsh-mini-app` | Agent Client + co-located Host (in-proc serve/connect) + panel inject |
+| `packages/shell` | `@monkey-mini-app/shell` | Split-deploy Host owner (`connect` + `createHost` CLI) |
+| `packages/pi` | `@monkey-mini-app/pi-mini-app` | pi Agent Client only (serve caps + register tools; no `createHost`) |
+| `apps/mma-shell` | — | Tauri Shell: Panel webview + Node host sidecar |
 | `packages/ui` | `@monkey-mini-app/ui` | Author UI package: kit + `useApp`; iframe `/mma/runtime.js` + `/mma/sdk.js` |
 | `packages/api` | `@monkey-mini-app/api` | Backend `defineApp` + `AppCtx` types (host injects runtime) |
 | `packages/ui-examples` | `@monkey-mini-app/ui-examples` | Portable component examples (demo-host · e2e · skill) — private |
@@ -16,11 +19,21 @@
 
 ## Composition root
 
+**Constitution:** Host never owns AI. `AgentCapabilities` are Agent-Client–provided. Caps transport is `serve`/`connect` (in-proc = identity). See `docs/rfcs/host-kernel-agent-client.md`.
+
 ```ts
-createHost(new DshCapabilities(ctx), new DshLifecycle(ctx), { config }).apply(ctx)
+// dsh (in-proc)
+const agent = createAgentClient({ capabilities: new DshCapabilities(ctx), tools: registrar, … });
+const endpoint = await Promise.resolve(inprocAgentCapabilitiesTransport.serve(agent.capabilities));
+createHost(inprocAgentCapabilitiesTransport.connect(endpoint), hooks, { config }).apply(ctx);
+agent.bindToHost({ mode: "inproc", port: services.tools });
+
+// Shell + pi (http)
+serveAgentCapabilities(piCaps); // pi process
+createHost(connectAgentCapabilities(endpoint), hooks, { config }); // Shell
 ```
 
-dsh supplies capabilities/lifecycle; another host implements its own. Do not leak dsh types into `host` / `panel` / `sdk`.
+Do not leak dsh/pi types into `host` / `panel`.
 
 ## Author surface
 
@@ -65,4 +78,5 @@ cross-origin to the panel, so nothing else can see in) →
 - [`docs/contracts/app-events.md`](../contracts/app-events.md) — `ctx.push` → `useApp().on`
 - [`docs/contracts/runtime-diagnostics.md`](../contracts/runtime-diagnostics.md) — runtime errors + DOM outline back to the agent
 - [`docs/rfcs/authoring-protocol.md`](../rfcs/authoring-protocol.md) — protocol hard-cut notes
-- [`docs/rfcs/pi-extension-port.md`](../rfcs/pi-extension-port.md) — next host (not implemented)
+- [`docs/rfcs/host-kernel-agent-client.md`](../rfcs/host-kernel-agent-client.md) — kernel × Agent Client (direction)
+- [`docs/rfcs/pi-extension-port.md`](../rfcs/pi-extension-port.md) — older pi notes (superseded on process shape / AI ownership)

@@ -12,6 +12,31 @@ export {
   isUpdateAvailable,
   resolveAboutInfo,
 } from "./about.ts";
+export type {
+  AgentCapabilitiesEndpoint,
+  AgentCapabilitiesHttpEndpoint,
+  AgentCapabilitiesTransport,
+  MaybeAsync,
+  ServeAgentCapabilitiesOptions,
+  ServedAgentCapabilities,
+} from "./agent-capabilities-transport.ts";
+export {
+  connectAgentCapabilities,
+  connectAgentCapabilitiesAsync,
+  httpAgentCapabilitiesTransport,
+  inprocAgentCapabilitiesTransport,
+  isAgentCapabilitiesHttpEndpoint,
+  serveAgentCapabilities,
+} from "./agent-capabilities-transport.ts";
+export type {
+  AgentClient,
+  AgentClientPorts,
+  SessionPort,
+  SkillPort,
+  ToolAccess,
+  ToolRegistrarPort,
+} from "./agent-client.ts";
+export { createAgentClient } from "./agent-client.ts";
 export type { AgentCwdContext, AgentCwdInput } from "./agent-cwd.ts";
 export { isAgentCwdType, resolveAgentCwd } from "./agent-cwd.ts";
 export type {
@@ -91,10 +116,13 @@ export {
   isAppId,
 } from "./brand.ts";
 export type {
+  AgentCapabilities,
   BoundHostCapabilities,
   HostCapabilities,
 } from "./capabilities.ts";
-export { bindCapsToContext } from "./capabilities.ts";
+export { bindCapsToContext, withAgentStreamBridge } from "./capabilities.ts";
+export type { ToolClient, ToolClientOptions } from "./client/tool-client.ts";
+export { createToolClient } from "./client/tool-client.ts";
 export type { TailwindBin, TailwindSearch } from "./compile/app-css.ts";
 export { AppCssCompiler, appCssExists, findTailwind } from "./compile/app-css.ts";
 export {
@@ -196,7 +224,7 @@ export {
 export { HttpGateway } from "./http/http-gateway.ts";
 export type { HostI18n, I18nParams } from "./i18n/index.ts";
 export { createHostI18n } from "./i18n/index.ts";
-export type { HostLifecycle, HostServices, LogLevel } from "./lifecycle.ts";
+export type { AdapterHooks, HostLifecycle, HostServices, LogLevel } from "./lifecycle.ts";
 export type {
   JsonInstructOptions,
   JsonSchema,
@@ -218,6 +246,8 @@ export type { CustomThemePalette, ThemeResource } from "./theme-resource.ts";
 export { EMPTY_THEME_RESOURCE } from "./theme-resource.ts";
 export type { ToolDefinition } from "./tools/tool-facade.ts";
 export { isMiniAppToolName, ToolFacade } from "./tools/tool-facade.ts";
+export type { ToolPort } from "./tools/tool-port.ts";
+export { createAgentTools } from "./tools/tool-port.ts";
 export type {
   HostConfig,
   HostConfigInitInput,

@@ -45,6 +45,8 @@ import { formatSse, type HostEventBus } from "../events/host-events.ts";
 import type { GitHistory } from "../git/git-history.ts";
 import { WorkspacePaths } from "../paths/workspace-paths.ts";
 import { EMPTY_THEME_RESOURCE, type ThemeResource } from "../theme-resource.ts";
+import { isMiniAppToolName } from "../tools/tool-facade.ts";
+import type { ToolPort } from "../tools/tool-port.ts";
 import {
   type HostConfig,
   LOCALE_IDS,
@@ -225,7 +227,7 @@ function mergeHostConfigPatch(
   };
 }
 
-/** Localhost HTTP surface. Calls AppsManager / UiCompiler — never ToolFacade. */
+/** Localhost HTTP: panel REST/SSE + optional ToolPort invoke for Agent Clients. */
 export class HttpGateway {
   readonly app: Hono;
   private server: Server | null = null;
@@ -242,6 +244,7 @@ export class HttpGateway {
     private readonly events?: HostEventBus,
     private readonly onHostPortChanged?: (port: number) => void,
     private readonly about: HostAboutMeta = { adapter: "host" },
+    private readonly tools?: ToolPort,
   ) {
     this.app = this.buildApp();
   }
@@ -298,6 +301,47 @@ export class HttpGateway {
     app.notFound((c) => c.json({ error: "not_found" }, 404));
 
     app.get("/health", (c) => c.json({ ok: true, hostPort: this.boundPort }));
+
+    app.get("/api/tools", (c) => {
+      if (!this.tools) {
+        return c.json({ ok: false, error: "tool port unavailable" }, 503);
+      }
+      return c.json({
+        tools: this.tools.definitions().map(({ name, description, inputSchema }) => ({
+          name,
+          description,
+          inputSchema,
+        })),
+      });
+    });
+
+    app.post("/api/tools/invoke", async (c) => {
+      if (!this.tools) {
+        return c.json({ ok: false, error: "tool port unavailable" }, 503);
+      }
+      let body: unknown;
+      try {
+        body = await c.req.json();
+      } catch {
+        return c.json({ ok: false, error: "invalid json" }, 400);
+      }
+      if (!isRecord(body) || typeof body.name !== "string" || !body.name) {
+        return c.json({ ok: false, error: "name required" }, 400);
+      }
+      if (!isMiniAppToolName(body.name)) {
+        return c.json({ ok: false, error: "not a mini_app tool", code: "UNKNOWN_TOOL" }, 400);
+      }
+      const args = isRecord(body.args) ? body.args : {};
+      try {
+        const result = await this.tools.invoke(body.name, args, c.req.raw.signal);
+        return c.json(result);
+      } catch (cause) {
+        if (cause instanceof HostError) {
+          return c.json({ ok: false, error: cause.message, code: cause.code }, 400);
+        }
+        throw cause;
+      }
+    });
 
     app.get("/api/events", (c) => {
       const bus = this.events;

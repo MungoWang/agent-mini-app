@@ -2,9 +2,9 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 import type {
+  AgentCapabilities,
   AgentRunOptions,
   AppCallContext,
-  HostCapabilities,
   LlmRunOptions,
 } from "@monkey-mini-app/host";
 
@@ -41,7 +41,7 @@ export function listDshTools(ctx: DshCtx): Array<Record<string, unknown>> {
 }
 
 /** dsh ctx-facing capabilities. Fail loud when the host has no llm/agent/tool/mcp. */
-export class DshCapabilities implements HostCapabilities {
+export class DshCapabilities implements AgentCapabilities {
   constructor(private readonly dsh: DshCtx) {}
 
   async bash(

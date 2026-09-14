@@ -37,17 +37,19 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 | UI skill contracts (generated) | `scripts/gen/skill/` → `pnpm gen:skill`; gate `scripts/check/skill.mjs` → `pnpm check:skill` (see `scripts/README.md`) |
 | Host-free demo | `pnpm dev:host`; gallery `apps/demo-host/` |
 | dsh path-link on a dev machine | `scripts/setup/install-dsh-plugin.sh` |
-| pi adapter | **not implemented**; `docs/rfcs/pi-extension-port.md` |
+| pi Agent Client | `packages/pi` (`@monkey-mini-app/pi-mini-app`) — no `createHost`; see `docs/rfcs/host-kernel-agent-client.md` |
+| Shell (Host owner + Tauri) | `packages/shell` + `apps/mma-shell` |
 | Live architecture | `docs/architecture/overview.md` |
 
 `packages/dsh/lib/` is tsup output (gitignored).
 
 ## Architecture
 
-- Composition root: `createHost(capabilities, lifecycle, { config }).apply(ctx)`. dsh passes `DshCapabilities` / `DshLifecycle`; a new host implements its own. Do not leak dsh types into `host` / `panel` / `sdk`.
-- **Never spread a `HostCapabilities`** (`{ ...capabilities }`). Adapters pass **class instances** whose methods sit on the prototype, so a spread yields an object with no capabilities and every `ctx.*` fails with `host capability not available` — while object-literal caps in tests/react-host keep working and hide it (`3c8cb5a`, shipped in `0.1.1`). Wrap with `Object.create(caps, { push: … })`. The host test suite keeps a class-shaped adapter for exactly this reason.
-- Seam names: `HostCapabilities` / `HostLifecycle` / `PanelHost` (do not add an `Adapter` primary seam).
-- `HostCapabilities.*(callCtx, …)`; `bindCapsToContext` → author `ctx.*`; opts are not merged.
+- **Constitution — AI ownership:** The App Host never manages LLM/agent providers. `ctx.llm` / `ctx.agent` are always supplied by an **Agent Client** via **`AgentCapabilities`** (renamed from `HostCapabilities`). Tool semantics (`mini_app_*`) live in the host ToolPort; adapters only register and transport. Caps use unified `serve`/`connect` (in-proc = identity). See `docs/rfcs/host-kernel-agent-client.md`.
+- Composition: `createAgentClient(ports)` + `createHost(transport.connect(endpoint), hooks, { config })`. dsh uses in-proc transport; Shell+pi uses http. Do not leak dsh/pi types into `host` / `panel`.
+- **Never spread an `AgentCapabilities` / `HostCapabilities`** (`{ ...capabilities }`). Adapters pass **class instances** whose methods sit on the prototype, so a spread yields an object with no capabilities and every `ctx.*` fails with `host capability not available` — while object-literal caps in tests/react-host keep working and hide it (`3c8cb5a`, shipped in `0.1.1`). Wrap with `Object.create(caps, { push: … })`. The host test suite keeps a class-shaped adapter for exactly this reason.
+- Seam names: `AgentCapabilities` (alias `HostCapabilities`) / `AdapterHooks` (alias `HostLifecycle`) / `PanelHost`.
+- `AgentCapabilities.*(callCtx, …)`; `bindCapsToContext` → author `ctx.*`; opts are not merged.
 - Paths only via `WorkspacePaths`; product code must not hardcode `~/.monkey-mini-app`.
 - Config: first plugin boot `bootstrapHostConfig` writes a full `host.json` if missing; a present-but-corrupt file fails loud.
 - git: `isomorphic-git` in `packages/host/src/git/`; no `child_process` git CLI.
@@ -62,7 +64,7 @@ Web Grok sandbox ≠ this repo. Platform UI: `pnpm dev:host`. dsh adapter: edit 
 2. `call` methods must be keys of `defineApp({ api })`.
 3. Backend `main.api.ts` imports `defineApp` from `@monkey-mini-app/api` (the host injects the runtime copy — nothing React is loaded), `lodash` (host-injected, same full build as the iframe), one library installed **into that app** via `mini_app_install` (`--ignore-scripts`, resolved only from `appDir/node_modules`), and relative paths inside the app dir; no other npm / Node builtins / `ui/**`. Layout: `ui/` UI-only · `api/` backend-only · `shared/` pure-isomorphic (enforced both ways). Net: `ctx.http`; machine: `ctx.bash`; model: `ctx.llm`.
 4. `compileAppSource` uses sucrase; no regex global strip of `: type`. UI compile: `packages/host/src/compile/ui-compiler.ts`.
-5. `ctx.llm` goes through `HostCapabilities.llm`; only the dsh adapter uses `llm.stream({ provider, model, messages })`. Do not hardcode dsh in `host`.
+5. `ctx.llm` goes through `AgentCapabilities.llm` (Agent Client–provided); only the dsh adapter uses `llm.stream({ provider, model, messages })`. Do not hardcode dsh in `host`.
 6. `ctx.http` → `{ ok, status, headers, text, json }`; `ctx.bash` → `{ stdout, stderr, exitCode }`; `ctx.llm` / `ctx.tool` → **string**. MCP args must not be `{ input: "..." }`.
 7. iframe must fill height; `#root.boot` is load art only — clear it before React mount.
 8. Mini-app entry shares collapse classes with Settings; open via `data-mma-open` event delegation.

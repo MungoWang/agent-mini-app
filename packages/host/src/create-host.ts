@@ -6,19 +6,20 @@ import { HostEventBus } from "./events/host-events.ts";
 import { GitHistory } from "./git/git-history.ts";
 import { HttpGateway } from "./http/http-gateway.ts";
 import { WorkspacePaths } from "./paths/workspace-paths.ts";
-import { ToolFacade } from "./tools/tool-facade.ts";
+import { createAgentTools } from "./tools/tool-port.ts";
 import type { HostAboutMeta } from "./about.ts";
 import type { AppCallContext } from "./app-runtime.ts";
-import type { HostCapabilities } from "./capabilities.ts";
+import type { AgentCapabilities } from "./capabilities.ts";
 import { Host } from "./host.ts";
-import type { HostLifecycle, HostServices } from "./lifecycle.ts";
+import type { AdapterHooks, HostServices } from "./lifecycle.ts";
 import { EMPTY_THEME_RESOURCE, type ThemeResource } from "./theme-resource.ts";
 import type { HostConfig } from "./types.ts";
 
-/** Assemble a Host. `options.config` must already be parsed (`parseHostConfig` / bootstrap). */
+/** Assemble a Host. `options.config` must already be parsed (`parseHostConfig` / bootstrap).
+ * Pass capabilities already obtained via `transport.connect(endpoint)`. */
 export function createHost(
-  capabilities: HostCapabilities,
-  lifecycle: HostLifecycle,
+  capabilities: AgentCapabilities,
+  lifecycle: AdapterHooks,
   options: {
     config: HostConfig;
     /** Theme resource port — shell implements; host only consumes the interface. */
@@ -48,11 +49,11 @@ export function createHost(
       enumerable: true,
       writable: true,
     },
-  }) as HostCapabilities;
+  }) as AgentCapabilities;
   // Same bus the HTTP gateway fans out on — without this, app:reload / storage notices
   // from AppsManager would go to a private bus the panel never sees.
   const apps = new AppsManager(paths, caps, git, config, events);
-  const tools = new ToolFacade(apps, git, paths, events);
+  const tools = createAgentTools(apps, git, paths, events);
   const compiler = new UiCompiler(paths);
   apps.setUiCompiler(compiler);
   const css = new AppCssCompiler(paths);
@@ -71,6 +72,7 @@ export function createHost(
     events,
     (port) => lifecycle.onHostPortChanged?.(port),
     options.about ?? { adapter: "host" },
+    tools,
   );
   const services: HostServices = { apps, git, tools, paths, config, events };
   return new Host(caps, lifecycle, paths, config, services, http);

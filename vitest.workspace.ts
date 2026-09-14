@@ -26,6 +26,8 @@ export default defineWorkspace([
         "@monkey-mini-app/panel/themes": path.join(root, "packages/panel/src/themes.ts"),
         "@monkey-mini-app/panel": alias("panel"),
         "@monkey-mini-app/dsh-mini-app": alias("dsh"),
+        "@monkey-mini-app/shell": alias("shell"),
+        "@monkey-mini-app/pi-mini-app": alias("pi"),
       },
     },
     test: {
@@ -36,7 +38,7 @@ export default defineWorkspace([
         "packages/**/tests/**/*.test.ts",
         "packages/smoke-test/**/*.test.ts",
       ],
-      exclude: ["**/node_modules/**", "**/dist/**", "packages/ui/**"],
+      exclude: ["**/node_modules/**", "**/dist/**", "packages/ui/**", "apps/**"],
       testTimeout: 60_000,
       // No `coverage` block here on purpose. Coverage is a root-only option: a workspace
       // project is typed `ProjectConfig`, which does not accept it, and anything written

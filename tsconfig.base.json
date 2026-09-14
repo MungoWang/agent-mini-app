@@ -21,7 +21,9 @@
       "@monkey-mini-app/ui-examples": ["./packages/ui-examples/src/index.ts"],
       "@deepseek-ai/dsh-tools": ["./packages/dsh/src/dsh-tools.d.ts"],
       "@monkey-mini-app/host": ["./packages/host/src/index.ts"],
-      "@monkey-mini-app/dsh-mini-app": ["./packages/dsh/src/index.ts"]
+      "@monkey-mini-app/dsh-mini-app": ["./packages/dsh/src/index.ts"],
+      "@monkey-mini-app/shell": ["./packages/shell/src/index.ts"],
+      "@monkey-mini-app/pi-mini-app": ["./packages/pi/src/index.ts"]
     }
   }
 }

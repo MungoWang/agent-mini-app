@@ -6,6 +6,8 @@ const mmaPackages = [
   "packages/api/**/*.{ts,tsx}",
   "packages/panel/**/*.{ts,tsx}",
   "packages/dsh/**/*.{ts,tsx}",
+  "packages/shell/**/*.{ts,tsx}",
+  "packages/pi/**/*.{ts,tsx}",
   "packages/ui-examples/**/*.{ts,tsx}",
 ];
 

@@ -10,7 +10,7 @@ import * as lodashEs from "lodash-es";
 import type { AgentRunOptions } from "../agent-events.ts";
 import type { AppCallContext } from "../app-runtime.ts";
 import { type AbsolutePath, type AppId,asAppId, isAppId } from "../brand.ts";
-import type { HostCapabilities } from "../capabilities.ts";
+import type { AgentCapabilities } from "../capabilities.ts";
 import { bindCapsToContext } from "../capabilities.ts";
 import type { AppCssCompiler } from "../compile/app-css.ts";
 import { findVendor, resolveVendorSpecifier,type VendorId } from "../compile/platform-modules.ts";
@@ -366,7 +366,7 @@ export class AppsManager {
 
   constructor(
     private readonly paths: WorkspacePaths,
-    private readonly capabilities: HostCapabilities,
+    private readonly capabilities: AgentCapabilities,
     private readonly git: GitHistory,
     private readonly config: HostConfig,
     /** Own bus when a host constructs us without one (tests, adapters). */
